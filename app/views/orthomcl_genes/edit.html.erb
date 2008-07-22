@@ -1,0 +1,22 @@
+<h1>Editing orthomcl_gene</h1>
+
+<%= error_messages_for :orthomcl_gene %>
+
+<% form_for(@orthomcl_gene) do |f| %>
+  <p>
+    <b>Orthomcl name</b><br />
+    <%= f.text_field :orthomcl_name %>
+  </p>
+
+  <p>
+    <b>Orthomcl group</b><br />
+    <%= f.text_field :orthomcl_group_id %>
+  </p>
+
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @orthomcl_gene %> |
+<%= link_to 'Back', orthomcl_genes_path %>

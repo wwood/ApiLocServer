@@ -1,0 +1,13 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+ one:
+   id: 1
+   coding_region_id: 1
+   type: AminoAcidSequence
+   sequence: TSPFIIIINIIDIFHHSYLLYFIFSFNFITIIFFYYYVEKSIFIFIFIIKYTFSYHIIIF
+
+ two:
+   id: 2
+   coding_region_id: 2
+   type: AminoAcidSequence
+   sequence: TSPFIIIINIIDIFHHSYLLYFIFSFNFITIIFFYYYVEKSIFIFIFIIKYTFSYHIIIF

@@ -1,0 +1,2 @@
+class MembrainTransmembraneDomain < TransmembraneDomain
+end

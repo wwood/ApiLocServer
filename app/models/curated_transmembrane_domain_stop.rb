@@ -1,0 +1,2 @@
+class CuratedTransmembraneDomainStop < TransmembraneDomainMeasurement
+end

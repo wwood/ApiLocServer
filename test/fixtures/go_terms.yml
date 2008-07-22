@@ -1,0 +1,9 @@
+one:
+  id: 1
+  go_identifier: GO:0005275
+two:
+  id: 2
+  term: GO:2
+three:
+  id: 3
+  term: GO:3

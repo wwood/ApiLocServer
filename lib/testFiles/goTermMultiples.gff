@@ -1,0 +1,12 @@
+apidb|MAL12	ApiDB	gene	194141	195459	.	+	.	ID=apidb|PFL0190w;Name=PFL0190w;description=ubiquitin-conjugating+enzyme+e2%2C+putative;size=1319;web_id=PFL0190w;locus_tag=PFL0190w;size=1319;Alias=MAL12P1.38,2277.t00038
+apidb|MAL12	ApiDB	mRNA	194141	195459	.	+	.	ID=apidb|rna_PFL0190w-1;Name=PFL0190w-1;description=ubiquitin-conjugating+enzyme+e2%2C+putative;size=1319;Parent=apidb|PFL0190w;Ontology_term=GO:0006464,GO:0006464,GO:0006512,GO:0006512,GO:0005575,GO:0004840,GO:0004842;Dbxref=ApiDB_PlasmoDB:PFL0190w,EC:6.3.2.19,NCBI_gi:124805463,NCBI_gi:23496569,NCBI_gi:56525411,NCBI_gi:70951940,PDB:1QCQ,Sanger:PFL0190w,taxon:36329
+apidb|MAL12	ApiDB	CDS	194141	194164	.	+	0	ID=apidb|cds_PFL0190w-1;Name=cds;description=.;size=24;Parent=apidb|rna_PFL0190w-1
+apidb|MAL12	ApiDB	CDS	194626	194729	.	+	0	ID=apidb|cds_PFL0190w-1;Name=cds;description=.;size=104;Parent=apidb|rna_PFL0190w-1
+apidb|MAL12	ApiDB	CDS	194897	194966	.	+	1	ID=apidb|cds_PFL0190w-1;Name=cds;description=.;size=70;Parent=apidb|rna_PFL0190w-1
+apidb|MAL12	ApiDB	CDS	195096	195243	.	+	0	ID=apidb|cds_PFL0190w-1;Name=cds;description=.;size=148;Parent=apidb|rna_PFL0190w-1
+apidb|MAL12	ApiDB	CDS	195362	195459	.	+	2	ID=apidb|cds_PFL0190w-1;Name=cds;description=.;size=98;Parent=apidb|rna_PFL0190w-1
+apidb|MAL12	ApiDB	exon	194141	194164	.	+	.	ID=apidb|exon_PFL0190w-1;Name=exon;description=exon;size=24;Parent=apidb|rna_PFL0190w-1
+apidb|MAL12	ApiDB	exon	194626	194729	.	+	.	ID=apidb|exon_PFL0190w-2;Name=exon;description=exon;size=104;Parent=apidb|rna_PFL0190w-1
+apidb|MAL12	ApiDB	exon	194897	194966	.	+	.	ID=apidb|exon_PFL0190w-3;Name=exon;description=exon;size=70;Parent=apidb|rna_PFL0190w-1
+apidb|MAL12	ApiDB	exon	195096	195243	.	+	.	ID=apidb|exon_PFL0190w-4;Name=exon;description=exon;size=148;Parent=apidb|rna_PFL0190w-1
+apidb|MAL12	ApiDB	exon	195362	195459	.	+	.	ID=apidb|exon_PFL0190w-5;Name=exon;description=exon;size=98;Parent=apidb|rna_PFL0190w-1

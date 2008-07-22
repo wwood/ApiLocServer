@@ -1,0 +1,11 @@
+<h1>New plasmodb_gene_list</h1>
+
+<%= error_messages_for :plasmodb_gene_list %>
+
+<% form_for(@plasmodb_gene_list) do |f| %>
+  <p>
+    <%= f.submit "Create" %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', plasmodb_gene_lists_path %>

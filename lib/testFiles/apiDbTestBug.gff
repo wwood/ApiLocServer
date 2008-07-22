@@ -1,0 +1,13 @@
+apidb|X95276	ApiDB	gene	242	314	.	+	.	ID=apidb|PFCOMPIRB-tRNA-Thr-1;Name=PFCOMPIRB-tRNA-Thr-1;description=tRNA-Thr;size=73;web_id=PFCOMPIRB-tRNA-Thr-1;locus_tag=PFCOMPIRB-tRNA-Thr-1;size=73
+apidb|X95276	ApiDB	tRNA	242	314	.	+	.	ID=apidb|rna_PFCOMPIRB-tRNA-Thr-1-1;Name=PFCOMPIRB-tRNA-Thr-1-1;description=tRNA-Thr;size=73;Parent=apidb|PFCOMPIRB-tRNA-Thr-1;Dbxref=ApiDB_PlasmoDB:PFCOMPIRB-tRNA-Thr-1,taxon:36329
+apidb|X95276	ApiDB	exon	242	314	.	+	.	ID=apidb|exon_PFCOMPIRB-tRNA-Thr-1-1;Name=exon;description=exon;size=73;Parent=apidb|rna_PFCOMPIRB-tRNA-Thr-1-1
+apidb|X95276	ApiDB	gene	1	227	.	+	.	ID=apidb|PFCOMPIRB-LSU rRNA-1;Name=PFCOMPIRB-LSU+rRNA-1;description=large+subunit+ribosomal+RNA;size=227;web_id=PFCOMPIRB-LSU rRNA-1;locus_tag=PFCOMPIRB-LSU rRNA-1;size=227
+apidb|X95276	ApiDB	rRNA	1	227	.	+	.	ID=apidb|rna_PFCOMPIRB-LSU rRNA-1-1;Name=PFCOMPIRB-LSU+rRNA-1-1;description=large+subunit+ribosomal+RNA;size=227;Parent=apidb|PFCOMPIRB-LSU rRNA-1;Dbxref=ApiDB_PlasmoDB:PFCOMPIRB-LSU rRNA-1,taxon:36329
+apidb|X95276	ApiDB	exon	1	227	.	+	.	ID=apidb|exon_PFCOMPIRB-LSU rRNA-1-1;Name=exon;description=exon;size=227;Parent=apidb|rna_PFCOMPIRB-LSU rRNA-1-1
+apidb|MAL11	ApiDB	gene	2025814	2035883	.	+	.	ID=apidb|PF11_0521;Name=PF11_0521;description=erythrocyte+membrane+protein+1+%28PfEMP1%29;size=10070;web_id=PF11_0521;locus_tag=PF11_0521;size=10070
+apidb|MAL11	ApiDB	mRNA	2025814	2035883	.	+	.	ID=apidb|rna_PF11_0521-1;Name=PF11_0521-1;description=erythrocyte+membrane+protein+1+%28PfEMP1%29;size=10070;Parent=apidb|PF11_0521;Ontology_term=GO:0009405,GO:0016337,GO:0020013,GO:0020033,GO:0020035,GO:0016020,GO:0016021,GO:0020002,GO:0020030,GO:0004872,GO:0005539,GO:0046789,GO:0050839;Dbxref=ApiDB_PlasmoDB:PF11_0521,NCBI_gi:124805005,NCBI_gi:23496433,Sanger:PF11_0521,taxon:36329
+apidb|MAL11	ApiDB	CDS	2025814	2033967	.	+	0	ID=apidb|cds_PF11_0521-1;Name=cds;description=.;size=8154;Parent=apidb|rna_PF11_0521-1
+apidb|MAL11	ApiDB	CDS	2034678	2035883	.	+	0	ID=apidb|cds_PF11_0521-1;Name=cds;description=.;size=1206;Parent=apidb|rna_PF11_0521-1
+apidb|MAL11	ApiDB	exon	2025814	2033967	.	+	.	ID=apidb|exon_PF11_0521-1;Name=exon;description=exon;size=8154;Parent=apidb|rna_PF11_0521-1
+apidb|MAL11	ApiDB	exon	2034678	2035883	.	+	.	ID=apidb|exon_PF11_0521-2;Name=exon;description=exon;size=1206;Parent=apidb|rna_PF11_0521-1
+

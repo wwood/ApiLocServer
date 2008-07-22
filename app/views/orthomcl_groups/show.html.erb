@@ -1,0 +1,9 @@
+<h1>OrthoMCL group '<%= @orthomcl_group.orthomcl_name %>'</h1>
+
+<table>
+  <% @coding_regions.each do |code| %>
+    <tr><td><%= code.string_id%><td><%= code.annotation.nil? ? nil : code.annotation.annotation %></tr>
+    <% end %>
+</table>
+
+

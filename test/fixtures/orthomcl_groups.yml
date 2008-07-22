@@ -1,0 +1,13 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  id: 1
+  version: 1
+  orthomcl_name: MyString1
+  orthomcl_run_id: 1
+
+two:
+  id: 2
+  version: 1
+  orthomcl_name: MyString
+  orthomcl_run_id: 2

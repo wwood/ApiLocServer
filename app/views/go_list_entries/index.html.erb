@@ -1,0 +1,18 @@
+<h1>Listing go_list_entries</h1>
+
+<table>
+  <tr>
+  </tr>
+
+<% for go_list_entry in @go_list_entries %>
+  <tr>
+    <td><%= link_to 'Show', go_list_entry %></td>
+    <td><%= link_to 'Edit', edit_go_list_entry_path(go_list_entry) %></td>
+    <td><%= link_to 'Destroy', go_list_entry, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New go_list_entry', new_go_list_entry_path %>

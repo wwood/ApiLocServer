@@ -1,0 +1,2 @@
+class ToppredAverageTransmembraneDomainLength < TransmembraneDomainMeasurement
+end

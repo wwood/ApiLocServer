@@ -1,0 +1,12 @@
+<h1>Editing generic_go_map</h1>
+
+<%= error_messages_for :generic_go_map %>
+
+<% form_for(@generic_go_map) do |f| %>
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @generic_go_map %> |
+<%= link_to 'Back', generic_go_maps_path %>

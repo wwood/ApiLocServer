@@ -1,0 +1,6 @@
+<h1>Orthomcl Run <%= @orthomcl_run.name %></h1>
+<table>
+  <% @orthomcl_groups.each do |group| %>
+    <tr><td><%= link_to group.orthomcl_name, :controller => :orthomcl_groups, :action => :show, :id => group.id %>
+    <% end %>
+</table>

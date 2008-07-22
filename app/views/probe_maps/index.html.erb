@@ -1,0 +1,20 @@
+<h1>Listing probe_maps</h1>
+
+<table>
+  <tr>
+    <th>Name</th>
+  </tr>
+
+<% for probe_map in @probe_maps %>
+  <tr>
+    <td><%=h probe_map.name %></td>
+    <td><%= link_to 'Show', probe_map %></td>
+    <td><%= link_to 'Edit', edit_probe_map_path(probe_map) %></td>
+    <td><%= link_to 'Destroy', probe_map, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New probe_map', new_probe_map_path %>

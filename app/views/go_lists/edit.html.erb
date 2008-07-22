@@ -1,0 +1,12 @@
+<h1>Editing go_list</h1>
+
+<%= error_messages_for :go_list %>
+
+<% form_for(@go_list) do |f| %>
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @go_list %> |
+<%= link_to 'Back', go_lists_path %>

@@ -1,0 +1,2 @@
+class MemsatAverageTransmembraneDomainLength < TransmembraneDomainMeasurement
+end

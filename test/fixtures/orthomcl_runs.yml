@@ -1,0 +1,10 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+# official
+one:
+  id: 1
+  name: "Official OrthoMCL v2"
+
+two:
+  id: 2
+  name: MyString

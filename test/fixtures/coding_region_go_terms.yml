@@ -1,0 +1,8 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  go_term_id: 1
+  coding_region_id: 1
+two:
+  go_term_id: 2
+  coding_region_id: 1

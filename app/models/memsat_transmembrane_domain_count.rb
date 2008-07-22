@@ -1,0 +1,2 @@
+class MemsatTransmembraneDomainCount < TransmembraneDomainMeasurement
+end

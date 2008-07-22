@@ -1,0 +1,12 @@
+<h1>Editing cluster</h1>
+
+<%= error_messages_for :cluster %>
+
+<% form_for(@cluster) do |f| %>
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @cluster %> |
+<%= link_to 'Back', clusters_path %>

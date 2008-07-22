@@ -1,0 +1,12 @@
+<h1>Editing taxon_name</h1>
+
+<%= error_messages_for :taxon_name %>
+
+<% form_for(@taxon_name) do |f| %>
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @taxon_name %> |
+<%= link_to 'Back', taxon_names_path %>

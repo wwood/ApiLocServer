@@ -1,0 +1,32 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one1:
+  id: 1
+  coding_region_id: 1
+  start: 10
+  stop: 20
+one2:
+  id: 2
+  coding_region_id: 1
+  start: 25
+  stop: 30
+two1:
+  id: 3
+  coding_region_id: 2
+  start: 45
+  stop: 51
+two2:
+  id: 4
+  coding_region_id: 2
+  start: 55
+  stop: 60
+three1:
+  id: 5
+  coding_region_id: 3
+  start: 100
+  stop: 130
+four1:  #On a different scaffold
+  id: 6
+  coding_region_id: 4
+  start: 150
+  stop: 160

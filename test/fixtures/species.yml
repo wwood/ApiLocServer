@@ -1,0 +1,8 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+falciparum:
+  id: 1
+  name: falciparum
+sponge:
+  id: 2
+  name: sponge

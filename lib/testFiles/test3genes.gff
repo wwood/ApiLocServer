@@ -1,0 +1,16 @@
+scaffold_1	JGI	exon	12	12639	.	-	.	name "fgenesh2_pg.scaffold_1000001"; transcriptId 63195
+scaffold_1	JGI	CDS	12	12639	.	-	2	name "fgenesh2_pg.scaffold_1000001"; proteinId 63195; exonNumber 2
+scaffold_1	JGI	exon	15211	15294	.	-	.	name "fgenesh2_pg.scaffold_1000001"; transcriptId 63195
+scaffold_1	JGI	CDS	15211	15294	.	-	0	name "fgenesh2_pg.scaffold_1000001"; proteinId 63195; exonNumber 1
+scaffold_1	JGI	start_codon	15292	15294	.	-	0	name "fgenesh2_pg.scaffold_1000001"
+scaffold_1	JGI	exon	22430	22751	.	-	.	name "fgenesh2_pg.scaffold_1000002"; transcriptId 63196
+scaffold_1	JGI	CDS	22430	22751	.	-	2	name "fgenesh2_pg.scaffold_1000002"; proteinId 63196; exonNumber 1
+scaffold_1	JGI	start_codon	22749	22751	.	-	0	name "fgenesh2_pg.scaffold_1000002"
+scaffold_1	JGI	exon	35342	35542	.	+	.	name "e_gw.1.270.1"; transcriptId 198865
+scaffold_1	JGI	CDS	35342	35542	.	+	0	name "e_gw.1.270.1"; proteinId 198865; exonNumber 1
+scaffold_1	JGI	start_codon	35342	35344	.	+	0	name "e_gw.1.270.1"
+scaffold_1	JGI	exon	36517	36641	.	+	.	name "e_gw.1.270.1"; transcriptId 198865
+scaffold_1	JGI	CDS	36517	36641	.	+	0	name "e_gw.1.270.1"; proteinId 198865; exonNumber 2
+scaffold_1	JGI	exon	37276	37633	.	+	.	name "e_gw.1.270.1"; transcriptId 198865
+scaffold_1	JGI	CDS	37276	37633	.	+	2	name "e_gw.1.270.1"; proteinId 198865; exonNumber 3
+scaffold_1	JGI	stop_codon	37631	37633	.	+	0	name "e_gw.1.270.1"

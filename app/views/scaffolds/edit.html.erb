@@ -1,0 +1,12 @@
+<h1>Editing scaffold</h1>
+
+<%= error_messages_for :scaffold %>
+
+<% form_for(@scaffold) do |f| %>
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @scaffold %> |
+<%= link_to 'Back', scaffolds_path %>

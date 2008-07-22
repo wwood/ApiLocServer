@@ -1,0 +1,12 @@
+<h1>Editing plasmodb_gene_list</h1>
+
+<%= error_messages_for :plasmodb_gene_list %>
+
+<% form_for(@plasmodb_gene_list) do |f| %>
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @plasmodb_gene_list %> |
+<%= link_to 'Back', plasmodb_gene_lists_path %>

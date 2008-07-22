@@ -1,0 +1,49 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+ one:
+   id: 1
+   gene_id: 1
+   jgi_protein_id: 2
+   upstream_distance: 10
+   orientation: +
+ two:
+   id: 2
+   gene_id: 1
+   jgi_protein_id: 3
+   upstream_distance: 10
+   orientation: "-"
+ three:
+   id: 3
+   gene_id: 2
+   jgi_protein_id: 4
+   orientation: +
+ four:
+   id: 4
+   gene_id: 3
+   jgi_protein_id: 5
+   orientation: +
+ five:
+   id: 5
+   gene_id: 3
+   string_id: 'PF1'
+   orientation: +
+ six:
+   id: 6
+   gene_id: 3
+   string_id: 'PF1.1'
+   orientation: +
+ seven:
+   id: 7
+   gene_id: 3
+   string_id: 'PF01'
+   orientation: +
+ eight: #same name as seven, but different organism
+   id: 8
+   gene_id: 4
+   string_id: 'PF01'
+   orientation: +
+ wierd_char:
+   id: 9
+   gene_id: 3
+   string_id: PF01'
+   orientation: +

@@ -1,0 +1,11 @@
+<h1>New taxon</h1>
+
+<%= error_messages_for :taxon %>
+
+<% form_for(@taxon) do |f| %>
+  <p>
+    <%= f.submit "Create" %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', taxons_path %>

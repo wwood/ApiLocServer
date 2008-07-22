@@ -1,0 +1,18 @@
+<h1>Listing plasmodb_gene_lists</h1>
+
+<table>
+  <tr>
+  </tr>
+
+<% for plasmodb_gene_list in @plasmodb_gene_lists %>
+  <tr>
+    <td><%= link_to 'Show', plasmodb_gene_list %></td>
+    <td><%= link_to 'Edit', edit_plasmodb_gene_list_path(plasmodb_gene_list) %></td>
+    <td><%= link_to 'Destroy', plasmodb_gene_list, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New plasmodb_gene_list', new_plasmodb_gene_list_path %>

@@ -1,0 +1,22 @@
+<h1>Listing annotations</h1>
+
+<table>
+  <tr>
+    <th>Coding region</th>
+    <th>Annotation</th>
+  </tr>
+
+<% for annotation in @annotations %>
+  <tr>
+    <td><%=h annotation.coding_region_id %></td>
+    <td><%=h annotation.annotation %></td>
+    <td><%= link_to 'Show', annotation %></td>
+    <td><%= link_to 'Edit', edit_annotation_path(annotation) %></td>
+    <td><%= link_to 'Destroy', annotation, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New annotation', new_annotation_path %>

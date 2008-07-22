@@ -1,0 +1,8 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+   coding_region_id: 6
+   name: blah
+two:
+   coding_region_id: 6
+   name: blahah

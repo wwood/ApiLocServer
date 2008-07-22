@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  orthomcl_gene_id: 1
+  sequence: MyText
+  annotation: MyText
+
+two:
+  orthomcl_gene_id: 1
+  sequence: MyText
+  annotation: MyText

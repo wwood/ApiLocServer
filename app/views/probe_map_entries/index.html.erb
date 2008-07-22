@@ -1,0 +1,24 @@
+<h1>Listing probe_map_entries</h1>
+
+<table>
+  <tr>
+    <th>Probe map</th>
+    <th>Probe</th>
+    <th>Coding region</th>
+  </tr>
+
+<% for probe_map_entry in @probe_map_entries %>
+  <tr>
+    <td><%=h probe_map_entry.probe_map_id %></td>
+    <td><%=h probe_map_entry.probe_id %></td>
+    <td><%=h probe_map_entry.coding_region_id %></td>
+    <td><%= link_to 'Show', probe_map_entry %></td>
+    <td><%= link_to 'Edit', edit_probe_map_entry_path(probe_map_entry) %></td>
+    <td><%= link_to 'Destroy', probe_map_entry, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New probe_map_entry', new_probe_map_entry_path %>

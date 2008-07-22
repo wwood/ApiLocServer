@@ -1,0 +1,20 @@
+<h1>Listing localisations</h1>
+
+<table>
+  <tr>
+    <th>Name</th>
+  </tr>
+
+<% for localisation in @localisations %>
+  <tr>
+    <td><%=h localisation.name %></td>
+    <td><%= link_to 'Show', localisation %></td>
+    <td><%= link_to 'Edit', edit_localisation_path(localisation) %></td>
+    <td><%= link_to 'Destroy', localisation, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New localisation', new_localisation_path %>

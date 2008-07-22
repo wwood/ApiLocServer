@@ -1,0 +1,74 @@
+##gff-version	3
+##feature-ontology	so.obo
+##attribute-ontology	gff3_attributes.obo
+##sequence-region	apidb|X95275	1	15421
+##sequence-region	apidb|MAL10	1	1687655
+##sequence-region	apidb|NC_002375	1	5967
+##sequence-region	apidb|X95276	1	14009
+##sequence-region	apidb|MAL8	1	1419563
+##sequence-region	apidb|MAL9	1	1541723
+##sequence-region	apidb|MAL6	1	1418244
+##sequence-region	apidb|MAL5	1	1343552
+##sequence-region	apidb|MAL3	1	1060087
+##sequence-region	apidb|MAL1	1	643292
+##sequence-region	apidb|MAL13	1	2895605
+##sequence-region	apidb|MAL14	1	3291871
+##sequence-region	apidb|MAL4	1	1204112
+##sequence-region	apidb|MAL11	1	2038337
+##sequence-region	apidb|MAL2	1	947102
+##sequence-region	apidb|MAL7	1	1501717
+##sequence-region	apidb|MAL12	1	2271477
+apidb|X95275	ApiDB	supercontig	1	15421	.	+	.	ID=apidb|X95275;Name=X95275;description=Plasmodium+falciparum+complete+gene+map+of+plastid-like+DNA+%28IR-A%29.;size=15421;web_id=X95275;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:X95275,taxon:36329
+apidb|MAL10	ApiDB	supercontig	1	1687655	.	+	.	ID=apidb|MAL10;Name=MAL10;description=MAL10;size=1687655;web_id=MAL10;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL10,GenBank:NC_004314,taxon:36329
+apidb|NC_002375	ApiDB	supercontig	1	5967	.	+	.	ID=apidb|NC_002375;Name=NC_002375;description=Plasmodium+falciparum+mitochondrion%2C+complete+genome.;size=5967;web_id=NC_002375;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:NC_002375,GenBank:NC_002375,taxon:36329
+apidb|X95276	ApiDB	supercontig	1	14009	.	+	.	ID=apidb|X95276;Name=X95276;description=Plasmodium+falciparum+complete+gene+map+of+plastid-like+DNA+%28IR-B%29.;size=14009;web_id=X95276;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:X95276,taxon:36329
+apidb|MAL8	ApiDB	supercontig	1	1419563	.	+	.	ID=apidb|MAL8;Name=MAL8;description=MAL8;size=1419563;web_id=MAL8;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL8,GenBank:NC_004329,taxon:36329
+apidb|MAL9	ApiDB	supercontig	1	1541723	.	+	.	ID=apidb|MAL9;Name=MAL9;description=MAL9;size=1541723;web_id=MAL9;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL9,GenBank:NC_004330,taxon:36329
+apidb|MAL6	ApiDB	supercontig	1	1418244	.	+	.	ID=apidb|MAL6;Name=MAL6;description=MAL6;size=1418244;web_id=MAL6;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL6,GenBank:NC_004327,taxon:36329
+apidb|MAL5	ApiDB	supercontig	1	1343552	.	+	.	ID=apidb|MAL5;Name=MAL5;description=MAL5;size=1343552;web_id=MAL5;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL5,GenBank:NC_004326,taxon:36329
+apidb|MAL3	ApiDB	supercontig	1	1060087	.	+	.	ID=apidb|MAL3;Name=MAL3;description=MAL3;size=1060087;web_id=MAL3;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL3,GenBank:NC_000521,taxon:36329
+apidb|MAL1	ApiDB	supercontig	1	643292	.	+	.	ID=apidb|MAL1;Name=MAL1;description=MAL1;size=643292;web_id=MAL1;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL1,GenBank:NC_004325,taxon:36329
+apidb|MAL13	ApiDB	supercontig	1	2895605	.	+	.	ID=apidb|MAL13;Name=MAL13;description=MAL13;size=2895605;web_id=MAL13;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL13,GenBank:NC_004331,taxon:36329
+apidb|MAL14	ApiDB	supercontig	1	3291871	.	+	.	ID=apidb|MAL14;Name=MAL14;description=MAL14;size=3291871;web_id=MAL14;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL14,GenBank:NC_004317,taxon:36329
+apidb|MAL4	ApiDB	supercontig	1	1204112	.	+	.	ID=apidb|MAL4;Name=MAL4;description=MAL4;size=1204112;web_id=MAL4;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL4,GenBank:NC_004318,taxon:36329
+apidb|MAL11	ApiDB	supercontig	1	2038337	.	+	.	ID=apidb|MAL11;Name=MAL11;description=MAL11;size=2038337;web_id=MAL11;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL11,GenBank:NC_004315,taxon:36329
+apidb|MAL2	ApiDB	supercontig	1	947102	.	+	.	ID=apidb|MAL2;Name=MAL2;description=MAL2;size=947102;web_id=MAL2;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL2,GenBank:NC_000910,taxon:36329
+apidb|MAL7	ApiDB	supercontig	1	1501717	.	+	.	ID=apidb|MAL7;Name=MAL7;description=MAL7;size=1501717;web_id=MAL7;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL7,GenBank:NC_004328,taxon:36329
+apidb|MAL12	ApiDB	supercontig	1	2271477	.	+	.	ID=apidb|MAL12;Name=MAL12;description=MAL12;size=2271477;web_id=MAL12;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL12,GenBank:NC_004316,taxon:36329
+apidb|NC_002375	ApiDB	gene	734	1573	.	-	.	ID=apidb|coxIII;Name=coxIII;description=putative+cytochrome+oxidase+III;size=840;web_id=coxIII;locus_tag=coxIII;size=840;Alias=PlfaoMp1
+apidb|NC_002375	ApiDB	mRNA	734	1573	.	-	.	ID=apidb|rna_coxIII-1;Name=coxIII-1;description=putative+cytochrome+oxidase+III;size=840;Parent=apidb|coxIII;Dbxref=ApiDB_PlasmoDB:coxIII,taxon:36329
+apidb|NC_002375	ApiDB	CDS	734	1573	.	-	0	ID=apidb|cds_coxIII-1;Name=cds;description=.;size=840;Parent=apidb|rna_coxIII-1
+apidb|NC_002375	ApiDB	exon	734	1573	.	-	.	ID=apidb|exon_coxIII-1;Name=exon;description=exon;size=840;Parent=apidb|rna_coxIII-1
+apidb|NC_002375	ApiDB	gene	1933	3471	.	+	.	ID=apidb|coI;Name=coI;description=putative+cytochrome+oxidase+I;size=1539;web_id=coI;locus_tag=coI;size=1539
+apidb|NC_002375	ApiDB	mRNA	1933	3471	.	+	.	ID=apidb|rna_coI-1;Name=coI-1;description=putative+cytochrome+oxidase+I;size=1539;Parent=apidb|coI;Dbxref=ApiDB_PlasmoDB:coI,taxon:36329
+apidb|NC_002375	ApiDB	CDS	1933	3471	.	+	0	ID=apidb|cds_coI-1;Name=cds;description=.;size=1539;Parent=apidb|rna_coI-1
+apidb|NC_002375	ApiDB	exon	1933	3471	.	+	.	ID=apidb|exon_coI-1;Name=exon;description=exon;size=1539;Parent=apidb|rna_coI-1
+apidb|NC_002375	ApiDB	gene	3492	4622	.	+	.	ID=apidb|CYTB;Name=CYTB;description=cytochrome+b;size=1131;web_id=CYTB;locus_tag=CYTB;size=1131;Alias=PlfaoMp3
+apidb|NC_002375	ApiDB	mRNA	3492	4622	.	+	.	ID=apidb|rna_CYTB-1;Name=CYTB-1;description=cytochrome+b;size=1131;Parent=apidb|CYTB;Dbxref=ApiDB_PlasmoDB:CYTB,taxon:36329
+apidb|NC_002375	ApiDB	CDS	3492	4622	.	+	0	ID=apidb|cds_CYTB-1;Name=cds;description=.;size=1131;Parent=apidb|rna_CYTB-1
+apidb|NC_002375	ApiDB	exon	3492	4622	.	+	.	ID=apidb|exon_CYTB-1;Name=exon;description=exon;size=1131;Parent=apidb|rna_CYTB-1
+apidb|MAL1	ApiDB	gene	29733	37349	.	+	.	ID=apidb|PFA0005w;Name=PFA0005w;description=erythrocyte+membrane+protein+1+%28PfEMP1%29;size=7617;web_id=PFA0005w;locus_tag=PFA0005w;size=7617;Alias=MAL1P4.01,bentest
+apidb|MAL1	ApiDB	mRNA	29733	37349	.	+	.	ID=apidb|rna_PFA0005w-1;Name=PFA0005w-1;description=erythrocyte+membrane+protein+1+%28PfEMP1%29;size=7617;Parent=apidb|PFA0005w;Ontology_term=GO:0009405,GO:0016337,GO:0020013,GO:0020033,GO:0020035,GO:0016021,GO:0020002,GO:0020030,GO:0004872,GO:0005539,GO:0050839;Dbxref=ApiDB_PlasmoDB:PFA0005w,NCBI_gi:124505645,NCBI_gi:7670005,Sanger:PFA0005w,taxon:36329
+apidb|MAL1	ApiDB	CDS	29733	34985	.	+	0	ID=apidb|cds_PFA0005w-1;Name=cds;description=.;size=5253;Parent=apidb|rna_PFA0005w-1
+apidb|MAL1	ApiDB	CDS	36111	37349	.	+	0	ID=apidb|cds_PFA0005w-1;Name=cds;description=.;size=1239;Parent=apidb|rna_PFA0005w-1
+apidb|MAL1	ApiDB	exon	29733	34985	.	+	.	ID=apidb|exon_PFA0005w-1;Name=exon;description=exon;size=5253;Parent=apidb|rna_PFA0005w-1
+apidb|MAL1	ApiDB	exon	36111	37349	.	+	.	ID=apidb|exon_PFA0005w-2;Name=exon;description=exon;size=1239;Parent=apidb|rna_PFA0005w-1
+apidb|MAL1	ApiDB	gene	39205	40430	.	-	.	ID=apidb|PFA0010c;Name=PFA0010c;description=rifin;size=1226;web_id=PFA0010c;locus_tag=PFA0010c;size=1226;Alias=MAL1P4.02
+apidb|MAL1	ApiDB	mRNA	39205	40430	.	-	.	ID=apidb|rna_PFA0010c-1;Name=PFA0010c-1;description=rifin;size=1226;Parent=apidb|PFA0010c;Ontology_term=GO:0020033,GO:0016020,GO:0020002,GO:0003674;Dbxref=ApiDB_PlasmoDB:PFA0010c,NCBI_gi:124505647,NCBI_gi:7670006,Sanger:PFA0010c,taxon:36329
+apidb|MAL1	ApiDB	CDS	40377	40430	.	-	0	ID=apidb|cds_PFA0010c-1;Name=cds;description=.;size=54;Parent=apidb|rna_PFA0010c-1
+apidb|MAL1	ApiDB	CDS	39205	40146	.	-	0	ID=apidb|cds_PFA0010c-1;Name=cds;description=.;size=942;Parent=apidb|rna_PFA0010c-1
+apidb|MAL1	ApiDB	exon	40377	40430	.	-	.	ID=apidb|exon_PFA0010c-1;Name=exon;description=exon;size=54;Parent=apidb|rna_PFA0010c-1
+apidb|MAL1	ApiDB	exon	39205	40146	.	-	.	ID=apidb|exon_PFA0010c-2;Name=exon;description=exon;size=942;Parent=apidb|rna_PFA0010c-1
+apidb|MAL1	ApiDB	gene	50586	51859	.	+	.	ID=apidb|PFA0020w;Name=PFA0020w;description=rifin;size=1274;web_id=PFA0020w;locus_tag=PFA0020w;size=1274;Alias=MAL1P4.04
+apidb|MAL1	ApiDB	mRNA	50586	51859	.	+	.	ID=apidb|rna_PFA0020w-1;Name=PFA0020w-1;description=rifin;size=1274;Parent=apidb|PFA0020w;Ontology_term=GO:0020033,GO:0016020,GO:0020002,GO:0003674;Dbxref=ApiDB_PlasmoDB:PFA0020w,NCBI_gi:124505651,NCBI_gi:7670008,Sanger:PFA0020w,taxon:36329
+apidb|MAL1	ApiDB	CDS	50586	50639	.	+	0	ID=apidb|cds_PFA0020w-1;Name=cds;description=.;size=54;Parent=apidb|rna_PFA0020w-1
+apidb|MAL1	ApiDB	CDS	50795	51859	.	+	0	ID=apidb|cds_PFA0020w-1;Name=cds;description=.;size=1065;Parent=apidb|rna_PFA0020w-1
+apidb|MAL1	ApiDB	exon	50586	50639	.	+	.	ID=apidb|exon_PFA0020w-1;Name=exon;description=exon;size=54;Parent=apidb|rna_PFA0020w-1
+apidb|MAL1	ApiDB	exon	50795	51859	.	+	.	ID=apidb|exon_PFA0020w-2;Name=exon;description=exon;size=1065;Parent=apidb|rna_PFA0020w-1
+##FASTA
+>apidb|cds_coxIII-1
+SSIYTITCYPRRTFLPLYVYGTLSHRSYKFILFSNLSNIKAHLVSYPALTSLYGTSLKYF
+SVGILFTFNPIILLIFVYSIRESFYSVFSSLTSGMLSIIISEALLFFTYFWGILHFSLSP
+YPLSNEGIIITSSRMLILTITFILASASCMTACLQVFIEKGMSFEISSIICIIYLLGECF
+ASLQTTEYLHLSYHINDTVYTTLFYCVTGLHFSHVVIGLLLLIIYFIRIIEIYDTSTEWF
+INSFGISYIVIPHTDQITILYWHFVEIVWLFIEFLFYSE

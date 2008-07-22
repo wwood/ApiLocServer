@@ -1,0 +1,2 @@
+module GoListsHelper
+end

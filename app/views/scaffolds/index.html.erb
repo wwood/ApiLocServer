@@ -1,0 +1,18 @@
+<h1>Listing scaffolds</h1>
+
+<table>
+  <tr>
+  </tr>
+
+<% for scaffold in @scaffolds %>
+  <tr>
+    <td><%= link_to 'Show', scaffold %></td>
+    <td><%= link_to 'Edit', edit_scaffold_path(scaffold) %></td>
+    <td><%= link_to 'Destroy', scaffold, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New scaffold', new_scaffold_path %>

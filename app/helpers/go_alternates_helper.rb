@@ -1,0 +1,2 @@
+module GoAlternatesHelper
+end

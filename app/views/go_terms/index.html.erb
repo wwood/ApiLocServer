@@ -1,0 +1,20 @@
+<h1>Listing go_terms</h1>
+
+<table>
+  <tr>
+    <th>Term</th>
+  </tr>
+
+<% for go_term in @go_terms %>
+  <tr>
+    <td><%=h go_term.term %></td>
+    <td><%= link_to 'Show', go_term %></td>
+    <td><%= link_to 'Edit', edit_go_term_path(go_term) %></td>
+    <td><%= link_to 'Destroy', go_term, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New go_term', new_go_term_path %>

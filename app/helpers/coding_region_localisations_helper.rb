@@ -1,0 +1,2 @@
+module CodingRegionLocalisationsHelper
+end

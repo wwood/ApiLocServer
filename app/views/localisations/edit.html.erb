@@ -1,0 +1,17 @@
+<h1>Editing localisation</h1>
+
+<%= error_messages_for :localisation %>
+
+<% form_for(@localisation) do |f| %>
+  <p>
+    <b>Name</b><br />
+    <%= f.text_field :name %>
+  </p>
+
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @localisation %> |
+<%= link_to 'Back', localisations_path %>

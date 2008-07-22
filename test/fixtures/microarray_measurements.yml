@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+#one:
+#  microarray_id: 1
+#  measurement: 9.99
+#  coding_region_id: 1
+#
+#two:
+#  microarray_id: 1
+#  measurement: 9.99
+#  coding_region_id: 1

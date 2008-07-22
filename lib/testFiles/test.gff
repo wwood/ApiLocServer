@@ -1,0 +1,5 @@
+scaffold_1	JGI	exon	12327	12639	.	-	.	name "fgenesh2_pg.scaffold_1000001"; transcriptId 63195
+scaffold_1	JGI	CDS	12327	12639	.	-	2	name "fgenesh2_pg.scaffold_1000001"; proteinId 63195; exonNumber 2
+scaffold_1	JGI	exon	15211	15294	.	-	.	name "fgenesh2_pg.scaffold_1000001"; transcriptId 63195
+scaffold_1	JGI	CDS	15211	15294	.	-	0	name "fgenesh2_pg.scaffold_1000001"; proteinId 63195; exonNumber 1
+scaffold_1	JGI	start_codon	15292	15294	.	-	0	name "fgenesh2_pg.scaffold_1000001"	

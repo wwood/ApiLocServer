@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  probe_map_id: 1
+  probe_id: 1
+  coding_region_id: 1
+
+two:
+  probe_map_id: 1
+  probe_id: 1
+  coding_region_id: 1

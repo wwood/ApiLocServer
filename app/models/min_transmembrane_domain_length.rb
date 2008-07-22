@@ -1,0 +1,2 @@
+class MinTransmembraneDomainLength < TransmembraneDomainMeasurement
+end

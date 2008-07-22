@@ -1,0 +1,21 @@
+<h1>New orthomcl_group</h1>
+
+<%= error_messages_for :orthomcl_group %>
+
+<% form_for(@orthomcl_group) do |f| %>
+  <p>
+    <b>Version</b><br />
+    <%= f.text_field :version %>
+  </p>
+
+  <p>
+    <b>Orthomcl name</b><br />
+    <%= f.text_field :orthomcl_name %>
+  </p>
+
+  <p>
+    <%= f.submit "Create" %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', orthomcl_groups_path %>

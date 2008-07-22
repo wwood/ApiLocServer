@@ -1,0 +1,18 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  id: 1
+  name: gene1
+  scaffold_id: 1
+two:
+  id: 2
+  name: gene2
+  scaffold_id: 1
+three:
+  id: 3
+  name: gene3
+  scaffold_id: 2
+four: #same name as three, but different organism
+  id: 4
+  name: gene3
+  scaffold_id: 3

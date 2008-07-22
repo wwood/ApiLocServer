@@ -1,0 +1,13 @@
+<p>
+  <b>Coding region:</b>
+  <%=h @annotation.coding_region_id %>
+</p>
+
+<p>
+  <b>Annotation:</b>
+  <%=h @annotation.annotation %>
+</p>
+
+
+<%= link_to 'Edit', edit_annotation_path(@annotation) %> |
+<%= link_to 'Back', annotations_path %>

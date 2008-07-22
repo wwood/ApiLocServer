@@ -1,0 +1,10 @@
+apidb|ctg_6899	ApiDB	gene	251340	251411	.	-	.	ID=apidb|ctg_6899_tRNA_His1;Name=ctg_6899_tRNA_His1;description=tRNA+His;size=72;web_id=ctg_6899_tRNA_His1;locus_tag=ctg_6899_tRNA_His1;size=72
+apidb|ctg_6899	ApiDB	tRNA	251340	251411	.	-	.	ID=apidb|rna_ctg_6899_tRNA_His1-1;Name=ctg_6899_tRNA_His1-1;description=tRNA+His;size=72;Parent=apidb|ctg_6899_tRNA_His1;Dbxref=ApiDB_PlasmoDB:ctg_6899_tRNA_His1,taxon:126793
+apidb|ctg_6899	ApiDB	exon	251340	251411	.	-	.	ID=apidb|exon_ctg_6899_tRNA_His1-2;Name=exon;description=exon;size=72;Parent=apidb|rna_ctg_6899_tRNA_His1-1
+apidb|ctg_6899	ApiDB	gene	250471	250543	.	+	.	ID=apidb|ctg_6899_tRNA_Thr1;Name=ctg_6899_tRNA_Thr1;description=tRNA+Thr;size=73;web_id=ctg_6899_tRNA_Thr1;locus_tag=ctg_6899_tRNA_Thr1;size=73
+apidb|ctg_6899	ApiDB	tRNA	250471	250543	.	+	.	ID=apidb|rna_ctg_6899_tRNA_Thr1-1;Name=ctg_6899_tRNA_Thr1-1;description=tRNA+Thr;size=73;Parent=apidb|ctg_6899_tRNA_Thr1;Dbxref=ApiDB_PlasmoDB:ctg_6899_tRNA_Thr1,taxon:126793
+apidb|ctg_6899	ApiDB	exon	250471	250543	.	+	.	ID=apidb|exon_ctg_6899_tRNA_Thr1-1;Name=exon;description=exon;size=73;Parent=apidb|rna_ctg_6899_tRNA_Thr1-1
+##FASTA
+>apidb|cds_Pv043190-1
+LGLFPGGSGKAKPVITKGPKVVIQAAQKGSRSSFGPFNFWGLLPGTSEKGKQEITKEQKV
+VSPVAQKESRSSL

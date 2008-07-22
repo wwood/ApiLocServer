@@ -1,0 +1,26 @@
+<h1>New probe_map_entry</h1>
+
+<%= error_messages_for :probe_map_entry %>
+
+<% form_for(@probe_map_entry) do |f| %>
+  <p>
+    <b>Probe map</b><br />
+    <%= f.text_field :probe_map_id %>
+  </p>
+
+  <p>
+    <b>Probe</b><br />
+    <%= f.text_field :probe_id %>
+  </p>
+
+  <p>
+    <b>Coding region</b><br />
+    <%= f.text_field :coding_region_id %>
+  </p>
+
+  <p>
+    <%= f.submit "Create" %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', probe_map_entries_path %>
