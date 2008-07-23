@@ -15,4 +15,9 @@ class Array
     end
     return pairs
   end
+  
+  
+  def average
+    sum.to_f / length.to_f
+  end
 end

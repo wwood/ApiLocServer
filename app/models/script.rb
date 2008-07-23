@@ -1,13 +1,13 @@
-require 'jgi_genes'
-require 'simple_go'
-require 'rio'
-require 'api_db_genes'
-require 'yeast_genome_genes'
-require 'signalp'
-require 'api_db_fasta'
-require 'tm_hmm_wrapper'
-require 'rubygems'
-require 'csv'
+#require 'jgi_genes'
+#require 'simple_go'
+#require 'rio'
+#require 'api_db_genes'
+#require 'yeast_genome_genes'
+#require 'signalp'
+#require 'api_db_fasta'
+#require 'tm_hmm_wrapper'
+#require 'rubygems'
+#require 'csv'
 require 'bio'
 
 MOLECULAR_FUNCTION = 'molecular_function'
@@ -3886,11 +3886,35 @@ class Script < ActiveRecord::Base
 
   # Take the wormnet and work out what the average length of the localisations to each other is,
   def wormnet_falciparum_localisation_first
-    Localisation.all.each do |loc|
+    require 'array_pair'
+    Localisation.all(
+      :include => {:coding_regions => {:gene => {:scaffold => :species}}},
+      :conditions => ['species.name = ?', Species.falciparum_name]
+    ).each do |loc|
       puts loc.name
       
       # collect the pairwise distances between each of the coding regions with those localisations
-      
+      p Gene.all(
+        :include => [
+          :coding_regions => [
+            {:gene => {:scaffold => :species}},
+            :localisations
+          ]
+        ],
+        :conditions => ["species.name = ? and localisations.id = ?",
+          Species.falciparum_name,
+          loc.id
+        ]
+      ).pairs.collect{|pair|
+        edge = GeneNetworkEdge.find_by_gene_ids(GeneNetwork.wormnet_name, pair[0].id, pair[1].id)
+        
+        # return to the collect iterator a real value or nil if there wasn't any
+        if edge
+          edge.strength
+        else
+          nil
+        end
+      }.reject{|i| !i}.average
     end
   end
 
