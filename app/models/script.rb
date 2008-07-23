@@ -3838,4 +3838,15 @@ class Script < ActiveRecord::Base
       end
     end
   end
+  
+  
+  # Take the wormnet and work out what the average length of the localisations to each other is,
+  def wormnet_falciparum_localisation_first
+    Localisation.all.each do |loc|
+      puts loc.name
+      CodingRegion.all(
+        :include => []
+      )
+    end
+  end
 end

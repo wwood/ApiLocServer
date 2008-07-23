@@ -33,10 +33,10 @@ class OrthomclGene < ActiveRecord::Base
         raise Exception, "Badly parsed orthomcl official type name: #{orthomcl_name}"
       end
       
-#      # Only compute interesti'ng cases
-#      if !(['pfa','pvi','the','tan','cpa','cho','ath'].include?(matches[1]))
-#        return nil #meh for the moment, don't want to waste time
-#      end
+      #      # Only compute interesti'ng cases
+      #      if !(['pfa','pvi','the','tan','cpa','cho','ath'].include?(matches[1]))
+      #        return nil #meh for the moment, don't want to waste time
+      #      end
       
       name = matches[2]
       
@@ -86,5 +86,37 @@ class OrthomclGene < ActiveRecord::Base
     else
       return nil
     end
+  end
+  
+  
+  # Map elegans coding regions to orthomcl_genes using the table. Assumes that there is
+  # alternate coding region names like WBGene00013989
+  def create_elegans_coding_region_links
+    count = 0
+    OrthomclGene.all(
+      :include => {:orthomcl_group => :orthomcl_run},
+      :conditions => "orthomcl_genes.orthomcl_name like 'cel%' and orthomcl_runs.name = '#{OrthomclRun.official_run_v2_name}'"
+    ).each do |og|
+      real = official_split(og.orthomcl_name)[1]
+      code = CodingRegion.find_by_name_or_alternate(real)
+      
+      if !code
+        $stderr.puts "Failed to find coding region: #{real}"
+        next
+      end
+      
+      
+      ogc = OrthomclGeneCodingRegion.find_or_create_by_coding_region_id_and_orthomcl_gene_id(
+        code.id,
+        og.id
+      )
+      if !ogc
+        raise Exception, "Problem uploading final: #{ogc.orthomcl_name}"
+      end
+      
+      count += 1
+    end
+    
+    puts "Created/Verified #{count} coding regions"
   end
 end
