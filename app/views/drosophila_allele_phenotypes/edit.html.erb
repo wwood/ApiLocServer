@@ -1,0 +1,20 @@
+<h1>Editing drosophila_allele_phenotype</h1>
+
+<% form_for(@drosophila_allele_phenotype) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :drosophila_allele_gene_id %><br />
+    <%= f.text_field :drosophila_allele_gene_id %>
+  </p>
+  <p>
+    <%= f.label :phenotype %><br />
+    <%= f.text_field :phenotype %>
+  </p>
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @drosophila_allele_phenotype %> |
+<%= link_to 'Back', drosophila_allele_phenotypes_path %>

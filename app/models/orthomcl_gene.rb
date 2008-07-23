@@ -41,7 +41,7 @@ class OrthomclGene < ActiveRecord::Base
       name = matches[2]
       
       # Add the normally linked ones
-      code = CodingRegion.find_by_name_or_alternate(name.upcase)
+      code = CodingRegion.find_by_name_or_alternate(name)
       if code
         return code
       else
@@ -52,7 +52,7 @@ class OrthomclGene < ActiveRecord::Base
       
       
     else # For non-official runs do nothing at the moment
-      return nil
+     return nil
     end
   end
   

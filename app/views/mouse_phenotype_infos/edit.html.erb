@@ -1,0 +1,24 @@
+<h1>Editing mouse_phenotype_info</h1>
+
+<% form_for(@mouse_phenotype_info) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :mgi %><br />
+    <%= f.text_field :mgi %>
+  </p>
+  <p>
+    <%= f.label :gene %><br />
+    <%= f.text_field :gene %>
+  </p>
+  <p>
+    <%= f.label :phenotype %><br />
+    <%= f.text_field :phenotype %>
+  </p>
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @mouse_phenotype_info %> |
+<%= link_to 'Back', mouse_phenotype_infos_path %>

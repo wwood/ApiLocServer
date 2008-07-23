@@ -6,6 +6,8 @@ class Gene < ActiveRecord::Base
   has_many :gene_alternate_names, :dependent => :destroy
   belongs_to :scaffold
   
+  has_many :drosophila_allele_genes
+  
   # create a dummy gene to satisfy validation
   def create_dummy(dummy_name)
     sp = Species.find_or_create_by_name dummy_name

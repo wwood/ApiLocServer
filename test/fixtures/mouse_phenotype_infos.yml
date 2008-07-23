@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  mgi: MyString
+  gene: MyString
+  phenotype: MyString
+
+two:
+  mgi: MyString
+  gene: MyString
+  phenotype: MyString

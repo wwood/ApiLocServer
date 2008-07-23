@@ -1,0 +1,2 @@
+module PhenotypeObservedsHelper
+end
