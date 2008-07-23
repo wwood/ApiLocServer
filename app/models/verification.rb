@@ -297,7 +297,33 @@ class Verification < ActiveRecord::Base
       
     end
   end
-  
+ 
+  def check_cel_links
+    cel = OrthomclGene.find_by_orthomcl_name('cel|WBGene00000001')
+    if !cel
+      puts "Celegans not uploaded properly"
+    else
+      g = cel.orthomcl_group
+      if !g
+        puts "No group for orthomcl cel"
+      elsif g.orthomcl_name != 'OG2_74360'
+        puts "Bad group for orthomcl group"
+      else
+        codes = cel.coding_regions
+        if !codes or codes.length != 1
+          puts "Cel orthomcl gene not linked in properly - nil"
+        elsif codes[0].string_id != 'WBGene00000001'
+          puts "Cel orthomcl gene falsy linked in properly BAD BAD BAD - wrong code #{codes[0].id}"
+        end
+      end
+      
+      
+    end
+  end
+
+
+
+ 
   def suba
     
     

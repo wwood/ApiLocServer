@@ -1,0 +1,15 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  mgi_allele: MyString
+  allele_type: MyString
+  mgi_marker: MyString
+  gene: MyString
+  phenotype: MyString
+
+two:
+  mgi_allele: MyString
+  allele_type: MyString
+  mgi_marker: MyString
+  gene: MyString
+  phenotype: MyString

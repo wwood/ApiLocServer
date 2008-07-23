@@ -1,0 +1,9 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  drosophila_allele_gene_id: 1
+  phenotype: MyString
+
+two:
+  drosophila_allele_gene_id: 1
+  phenotype: MyString

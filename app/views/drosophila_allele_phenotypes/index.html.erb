@@ -1,0 +1,22 @@
+<h1>Listing drosophila_allele_phenotypes</h1>
+
+<table>
+  <tr>
+    <th>Drosophila allele gene</th>
+    <th>Phenotype</th>
+  </tr>
+
+<% for drosophila_allele_phenotype in @drosophila_allele_phenotypes %>
+  <tr>
+    <td><%=h drosophila_allele_phenotype.drosophila_allele_gene_id %></td>
+    <td><%=h drosophila_allele_phenotype.phenotype %></td>
+    <td><%= link_to 'Show', drosophila_allele_phenotype %></td>
+    <td><%= link_to 'Edit', edit_drosophila_allele_phenotype_path(drosophila_allele_phenotype) %></td>
+    <td><%= link_to 'Destroy', drosophila_allele_phenotype, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New drosophila_allele_phenotype', new_drosophila_allele_phenotype_path %>

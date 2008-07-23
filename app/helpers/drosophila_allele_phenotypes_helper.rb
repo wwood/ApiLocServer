@@ -1,0 +1,2 @@
+module DrosophilaAllelePhenotypesHelper
+end

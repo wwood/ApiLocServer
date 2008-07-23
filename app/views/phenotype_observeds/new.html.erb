@@ -1,0 +1,39 @@
+<h1>New phenotype_observed</h1>
+
+<% form_for(@phenotype_observed) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :coding_region_id %><br />
+    <%= f.text_field :coding_region_id %>
+  </p>
+  <p>
+    <%= f.label :dbxref %><br />
+    <%= f.text_field :dbxref %>
+  </p>
+  <p>
+    <%= f.label :phenotype %><br />
+    <%= f.text_field :phenotype %>
+  </p>
+  <p>
+    <%= f.label :experiments %><br />
+    <%= f.text_field :experiments %>
+  </p>
+  <p>
+    <%= f.label :primary %><br />
+    <%= f.text_field :primary %>
+  </p>
+  <p>
+    <%= f.label :specific %><br />
+    <%= f.text_field :specific %>
+  </p>
+  <p>
+    <%= f.label :observed %><br />
+    <%= f.text_field :observed %>
+  </p>
+  <p>
+    <%= f.submit "Create" %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', phenotype_observeds_path %>

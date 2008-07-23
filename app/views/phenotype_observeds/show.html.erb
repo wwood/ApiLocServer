@@ -1,0 +1,38 @@
+<p>
+  <b>Coding region:</b>
+  <%=h @phenotype_observed.coding_region_id %>
+</p>
+
+<p>
+  <b>Dbxref:</b>
+  <%=h @phenotype_observed.dbxref %>
+</p>
+
+<p>
+  <b>Phenotype:</b>
+  <%=h @phenotype_observed.phenotype %>
+</p>
+
+<p>
+  <b>Experiments:</b>
+  <%=h @phenotype_observed.experiments %>
+</p>
+
+<p>
+  <b>Primary:</b>
+  <%=h @phenotype_observed.primary %>
+</p>
+
+<p>
+  <b>Specific:</b>
+  <%=h @phenotype_observed.specific %>
+</p>
+
+<p>
+  <b>Observed:</b>
+  <%=h @phenotype_observed.observed %>
+</p>
+
+
+<%= link_to 'Edit', edit_phenotype_observed_path(@phenotype_observed) %> |
+<%= link_to 'Back', phenotype_observeds_path %>

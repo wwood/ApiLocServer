@@ -1,0 +1,28 @@
+<h1>Listing mouse_pheno_infos</h1>
+
+<table>
+  <tr>
+    <th>Mgi allele</th>
+    <th>Allele type</th>
+    <th>Mgi marker</th>
+    <th>Gene</th>
+    <th>Phenotype</th>
+  </tr>
+
+<% for mouse_pheno_info in @mouse_pheno_infos %>
+  <tr>
+    <td><%=h mouse_pheno_info.mgi_allele %></td>
+    <td><%=h mouse_pheno_info.allele_type %></td>
+    <td><%=h mouse_pheno_info.mgi_marker %></td>
+    <td><%=h mouse_pheno_info.gene %></td>
+    <td><%=h mouse_pheno_info.phenotype %></td>
+    <td><%= link_to 'Show', mouse_pheno_info %></td>
+    <td><%= link_to 'Edit', edit_mouse_pheno_info_path(mouse_pheno_info) %></td>
+    <td><%= link_to 'Destroy', mouse_pheno_info, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New mouse_pheno_info', new_mouse_pheno_info_path %>

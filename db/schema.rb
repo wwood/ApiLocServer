@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080626013250) do
+ActiveRecord::Schema.define(:version => 20080721103728) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -113,6 +113,27 @@ ActiveRecord::Schema.define(:version => 20080626013250) do
   add_index "coding_regions", ["gene_id"], :name => "index_coding_regions_on_gene_id"
 
   create_table "derisi20063d7logmean", :force => true do |t|
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "drosophila_allele_genes", :force => true do |t|
+    t.string   "allele",     :null => false
+    t.integer  "gene_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "drosophila_allele_phenotypes", :force => true do |t|
+    t.integer  "drosophila_allele_gene_id", :null => false
+    t.string   "phenotype"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "drosophila_phenotype_infos", :force => true do |t|
+    t.string   "allele",     :null => false
+    t.string   "phenotype"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -250,6 +271,24 @@ ActiveRecord::Schema.define(:version => 20080626013250) do
     t.datetime "updated_at"
   end
 
+  create_table "mouse_pheno_infos", :force => true do |t|
+    t.string   "mgi_allele",  :null => false
+    t.string   "allele_type"
+    t.string   "mgi_marker"
+    t.string   "gene"
+    t.string   "phenotype"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "mouse_phenotype_infos", :force => true do |t|
+    t.string   "mgi"
+    t.string   "gene"
+    t.string   "phenotype"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "networks", :force => true do |t|
     t.string   "name"
     t.datetime "created_at"
@@ -296,6 +335,30 @@ ActiveRecord::Schema.define(:version => 20080626013250) do
 
   create_table "orthomcl_runs", :force => true do |t|
     t.string   "name",       :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "phenotype_informations", :force => true do |t|
+    t.integer  "coding_region_id", :null => false
+    t.string   "dbxref"
+    t.string   "phenotype"
+    t.integer  "experiments"
+    t.integer  "primary"
+    t.integer  "specific"
+    t.integer  "observed"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "phenotype_observeds", :force => true do |t|
+    t.integer  "coding_region_id", :null => false
+    t.string   "dbxref"
+    t.string   "phenotype"
+    t.integer  "experiments"
+    t.integer  "primary"
+    t.integer  "specific"
+    t.integer  "observed"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

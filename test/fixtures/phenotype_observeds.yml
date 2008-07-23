@@ -1,0 +1,19 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  coding_region_id: 1
+  dbxref: MyString
+  phenotype: MyString
+  experiments: 1
+  primary: 1
+  specific: 1
+  observed: 1
+
+two:
+  coding_region_id: 1
+  dbxref: MyString
+  phenotype: MyString
+  experiments: 1
+  primary: 1
+  specific: 1
+  observed: 1

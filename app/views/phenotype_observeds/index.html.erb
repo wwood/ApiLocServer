@@ -1,0 +1,32 @@
+<h1>Listing phenotype_observeds</h1>
+
+<table>
+  <tr>
+    <th>Coding region</th>
+    <th>Dbxref</th>
+    <th>Phenotype</th>
+    <th>Experiments</th>
+    <th>Primary</th>
+    <th>Specific</th>
+    <th>Observed</th>
+  </tr>
+
+<% for phenotype_observed in @phenotype_observeds %>
+  <tr>
+    <td><%=h phenotype_observed.coding_region_id %></td>
+    <td><%=h phenotype_observed.dbxref %></td>
+    <td><%=h phenotype_observed.phenotype %></td>
+    <td><%=h phenotype_observed.experiments %></td>
+    <td><%=h phenotype_observed.primary %></td>
+    <td><%=h phenotype_observed.specific %></td>
+    <td><%=h phenotype_observed.observed %></td>
+    <td><%= link_to 'Show', phenotype_observed %></td>
+    <td><%= link_to 'Edit', edit_phenotype_observed_path(phenotype_observed) %></td>
+    <td><%= link_to 'Destroy', phenotype_observed, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New phenotype_observed', new_phenotype_observed_path %>
