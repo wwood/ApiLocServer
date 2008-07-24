@@ -1,13 +1,13 @@
-#require 'jgi_genes'
-#require 'simple_go'
-#require 'rio'
-#require 'api_db_genes'
-#require 'yeast_genome_genes'
-#require 'signalp'
-#require 'api_db_fasta'
-#require 'tm_hmm_wrapper'
-#require 'rubygems'
-#require 'csv'
+require 'jgi_genes'
+require 'simple_go'
+require 'rio'
+require 'api_db_genes'
+require 'yeast_genome_genes'
+require 'signalp'
+require 'api_db_fasta'
+require 'tm_hmm_wrapper'
+require 'rubygems'
+require 'csv'
 require 'bio'
 
 MOLECULAR_FUNCTION = 'molecular_function'
@@ -15,6 +15,8 @@ YEAST = 'yeast'
 
 DATA_DIR = "#{ENV['HOME']}/Workspace/Rails/essentiality"
 WORK_DIR = "#{ENV['HOME']}/Workspace"
+
+PHD_DIR = "#{ENV['HOME']}/phd"
 
 class Script < ActiveRecord::Base
   def brafl_to_database

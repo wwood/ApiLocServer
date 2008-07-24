@@ -1,5 +1,4 @@
 require 'rubygems'
-gem 'bio'
 require 'bio'
 
 class ApiDbFasta

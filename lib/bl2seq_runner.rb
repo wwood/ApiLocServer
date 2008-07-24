@@ -1,6 +1,5 @@
 require 'tempfile'
 require 'rubygems'
-gem 'bio'
 require 'bio'
 
 # Given 2 Bio:seq objects, blast them against each other and return the result.

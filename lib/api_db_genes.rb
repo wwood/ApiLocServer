@@ -1,6 +1,5 @@
 
 require 'rubygems'
-gem 'bio'
 require 'bio'
 require 'jgi_genes'
 require 'cgi'

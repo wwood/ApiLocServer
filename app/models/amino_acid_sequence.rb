@@ -1,5 +1,5 @@
-require 'rubygems'
-gem 'bio'
+#require 'rubygems'
+#gem 'bio'
 require 'bio'
 require 'bl2seq_runner'
 
