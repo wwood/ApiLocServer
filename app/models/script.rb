@@ -3919,6 +3919,75 @@ class Script < ActiveRecord::Base
       }.reject{|i| !i}.average
     end
   end
+  
+  
+  def upload_transmembrane_gene_lists
+    base = "#{PHD_DIR}/transmembrane/again"
+    lists = [
+      ["#{base}/apicoplast.stuart.20080215.csv", 'apicopalst.Stuart.20080215'],
+      ["#{base}/fv.csv", 'fv.transmembrane'],
+      ["#{base}/ht.csv", 'ht.transmembrane'],
+      ["#{base}/pexel.csv", 'pexel.transmembrane']
+    ]
+    
+    lists.each do |pair|
+      list = PlasmodbGeneList.find_or_create_by_description(pair[1])
+      
+      File.open(pair[0]).each do |line|
+        next if line.strip === ''
+        
+        code = CodingRegion.find_by_name_or_alternate_and_organism(line.strip, Species.falciparum_name)
+        if !code
+          raise Exception, "no coding region '#{line}' found"
+        end
+        
+        PlasmodbGeneListEntry.find_or_create_by_plasmodb_gene_list_id_and_coding_region_id(
+          list.id,
+          code.id
+        )
+      end
+    end
+  end
+  
+  
+  def transmembrane_data
+    sep = "\t"
+    lists = [
+      'apicoplast.Stuart.20080215',
+      'fv.transmembrane',
+      'ht.transmembrane',
+      'pexel.transmembrane'
+    ]
+    lists.each do |list|
+      File.open("#{PHD_DIR}/transmembrane/post_holidays/rerun/#{list}.csv", 'w') do |f|
+        f.puts CodingRegion.transmembrane_data_columns.join(sep)
+        PlasmodbGeneList.find_by_description(list).coding_regions.each{ |c| 
+          f.puts c.transmembrane_data.join(sep)
+        }
+      end
+    end
+    
+    # now the genes not in any of the lists
+    File.open("#{PHD_DIR}/transmembrane/post_holidays/rerun/other.csv", 'w') do |f|
+      f.puts CodingRegion.transmembrane_data_columns.join(sep)
+      CodingRegion.all(
+        :include => [
+          {:gene => {:scaffold => :species}},
+          :plasmodb_gene_lists
+        ],
+        :conditions =>
+          "species.name = '#{Species.falciparum_name}' and "+
+          "coding_regions.id not in (select coding_regions.id from coding_regions LEFT OUTER JOIN \"plasmodb_gene_list_entries\" ON (\"coding_regions\".\"id\" = \"plasmodb_gene_list_entries\".\"coding_region_id\") LEFT OUTER JOIN \"plasmodb_gene_lists\" ON (\"plasmodb_gene_lists\".\"id\" = \"plasmodb_gene_list_entries\".\"plasmodb_gene_list_id\") WHERE ("+
+          "plasmodb_gene_lists.description=E'#{lists[0]}' or "+
+          "plasmodb_gene_lists.description=E'#{lists[1]}' or "+
+          "plasmodb_gene_lists.description=E'#{lists[2]}' or "+
+          "plasmodb_gene_lists.description=E'#{lists[3]}'"+
+          "))"
+      ).each do |code|
+        f.puts code.transmembrane_data.join(sep)
+      end
+    end
+  end
 
   def celegans_phenotype_observed_to_database 
     dummy_gene = Gene.new.create_dummy('worm dummy')

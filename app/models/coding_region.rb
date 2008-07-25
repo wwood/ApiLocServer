@@ -193,7 +193,7 @@ class CodingRegion < ActiveRecord::Base
     # print tmhmm2 stuff
     minus_sp = sequence_without_signal_peptide
     tmhmm_result = TmHmmWrapper.new.calculate(minus_sp)
-    if tmhmm_result.transmembrane_domains.length > 1  
+    if tmhmm_result.transmembrane_domains.length > 0
       to_print.push [
         tmhmm_result.minimum_length,
         tmhmm_result.average_length,
