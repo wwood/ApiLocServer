@@ -3870,14 +3870,19 @@ class Script < ActiveRecord::Base
         # What if there is more than 1 elegans gene? I could do something complex, but for the
         # moment it'll just be the first one (so essentially random).
         
-        first = CodingRegion.first(
-          :include => {
-              :orthomcl_genes => {:orthomcl_group => [
-                :orthomcl_run,
-                {:orthomcl_genes => {:coding_regions => {:gene => {:scaffold => :species}}}}
-              ]}},
+        
+        firsts = Gene.all(
+          :include => [
+            {:coding_regions => {:orthomcl_genes => {:orthomcl_group => [
+                    :orthomcl_run,
+                    {:orthomcl_genes => {:coding_regions => {:gene => {:scaffold => :species}}}}
+                  ]
+                }}},
+            :gene_network_edge_firsts, 
+            :gene_network_edge_seconds
+          ],
           :conditions => 
-              {'species.name' => Species.falciparum_name, :id => pair[0].id}
+            "species.name = '#{Species.falciparum_name}' and (gene_network_edges_genes.gene_id_first = "
         )
         
         edge = GeneNetworkEdge.find_by_gene_ids(GeneNetwork.wormnet_name, pair[0].id, pair[1].id)

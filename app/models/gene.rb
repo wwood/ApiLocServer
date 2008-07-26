@@ -6,6 +6,14 @@ class Gene < ActiveRecord::Base
   has_many :gene_alternate_names, :dependent => :destroy
   belongs_to :scaffold
   
+  # Rails doesn't handle these very well.
+  has_many :gene_network_edge_firsts,
+    :class_name => 'GeneNetworkEdge',
+    :foreign_key => 'gene_id_first'
+  has_many :gene_network_edge_seconds,
+    :class_name => 'GeneNetworkEdge',
+    :foreign_key => 'gene_id_second'
+  
   has_many :drosophila_allele_genes
   
   # create a dummy gene to satisfy validation

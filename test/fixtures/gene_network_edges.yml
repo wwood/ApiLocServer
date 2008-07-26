@@ -3,9 +3,8 @@
 one:
   gene_network_id: 1
   gene_id_first: 1
-  gene_id_second: 1
-
+  gene_id_second: 2
 two:
   gene_network_id: 1
-  gene_id_first: 1
-  gene_id_second: 1
+  gene_id_first: 2
+  gene_id_second: 3
