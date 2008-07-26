@@ -156,7 +156,7 @@ class CodingRegion < ActiveRecord::Base
   # return the sequence without a signal peptide
   def sequence_without_signal_peptide
     if !amino_acid_sequence
-      raise Exception, "No amino acid sequence found for coding region #{string_id}"
+      raise CodingRegionNotFoundException, "No amino acid sequence found for coding region #{string_id}"
     end
     seq = amino_acid_sequence.sequence
     sp_result = SignalP.calculate_signal(seq)
@@ -218,4 +218,7 @@ class CodingRegion < ActiveRecord::Base
     
     return to_print
   end
+end
+
+class CodingRegionNotFoundException < Exception
 end

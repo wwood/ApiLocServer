@@ -3841,50 +3841,7 @@ class Script < ActiveRecord::Base
     end
   end
   
-  def celegans_phenotype_information_to_database 
-    dummy_gene = Gene.new.create_dummy('worm dummy')
-    first = true
 
-    CSV.open("#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv",
-      'r', "\t") do |row|
-      if first
-        first = false
-        next
-      end
-
-      code = CodingRegion.find_or_create_by_string_id_and_gene_id(
-        row[0],
-        dummy_gene.id
-      )
-
-      # Observed: [WBPhenotype0000049] postembryonic_development_abnormal: experiments=1,primary=1,specific=1,observed=0
-
-      if row[3] == nil
-        next
-      else
-        row[3].split(' | ').each do |info|
-          matches = info.match(/^Observed: \[(.+?)\] (.+?): experiments=(\d+),primary=(\d+),specific=(\d+),observed=(\d+)$/)
-
-          if !matches
-            raise Exception, "Parsing failed."
-          end
-
-          PhenotypeInformation.find_or_create_by_coding_region_id_and_dbxref_and_phenotype_and_experiments_and_primary_and_specific_and_observed(
-
-            code.id,
-            matches[1],
-            matches[2],
-            matches[3],
-            matches[4],
-            matches[5], 
-            matches[6]
-
-          )
-
-        end
-      end
-    end
-  end
 
   # Take the wormnet and work out what the average length of the localisations to each other is,
   def wormnet_falciparum_localisation_first
@@ -3958,14 +3915,14 @@ class Script < ActiveRecord::Base
       'ht.transmembrane',
       'pexel.transmembrane'
     ]
-    lists.each do |list|
-      File.open("#{PHD_DIR}/transmembrane/post_holidays/rerun/#{list}.csv", 'w') do |f|
-        f.puts CodingRegion.transmembrane_data_columns.join(sep)
-        PlasmodbGeneList.find_by_description(list).coding_regions.each{ |c| 
-          f.puts c.transmembrane_data.join(sep)
-        }
-      end
-    end
+    #    lists.each do |list|
+    #      File.open("#{PHD_DIR}/transmembrane/post_holidays/rerun/#{list}.csv", 'w') do |f|
+    #        f.puts CodingRegion.transmembrane_data_columns.join(sep)
+    #        PlasmodbGeneList.find_by_description(list).coding_regions.each{ |c| 
+    #          f.puts c.transmembrane_data.join(sep)
+    #        }
+    #      end
+    #    end
     
     # now the genes not in any of the lists
     File.open("#{PHD_DIR}/transmembrane/post_holidays/rerun/other.csv", 'w') do |f|
@@ -3984,164 +3941,13 @@ class Script < ActiveRecord::Base
           "plasmodb_gene_lists.description=E'#{lists[3]}'"+
           "))"
       ).each do |code|
-        f.puts code.transmembrane_data.join(sep)
-      end
-    end
-  end
-
-  def celegans_phenotype_observed_to_database 
-    dummy_gene = Gene.new.create_dummy('worm dummy')
-    first = true
-
-    CSV.open("#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv",
-      'r', "\t") do |row|
-      if first
-        first = false
-        next
-      end
-
-      code = CodingRegion.find_or_create_by_string_id_and_gene_id(
-        row[0],
-        dummy_gene.id
-      )
-
-      #Observed: [WBPhenotype0001184] fat_content_increased: experiments=1,primary=1,specific=1,observed=1
-
-      if row[4] == nil
-        next
-      else
-        row[4].split(' | ').each do |info|
-          matches = info.match(/^Observed: \[(.+?)\] (.+?): experiments=(\d+),primary=(\d+),specific=(\d+),observed=(\d+)$/)
-
-          if !matches
-            raise Exception, "Parsing failed."
-          end
-
-          PhenotypeObserved.find_or_create_by_coding_region_id_and_dbxref_and_phenotype_and_experiments_and_primary_and_specific_and_observed(
-
-            code.id,
-            matches[1],
-            matches[2],
-            matches[3],
-            matches[4],
-            matches[5], 
-            matches[6]
-
-          )
-
+        begin
+          f.puts code.transmembrane_data.join(sep)
+        rescue CodingRegionNotFoundException
+          $stderr.puts $!
         end
       end
     end
-  
-  end
-  
-
-  def drosophila_allele_gene_to_database
-
-    #Allele ID      Allele Symbol   Gene ID         Gene Symbol     Annotation ID
-    #FBal0000001     alpha-Spec[1]   FBgn0250789     alpha-Spec      CG1977
-    first = true
-
-    CSV.open("#{WORK_DIR}/Gasser/Essentiality/Drosophila/fbal_fbgn_annotation_id.txt", 'r', "\t") do |row| 
-      if first or row === ''
-        first = false
-        next
-      end
-     
-      DrosophilaAlleleGene.find_or_create_by_allele_and_gene(row[0], row[4])
-    end
   end
 
-
-
-  def drosophila_phenotype_info_to_database
-
-    ###allele_symbol allele_FBal#    phenotype       FBrf#
-    #14-3-3epsilon[PL00784]  FBal0148516     embryo | germ-line clone | maternal effect   
-
-    # skip headers, the first 6 lines
-    File.open("#{WORK_DIR}/Gasser/Essentiality/Drosophila/allele_phenotypic_data_fb_2008_06.tsv").each do |row|
-      next if $. <= 6
-      splits = row.split("\t")
-
-      #retrieve info for allele from drosophila_allele_gene_table 
-      name = splits[1]
-      a = DrosophilaAlleleGene.find_by_allele(name)
-      if !a
-        puts "#{name}"
-      else
-        DrosophilaAllelePhenotype.find_or_create_by_drosophila_allele_gene_id_and_phenotype(a.id, splits[2])
-      end
-    end
-
-  end
-
-
-  def mouse_phenotype_info_to_database
-     
-    CSV.open("#{WORK_DIR}/Gasser/Essentiality/Mouse/MRK_Ensembl_Pheno.rpt", 'r', "\t") do |row| 
-      if row[3].match ','
-        row[3].split(',').each do |info|       
-          MousePhenotypeInfo.find_or_create_by_mgi_and_gene_and_phenotype(row[0], info, row[5])
-        end
-      else
-        MousePhenotypeInfo.find_or_create_by_mgi_and_gene_and_phenotype(row[0], row[3], row[5])
-      end
-
-
-    end
-  end
-
-  def mouse_phenotype_info_to_database
-
-    #Example line from MGI phenotype file
-    #MGI:3702935	1190005F20Rik<Gt(W027A02)Wrst>	gene trap W027A02, Wolfgang Wurst	Gene trapped	17198746	MGI:1916185	1190005F20Rik	XM_355244	ENSMUSG00000053286	MP:0005386,MP:0005389  
-
-    File.open("#{WORK_DIR}/Gasser/Essentiality/Mouse/MGI_PhenotypicAllele.rpt").each do |row|    
-
-      # skip headers, the first 7 lines
-      next if $. <= 7
-      splits = row.split("\t")
-      if splits[9].match ','
-        splits[9].split(',').each do |info|       
-          MousePhenoInfo.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_gene_and_phenotype(splits[0], splits[3], splits[5], splits[8], info)
-        end
-      else
-        MousePhenoInfo.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_gene_and_phenotype(splits[0], splits[3], splits[5], splits[8], splits[9])
-      end
-
-
-    end
-  end
-
-  def drosophila_phenotypes_to_db
-
-    File.open("/home/maria/Desktop/Essentiality/Drosophila/fbal_fbgn_annotation_id.txt").each do |row|
-      #first 2 lines are headers so skip   
-      next if $. <= 2
-      splits = row.split("\t")
-      g = Gene.find_or_create_by_name(splits[4])
-      #Then create allele gene table with
-      DrosophilaAlleleGene.find_or_create_by_allele_and_gene_id(splits[0], g.id) 
-    end
-
-    #Then create allele phenotype table. The format of the phenotype input file is as follows
-    #allele_symbol allele_FBal#    phenotype       FBrf#
-    #14-3-3epsilon[PL00784]  FBal0148516     embryo | germ-line clone | maternal effect   
-
-    # skip headers, the first 6 lines
-    File.open("/home/maria/Desktop/Essentiality/Drosophila/allele_phenotypic_data_fb_2008_06.tsv").each do |row2|
-      next if $. <= 6
-      splits2 = row2.split("\t")
-
-      #retrieve id for allele from drosophila_allele_gene_table 
-      name = splits2[1]
-      a = DrosophilaAlleleGene.find_by_allele(name)
-      if !a
-        $stderr.puts "No gene id found for allele #{name}"
-      else
-        DrosophilaAllelePhenotype.find_or_create_by_drosophila_allele_gene_id_and_phenotype(a.id, splits2[2])
-      end
-    end
-  end
 end
