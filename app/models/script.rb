@@ -3846,56 +3846,69 @@ class Script < ActiveRecord::Base
   # Take the wormnet and work out what the average length of the localisations to each other is,
   def wormnet_falciparum_localisation_first
     require 'array_pair'
-    Localisation.all(
-      :include => {:coding_regions => {:gene => {:scaffold => :species}}},
-      :conditions => ['species.name = ?', Species.falciparum_name]
-    ).each do |loc|
-      puts loc.name
+    #    Localisation.all(
+    #      :include => {:coding_regions => {:gene => {:scaffold => :species}}},
+    #      :conditions => ['species.name = ?', Species.falciparum_name]
+    #    ).each do |loc|
+    #      puts loc.name
       
-      # collect the pairwise distances between each of the coding regions with those localisations
-      p Gene.all(
-        :include => [
-          :coding_regions => [
-            {:gene => {:scaffold => :species}},
-            :localisations
-          ]
-        ],
-        :conditions => ["species.name = ? and localisations.id = ?",
-          Species.falciparum_name,
-          loc.id
-        ]
-      ).pairs.collect{|pair|
+    #      # collect the pairwise distances between each of the coding regions with those localisations
+    #      CodingRegion.all(
+    #        :include => [
+    #          {:gene => {:scaffold => :species}},
+    #          :localisations
+    #        ],
+    #        :conditions => ["species.name = ? and localisations.id = ?",
+    #          Species.falciparum_name,
+    #          loc.id
+    #        ]
+    CodingRegion.all(
+      :include => :plasmodb_gene_lists,
+      :conditions => ['plasmodb_gene_lists.description = ?', 'apicopalst.Stuart.20080215']
+    ).pairs.collect do |pair|
+      
+      #      p pair
+#      pair = [CodingRegion.find(4705), CodingRegion.find(4012)]
+#      pair = [CodingRegion.find(3128), CodingRegion.find(3479)]
         
-        # Each coding region now has to be taken across the species divide using orthoMCL.
-        # What if there is more than 1 elegans gene? I could do something complex, but for the
-        # moment it'll just be the first one (so essentially random).
+      # Each coding region now has to be taken across the species divide using orthoMCL.
+      # What if there is more than 1 elegans gene? I could do something complex, but for the
+      # moment it'll just be the first one (so essentially random).
         
         
-        firsts = Gene.all(
-          :include => [
-            {:coding_regions => {:orthomcl_genes => {:orthomcl_group => [
-                    :orthomcl_run,
-                    {:orthomcl_genes => {:coding_regions => {:gene => {:scaffold => :species}}}}
-                  ]
-                }}},
-            :gene_network_edge_firsts, 
-            :gene_network_edge_seconds
-          ],
-          :conditions => 
-            "species.name = '#{Species.falciparum_name}' and (gene_network_edges_genes.gene_id_first = "
-        )
+      # Find all the falciparum genes with orthomcl linked elegans genes that have 
+      # 
+      # I have pairs of falciparum coding regions. I want the average strength of the corresponding elegans ones
         
-        edge = GeneNetworkEdge.find_by_gene_ids(GeneNetwork.wormnet_name, pair[0].id, pair[1].id)
+      # Bringing edges into it is complicated, since gene1 and gene2 can be switched. So first of all just get the
+      # Elegans Genes for each of the genes separately.
         
-        # return to the collect iterator a real value or nil if there wasn't any
-        if edge
-          edge.strength
+      # NB: PF10_0084 and PFD1050w are good for testing here
+      eleones = [
+        pair[0].orthomcls(Species.elegans_name),
+        pair[1].orthomcls(Species.elegans_name)
+      ]
+        
+      # Now get the edges between the genes
+        
+      # For each pair in between the two of groups, collect the strength of the 
+      strengths = eleones[0].pairs(eleones[1]).collect{|elegan_code_pairs|
+        if elegan_code_pairs[0].gene and
+            elegan_code_pairs[1].gene and
+            edge = GeneNetworkEdge.find_by_gene_ids(GeneNetwork.wormnet_name, elegan_code_pairs[0].gene.id, elegan_code_pairs[1].gene.id)
+          edge.strength.to_f
         else
           nil
         end
-      }.reject{|i| !i}.average
+      }
+       
+      strengths.reject!{|i| !i}
+      if strengths and !strengths.empty?
+        puts pair.collect{|p| [p.string_id, p.id]}.push(strengths.average).join("\t")
+      end
     end
   end
+
   
   
   def upload_transmembrane_gene_lists

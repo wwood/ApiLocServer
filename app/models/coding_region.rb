@@ -1,5 +1,5 @@
 class CodingRegion < ActiveRecord::Base
-#  validates_presence_of :orientation
+  #  validates_presence_of :orientation
   
   has_one :coding_region_go_term, :dependent => :destroy
   has_many :go_terms, 
@@ -217,6 +217,34 @@ class CodingRegion < ActiveRecord::Base
     end
     
     return to_print
+  end
+  
+  
+  # Given a coding region, return the orthologs in another species, as given
+  # by orthomcl
+  def orthomcls(species_common_name)
+    CodingRegion.all(
+      :joins => [
+        {:gene => {:scaffold => :species}},
+        {:orthomcl_genes => {:orthomcl_group => [
+              :orthomcl_run,
+              {:orthomcl_genes => :coding_regions}
+            ]
+          }}
+      ],
+      :conditions => ['species.name = ? and orthomcl_runs.name = ? and coding_regions_orthomcl_genes.id = ?',
+        species_common_name, 
+        OrthomclRun.official_run_v2_name,
+        id
+      ]
+    )
+  end
+  
+  
+  
+  # return all the names (string_id and alternate string_ids) of this record
+  def names
+    [string_id, coding_region_alternate_string_id.collect{|s| s.name}].flatten
   end
 end
 
