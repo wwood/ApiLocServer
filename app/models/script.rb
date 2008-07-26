@@ -3865,6 +3865,21 @@ class Script < ActiveRecord::Base
           loc.id
         ]
       ).pairs.collect{|pair|
+        
+        # Each coding region now has to be taken across the species divide using orthoMCL.
+        # What if there is more than 1 elegans gene? I could do something complex, but for the
+        # moment it'll just be the first one (so essentially random).
+        
+        first = CodingRegion.first(
+          :include => {
+              :orthomcl_genes => {:orthomcl_group => [
+                :orthomcl_run,
+                {:orthomcl_genes => {:coding_regions => {:gene => {:scaffold => :species}}}}
+              ]}},
+          :conditions => 
+              {'species.name' => Species.falciparum_name, :id => pair[0].id}
+        )
+        
         edge = GeneNetworkEdge.find_by_gene_ids(GeneNetwork.wormnet_name, pair[0].id, pair[1].id)
         
         # return to the collect iterator a real value or nil if there wasn't any
