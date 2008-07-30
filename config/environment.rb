@@ -58,3 +58,7 @@ Rails::Initializer.run do |config|
   # Make Active Record use UTC-base instead of local time
   # config.active_record.default_timezone = :utc
 end
+
+
+# Requires so I can run kawaii with all the methods I want.
+require 'array_pair' #random added methods for array

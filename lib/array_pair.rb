@@ -31,4 +31,15 @@ class Array
   def average
     sum.to_f / length.to_f
   end
+  
+  #  Run the method given on each member of the array, then
+  #  collect and return the results
+  def pick(method_symbol)
+    return collect{|element|
+      element.send(method_symbol)
+    }
+  end
+  
+  # so intuitively the opposite of Array.reject
+  alias_method(:accept, :select)
 end

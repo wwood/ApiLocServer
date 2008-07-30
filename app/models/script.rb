@@ -3868,8 +3868,8 @@ class Script < ActiveRecord::Base
     ).pairs.collect do |pair|
       
       #      p pair
-#      pair = [CodingRegion.find(4705), CodingRegion.find(4012)]
-#      pair = [CodingRegion.find(3128), CodingRegion.find(3479)]
+      #      pair = [CodingRegion.find(4705), CodingRegion.find(4012)]
+      #      pair = [CodingRegion.find(3128), CodingRegion.find(3479)]
         
       # Each coding region now has to be taken across the species divide using orthoMCL.
       # What if there is more than 1 elegans gene? I could do something complex, but for the
@@ -3944,43 +3944,65 @@ class Script < ActiveRecord::Base
     sep = "\t"
     lists = [
       'apicoplast.Stuart.20080215',
-      'fv.transmembrane',
-      'ht.transmembrane',
-      'pexel.transmembrane'
+      #      'fv.transmembrane',
+      #      'ht.transmembrane',
+      #      'pexel.transmembrane'
     ]
-    #    lists.each do |list|
-    #      File.open("#{PHD_DIR}/transmembrane/post_holidays/rerun/#{list}.csv", 'w') do |f|
-    #        f.puts CodingRegion.transmembrane_data_columns.join(sep)
-    #        PlasmodbGeneList.find_by_description(list).coding_regions.each{ |c| 
-    #          f.puts c.transmembrane_data.join(sep)
-    #        }
-    #      end
-    #    end
-    
-    # now the genes not in any of the lists
-    File.open("#{PHD_DIR}/transmembrane/post_holidays/rerun/other.csv", 'w') do |f|
-      f.puts CodingRegion.transmembrane_data_columns.join(sep)
-      CodingRegion.all(
-        :include => [
-          {:gene => {:scaffold => :species}},
-          :plasmodb_gene_lists
-        ],
-        :conditions =>
-          "species.name = '#{Species.falciparum_name}' and "+
-          "coding_regions.id not in (select coding_regions.id from coding_regions LEFT OUTER JOIN \"plasmodb_gene_list_entries\" ON (\"coding_regions\".\"id\" = \"plasmodb_gene_list_entries\".\"coding_region_id\") LEFT OUTER JOIN \"plasmodb_gene_lists\" ON (\"plasmodb_gene_lists\".\"id\" = \"plasmodb_gene_list_entries\".\"plasmodb_gene_list_id\") WHERE ("+
-          "plasmodb_gene_lists.description=E'#{lists[0]}' or "+
-          "plasmodb_gene_lists.description=E'#{lists[1]}' or "+
-          "plasmodb_gene_lists.description=E'#{lists[2]}' or "+
-          "plasmodb_gene_lists.description=E'#{lists[3]}'"+
-          "))"
-      ).each do |code|
-        begin
-          f.puts code.transmembrane_data.join(sep)
-        rescue CodingRegionNotFoundException
-          $stderr.puts $!
-        end
+    lists.each do |list|
+      File.open("#{PHD_DIR}/transmembrane/post_holidays/rerun/#{list}.csv", 'w') do |f|
+        f.puts CodingRegion.transmembrane_data_columns.join(sep)
+        PlasmodbGeneList.find_by_description(list).coding_regions.each{ |c| 
+          f.puts c.transmembrane_data.join(sep)
+        }
       end
     end
+    
+    # now the genes not in any of the lists
+    #    File.open("#{PHD_DIR}/transmembrane/post_holidays/rerun/other.csv", 'w') do |f|
+    #      f.puts CodingRegion.transmembrane_data_columns.join(sep)
+    #      CodingRegion.all(
+    #        :include => [
+    #          {:gene => {:scaffold => :species}},
+    #          :plasmodb_gene_lists
+    #        ],
+    #        :conditions =>
+    #          "species.name = '#{Species.falciparum_name}' and "+
+    #          "coding_regions.id not in (select coding_regions.id from coding_regions LEFT OUTER JOIN \"plasmodb_gene_list_entries\" ON (\"coding_regions\".\"id\" = \"plasmodb_gene_list_entries\".\"coding_region_id\") LEFT OUTER JOIN \"plasmodb_gene_lists\" ON (\"plasmodb_gene_lists\".\"id\" = \"plasmodb_gene_list_entries\".\"plasmodb_gene_list_id\") WHERE ("+
+    #          "plasmodb_gene_lists.description=E'#{lists[0]}' or "+
+    #          "plasmodb_gene_lists.description=E'#{lists[1]}' or "+
+    #          "plasmodb_gene_lists.description=E'#{lists[2]}' or "+
+    #          "plasmodb_gene_lists.description=E'#{lists[3]}'"+
+    #          "))"
+    #      ).each do |code|
+    #        begin
+    #          f.puts code.transmembrane_data.join(sep)
+    #        rescue CodingRegionNotFoundException
+    #          $stderr.puts $!
+    #        end
+    #      end
+    #    end
   end
 
+  def not_var_rifin_stevor_transmembrane_data
+    sep = "\t"
+    list = 'Exported Minus Var Rifin Stevor'
+    bads = ['var','rifin','stevor']
+    File.open("#{PHD_DIR}/transmembrane/post_holidays/rerun/#{list}.csv", 'w') do |f|
+      f.puts CodingRegion.transmembrane_data_columns.join(sep)
+      CodingRegion.all(:include => [:plasmodb_gene_lists, :annotation], :conditions => "plasmodb_gene_lists.description in ('pexel.transmembrane','ht.transmembrane','exportPred10')").each {|c|
+        ann = c.annotation.annotation
+        found = false
+        bads.each do |bad|
+          if /#{bad}/i.match(ann)
+            found = true
+          end
+        end
+        p found
+        p ann
+        if !found
+          f.puts c.transmembrane_data.join(sep)
+        end
+      }
+    end
+  end
 end
