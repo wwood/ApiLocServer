@@ -1,0 +1,13 @@
+<h1>Listing coding_regions</h1>
+
+<table>
+  <tr>
+  </tr>
+
+<% for coding_region in @coding_regions %>
+  <tr>
+    <td><%= link_to coding_region.names.join(', '), :action => :show, :id => coding_region %></td>
+    <td><%= coding_region.annotation.annotation %></td>
+  </tr>
+<% end %>
+</table>

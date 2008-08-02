@@ -1,18 +1,12 @@
-<h1>Listing coding_regions</h1>
+<h1>Coding Region Search</h1>
 
-<table>
-  <tr>
-  </tr>
+<% if flash[:error] %><div class="error"><%= flash[:notice] %></div><% end %>
 
-<% for coding_region in @coding_regions %>
-  <tr>
-    <td><%= link_to 'Show', coding_region %></td>
-    <td><%= link_to 'Edit', edit_coding_region_path(coding_region) %></td>
-    <td><%= link_to 'Destroy', coding_region, :confirm => 'Are you sure?', :method => :delete %></td>
-  </tr>
-<% end %>
-</table>
 
-<br />
+<% @coding_region = CodingRegion.new %>
+<% form_for :coding_region, @coding_region, :url => {:action => :find} do |f| %>
+    <%= f.label 'Search Term' %>
+    <%= f.text_field :string_id %>
+    <%= submit_tag 'Search' %>
+  <% end %>
 
-<%= link_to 'New coding_region', new_coding_region_path %>

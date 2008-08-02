@@ -6,7 +6,7 @@ class CodingRegion < ActiveRecord::Base
     {:through => :coding_region_go_term}
   belongs_to :gene
   has_many :cds, :dependent => :destroy
-  has_many :coding_region_alternate_string_id, :dependent => :destroy
+  has_many :coding_region_alternate_string_ids, :dependent => :destroy
   has_many :derisi20063d7_logmeans
   has_many :plasmodb_gene_list_entries
   has_many :plasmodb_gene_lists, :through => :plasmodb_gene_list_entries
@@ -244,7 +244,7 @@ class CodingRegion < ActiveRecord::Base
   
   # return all the names (string_id and alternate string_ids) of this record
   def names
-    [string_id, coding_region_alternate_string_id.collect{|s| s.name}].flatten
+    [string_id, coding_region_alternate_string_ids.collect{|s| s.name}].flatten
   end
 end
 
