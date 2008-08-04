@@ -13,10 +13,11 @@ require 'bio'
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
 
-DATA_DIR = "#{ENV['HOME']}/Workspace/Rails/essentiality"
+
 WORK_DIR = "#{ENV['HOME']}/Workspace"
 
 PHD_DIR = "#{ENV['HOME']}/phd"
+DATA_DIR = "#{ENV['HOME']}/phd/data"
 
 class Script < ActiveRecord::Base
   def brafl_to_database
@@ -286,7 +287,7 @@ class Script < ActiveRecord::Base
   
   def falciparum_to_database
     # abstraction!
-    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
+    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
   end
   
   def calculate_falciparum_distances
