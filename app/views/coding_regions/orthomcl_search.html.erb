@@ -4,9 +4,9 @@
 
 
 <% @coding_region = CodingRegion.new %>
-<% form_for :coding_region, @coding_region, :url => {:action => :orthomcl} do |f| %>
-    <%= f.label 'Coding Region Name or OrthoMCL name' %>
-    <%= f.text_field :name %>
+<% form_for :coding_region, @coding_region, :url => {:action => :find} do |f| %>
+    <%= f.label 'Search Term' %>
+    <%= f.text_field :string_id %>
     <%= submit_tag 'Search' %>
   <% end %>
 

@@ -35,6 +35,24 @@ class CodingRegionsController < ApplicationController
       )
     end
   end
+  
+  
+  def orthomcl
+    q = params[:coding_region]['name']
+    logger.debug "my q: #{q}"
+    if !q
+      flash[:error] = 'ERROR: No query specified'
+      render :action => :index
+    else
+      @codes = CodingRegion.find_all_by_name_or_alternate(q)
+      if  @codes.empty?
+        q2 = "%#{q}%"
+        @codes = CodingRegion.all(:include => :orthomcl_genes, 
+          :conditions => ['orthomcl_genes.orthomcl_name like ?', q2]
+        )
+      end    
+    end
+  end
 
   # GET /coding_regions/1
   # GET /coding_regions/1.xml

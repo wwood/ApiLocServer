@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080721103728) do
+ActiveRecord::Schema.define(:version => 20080811015332) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -131,13 +131,6 @@ ActiveRecord::Schema.define(:version => 20080721103728) do
     t.datetime "updated_at"
   end
 
-  create_table "drosophila_phenotype_infos", :force => true do |t|
-    t.string   "allele",     :null => false
-    t.string   "phenotype"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
   create_table "gene_alternate_names", :force => true do |t|
     t.integer  "gene_id"
     t.string   "name"
@@ -228,6 +221,13 @@ ActiveRecord::Schema.define(:version => 20080721103728) do
   add_index "go_terms", ["go_identifier"], :name => "go_term_idx_name", :unique => true
 
   create_table "gus", :force => true do |t|
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "localisation_literatures", :force => true do |t|
+    t.integer  "pmid",                   :null => false
+    t.integer  "localisation_method_id", :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end

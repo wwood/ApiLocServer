@@ -124,6 +124,22 @@ class CodingRegion < ActiveRecord::Base
     end
   end
   
+    # Return the coding region associated with the string id. The string_id
+  # can be either a real id, or an alternate id.
+  def self.find_all_by_name_or_alternate(string_id)
+    simple = CodingRegion.find_all_by_string_id string_id
+    if simple
+      return simple
+    else
+      alts = CodingRegionAlternateStringId.find_all_by_name string_id
+      if alts
+        return alts.pick(:coding_region)
+      else
+        return []
+      end
+    end
+  end
+  
   def self.find_by_name_or_alternate_and_organism(string_id, organism_common_name)
     simple = CodingRegion.find(:first,
       :include => {:gene => {:scaffold => :species}},
