@@ -1,9 +1,0 @@
-# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
-
-one:
-  coding_region_id: 1
-  domain_length: 1
-
-two:
-  coding_region_id: 1
-  domain_length: 1

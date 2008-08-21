@@ -127,8 +127,8 @@ ActiveRecord::Schema.define(:version => 20080821041240) do
   add_index "developmental_stage_localisation_publications", ["developmental_stage_localisations_id", "publication_id"], :name => "index_developmental_stage_localisation_publications_on_developm", :unique => true
 
   create_table "developmental_stage_localisations", :force => true do |t|
-    t.integer  "localisation_id"
-    t.integer  "developmental_stage"
+    t.integer  "localisation_id",        :null => false
+    t.integer  "developmental_stage_id", :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -202,7 +202,7 @@ ActiveRecord::Schema.define(:version => 20080821041240) do
     t.datetime "updated_at"
   end
 
-  add_index "go_alternates", ["go_identifier"], :name => "index_go_alternates_on_go_identifier", :unique => true
+  add_index "go_alternates", ["go_identifier"], :name => "go_alternate_index", :unique => true
 
   create_table "go_list_entries", :force => true do |t|
     t.integer  "go_list_id"

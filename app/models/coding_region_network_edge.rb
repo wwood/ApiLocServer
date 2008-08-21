@@ -2,10 +2,10 @@ class CodingRegionNetworkEdge < ActiveRecord::Base
   belongs_to :network
   belongs_to :coding_region_1,
     :foreign_key => 'coding_region_id_1',
-    :class => 'CodingRegion'
+    :class_name => 'CodingRegion'
   belongs_to :coding_region_2,
     :foreign_key => 'coding_region_id_1',
-    :class => 'CodingRegion'
+    :class_name => 'CodingRegion'
   
   # There is no order to the ids, so it there is 2 possible ways to find
   # the edge between 2 coding regions

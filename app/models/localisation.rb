@@ -134,8 +134,8 @@ class Localisation < ActiveRecord::Base
         end
         
         # add each of the resulting pairs
-        locstages.push locs.pairs(stages).collect do |arr|
-          DevelopmentalStageLocalisation.new(
+        locs.pairs(stages).each do |arr|
+          locstages.push DevelopmentalStageLocalisation.new(
             :localisation => arr[0],
             :developmental_stage => arr[1]
           )
@@ -155,5 +155,10 @@ class Localisation < ActiveRecord::Base
     end
     
     return locstages.flatten
+  end
+  
+  
+  def self.find_by_name_or_alternate(localisation_string)
+    Localisation.find_by_name(localisation_string)
   end
 end
