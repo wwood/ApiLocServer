@@ -70,16 +70,90 @@ class Localisation < ActiveRecord::Base
       next if row[0].match(/^\#/) # ignore lines starting with # (comment) characters
       next if row.length < 1 #ignore blank lines
       
-      code = CodingRegion.find_by_name_or_alternate_and_organism(row[1], Species.falciparum_name)
+      # name the columns sensibly
+      common_name = row[0]
+      plasmodb_id = row[1]
+      pubmed_id = row[2]
+      localisation_string = row[3]
+      
+      # make sure the coding region is in the database properly.
+      code = CodingRegion.find_by_name_or_alternate_and_organism(plasmodb_id, Species.falciparum_name)
       if !code
-        raise Exception, "No coding region '#{row[1]}' found."
+        raise Exception, "No coding region '#{plasmodb_id}' found."
       end
       
-      loc = Localisation.find_by_name
+      # Create the publication(s) we are relying on
+      pubs = []
+      pubmed_id.split(',').each do |str|
+        str.strip!
+        pub = Publication.new
+        if str.to_i.to_s === str #if it is an integer, it's a pubmed id
+          pub.pubmed_id = str.to_i
+        else
+          pub.url = str
+        end
+        pub.save!
+        pubs.push pub
+      end
+      
+      # parse the localisation properly
+      parse_name(localisation_string).each do |dsl|
+      dsl
+      end
     end
   end
   
-  def parse_name
+  # Parse a line from the dirty localisation files. Return an array of (unsaved) DevelopmentalStageLocalisation objects
+  def parse_name(dirt)
+    locstages = []
     
+    # split on commas
+    dirt.split(',').each do |fragment|
+      if matches = fragment.match('^(.*) during (.*)')
+        locs = []
+        stages = []
+        
+        # split each of the localisations by 'and'
+        matches[1].split(' and ').each do |loc|
+          l = Localisation.find_by_name_or_alternate(loc)
+          if !l
+            raise Exception, "No such localisation '#{loc}' found."
+          else
+            locs.push l
+          end
+        end
+        
+        # split each of the stages by 'and'
+        matches[2].split(' and ').each do |stage|
+          d = DevelopmentalStage.find_by_name(stage)
+          if !d
+            raise Exception, "No such dev stage '#{stage}' found."
+          else
+            stages.push d
+          end
+        end
+        
+        # add each of the resulting pairs
+        locstages.push locs.pairs(stages).collect do |arr|
+          DevelopmentalStageLocalisation.new(
+            :localisation => arr[0],
+            :developmental_stage => arr[1]
+          )
+        end
+        
+      else #no during - it's just a straight localisation
+        # split each of the localisations by 'and'
+        fragment.split(' and ').each do |loc|
+          l = Localisation.find_by_name_or_alternate(loc)
+          if !l
+            raise Exception, "No such localisation '#{loc}' found."
+          else
+            locstages.push DevelopmentalStageLocalisation.new(:localisation => l)
+          end
+        end
+      end
+    end
+    
+    return locstages.flatten
   end
 end

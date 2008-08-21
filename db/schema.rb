@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080811015332) do
+ActiveRecord::Schema.define(:version => 20080821041240) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -113,6 +113,29 @@ ActiveRecord::Schema.define(:version => 20080811015332) do
   add_index "coding_regions", ["gene_id"], :name => "index_coding_regions_on_gene_id"
 
   create_table "derisi20063d7logmean", :force => true do |t|
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "developmental_stage_localisation_publications", :force => true do |t|
+    t.integer  "developmental_stage_localisations_id", :null => false
+    t.integer  "publication_id",                       :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "developmental_stage_localisation_publications", ["developmental_stage_localisations_id", "publication_id"], :name => "index_developmental_stage_localisation_publications_on_developm", :unique => true
+
+  create_table "developmental_stage_localisations", :force => true do |t|
+    t.integer  "localisation_id"
+    t.integer  "developmental_stage"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "developmental_stages", :force => true do |t|
+    t.string   "type"
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -239,6 +262,13 @@ ActiveRecord::Schema.define(:version => 20080811015332) do
   end
 
   add_index "localisation_methods", ["description"], :name => "index_localisation_methods_on_description", :unique => true
+
+  create_table "localisation_synonyms", :force => true do |t|
+    t.string   "name"
+    t.integer  "localisation_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "localisations", :force => true do |t|
     t.string   "name",       :null => false
@@ -395,6 +425,13 @@ ActiveRecord::Schema.define(:version => 20080811015332) do
 
   create_table "probe_maps", :force => true do |t|
     t.string   "name",       :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "publications", :force => true do |t|
+    t.integer  "pubmed_id"
+    t.string   "url"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
