@@ -98,7 +98,12 @@ class Localisation < ActiveRecord::Base
       
       # parse the localisation properly
       parse_name(localisation_string).each do |dsl|
-      dsl
+        dsl.save!
+        pubs.each do |pub|
+          DevelopmentalStageLocalisationPublication.find_or_create_by_developmental_stage_localisation_id_and_publication_id(
+            dsl.id, pub.id
+          )
+        end
       end
     end
   end

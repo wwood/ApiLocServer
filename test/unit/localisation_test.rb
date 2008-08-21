@@ -40,8 +40,6 @@ class LocalisationTest < ActiveSupport::TestCase
       DevelopmentalStageLocalisation.new(:localisation => Localisation.find_by_name('apicoplast'), :developmental_stage => DevelopmentalStage.find_by_name('ring')),
       DevelopmentalStageLocalisation.new(:localisation => Localisation.find_by_name('mitochondria'), :developmental_stage => DevelopmentalStage.find_by_name('ring'))
     ].sort, stuff.sort, '2 during 2'
-    
-    #1 during 1, 2
   end
   
   
