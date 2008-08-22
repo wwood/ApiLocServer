@@ -11,11 +11,11 @@ class Mscript
   DATA_DIR = "#{ENV['HOME']}/Workspace/Rails/essentiality"
   WORK_DIR = "#{ENV['HOME']}/Workspace"
   
-  def celegans_phenotype_information_to_database 
+  def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv")
     dummy_gene = Gene.new.create_dummy('worm dummy')
     first = true
 
-    CSV.open("#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv",
+    CSV.open(filename,
       'r', "\t") do |row|
       if first
         first = false
@@ -57,11 +57,11 @@ class Mscript
   end
   
   
-  def celegans_phenotype_observed_to_database 
+  def celegans_phenotype_observed_to_database(filename="#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv")
     dummy_gene = Gene.new.create_dummy('worm dummy')
     first = true
 
-    CSV.open("#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv",
+    CSV.open(filename,
       'r', "\t") do |row|
       if first
         first = false

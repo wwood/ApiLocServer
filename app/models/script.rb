@@ -9,6 +9,7 @@ require 'tm_hmm_wrapper'
 require 'rubygems'
 require 'csv'
 require 'bio'
+require 'mscript'
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -4005,5 +4006,9 @@ class Script < ActiveRecord::Base
         end
       }
     end
+  end
+  
+  def ben_celegans_phenotype_information_to_database
+    Mscript.new.celegans_phenotype_information_to_database("#{DATA_DIR}/elegans/essentiality/cel_wormbase_pheno.tsv")
   end
 end
