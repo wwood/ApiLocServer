@@ -25,17 +25,20 @@ class OrthomclGeneTest < ActiveSupport::TestCase
       :orthomcl_group_id => 2
     )
     assert g
-    assert_differences([CodingRegion],:count,
-      [0]){
+    assert_difference('CodingRegion.count', 0) {
       g.compute_coding_region!
     }
     g = OrthomclGene.create!(
       :orthomcl_name => 'pfa|PF1.1no_way',
       :orthomcl_group_id => 2
     )
-    assert_differences([CodingRegion],:count,
-      [1]){
+    assert_difference('CodingRegion.count', 1) {
       g.compute_coding_region!
     }
+  end
+  
+  def test_code_named_scope
+    assert OrthomclGene.code('ath').all.pick(:orthomcl_name).include?('ath|ad01')
+    assert_equal false, OrthomclGene.code('ath').all.pick(:orthomcl_name).include?('pfa|PF01')
   end
 end

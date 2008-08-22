@@ -4,6 +4,10 @@ class OrthomclGene < ActiveRecord::Base
   has_many :coding_regions, :through => :orthomcl_gene_coding_regions
   has_one :orthomcl_gene_official_data
   
+  named_scope :code, lambda { |three_letter_species_code| {
+    :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
+  }}
+  
   def accepted_database_id
     matches = orthomcl_name.match('pfa\|(.*)$')
     if matches
@@ -52,7 +56,7 @@ class OrthomclGene < ActiveRecord::Base
       
       
     else # For non-official runs do nothing at the moment
-     return nil
+      return nil
     end
   end
   
