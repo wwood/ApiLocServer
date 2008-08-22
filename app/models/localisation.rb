@@ -64,8 +64,8 @@ class Localisation < ActiveRecord::Base
   end
   
   # Upload all the data from the localisation list manually collected by ben
-  def upload_other_falciparum_list
-    CSV.open('/home/ben/phd/gene lists/other/other.csv') do |row|
+  def upload_other_falciparum_list(filename='/home/ben/phd/gene lists/other/other.csv')
+    CSV.open(filename) do |row|
       
       next if row[0].match(/^\#/) # ignore lines starting with # (comment) characters
       next if row.length < 1 #ignore blank lines
@@ -83,18 +83,11 @@ class Localisation < ActiveRecord::Base
       end
       
       # Create the publication(s) we are relying on
-      pubs = []
-      pubmed_id.split(',').each do |str|
-        str.strip!
-        pub = Publication.new
-        if str.to_i.to_s === str #if it is an integer, it's a pubmed id
-          pub.pubmed_id = str.to_i
-        else
-          pub.url = str
-        end
-        pub.save!
-        pubs.push pub
+      pubs = Publication.create_from_ids_or_urls pubmed_id
+      if !pubs or pubs.empty?
+        raise Exception, "No publications found for line #{row.inspect}"
       end
+
       
       # parse the localisation properly
       parse_name(localisation_string).each do |dsl|

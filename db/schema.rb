@@ -202,7 +202,7 @@ ActiveRecord::Schema.define(:version => 20080821041240) do
     t.datetime "updated_at"
   end
 
-  add_index "go_alternates", ["go_identifier"], :name => "go_alternate_index", :unique => true
+  add_index "go_alternates", ["go_identifier"], :name => "index_go_alternates_on_go_identifier", :unique => true
 
   create_table "go_list_entries", :force => true do |t|
     t.integer  "go_list_id"
