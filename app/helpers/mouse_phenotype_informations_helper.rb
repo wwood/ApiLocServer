@@ -1,0 +1,2 @@
+module MousePhenotypeInformationsHelper
+end
