@@ -4011,4 +4011,8 @@ class Script < ActiveRecord::Base
   def ben_celegans_phenotype_information_to_database
     Mscript.new.celegans_phenotype_information_to_database("#{DATA_DIR}/elegans/essentiality/cel_wormbase_pheno.tsv")
   end
+  
+  def ben_celegans_phenotype_observed_to_database
+    Mscript.new.celegans_phenotype_observed_to_database("#{DATA_DIR}/elegans/essentiality/cel_wormbase_pheno.tsv")
+  end
 end
