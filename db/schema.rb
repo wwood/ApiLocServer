@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080821041240) do
+ActiveRecord::Schema.define(:version => 20080822065008) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -301,6 +301,13 @@ ActiveRecord::Schema.define(:version => 20080821041240) do
     t.datetime "updated_at"
   end
 
+  create_table "mouse_pheno_descs", :force => true do |t|
+    t.string   "pheno_id",   :null => false
+    t.string   "pheno_desc"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "mouse_pheno_infos", :force => true do |t|
     t.string   "mgi_allele",  :null => false
     t.string   "allele_type"
@@ -311,10 +318,25 @@ ActiveRecord::Schema.define(:version => 20080821041240) do
     t.datetime "updated_at"
   end
 
+  create_table "mouse_phenotype_informations", :force => true do |t|
+    t.string   "mgi_allele",          :null => false
+    t.string   "allele_type"
+    t.string   "mgi_marker"
+    t.integer  "gene_id"
+    t.integer  "mouse_pheno_desc_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "mouse_phenotype_infos", :force => true do |t|
     t.string   "mgi"
     t.string   "gene"
     t.string   "phenotype"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "mverifications", :force => true do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -354,14 +376,11 @@ ActiveRecord::Schema.define(:version => 20080821041240) do
   add_index "orthomcl_genes", ["orthomcl_group_id", "orthomcl_name"], :name => "index_orthomcl_genes_on_orthomcl_group_id_and_orthomcl_name", :unique => true
 
   create_table "orthomcl_groups", :force => true do |t|
-    t.integer  "version"
     t.string   "orthomcl_name"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "orthomcl_run_id", :null => false
   end
-
-  add_index "orthomcl_groups", ["orthomcl_name", "version"], :name => "index_orthomcl_groups_on_version_and_orthomcl_name", :unique => true
 
   create_table "orthomcl_runs", :force => true do |t|
     t.string   "name",       :null => false
@@ -502,6 +521,14 @@ ActiveRecord::Schema.define(:version => 20080821041240) do
   add_index "transmembrane_domains", ["coding_region_id", "type"], :name => "index_transmembrane_domains_on_coding_region_id_and_type"
 
   create_table "verifications", :force => true do |t|
+  end
+
+  create_table "yeast_pheno_infos", :force => true do |t|
+    t.integer  "coding_region_id", :null => false
+    t.string   "experiment_type"
+    t.string   "phenotype"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
 end

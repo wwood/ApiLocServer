@@ -14,7 +14,7 @@ class OrthomclGroup < ActiveRecord::Base
     #'dme%').orthomcl_genes )
     
     # add the tables to select from
-    sql = 'select g.id from orthomcl_groups g, orthomcl_runs run'
+    sql = 'select distinct(g.id) from orthomcl_groups g, orthomcl_runs run'
     orthomcl_species_identifiers.each do |spid|
       sql += ", orthomcl_genes #{spid}"
     end
