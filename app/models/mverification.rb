@@ -60,14 +60,13 @@ def orthomcl
         codes = cel.coding_regions
         if !codes or codes.length != 1
           puts "Cel orthomcl gene not linked in properly - nil"
-        elsif codes[0].string_id != 'WBGene00000001'
-          puts "Cel orthomcl gene falsy linked in properly BAD BAD BAD - wrong code #{codes[0].id}"
+        elsif !codes[0].names.include?('WBGene00000001') # The name might be the string_id or the alternate, so check both
+          puts "Cel orthomcl gene falsy linked in properly BAD BAD BAD - wrong code #{codes[0].inspect}"
         end
       end
-      
-      
     end
   end
+  
   def check_sce_links
     sce = OrthomclGene.find_by_orthomcl_name('sce|YNL214W')
     if !sce
