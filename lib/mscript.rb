@@ -40,9 +40,8 @@ class Mscript
             raise Exception, "Parsing failed."
           end
 
-          PhenotypeInformation.find_or_create_by_coding_region_id_and_dbxref_and_phenotype_and_experiments_and_primary_and_specific_and_observed(
+          pheno = PhenotypeInformation.find_or_create_by_dbxref_and_phenotype_and_experiments_and_primary_and_specific_and_observed(
 
-            code.id,
             matches[1],
             matches[2],
             matches[3],
@@ -51,6 +50,12 @@ class Mscript
             matches[6]
 
           )
+          
+          # I want collection<< functionality, but check to make sure isn't already there otherwise
+          # database will complain
+          if !pheno.coding_region_ids.include?(code.id)
+            pheno.coding_regions << code
+          end
 
         end
       end
@@ -86,9 +91,8 @@ class Mscript
             raise Exception, "Parsing failed."
           end
 
-          PhenotypeObserved.find_or_create_by_coding_region_id_and_dbxref_and_phenotype_and_experiments_and_primary_and_specific_and_observed(
+          pheno = PhenotypeObserved.find_or_create_by_dbxref_and_phenotype_and_experiments_and_primary_and_specific_and_observed(
 
-            code.id,
             matches[1],
             matches[2],
             matches[3],
@@ -97,11 +101,14 @@ class Mscript
             matches[6]
 
           )
-
+          
+          if !pheno.coding_region_ids.include?(code.id)
+            pheno.coding_regions << code
+          end
         end
       end
-    end
   
+    end
   end
   
 

@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080822065008) do
+ActiveRecord::Schema.define(:version => 20080823064422) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -99,6 +99,24 @@ ActiveRecord::Schema.define(:version => 20080822065008) do
   end
 
   add_index "coding_region_network_edges", ["coding_region_id_first", "coding_region_id_second", "network_id"], :name => "index_coding_region_network_edges_on_network_id_and_coding_regi", :unique => true
+
+  create_table "coding_region_phenotype_informations", :force => true do |t|
+    t.integer  "coding_region_id"
+    t.integer  "phenotype_observed_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "coding_region_phenotype_informations", ["coding_region_id", "phenotype_observed_id"], :name => "index_coding_region_phenotype_informations_on_coding_region_id_", :unique => true
+
+  create_table "coding_region_phenotype_observeds", :force => true do |t|
+    t.integer  "coding_region_id"
+    t.integer  "phenotype_observed_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "coding_region_phenotype_observeds", ["coding_region_id", "phenotype_observed_id"], :name => "index_coding_region_phenotype_observeds_on_coding_region_id_and", :unique => true
 
   create_table "coding_regions", :force => true do |t|
     t.integer  "gene_id"
@@ -389,7 +407,6 @@ ActiveRecord::Schema.define(:version => 20080822065008) do
   end
 
   create_table "phenotype_informations", :force => true do |t|
-    t.integer  "coding_region_id", :null => false
     t.string   "dbxref"
     t.string   "phenotype"
     t.integer  "experiments"
@@ -401,7 +418,6 @@ ActiveRecord::Schema.define(:version => 20080822065008) do
   end
 
   create_table "phenotype_observeds", :force => true do |t|
-    t.integer  "coding_region_id", :null => false
     t.string   "dbxref"
     t.string   "phenotype"
     t.integer  "experiments"

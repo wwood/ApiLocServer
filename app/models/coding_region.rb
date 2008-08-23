@@ -32,8 +32,10 @@ class CodingRegion < ActiveRecord::Base
   has_many :membrain_transmembrane_domains
   
   # Worm project
-  has_many :phenotype_information, :dependent => :destroy
-  has_many :phenotype_observeds, :dependent => :destroy
+  has_many :coding_region_phenotype_informations, :dependent => :destroy
+  has_many :phenotype_informations, :through => :coding_region_phenotype_informations
+  has_many :coding_region_phenotype_observeds, :dependent => :destroy
+  has_many :phenotype_observeds, :through => :coding_region_phenotype_observeds
   
   
   POSITIVE_ORIENTATION = '+'
@@ -128,7 +130,7 @@ class CodingRegion < ActiveRecord::Base
     end
   end
   
-    # Return the coding region associated with the string id. The string_id
+  # Return the coding region associated with the string id. The string_id
   # can be either a real id, or an alternate id.
   def self.find_all_by_name_or_alternate(string_id)
     simple = CodingRegion.find_all_by_string_id string_id

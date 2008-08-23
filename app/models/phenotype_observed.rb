@@ -1,5 +1,6 @@
 class PhenotypeObserved < ActiveRecord::Base
-  belongs_to :coding_region
+  has_many :coding_region_phenotype_observeds, :dependent => :destroy
+  has_many :coding_regions, :through =>:coding_region_phenotype_observeds
   
   named_scope :lethal, {:conditions => ['phenotype like ?', '%lethal%']}
 end

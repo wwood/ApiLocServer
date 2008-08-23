@@ -1,5 +1,5 @@
 class Mverification < ActiveRecord::Base
-def orthomcl
+  def orthomcl
     if OrthomclGroup.count(
         :include => :orthomcl_run,
         :conditions => "orthomcl_runs.name='#{OrthomclRun.official_run_v2_name}'"
@@ -85,6 +85,32 @@ def orthomcl
           puts "Sce orthomcl gene falsy linked in properly BAD BAD BAD - wrong code #{codes[0].id}"
         end
       end
+    end
+  end
+  
+  
+  def phenotype_observed
+    code = CodingRegion.find_by_name_or_alternate('WBGene00000001')
+    if !code
+      puts "WBGene00000001 not uploaded correctly - you aren't even close."; return
+    end
+    
+    if code.phenotype_observeds.length != 6
+      puts "Unexpected number of observations for gene 1: #{code.phenotype_observeds.inspect}"; return
+    end
+    
+    # repeat for middle case to be surer
+    code = CodingRegion.find_by_name_or_alternate('WBGene00000008')
+    if !code
+      puts "WBGene00000006 not uploaded correctly - you aren't even close."; return
+    end
+    
+    if code.phenotype_observeds.length != 8
+      puts "Unexpected number of observations for gene 6: #{code.phenotype_observeds.inspect}"; return
+    end
+    
+    if code.phenotype_observeds.pick(:phenotype).sort[0] != 'slow_growth'
+      puts "Bad phenotype phenotype name: #{code.phenotype_observeds.pick(:phenotype).sort[0]}"
     end
   end
 
