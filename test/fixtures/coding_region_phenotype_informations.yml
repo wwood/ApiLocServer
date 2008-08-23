@@ -2,8 +2,8 @@
 
 one:
   coding_region_id: 1
-  phenotype_information_id: 1
+  phenotype_information_id: 2
 
 two:
-  coding_region_id: 1
-  phenotype_information_id: 1
+  coding_region_id: 2
+  phenotype_information_id: 2

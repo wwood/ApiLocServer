@@ -1,8 +1,20 @@
 require 'test_helper'
 
 class PhenotypeObservedTest < ActiveSupport::TestCase
-  # Replace this with your real tests.
-  def test_truth
-    assert true
+  
+  def test_lethal?
+    obs = PhenotypeObserved.new
+    
+    obs.phenotype = 'nada'
+    assert !obs.lethal?
+    
+    obs.phenotype = 'yalethal'
+    assert obs.lethal?
+    
+    obs.phenotype = 'almostLetha.'
+    assert !obs.lethal?
+    
+    obs.phenotype = 'LETHALISTY'
+    assert obs.lethal?
   end
 end

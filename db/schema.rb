@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080823064422) do
+ActiveRecord::Schema.define(:version => 20080823091512) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -102,12 +102,12 @@ ActiveRecord::Schema.define(:version => 20080823064422) do
 
   create_table "coding_region_phenotype_informations", :force => true do |t|
     t.integer  "coding_region_id"
-    t.integer  "phenotype_observed_id"
+    t.integer  "phenotype_information_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  add_index "coding_region_phenotype_informations", ["coding_region_id", "phenotype_observed_id"], :name => "index_coding_region_phenotype_informations_on_coding_region_id_", :unique => true
+  add_index "coding_region_phenotype_informations", ["coding_region_id", "phenotype_information_id"], :name => "index_coding_region_phenotype_informations_on_coding_region_id_", :unique => true
 
   create_table "coding_region_phenotype_observeds", :force => true do |t|
     t.integer  "coding_region_id"
@@ -129,6 +129,7 @@ ActiveRecord::Schema.define(:version => 20080823064422) do
   end
 
   add_index "coding_regions", ["gene_id"], :name => "index_coding_regions_on_gene_id"
+  add_index "coding_regions", ["string_id"], :name => "index_coding_regions_on_string_id"
 
   create_table "derisi20063d7logmean", :force => true do |t|
     t.datetime "created_at"
@@ -213,6 +214,8 @@ ActiveRecord::Schema.define(:version => 20080823064422) do
     t.integer  "scaffold_id"
   end
 
+  add_index "genes", ["scaffold_id"], :name => "index_genes_on_scaffold_id"
+
   create_table "go_alternates", :force => true do |t|
     t.string   "go_identifier"
     t.integer  "go_term_id"
@@ -220,7 +223,7 @@ ActiveRecord::Schema.define(:version => 20080823064422) do
     t.datetime "updated_at"
   end
 
-  add_index "go_alternates", ["go_identifier"], :name => "index_go_alternates_on_go_identifier", :unique => true
+  add_index "go_alternates", ["go_identifier"], :name => "go_alternate_index", :unique => true
 
   create_table "go_list_entries", :force => true do |t|
     t.integer  "go_list_id"
@@ -477,6 +480,8 @@ ActiveRecord::Schema.define(:version => 20080823064422) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "scaffolds", ["species_id"], :name => "index_scaffolds_on_species_id"
 
   create_table "scripts", :force => true do |t|
     t.datetime "created_at"
