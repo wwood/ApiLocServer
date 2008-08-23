@@ -31,6 +31,10 @@ class CodingRegion < ActiveRecord::Base
   
   has_many :membrain_transmembrane_domains, :dependent => :destroy
   
+  # Worm project
+  has_many :phenotype_information
+  has_many :phenotype_observeds
+  
   
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'

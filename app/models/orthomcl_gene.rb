@@ -123,4 +123,16 @@ class OrthomclGene < ActiveRecord::Base
     
     puts "Created/Verified #{count} coding regions"
   end
+  
+  
+  # Convenience method so you can map to a single coding region, as is most often done
+  # Raise Exception if 0 or (2 or more) coding regions are found connected
+  def single_code
+    codes = coding_regions
+    
+    if coding_regions.length != 1
+      raise Exception, "Unexpected number of coding regions found for #{inspect}: #{codes.inspect}"
+    end
+    return codes[0]
+  end
 end

@@ -85,8 +85,6 @@ def orthomcl
           puts "Sce orthomcl gene falsy linked in properly BAD BAD BAD - wrong code #{codes[0].id}"
         end
       end
-      
-      
     end
   end
 
