@@ -12,7 +12,7 @@ class Mscript
   WORK_DIR = "#{ENV['HOME']}/Workspace"
   
   def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv")
-    dummy_gene = Gene.new.create_dummy('worm dummy')
+    #dummy_gene = Gene.new.create_dummy Species.elegans_name
     first = true
 
     CSV.open(filename,
@@ -58,7 +58,6 @@ class Mscript
   
   
   def celegans_phenotype_observed_to_database(filename="#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv")
-    dummy_gene = Gene.new.create_dummy('worm dummy')
     first = true
 
     CSV.open(filename,

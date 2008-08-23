@@ -9,12 +9,14 @@ class Gene < ActiveRecord::Base
   # Rails doesn't handle these very well.
   has_many :gene_network_edge_firsts,
     :class_name => 'GeneNetworkEdge',
-    :foreign_key => 'gene_id_first'
+    :foreign_key => 'gene_id_first', 
+    :dependent => :destroy
   has_many :gene_network_edge_seconds,
     :class_name => 'GeneNetworkEdge',
-    :foreign_key => 'gene_id_second'
+    :foreign_key => 'gene_id_second', 
+    :dependent => :destroy
   
-  has_many :drosophila_allele_genes
+  has_many :drosophila_allele_genes, :dependent => :destroy
   
   # create a dummy gene to satisfy validation
   def create_dummy(dummy_name)

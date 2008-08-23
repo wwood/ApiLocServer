@@ -11,29 +11,29 @@ class CodingRegion < ActiveRecord::Base
   has_many :plasmodb_gene_list_entries
   has_many :plasmodb_gene_lists, :through => :plasmodb_gene_list_entries
   has_many :localisations, :through => :coding_region_localisations
-  has_many :coding_region_localisations
-  has_many :orthomcl_gene_coding_regions
+  has_many :coding_region_localisations, :dependent => :destroy
+  has_many :orthomcl_gene_coding_regions, :dependent => :destroy
   has_many :orthomcl_genes, :through => :orthomcl_gene_coding_regions
-  has_one :annotation
-  has_one :amino_acid_sequence
-  has_many :microarray_measurements
+  has_one :annotation, :dependent => :destroy
+  has_one :amino_acid_sequence, :dependent => :destroy
+  has_many :microarray_measurements, :dependent => :destroy
   
   
   # transmembrane domain things
-  has_many :transmembrane_domain_measurements
-  has_one :toppred_min_transmembrane_domain_length
-  has_one :toppred_average_transmembrane_domain_length
-  has_one :min_transmembrane_domain_length
-  has_one :memsat_min_transmembrane_domain_length
-  has_one :memsat_average_transmembrane_domain_length
-  has_one :memsat_transmembrane_domain_count
-  has_one :memsat_max_transmembrane_domain_length
+  has_many :transmembrane_domain_measurements, :dependent => :destroy
+  has_one :toppred_min_transmembrane_domain_length, :dependent => :destroy
+  has_one :toppred_average_transmembrane_domain_length, :dependent => :destroy
+  has_one :min_transmembrane_domain_length, :dependent => :destroy
+  has_one :memsat_min_transmembrane_domain_length, :dependent => :destroy
+  has_one :memsat_average_transmembrane_domain_length, :dependent => :destroy
+  has_one :memsat_transmembrane_domain_count, :dependent => :destroy
+  has_one :memsat_max_transmembrane_domain_length, :dependent => :destroy
   
   has_many :membrain_transmembrane_domains, :dependent => :destroy
   
   # Worm project
-  has_many :phenotype_information
-  has_many :phenotype_observeds
+  has_many :phenotype_information, :dependent => :destroy
+  has_many :phenotype_observeds, :dependent => :destroy
   
   
   POSITIVE_ORIENTATION = '+'
