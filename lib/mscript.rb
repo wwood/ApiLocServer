@@ -22,10 +22,11 @@ class Mscript
         next
       end
 
-      code = CodingRegion.find_or_create_by_string_id_and_gene_id(
-        row[0],
-        dummy_gene.id
-      )
+      code = CodingRegion.find_by_name_or_alternate_and_organism(row[0], Species.elegans_name)
+      if !code
+        $stderr.puts "Unknown gene found: #{row[0]}"
+        next
+      end
 
       # Observed: [WBPhenotype0000049] postembryonic_development_abnormal: experiments=1,primary=1,specific=1,observed=0
 
@@ -56,7 +57,7 @@ class Mscript
     end
   end
   
-  
+  # Upload the elegans phenotype observations to the database. Assumes all the genes already exist in the database
   def celegans_phenotype_observed_to_database(filename="#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv")
     first = true
 
@@ -67,10 +68,11 @@ class Mscript
         next
       end
 
-      code = CodingRegion.find_or_create_by_string_id_and_gene_id(
-        row[0],
-        dummy_gene.id
-      )
+      code = CodingRegion.find_by_name_or_alternate_and_organism(row[0], Species.elegans_name)
+      if !code
+        $stderr.puts "Unknown gene found: #{row[0]}"
+        next
+      end
 
       #Observed: [WBPhenotype0001184] fat_content_increased: experiments=1,primary=1,specific=1,observed=1
 

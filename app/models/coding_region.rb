@@ -29,7 +29,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :memsat_transmembrane_domain_count, :dependent => :destroy
   has_one :memsat_max_transmembrane_domain_length, :dependent => :destroy
   
-  has_many :membrain_transmembrane_domains, :dependent => :destroy
+  has_many :membrain_transmembrane_domains
   
   # Worm project
   has_many :phenotype_information, :dependent => :destroy
