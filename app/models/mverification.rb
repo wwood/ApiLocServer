@@ -90,26 +90,28 @@ class Mverification < ActiveRecord::Base
   
   
   def phenotype_observed
-    code = CodingRegion.find_by_name_or_alternate('WBGene00000001')
+    name = 'WBGene00000004'
+    code = CodingRegion.find_by_name_or_alternate(name)
     if !code
-      puts "WBGene00000001 not uploaded correctly - you aren't even close."; return
+      puts "#{name} not uploaded correctly - you aren't even close."; return
     end
     
-    if code.phenotype_observeds.length != 6
-      puts "Unexpected number of observations for gene 1: #{code.phenotype_observeds.inspect}"; return
+    if code.phenotype_observeds.length != 1
+      puts "Unexpected number of observations for gene #{name}: #{code.phenotype_observeds.inspect}"; return
     end
     
     # repeat for middle case to be surer
-    code = CodingRegion.find_by_name_or_alternate('WBGene00000008')
+    name = 'WBGene00000018'
+    code = CodingRegion.find_by_name_or_alternate(name)
     if !code
-      puts "WBGene00000006 not uploaded correctly - you aren't even close."; return
+      puts "#{name} not uploaded correctly - you aren't even close."; return
     end
     
-    if code.phenotype_observeds.length != 8
-      puts "Unexpected number of observations for gene 6: #{code.phenotype_observeds.inspect}"; return
+    if code.phenotype_observeds.length != 3
+      puts "Unexpected number of observations for gene #{name}: #{code.phenotype_observeds.inspect}"; return
     end
     
-    if code.phenotype_observeds.pick(:phenotype).sort[0] != 'slow_growth'
+    if code.phenotype_observeds.pick(:phenotype).sort[0] != 'germ_cell_hypersensitive_ionizing_radiation'
       puts "Bad phenotype phenotype name: #{code.phenotype_observeds.pick(:phenotype).sort[0]}"
     end
   end

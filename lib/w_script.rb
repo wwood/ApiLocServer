@@ -55,4 +55,23 @@ class WScript
     end
     puts "Genes found to be lethal: #{lethal_count} of #{total}"
   end
+  
+  def count_observations_for_elegans
+    count = 0
+    first = true
+
+    filename = "/home/ben/phd/data/elegans/essentiality/cel_wormbase_pheno.tsv"
+    require 'csv'
+    CSV.open(filename,
+      'r', "\t") do |row|
+      if first
+        first = false
+        next
+      end
+      
+      next if !row[4]
+      count += row[4].split(' | ').length
+    end
+    p count
+  end
 end
