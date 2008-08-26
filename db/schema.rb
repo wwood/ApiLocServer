@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080823091512) do
+ActiveRecord::Schema.define(:version => 20080826055159) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -129,6 +129,7 @@ ActiveRecord::Schema.define(:version => 20080823091512) do
   end
 
   add_index "coding_regions", ["gene_id"], :name => "index_coding_regions_on_gene_id"
+  add_index "coding_regions", ["orientation"], :name => "index_coding_regions_on_orientation"
   add_index "coding_regions", ["string_id"], :name => "index_coding_regions_on_string_id"
 
   create_table "derisi20063d7logmean", :force => true do |t|

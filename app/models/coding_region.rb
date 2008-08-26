@@ -269,6 +269,14 @@ class CodingRegion < ActiveRecord::Base
     [string_id, coding_region_alternate_string_ids.collect{|s| s.name}].flatten
   end
   
+  def self.negative_orientation
+    NEGATIVE_ORIENTATION
+  end
+  
+  def self.positive_orientation
+    POSITIVE_ORIENTATION
+  end
+  
   def set_negative_orientation
     self.orientation = NEGATIVE_ORIENTATION
   end

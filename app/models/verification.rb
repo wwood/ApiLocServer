@@ -519,7 +519,7 @@ class Verification < ActiveRecord::Base
       raise Exception, "Strange number of cds found for #{name}: #{cds.inspect}"
     end
     cd = cds[0]
-    if cd.start != 1311 or cd.stop != 1787 or cd.coding_region.gene.scaffold.name != 'chromosome 2'
+    if cd.start != 1311 or cd.stop != 1787 or cd.coding_region.gene.scaffold.name != 'AAXT01000003.gb'
       raise Exception, "start or stop wrong for #{name}: #{cd.inspect} #{cd.coding_region.gene.scaffold.inspect}"
     end
     
@@ -540,7 +540,7 @@ class Verification < ActiveRecord::Base
       raise Exception, "Strange number of cds found for #{name}: #{cds.inspect}"
     end
     cd = cds[0]
-    if cd.start != 9810 or cd.stop != 9963 or cd.coding_region.gene.scaffold.name != 'chromosome 1'
+    if cd.start != 9810 or cd.stop != 9963 or cd.coding_region.gene.scaffold.name != 'AAXT01000012.gb'
       raise Exception, "start or stop wrong for #{name}: #{cd.inspect}"
     end
     
@@ -560,7 +560,7 @@ class Verification < ActiveRecord::Base
       raise Exception, "Strange number of cds found for #{name}: #{cds.inspect}"
     end
     cd = cds[0]
-    if cd.start != 3374 or cd.stop != 4232 or cd.coding_region.gene.scaffold.name != 'chromosome 1'
+    if cd.start != 3374 or cd.stop != 4232 or cd.coding_region.gene.scaffold.name != 'AAXT01000011.gb'
       raise Exception, "start or stop wrong for #{name}: #{cd.inspect}"
     end
   end
