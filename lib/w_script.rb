@@ -32,9 +32,13 @@ class WScript
     groups_total = 0
     groups.each do |group|
       groups_total += 1
+      
       # for each cel gene in the group, count if it is lethal or not
       # We exclude genes don't correspond between othomcl and our IDs
-      group.orthomcl_genes.code('cel').all(:select => 'distinct(id)').each do |og|
+      OrthomclGene.code('cel').all(
+        :select => 'distinct(id)', 
+        :conditions => {:orthomcl_group_id => group.id}
+      ).each do |og|
         total += 1
         
         begin
