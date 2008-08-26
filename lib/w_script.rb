@@ -29,10 +29,12 @@ class WScript
     # more annoying - have to count all the groups individually
     lethal_count = 0
     total = 0
+    groups_total = 0
     groups.each do |group|
+      groups_total += 1
       # for each cel gene in the group, count if it is lethal or not
       # We exclude genes don't correspond between othomcl and our IDs
-      group.orthomcl_genes.code('cel').all(:include => {:coding_regions => :phenotype_observeds}).each do |og|
+      group.orthomcl_genes.code('cel').all(:select => 'distinct(id)').each do |og|
         total += 1
         
         begin
@@ -53,7 +55,7 @@ class WScript
       end
       total += group.orthomcl_genes.code('cel').count
     end
-    puts "Genes found to be lethal: #{lethal_count} of #{total}"
+    puts "Genes found to be lethal: #{lethal_count} of #{total} genes from #{groups_total} orthomcl groups"
   end
   
   def count_observations_for_elegans
