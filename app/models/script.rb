@@ -4015,4 +4015,98 @@ class Script < ActiveRecord::Base
   def ben_celegans_phenotype_observed_to_database
     Mscript.new.celegans_phenotype_observed_to_database("#{DATA_DIR}/elegans/essentiality/cel_wormbase_pheno.tsv")
   end
+  
+  # Print out the maximal orfs from the babesia genome contigs
+  def babesia_orf_finder
+    require 'orf_finder'
+    finder = Orf::OrfFinder.new
+    count = 1
+    Bio::FlatFile.auto("#{DATA_DIR}/bovis/genome/NCBI/BabesiaWGS-96909.fasta").each do |seq|
+      orf_threads = finder.generate_longest_orfs(seq.seq)
+      orf_threads.each do |orfs|
+        orfs.each do |orf|
+          if orf.length > 1
+            puts ">orf_finder_orf_#{count} #{seq.entry_id} #{orf.start} #{orf.stop}"
+            puts orf.aa_sequence
+            count += 1
+          end
+        end
+      end
+    end
+  end
+  
+  def spit_babesia_files
+    gb = File.open("#{DATA_DIR}/bovis/genome/NCBI/AAXT01000000.gb")
+    cur = nil
+    gb.each do |line|
+      matches = line.match(/^LOCUS\s+(AA\S+)/)
+      if matches
+        p matches[1]
+        cur = File.open("#{DATA_DIR}/bovis/genome/NCBI/#{matches[1]}.gb",'w')
+        cur.print line
+      else
+        cur.print line
+      end
+    end
+  end
+  
+  # Upload the GenBank file into the database
+  def babesia_bovis_genbank_upload
+    # Just upload the cds for the moment, 
+    gb = Bio::GenBank.new(File.open("#{DATA_DIR}/bovis/genome/NCBI/AAXT01000000.gb").read)
+    scaff = nil
+    species = Species.find_by_name(Species.babesia_bovis_name)
+    gb.features.each do |feature|
+      
+      if feature.feature === 'source'
+        # Fix the scaffolds so they are as they are supposed to be as well
+        scaff_name = feature.to_hash['chromosome']
+        if !scaff_name
+          # Problems happen with the apicoplast genome - ignore these
+          puts "Badly parsed source attribute: #{feature.inspect}"
+          next
+        end
+        scaff = Scaffold.find_or_create_by_species_id_and_name(
+          species.id,
+          "chromosome #{scaff_name}"
+        )
+        p "create scaffold: #{scaff_name}"
+        
+      elsif feature.feature === 'CDS'
+        string = feature.to_hash['locus_tag']
+        if !string
+          raise Exception, "Couldn't find locus in #{feature.inspect}"
+        end
+      
+        code = CodingRegion.find_by_name_or_alternate_and_organism(string, Species.babesia_bovis_name)
+        if !code
+          raise Exception, "Couldn't find coding region name #{string}"
+        end
+      
+        c = Cd.find_or_create_by_coding_region_id_and_start_and_stop(
+          code.id,
+          feature.locations.first.from,
+          feature.locations.first.to
+        )
+        if !c
+          raise Exception, "Failed to upload Cd: #{c.inspect}"
+        end
+        
+        # Set orientation of gene
+        complement = feature.locations.first.strand
+        if complement < 0
+          code.set_negative_orientation
+        else
+          code.set_positive_orientation
+        end
+        code.save!
+        
+        # Fix scaffold if not done already
+        code.gene.scaffold = scaff
+        code.gene.save!
+      
+      end
+
+    end
+  end
 end

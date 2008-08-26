@@ -489,8 +489,8 @@ class Verification < ActiveRecord::Base
   
   def memsat
     # check the number of yeast results
-#            MemsatAverageTransmembraneDomainLength.find_or_create_by_coding_region_id_and_measurement(code.id, tmds.average_length)
-#        MemsatMinTransmembraneDomainLength.find_or_create_by_coding_region_id_and_measurement(code.id, tmds.minimum_length)
+    #            MemsatAverageTransmembraneDomainLength.find_or_create_by_coding_region_id_and_measurement(code.id, tmds.average_length)
+    #        MemsatMinTransmembraneDomainLength.find_or_create_by_coding_region_id_and_measurement(code.id, tmds.minimum_length)
     if 5883 != MemsatAverageTransmembraneDomainLength.count(
         :include => {:coding_region => {:gene => {:scaffold => :species}}},
         :conditions => "species.name ='#{Species.yeast_name}'") or 
@@ -498,6 +498,70 @@ class Verification < ActiveRecord::Base
         :include => {:coding_region => {:gene => {:scaffold => :species}}},
         :conditions => "species.name ='#{Species.yeast_name}'") 
       $stderr.puts "Wrong number of yeast proteins uploaded"
+    end
+  end
+  
+  
+  def babesia_bovis_cds
+    # Find the first cds
+    name = "BBOV_II000010"
+    code = CodingRegion.find_by_name_or_alternate(name)
+    if !code
+      raise Exception, "No coding region #{name} found"
+    end
+    if !code.negative_orientation?
+      raise Exception, "Coding region orientation not properly set: #{code.inspect}"
+    end
+    cds = Cd.all(:joins => {:coding_region => {:gene => {:scaffold => :species}}}, :conditions => 
+        {:coding_regions => {:id => code.id}, :species => {:name => Species.babesia_bovis_name}}
+    )
+    if cds.length != 1
+      raise Exception, "Strange number of cds found for #{name}: #{cds.inspect}"
+    end
+    cd = cds[0]
+    if cd.start != 1311 or cd.stop != 1787 or cd.coding_region.gene.scaffold.name != 'chromosome 2'
+      raise Exception, "start or stop wrong for #{name}: #{cd.inspect} #{cd.coding_region.gene.scaffold.inspect}"
+    end
+    
+    
+    # Find one on another chromosome to be more certain
+    name = "BBOV_I005780"
+    code = CodingRegion.find_by_name_or_alternate(name)
+    if !code
+      raise Exception, "No coding region #{name} found"
+    end
+    if !code.negative_orientation?
+      raise Exception, "Coding region orientation not properly set: #{code.inspect}"
+    end
+    cds = Cd.all(:joins => {:coding_region => {:gene => {:scaffold => :species}}}, :conditions => 
+        {:coding_regions => {:id => code.id}, :species => {:name => Species.babesia_bovis_name}}
+    )
+    if cds.length != 1
+      raise Exception, "Strange number of cds found for #{name}: #{cds.inspect}"
+    end
+    cd = cds[0]
+    if cd.start != 9810 or cd.stop != 9963 or cd.coding_region.gene.scaffold.name != 'chromosome 1'
+      raise Exception, "start or stop wrong for #{name}: #{cd.inspect}"
+    end
+    
+    # Find one with positive orientation
+    name = "BBOV_I005300"
+    code = CodingRegion.find_by_name_or_alternate(name)
+    if !code
+      raise Exception, "No coding region #{name} found"
+    end
+    if !code.positive_orientation?
+      raise Exception, "Coding region orientation not properly set: #{code.inspect}"
+    end
+    cds = Cd.all(:joins => {:coding_region => {:gene => {:scaffold => :species}}}, :conditions => 
+        {:coding_regions => {:id => code.id}, :species => {:name => Species.babesia_bovis_name}}
+    )
+    if cds.length != 1
+      raise Exception, "Strange number of cds found for #{name}: #{cds.inspect}"
+    end
+    cd = cds[0]
+    if cd.start != 3374 or cd.stop != 4232 or cd.coding_region.gene.scaffold.name != 'chromosome 1'
+      raise Exception, "start or stop wrong for #{name}: #{cd.inspect}"
     end
   end
 end
