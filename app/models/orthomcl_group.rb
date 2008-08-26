@@ -2,6 +2,14 @@ class OrthomclGroup < ActiveRecord::Base
   has_many :orthomcl_genes
   belongs_to :orthomcl_run
   
+  named_scope :overlapping do |*species_array|  
+      if species_array.length != 2
+        raise Exception, "Unhandled number of orthomcl species"
+        fd
+      end
+    {}
+  end
+  
   # Find all the groups that have one or more genes from each of multiple species. 
   # For instance OrthomclGroup.all_overlapping_groups(['dme','cel') will find all the
   # groups that have genes from both drosophila melanogaster (dme) and elegans (cme).
