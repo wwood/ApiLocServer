@@ -131,7 +131,24 @@ class Mverification < ActiveRecord::Base
     if !d or d.pheno_desc != 'abnormal membranous labyrinth'
       puts "one in the middle failed: #{d.inspect}"
     end
+  end
+  
+  
+  def mouse_pheno_info
+    code = CodingRegion.find_by_name_or_alternate_and_organism('ENSMUSG00000053094', Species.mouse_name)
+    raise if !code
+    infos = code.mouse_phenotype_informations
+    raise if infos.length != 0
+
+    code = CodingRegion.find_by_name_or_alternate_and_organism('ENSMUSG00000053286', Species.mouse_name)
+    raise if !code
+    infos = code.mouse_phenotype_informations
+    raise if infos.length != 2
+    raise if ['MP:0005386','MP:0005389'].sort !=
+      infos.pick(:mouse_pheno_desc).pick(:pheno_id).sort
     
+    # This is misleading if more genes than just the mouse pheno are uploaded
+    raise if CodingRegion.species(Species.mouse_name).count != 19095
   end
 
 

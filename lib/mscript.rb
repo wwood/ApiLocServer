@@ -193,34 +193,34 @@ class Mscript
       next if $. <= 7
       splits = row2.split("\t")
       #skip line if no ensembl gene id
-      if !splits[8]
-        next
-      end   
-      name = splits[8]
-      code = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.mouse_name)
+      ensembl = splits[8].strip
+      phenotype_ids = splits[9].strip
+      
+      if !ensembl or !phenotype_ids
+        raise Exception, "Badly handled line: #{ensembl} #{phenotype_ids} - #{row2}"
+      end
+      
+      code = CodingRegion.find_by_name_or_alternate_and_organism(ensembl, Species.mouse_name)
       if !code
-        code =CodingRegion.create(:string_id => name, :gene => dummy)
+        code =CodingRegion.create(:string_id => ensembl, :gene => dummy)
       end
       
-      #skip line if no phenotype id
-      if !splits[9]
-        next 
-      end
-      infor = splits[9].strip
       
-      infor.split(',').each do |info2|
+      phenotype_ids.split(',').each do |pheno_id|
         # get primary id for phenotype id
-        i = MousePhenoDesc.find_by_pheno_id(info2)
-        if !i
-          $stderr.puts "#{info2}"
-        else
-          info = MousePhenotypeInformation.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_mouse_pheno_desc_id(
-            splits[0], splits[3], splits[5], i.id
-          )
-          if code.mouse_phenotype_information_ids.include?(info.id)
-            info.coding_regions << code
-          end
-        end
+        i = MousePhenoDesc.find_by_pheno_id(pheno_id.strip)
+        
+        raise Exception, "#{pheno_id}" if !i
+        
+        info = MousePhenotypeInformation.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_mouse_pheno_desc_id(
+          splits[0], splits[3], splits[5], i.id
+        )
+        # find or create association
+        CodingRegionMousePhenotypeInformations.find_or_create_by_coding_region_id_and_mouse_phenotype_information_id(
+          code.id,
+          info.id
+        )
+          
       end
     end
   end
