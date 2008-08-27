@@ -148,7 +148,14 @@ class Mverification < ActiveRecord::Base
       infos.pick(:mouse_pheno_desc).pick(:pheno_id).sort
     
     # This is misleading if more genes than just the mouse pheno are uploaded
-    raise if CodingRegion.species(Species.mouse_name).count != 19095
+    # ben@ben:~/phd/data/Essentiality/Mouse$ awk -F'  ' '{print $9}' MGI_PhenotypicAllele.rpt |sort |uniq |grep . |wc -l
+    # 5811
+    raise if CodingRegion.species_name(Species.mouse_name).count != 5811
+    
+    #ben@ben:~/phd/data/Essentiality/Mouse$ awk -F'  ' '{print $10}' MGI_PhenotypicAllele.rpt |sed -e 's/\,/\n/g' |grep . |wc -l
+    #53968
+    raise Exception, "Count was bad: #{MousePhenotypeInformation.count}"if MousePhenotypeInformation.count != 53968
+
   end
 
 

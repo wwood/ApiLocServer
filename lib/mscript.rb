@@ -125,20 +125,21 @@ class Mscript
   def link_genes_and_coding_regions
     #interesting_orgs = ['dme']
     interesting_orgs = ['mmu']
+    count = 0
     thing = "orthomcl_genes.orthomcl_name like '"+
       interesting_orgs.join("%' or orthomcl_genes.orthomcl_name like '")+
       "%'"
     
     # Maybe a bit heavy handed but ah well.
-    OrthomclGene.find(:all, 
-      :include => {:orthomcl_group => :orthomcl_run},
+    OrthomclGene.all(
+      :joins => {:orthomcl_group => :orthomcl_run},
       :conditions => "orthomcl_runs.name='#{OrthomclRun.official_run_v2_name}'"+
         " and (#{thing})").each do |orthomcl_gene|
 
       #iterate over each orthomcl protein id (eg dme|CGxxxx)
       #get gene name by first getting orthomcl protein id from OrthomclGene table and then then using that to get the gene id from the annotation information in the OrthomclGeneOfficialData table  
 
-      e = OrthomclGeneOfficialData.find_by_orthomcl_gene_id(orthomcl_gene.id)
+      e = orthomcl_gene.orthomcl_gene_official_data
 
 
       #the annotation line in orthomcl_gene_official_data =
@@ -154,11 +155,12 @@ class Mscript
       pname = matches[2]
 
       # get primary id for gene
-      a = Gene.find_by_name(name)
+      a = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.mouse_name)
       if !a
-        puts "#{name} not found in gene table"
+#        puts "#{name} not found in gene table"
         next
       else
+        count += 1
         code = CodingRegion.find_or_create_by_gene_id_and_string_id(a.id, pname)   
 
         OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
@@ -167,6 +169,8 @@ class Mscript
         )
       end
     end
+    
+    puts "Uploaded #{count} links"
 
   end
 

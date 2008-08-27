@@ -1,5 +1,5 @@
 class MousePhenoDesc < ActiveRecord::Base
-  belongs_to :mouse_phenotype_information
+  has_one :mouse_phenotype_information
   
   named_scope :lethal, {:conditions => ['pheno_desc like ?', '%lethal%']}
   

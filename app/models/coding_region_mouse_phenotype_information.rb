@@ -1,4 +1,4 @@
-class CodingRegionMousePhenotypeInformations < ActiveRecord::Base
+class CodingRegionMousePhenotypeInformation < ActiveRecord::Base
   belongs_to :coding_region
   belongs_to :mouse_phenotype_information
 end

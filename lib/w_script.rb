@@ -25,21 +25,32 @@ class WScript
     
     # print the number of genes individually
     # more annoying - have to count all the groups individually
+    lc = compute_lethal_count(groups, 'cel')
+    
+    puts lc.to_s
+  end
+  
+  
+  def compute_lethal_count(orthomcl_groups, species_orthomcl_code)
+    
+    lc = LethalCount.new
+    lc.groups_count = orthomcl_groups.length
+    
     lethal_count = 0
     total = 0
     phenotype_count = 0
-    groups.each do |group|
+    orthomcl_groups.each do |group|
       
       # for each cel gene in the group, count if it is lethal or not
       # We exclude genes don't correspond between othomcl and our IDs
-      group.orthomcl_genes.code('cel').all(:select => 'distinct(id)').each do |og|
+      group.orthomcl_genes.code(species_orthomcl_code).all(:select => 'distinct(id)').each do |og|
         total += 1
         
         
         
         begin
           lethal = false
-         obs = og.single_code.phenotype_observeds
+          obs = og.single_code.phenotype_observeds
          
           phenotype_count += 1 if !obs.empty?
           
@@ -57,7 +68,11 @@ class WScript
         end
       end
     end
-    puts "Genes found to be lethal: #{lethal_count} of #{total} genes (#{phenotype_count} had recorded phenotypes) from #{groups.length} orthomcl groups. "
+    
+    lc.lethal_count = lethal_count
+    lc.phenotype_count = phenotype_count
+    lc.total_count = total
+    return lc
   end
   
   def count_observations_for_elegans
@@ -80,6 +95,18 @@ class WScript
   end
   
   
+  def mouse_vs_elegans
+    groups = OrthomclGroup.all_overlapping_groups(['cel','mmu'])
+    puts compute_lethal_count(groups, 'cel').to_s
+  end
   
+end
+
+
+class LethalCount
+  attr_accessor :lethal_count, :total_count, :phenotype_count, :groups_count
   
+  def to_s
+    "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes) from #{@group_count} orthomcl groups. "
+  end
 end

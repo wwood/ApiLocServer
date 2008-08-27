@@ -38,15 +38,16 @@ class CodingRegion < ActiveRecord::Base
   has_many :coding_region_phenotype_observeds, :dependent => :destroy
   has_many :phenotype_observeds, :through => :coding_region_phenotype_observeds
   #mouse
-  has_many :coding_region_mouse_phenotype_informations, :dependent => :destroy
-  has_many :mouse_phenotype_informations, :through => :coding_region_mouse_phenotype_informations, :dependent => :destroy
+  has_many :coding_region_mouse_phenotype_information, :dependent => :destroy
+  has_many :mouse_phenotype_informations, :through => :coding_region_mouse_phenotype_information, :dependent => :destroy
   
-  named_scope :species do |species_name|
+  named_scope :species_name, lambda{ |species_name|
+    ActiveRecord::Base.logger.debug ';yessiree'
     {
-      :include => {:gene => {:scaffold => :species}},
+      :joins => {:gene => {:scaffold => :species}},
       :conditions => ['species.name = ?', species_name]
     }
-  end
+  }
   
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'

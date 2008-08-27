@@ -1206,19 +1206,23 @@ class Script < ActiveRecord::Base
   
   # Basically fill out the orthomcl_gene_coding_regions table appropriately
   # for only the official one
-  def link_orthomcl_and_coding_regions
-    
-    #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
-    #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
-    #    interesting_orgs = ['ath']
-    interesting_orgs = ['cel']
+  def link_orthomcl_and_coding_regions(*interesting_orgs)
+    goods = 0
+    if !interesting_orgs
+      #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
+      #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
+      #    interesting_orgs = ['ath']
+      interesting_orgs = ['cel']
+    end
     thing = "orthomcl_genes.orthomcl_name like '"+
       interesting_orgs.join("%' or orthomcl_genes.orthomcl_name like '")+
       "%'"
     
+    puts "linking genes for species: #{interesting_orgs.inspect}: #{thing}"
+    
     # Maybe a bit heavy handed but ah well.
-    OrthomclGene.find(:all, 
-      :include => {:orthomcl_group => :orthomcl_run},
+    OrthomclGene.all(
+      :joins => {:orthomcl_group => :orthomcl_run},
       :conditions => "orthomcl_runs.name='#{OrthomclRun.official_run_v2_name}'"+
         " and (#{thing})").each do |orthomcl_gene|
     
@@ -1228,6 +1232,8 @@ class Script < ActiveRecord::Base
         #        raise Exception, "No coding region found for #{orthomcl_gene.inspect}"
         #        $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"
         next
+      else
+        goods += 1
       end
       
       OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
@@ -1235,6 +1241,8 @@ class Script < ActiveRecord::Base
         code.id
       )
     end
+    
+    puts "Properly linked #{goods} coding regions"
   end
   
   # See if the arabidopsis gene locations help if I put them through orthomcl
