@@ -2,7 +2,6 @@
 
 require 'tempfile'
 require 'rubygems'
-gem 'rio'
 require 'rio'
 
 # Wrapper around a locally installed SignalP program
@@ -149,13 +148,38 @@ end
 
 # if this was not called as a module, run as a script.
 if $0 == __FILE__
-  gem 'bio'
   require 'bio'
+  require 'optparse'
   
   runner = SignalSequence::SignalPWrapper.new
   
-  Bio::FlatFile.auto(ARGV.length == 1 ? ARGV[0] : $stdin).each do |seq|
+  options = ARGV.getopts("sh") #s for summary, no args required
+  if options['h']
+    $stderr.puts "Usage: signalp.rb [-s] <my.fasta>"
+    $stderr.puts "Where my.fasta is the name of the fasta file you want to analyse. Default output is all the sequences with their signal sequences cleaved."
+    $stderr.puts "-s: summary: print a tab separated table indicating if the sequence had a signal peptide according to the HMM and NN results, respecitvely."
+    return
+  end
+  
+  # Print headers if required
+  if options['s']
+    puts [
+      'Name',
+      'NN Prediction',
+      'HMM Prediction'
+    ].join("\t")
+  end
+  
+  Bio::FlatFile.auto(ARGF).each do |seq|
     result = runner.calculate(seq.seq)
-    puts ">#{seq.entry_id}\n#{result.cleave(seq.seq)}"
+    if options['s']
+      puts [
+        seq.entry_id,
+        result.nn_D_prediction ? 'T' : 'F',
+        result.hmm_Sprob_prediction ? 'T' : 'F'
+      ].join("\t")
+    else
+      puts ">#{seq.entry_id}\n#{result.cleave(seq.seq)}"
+    end
   end
 end
