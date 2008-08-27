@@ -4016,6 +4016,14 @@ class Script < ActiveRecord::Base
     Mscript.new.celegans_phenotype_observed_to_database("#{DATA_DIR}/elegans/essentiality/cel_wormbase_pheno.tsv")
   end
   
+  def ben_upload_mouse_phenotype_descriptions
+    Mscript.new.upload_mouse_phenotype_descriptions("#{DATA_DIR}/Essentiality/Mouse/MGI_PhenotypicAllele.rpt")
+  end
+  
+  def ben_upload_mouse_phenotype_information
+    Mscript.new.upload_mouse_phenotype_information("#{DATA_DIR}/Essentiality/Mouse/MGI_PhenotypicAllele.rpt")
+  end
+  
   # Print out the maximal orfs from the babesia genome contigs
   def babesia_orf_finder
     require 'orf_finder'

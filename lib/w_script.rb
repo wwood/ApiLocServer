@@ -79,4 +79,7 @@ class WScript
     p count
   end
   
+  
+  
+  
 end

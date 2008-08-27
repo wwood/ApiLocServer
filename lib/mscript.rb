@@ -171,20 +171,20 @@ def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Es
   end
 
   
-  def upload_mouse_phenotype_descriptions
-    CSV.open("#{WORK_DIR}/Gasser/Essentiality/Mouse/VOC_MammalianPhenotype.rpt",
+  def upload_mouse_phenotype_descriptions(filename="#{WORK_DIR}/Gasser/Essentiality/Mouse/VOC_MammalianPhenotype.rpt")
+    CSV.open(filename,
       'r', "\t") do |row| 
       MousePhenoDesc.find_or_create_by_pheno_id_and_pheno_desc(row[0], row[1])
     end
   end
 
-  def upload_mouse_phenotype_information
+  def upload_mouse_phenotype_information(filename="#{WORK_DIR}/Gasser/Essentiality/Mouse/MGI_PhenotypicAllele.rpt")
     #add gene ids from phenotype file to gene table
 
     #Example line from MGI phenotype file
     #MGI:3702935        1190005F20Rik<Gt(W027A02)Wrst>  gene trap W027A02, Wolfgang Wurst       Gene trapped    17198746        MGI:1916185     1190005F20Rik XM_355244       ENSMUSG00000053286      MP:0005386,MP:0005389
 
-    File.open("#{WORK_DIR}/Gasser/Essentiality/Mouse/MGI_PhenotypicAllele.rpt").
+    File.open(filename).
       each do |row2|
 
       # skip headers, the first 7 lines
@@ -194,7 +194,7 @@ def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Es
       if !splits[8]
         next
       end   
-      g = Gene.find_or_create_by_name(splits[8])
+      code = CodingRegion.find_or_create_by_name(splits[8])
       
       #skip line if no phenotype id
       if !splits[9]
@@ -216,7 +216,12 @@ def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Es
         if !i
           $stderr.puts "#{info}"
         else
-          MousePhenotypeInformation.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_gene_id_and_mouse_pheno_desc_id(splits[0], splits[3], splits[5], g.id, i.id)
+          info = MousePhenotypeInformation.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_mouse_pheno_desc_id(
+            splits[0], splits[3], splits[5], i.id
+          )
+          if code.mouse_phenotype_information_ids.include?(info.id)
+            info.coding_regions << code
+          end
         end
 
 

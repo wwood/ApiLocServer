@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080826055159) do
+ActiveRecord::Schema.define(:version => 20080827005801) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -87,6 +87,15 @@ ActiveRecord::Schema.define(:version => 20080826055159) do
 
   add_index "coding_region_localisations", ["coding_region_id", "localisation_id", "localisation_method_id"], :name => "index_coding_region_localisations_on_coding_region_id_and_local", :unique => true
   add_index "coding_region_localisations", ["coding_region_id", "localisation_id", "localisation_method_id"], :name => "index_coding_region_localisations_on_localisation_id_and_coding", :unique => true
+
+  create_table "coding_region_mouse_phenotype_informations", :force => true do |t|
+    t.integer  "coding_region_id"
+    t.integer  "mouse_phenotype_information_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "coding_region_mouse_phenotype_informations", ["coding_region_id", "mouse_phenotype_information_id"], :name => "index_coding_region_mouse_phenotype_informations_on_coding_regi", :unique => true
 
   create_table "coding_region_network_edges", :force => true do |t|
     t.integer  "network_id",              :null => false
@@ -344,7 +353,6 @@ ActiveRecord::Schema.define(:version => 20080826055159) do
     t.string   "mgi_allele",          :null => false
     t.string   "allele_type"
     t.string   "mgi_marker"
-    t.integer  "gene_id"
     t.integer  "mouse_pheno_desc_id"
     t.datetime "created_at"
     t.datetime "updated_at"
