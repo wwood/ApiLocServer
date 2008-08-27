@@ -22,27 +22,28 @@ class WScript
   def q1b
     # collect all the groups
     groups = OrthomclGroup.all_overlapping_groups(['cel','dme'])
-    puts groups.length
     
     # print the number of genes individually
     # more annoying - have to count all the groups individually
     lethal_count = 0
     total = 0
+    phenotype_count = 0
     groups.each do |group|
       
       # for each cel gene in the group, count if it is lethal or not
       # We exclude genes don't correspond between othomcl and our IDs
-      OrthomclGene.code('cel').all(
-        :select => 'distinct(id)', 
-        :conditions => {:orthomcl_group_id => group.id}
-      ).each do |og|
-        return
+      group.orthomcl_genes.code('cel').all(:select => 'distinct(id)').each do |og|
         total += 1
+        
+        
         
         begin
           lethal = false
+         obs = og.single_code.phenotype_observeds
+         
+          phenotype_count += 1 if !obs.empty?
           
-          og.single_code.phenotype_observeds.each do |info|
+          obs.each do |info|
             if info.lethal?
               lethal = true
             end
@@ -55,9 +56,8 @@ class WScript
           $stderr.puts e
         end
       end
-      total += group.orthomcl_genes.code('cel').count
     end
-    puts "Genes found to be lethal: #{lethal_count} of #{total} genes from #{groups.length} orthomcl groups"
+    puts "Genes found to be lethal: #{lethal_count} of #{total} genes (#{phenotype_count} had recorded phenotypes) from #{groups.length} orthomcl groups. "
   end
   
   def count_observations_for_elegans
@@ -79,5 +79,4 @@ class WScript
     p count
   end
   
-  def test_multip
 end
