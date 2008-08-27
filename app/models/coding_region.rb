@@ -32,10 +32,15 @@ class CodingRegion < ActiveRecord::Base
   has_many :membrain_transmembrane_domains
   
   # Worm project
+  # elegans
   has_many :coding_region_phenotype_informations, :dependent => :destroy
   has_many :phenotype_informations, :through => :coding_region_phenotype_informations
   has_many :coding_region_phenotype_observeds, :dependent => :destroy
   has_many :phenotype_observeds, :through => :coding_region_phenotype_observeds
+  #mouse
+  has_many :coding_region_mouse_phenotype_informations
+  has_many :mouse_phenotype_informations, :through => :coding_region_mouse_phenotype_informations
+  
   
   
   POSITIVE_ORIENTATION = '+'

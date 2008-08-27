@@ -115,6 +115,24 @@ class Mverification < ActiveRecord::Base
       puts "Bad phenotype phenotype name: #{code.phenotype_observeds.pick(:phenotype).sort[0]}"
     end
   end
+  
+  
+  def mouse_pheno_desc
+    if MousePhenoDesc.count != 6370
+      puts "Unexpected number of descriptions: #{MousePhenoDesc.count}"
+    end
+    
+    d = MousePhenoDesc.first(:order => :pheno_id)
+    if d.pheno_id != 'MP:0000001' or d.pheno_desc != 'Phenotype Ontology'
+      puts "first phenotype unexpected attributes: #{d.inspect}"
+    end
+    
+    d = MousePhenoDesc.find_by_pheno_id('MP:0000035')
+    if !d or d.pheno_desc != 'abnormal membranous labyrinth'
+      puts "one in the middle failed: #{d.inspect}"
+    end
+    
+  end
 
 
 end

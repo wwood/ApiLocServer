@@ -4017,7 +4017,7 @@ class Script < ActiveRecord::Base
   end
   
   def ben_upload_mouse_phenotype_descriptions
-    Mscript.new.upload_mouse_phenotype_descriptions("#{DATA_DIR}/Essentiality/Mouse/MGI_PhenotypicAllele.rpt")
+    Mscript.new.upload_mouse_phenotype_descriptions("#{DATA_DIR}/Essentiality/Mouse/VOC_MammalianPhenotype.rpt")
   end
   
   def ben_upload_mouse_phenotype_information

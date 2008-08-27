@@ -11,7 +11,7 @@ class Mscript
   DATA_DIR = "#{ENV['HOME']}/Workspace/Rails/essentiality"
   WORK_DIR = "#{ENV['HOME']}/Workspace"
 
-def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv")
+  def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv")
     #dummy_gene = Gene.new.create_dummy Species.elegans_name
     first = true
 
@@ -184,6 +184,8 @@ def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Es
     #Example line from MGI phenotype file
     #MGI:3702935        1190005F20Rik<Gt(W027A02)Wrst>  gene trap W027A02, Wolfgang Wurst       Gene trapped    17198746        MGI:1916185     1190005F20Rik XM_355244       ENSMUSG00000053286      MP:0005386,MP:0005389
 
+    dummy = Gene.new.create_dummy(Species.mouse_name)
+    
     File.open(filename).
       each do |row2|
 
@@ -194,27 +196,23 @@ def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Es
       if !splits[8]
         next
       end   
-      code = CodingRegion.find_or_create_by_name(splits[8])
+      name = splits[8]
+      code = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.mouse_name)
+      if !code
+        code =CodingRegion.create(:string_id => name, :gene => dummy)
+      end
       
       #skip line if no phenotype id
       if !splits[9]
         next 
       end
-      info = splits[9].strip      
-      if info.match ','
-        info.split(',').each do |info2|
-          # get primary id for phenotype id
-          i = MousePhenoDesc.find_by_pheno_id(info2)
-          if !i
-            $stderr.puts "#{info2}"
-          else
-            MousePhenotypeInformation.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_gene_id_and_mouse_pheno_desc_id(splits[0], splits[3], splits[5], g.id, i.id)
-          end
-        end
-      else
-        i = MousePhenoDesc.find_by_pheno_id(info)
+      infor = splits[9].strip
+      
+      infor.split(',').each do |info2|
+        # get primary id for phenotype id
+        i = MousePhenoDesc.find_by_pheno_id(info2)
         if !i
-          $stderr.puts "#{info}"
+          $stderr.puts "#{info2}"
         else
           info = MousePhenotypeInformation.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_mouse_pheno_desc_id(
             splits[0], splits[3], splits[5], i.id
@@ -223,8 +221,6 @@ def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Es
             info.coding_regions << code
           end
         end
-
-
       end
     end
   end
