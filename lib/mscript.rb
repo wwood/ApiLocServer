@@ -114,15 +114,19 @@ class Mscript
 
 
   def fix_drosophila_genes
-    Gene.all.each { |g|
-      g.name = g.name.strip
-      p g.name
-      g.save!
-      #return g.name
-    }
+    Species.find_by_name(Species.fly_name).scaffolds.each do |scaff|
+      scaff.genes.each do |gene|
+        gene.coding_regions.each { |g|
+          g.string_id = g.string_id.strip
+          #      p g.name
+          g.save!
+          #return g.name
+        }
+      end
+    end
   end
 
-  def link_genes_and_coding_regions
+  def link_mouse_genes_and_coding_regions
     #interesting_orgs = ['dme']
     interesting_orgs = ['mmu']
     count = 0
@@ -157,15 +161,14 @@ class Mscript
       # get primary id for gene
       a = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.mouse_name)
       if !a
-#        puts "#{name} not found in gene table"
+        #        puts "#{name} not found in gene table"
         next
       else
         count += 1
-        code = CodingRegion.find_or_create_by_gene_id_and_string_id(a.id, pname)   
 
         OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
           orthomcl_gene.id,
-          code.id
+          a.id
         )
       end
     end
@@ -220,7 +223,7 @@ class Mscript
           splits[0], splits[3], splits[5], i.id
         )
         # find or create association
-        CodingRegionMousePhenotypeInformations.find_or_create_by_coding_region_id_and_mouse_phenotype_information_id(
+        CodingRegionMousePhenotypeInformation.find_or_create_by_coding_region_id_and_mouse_phenotype_information_id(
           code.id,
           info.id
         )
@@ -229,27 +232,78 @@ class Mscript
     end
   end
   
-  def yeast_phenotype_information_to_database 
-    dummy_gene = Gene.new.create_dummy('yeast dummy')
-   
-    File.open("#{WORK_DIR}/Gasser/Essentiality/Yeast/phenotype_data.tab").each do |row|
+  def yeast_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Essentiality/Yeast/phenotype_data.tab")
+    File.open(filename).each do |row|
       splits = row.split("\t")
       #only add phenotype info for ORFs i.e. not RNAs or phenotypes not mapped to genes
       if splits[1].match 'ORF'
-        code = CodingRegion.find_or_create_by_string_id_and_gene_id(
-          splits[0],
-          dummy_gene.id
-        )
+        code = CodingRegion.find_by_name_or_alternate_and_organism(splits[0], Species.yeast_name)
+        if !code
+          raise Exception, "No coding region found for yeast id: #{splits[0]}"
+        end
 
         #YAL001C	ORF	TFC3	S000000001	PMID: 12140549|SGD_REF: S000071347	systematic mutation set	null		S288C	inviable		
       
-        YeastPhenoInfo.find_or_create_by_coding_region_id_and_experiment_type_and_phenotype(code.id,splits[5],splits[9])
+        info = YeastPhenoInfo.find_or_create_by_experiment_type_and_phenotype(splits[5],splits[9])
+        CodingRegionYeastPhenoInfo.find_or_create_by_coding_region_id_and_yeast_pheno_info_id(
+          code.id,
+          info.id
+        )
 
       end
     end
   end
   
+  def drosophila_phenotypes_to_db(dir = '/home/maria/Desktop/Essentiality/Drosophila')
+    
+    dummy = Gene.new.create_dummy(Species.fly_name)
 
+    #    File.open("#{dir}/fbal_fbgn_annotation_id.txt").each do |row|
+    #      #first 2 lines are headers so skip  
+    #      next if $. <= 2
+    #      splits = row.strip.split("\t")
+    #      
+    #      gene_name = splits[4]
+    #      allele_name = splits[0]
+    #      
+    #      code = CodingRegion.find_by_name_or_alternate_and_organism(gene_name, Species.fly_name)
+    #      if !code
+    #        code = CodingRegion.create(:gene_id => dummy.id, :string_id => gene_name)
+    #      end
+    #      
+    #      #Then create allele gene table with
+    #      ag = DrosophilaAlleleGene.find_or_create_by_allele(allele_name)
+    #      
+    #      CodingRegionDrosophilaAlleleGene.find_or_create_by_coding_region_id_and_drosophila_allele_gene_id(
+    #        code.id,
+    #        ag.id
+    #      )
+    #    end
+
+    #Then create allele phenotype table. The format of the phenotype input file is as follows
+    #allele_symbol allele_FBal#    phenotype       FBrf#
+    #14-3-3epsilon[PL00784]  FBal0148516     embryo | germ-line clone | maternal effect  
+
+    # skip headers, the first 6 lines
+    File.open("#{dir}/allele_phenotypic_data_fb_2008_06.tsv").each do |row|
+      next if $. <= 6
+      splits = row.split("\t")
+
+      #retrieve id for allele from drosophila_allele_gene_table
+      name = splits[1].strip
+      splits[2].split(' | ').each do |phenotype|
+        g = DrosophilaAlleleGene.find_by_allele(name)
+        if !g
+          $stderr.puts "Couldn't find gene with allele #{name}"
+        else
+          ph = DrosophilaAllelePhenotype.find_or_create_by_phenotype(phenotype.strip)
+          DrosophilaAllelePhenotypeDrosophilaAlleleGene.find_or_create_by_drosophila_allele_gene_id_and_drosophila_allele_phenotype_id(
+            g.id, ph.id
+          )
+        end
+      end
+    end
+  end
   
 end
 

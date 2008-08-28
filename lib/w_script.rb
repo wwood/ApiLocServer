@@ -39,6 +39,7 @@ class WScript
     lethal_count = 0
     total = 0
     phenotype_count = 0
+    missing_count = 0
     orthomcl_groups.each do |group|
       
       # for each cel gene in the group, count if it is lethal or not
@@ -49,22 +50,17 @@ class WScript
         
         
         begin
-          lethal = false
-          obs = og.single_code.phenotype_observeds
-         
-          phenotype_count += 1 if !obs.empty?
-          
-          obs.each do |info|
-            if info.lethal?
-              lethal = true
-            end
-          end
-          
+          # returns true, false or nil
+          lethal = og.single_code.lethal?
           if lethal
+            phenotype_count += 1
             lethal_count += 1
+          elsif lethal.nil?
+          else
+            phenotype_count += 1
           end
-        rescue Exception => e #if it doesn't match to a single coding region then advise
-          $stderr.puts e
+        rescue UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
+          missing_count += 1
         end
       end
     end
@@ -72,6 +68,7 @@ class WScript
     lc.lethal_count = lethal_count
     lc.phenotype_count = phenotype_count
     lc.total_count = total
+    lc.missing_count = missing_count
     return lc
   end
   
@@ -100,13 +97,86 @@ class WScript
     puts compute_lethal_count(groups, 'cel').to_s
   end
   
+  def cel_vs_all
+    overlaps = [
+      ['cel','dme'],
+      ['cel','mmu'],
+      ['cel','sce'],
+      ['cel','dme','mmu'],
+      ['cel','mmu','sce'],
+      ['cel','dme','sce'],
+      ['cel','dme','mmu','sce']
+    ]
+    
+    overlaps.each do |species|
+      groups = OrthomclGroup.all_overlapping_groups(species)
+      p species
+      puts compute_lethal_count(groups, 'cel').to_s
+    end
+  end
+  
+  
+  def lethal_orthology
+    overlaps = [
+      [['cel','dme'],['cel']],
+      [['cel','mmu'],['cel']],
+      [['cel','sce'],['cel']],
+      [['cel','dme','mmu'],['cel']],
+      [['cel','mmu','sce'],['cel']],
+      [['cel','dme','sce'],['cel']],
+      [['cel','dme','mmu','sce'],['cel']],
+      [['dme'],['dme']],
+      [['dme','cel'],['dme']],
+      [['dme','mmu'],['dme']],
+      [['dme','sce'],['dme']],
+      [['dme','mmu','sce'],['dme']],
+      [['dme','sce','cel'],['dme']],
+      [['dme','mmu','cel'],['dme']],
+      [['dme','mmu','sce','cel'],['dme']],
+      [['mmu'],['mmu']],
+      [['mmu','cel'],['mmu']],
+      [['mmu','dme'],['mmu']],
+      [['mmu','sce'],['mmu']],
+      [['mmu','dme','sce'],['mmu']],
+      [['mmu','sce','cel'],['mmu']],
+      [['mmu','dme','cel'],['mmu']],
+      [['mmu','dme','sce','cel'],['mmu']],
+      [['sce'],['sce']],
+      [['sce','cel'],['sce']],
+      [['sce','dme'],['sce']],
+      [['sce','mmu'],['sce']],
+      [['sce','dme','mmu'],['sce']],
+      [['sce','mmu','cel'],['sce']],
+      [['sce','dme','cel'],['sce']],
+      [['sce','dme','mmu','cel'],['sce']]
+    ]
+    overlaps.each do |arrays|
+      p arrays
+      groups = OrthomclGroup.all_overlapping_groups(arrays[0])
+      puts compute_lethal_count(groups, arrays[1]).to_s
+    end    
+  end
+  
+  
+  def mouse_test
+    overlaps = [
+      #      [['cel','sce'],['sce']]
+      [['cel','mmu'],['mmu']]
+    ]
+    overlaps.each do |arrays|
+      groups = OrthomclGroup.all_overlapping_groups(arrays[0])
+      p arrays
+      puts compute_lethal_count(groups, arrays[1]).to_s
+    end    
+  end
+
 end
 
 
 class LethalCount
-  attr_accessor :lethal_count, :total_count, :phenotype_count, :groups_count
+  attr_accessor :lethal_count, :total_count, :phenotype_count, :groups_count, :missing_count
   
   def to_s
-    "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes) from #{@group_count} orthomcl groups. "
+    "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes) from #{@group_count} orthomcl groups. #{@missing_count} didn't have matching coding regions"
   end
 end
