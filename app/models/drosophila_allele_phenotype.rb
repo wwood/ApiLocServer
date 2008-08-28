@@ -1,3 +1,8 @@
 class DrosophilaAllelePhenotype < ActiveRecord::Base
-  belongs_to :drosoplila_allele_gene
+  has_many :drosophila_allele_phenotype_drosophila_allele_genes, :dependent => :destroy
+  has_many :drosophila_allele_genes, :through => :drosophila_allele_phenotype_drosophila_allele_genes
+  
+  def lethal?
+    phenotype.match(/lethal/i)
+  end
 end

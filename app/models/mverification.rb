@@ -150,13 +150,43 @@ class Mverification < ActiveRecord::Base
     # This is misleading if more genes than just the mouse pheno are uploaded
     # ben@ben:~/phd/data/Essentiality/Mouse$ awk -F'  ' '{print $9}' MGI_PhenotypicAllele.rpt |sort |uniq |grep . |wc -l
     # 5811
-    raise if CodingRegion.species_name(Species.mouse_name).count != 5811
+    raise if CodingRegion.species_name(Species.mouse_name).count != 5812
     
     #ben@ben:~/phd/data/Essentiality/Mouse$ awk -F'  ' '{print $10}' MGI_PhenotypicAllele.rpt |sed -e 's/\,/\n/g' |grep . |wc -l
     #53968
     raise Exception, "Count was bad: #{MousePhenotypeInformation.count}"if MousePhenotypeInformation.count != 53968
+    
+    
+    # check to make sure the coding regions are linked as expected
+    code = CodingRegion.find_by_name_or_alternate_and_organism('ENSMUSG00000053286', Species.mouse_name)
+    raise if !code or code.orthomcl_genes.empty?
 
   end
 
-
+  def fly_pheno_info
+    #first
+    code = CodingRegion.find_by_name_or_alternate_and_organism('CG1977', Species.fly_name)
+    raise if !code
+    raise if code.drosophila_allele_genes.count != 42
+    dag = code.drosophila_allele_genes.first(:conditions => "allele = 'FBal0000001'")
+    raise if !dag
+    raise if dag.drosophila_allele_phenotypes.count != 3
+    raise if !dag.drosophila_allele_phenotypes.pick(:phenotype).include?('lethal')
+    
+    dag = DrosophilaAlleleGene.find_by_allele('FBal0216717')
+    raise if !dag.coding_regions[0].names.include?('CG14016')
+    
+    #last
+    dags = DrosophilaAlleleGene.find_by_allele('FBal0216768')
+    raise if dags.drosophila_allele_phenotypes.count != 19
+    raise if !dags.drosophila_allele_phenotypes.all.pick(:phenotype).include?('mesothoracic anterior fascicle, with Scer\GAL4[eve.RN2]')
+    
+    #ben@ben:~/phd/data/Essentiality/Drosophila$ awk -F'     ' '{print $1}' fbal_fbgn_annotation_id.txt |sort |uniq |grep . |wc -l
+    #86982
+    # minus the first 2 comment lines
+    raise if DrosophilaAlleleGene.count != 86980
+    #ben@ben:~/phd/data/Essentiality/Drosophila$ grep -v '\#' allele_phenotypic_data_fb_2008_06.tsv |wc -l
+    #215805
+    raise if DrosophilaAllelePhenotype.count != 24321
+  end
 end

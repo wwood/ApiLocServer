@@ -5,8 +5,8 @@ class OrthomclGene < ActiveRecord::Base
   has_one :orthomcl_gene_official_data
   
   named_scope :code, lambda { |three_letter_species_code| {
-    :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
-  }}
+      :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
+    }}
   
   def accepted_database_id
     matches = orthomcl_name.match('pfa\|(.*)$')
@@ -44,13 +44,21 @@ class OrthomclGene < ActiveRecord::Base
       
       name = matches[2]
       
-      # Add the normally linked ones
-      code = CodingRegion.find_by_name_or_alternate(name)
-      if code
-        return code
+      #species specific workarounds below
+      if matches[1] === 'dme'
+        # for drosophila drop the -PA or -PB at the end of it
+        matches = name.match(/^(.*)\-(.*)$/)
+        if matches
+          return CodingRegion.find_by_name_or_alternate_and_organism(matches[1], Species.fly_name)
+        else
+          raise Exception, "Badly parsed dme orthomcl_name: #{inspect}"
+        end
       else
-        return nil
+        # Add the normally linked ones that don't require a workaround
+        return CodingRegion.find_by_name_or_alternate(name)
       end
+      
+
       
       
       
@@ -131,8 +139,11 @@ class OrthomclGene < ActiveRecord::Base
     codes = coding_regions
     
     if coding_regions.length != 1
-      raise Exception, "Unexpected number of coding regions found for #{inspect}: #{codes.inspect}"
+      raise UnexpectedCodingRegionCount, "Unexpected number of coding regions found for #{inspect}: #{codes.inspect}"
     end
     return codes[0]
   end
 end
+
+
+class UnexpectedCodingRegionCount < Exception; end

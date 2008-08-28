@@ -4032,6 +4032,14 @@ class Script < ActiveRecord::Base
     Mscript.new.upload_mouse_phenotype_information("#{DATA_DIR}/Essentiality/Mouse/MGI_PhenotypicAllele.rpt")
   end
   
+  def ben_yeast_phenotype_information_to_database
+    Mscript.new.yeast_phenotype_information_to_database("#{DATA_DIR}/Essentiality/Yeast/phenotype_data.tab")
+  end
+  
+  def ben_drosophila_phenotypes_to_db
+    Mscript.new.drosophila_phenotypes_to_db("#{DATA_DIR}/Essentiality/Drosophila")
+  end
+  
   # Print out the maximal orfs from the babesia genome contigs
   def babesia_orf_finder
     require 'orf_finder'

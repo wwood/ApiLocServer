@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080827072655) do
+ActiveRecord::Schema.define(:version => 20080828071634) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -70,6 +70,16 @@ ActiveRecord::Schema.define(:version => 20080827072655) do
   add_index "coding_region_alternate_string_ids", ["coding_region_id", "name"], :name => "index_coding_region_alternate_string_ids_on_coding_region_id_an", :unique => true
   add_index "coding_region_alternate_string_ids", ["name"], :name => "index_coding_region_alternate_string_ids_on_name"
 
+  create_table "coding_region_drosophila_allele_genes", :force => true do |t|
+    t.integer  "coding_region_id",          :null => false
+    t.integer  "drosophila_allele_gene_id", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "coding_region_drosophila_allele_genes", ["coding_region_id"], :name => "index_coding_region_drosophila_allele_genes_on_coding_region_id"
+  add_index "coding_region_drosophila_allele_genes", ["drosophila_allele_gene_id"], :name => "index_coding_region_drosophila_allele_genes_on_drosophila_allel"
+
   create_table "coding_region_go_terms", :force => true do |t|
     t.integer "coding_region_id"
     t.integer "go_term_id"
@@ -127,6 +137,17 @@ ActiveRecord::Schema.define(:version => 20080827072655) do
 
   add_index "coding_region_phenotype_observeds", ["coding_region_id", "phenotype_observed_id"], :name => "index_coding_region_phenotype_observeds_on_coding_region_id_and", :unique => true
 
+  create_table "coding_region_yeast_pheno_infos", :force => true do |t|
+    t.integer  "coding_region_id",    :null => false
+    t.integer  "yeast_pheno_info_id", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "coding_region_yeast_pheno_infos", ["coding_region_id"], :name => "index_coding_region_yeast_pheno_infos_on_coding_region_id"
+  add_index "coding_region_yeast_pheno_infos", ["coding_region_id", "yeast_pheno_info_id"], :name => "index_coding_region_yeast_pheno_infos_on_coding_region_id_and_y", :unique => true
+  add_index "coding_region_yeast_pheno_infos", ["yeast_pheno_info_id"], :name => "index_coding_region_yeast_pheno_infos_on_yeast_pheno_info_id"
+
   create_table "coding_regions", :force => true do |t|
     t.integer  "gene_id"
     t.integer  "jgi_protein_id"
@@ -171,17 +192,29 @@ ActiveRecord::Schema.define(:version => 20080827072655) do
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false
-    t.integer  "gene_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
+  add_index "drosophila_allele_genes", ["allele"], :name => "index_drosophila_allele_genes_on_allele", :unique => true
+
+  create_table "drosophila_allele_phenotype_drosophila_allele_genes", :force => true do |t|
+    t.integer  "drosophila_allele_gene_id",      :null => false
+    t.integer  "drosophila_allele_phenotype_id", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "drosophila_allele_phenotype_drosophila_allele_genes", ["drosophila_allele_gene_id"], :name => "drosophila_allele_phenotype_dag_dag"
+  add_index "drosophila_allele_phenotype_drosophila_allele_genes", ["drosophila_allele_phenotype_id"], :name => "drosophila_allele_phenotype_dag_dap"
+
   create_table "drosophila_allele_phenotypes", :force => true do |t|
-    t.integer  "drosophila_allele_gene_id", :null => false
     t.string   "phenotype"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "drosophila_allele_phenotypes", ["phenotype"], :name => "index_drosophila_allele_phenotypes_on_phenotype"
 
   create_table "gene_alternate_names", :force => true do |t|
     t.integer  "gene_id"
@@ -315,6 +348,7 @@ ActiveRecord::Schema.define(:version => 20080827072655) do
     t.datetime "updated_at"
   end
 
+  add_index "microarray_measurements", ["coding_region_id"], :name => "index_microarray_measurements_on_coding_region_id"
   add_index "microarray_measurements", ["coding_region_id", "measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_co"
 
   create_table "microarray_timepoints", :force => true do |t|
@@ -342,29 +376,11 @@ ActiveRecord::Schema.define(:version => 20080827072655) do
   add_index "mouse_pheno_descs", ["pheno_desc", "pheno_id"], :name => "index_mouse_pheno_descs_on_pheno_desc_and_pheno_id", :unique => true
   add_index "mouse_pheno_descs", ["pheno_id"], :name => "index_mouse_pheno_descs_on_pheno_id", :unique => true
 
-  create_table "mouse_pheno_infos", :force => true do |t|
-    t.string   "mgi_allele",  :null => false
-    t.string   "allele_type"
-    t.string   "mgi_marker"
-    t.string   "gene"
-    t.string   "phenotype"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
   create_table "mouse_phenotype_informations", :force => true do |t|
     t.string   "mgi_allele",          :null => false
     t.string   "allele_type"
     t.string   "mgi_marker"
     t.integer  "mouse_pheno_desc_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  create_table "mouse_phenotype_infos", :force => true do |t|
-    t.string   "mgi"
-    t.string   "gene"
-    t.string   "phenotype"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -389,7 +405,9 @@ ActiveRecord::Schema.define(:version => 20080827072655) do
     t.datetime "updated_at"
   end
 
+  add_index "orthomcl_gene_coding_regions", ["coding_region_id"], :name => "index_orthomcl_gene_coding_regions_on_coding_region_id"
   add_index "orthomcl_gene_coding_regions", ["coding_region_id", "orthomcl_gene_id"], :name => "index_orthomcl_gene_coding_regions_on_coding_region_id_and_orth", :unique => true
+  add_index "orthomcl_gene_coding_regions", ["orthomcl_gene_id"], :name => "index_orthomcl_gene_coding_regions_on_orthomcl_gene_id"
 
   create_table "orthomcl_gene_official_datas", :force => true do |t|
     t.integer  "orthomcl_gene_id"
@@ -559,9 +577,8 @@ ActiveRecord::Schema.define(:version => 20080827072655) do
   end
 
   create_table "yeast_pheno_infos", :force => true do |t|
-    t.integer  "coding_region_id", :null => false
-    t.string   "experiment_type"
-    t.string   "phenotype"
+    t.string   "experiment_type", :null => false
+    t.string   "phenotype",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end

@@ -1,4 +1,7 @@
 class CodingRegion < ActiveRecord::Base
+  
+  $stderr.puts(0.second.ago)
+  
   #  validates_presence_of :orientation
   
   has_one :coding_region_go_term, :dependent => :destroy
@@ -40,9 +43,14 @@ class CodingRegion < ActiveRecord::Base
   #mouse
   has_many :coding_region_mouse_phenotype_information, :dependent => :destroy
   has_many :mouse_phenotype_informations, :through => :coding_region_mouse_phenotype_information, :dependent => :destroy
+  #yeast
+  has_many :coding_region_yeast_pheno_infos, :dependent => :destroy
+  has_many :yeast_pheno_infos, :through => :coding_region_yeast_pheno_infos
+  #drosophila
+  has_many :coding_region_drosophila_allele_genes, :dependent => :destroy
+  has_many :drosophila_allele_genes, :through => :coding_region_drosophila_allele_genes
   
   named_scope :species_name, lambda{ |species_name|
-    ActiveRecord::Base.logger.debug ';yessiree'
     {
       :joins => {:gene => {:scaffold => :species}},
       :conditions => ['species.name = ?', species_name]
@@ -295,7 +303,51 @@ class CodingRegion < ActiveRecord::Base
   def set_positive_orientation
     self.orientation = POSITIVE_ORIENTATION
   end
+  
+  def get_species
+    gene.scaffold.species
+  end
+  
+  # Based on which species this coding region belongs to, return true if it has any phenotypes that
+  # are classified as lethal. Return false if not, and nil if no phenotypes were found at all
+  def lethal?
+    if get_species.name == Species.elegans_name
+      obs = phenotype_observeds
+      return nil if obs.empty?
+      obs.each do |ob|
+        return true if ob.lethal?
+      end
+      return false
+    elsif get_species.name == Species.mouse_name
+      obs = mouse_phenotype_informations
+      return nil if obs.empty?
+      obs.each do |ob|
+        return true if ob.mouse_pheno_desc.lethal?
+      end
+      return false
+    elsif get_species.name == Species.yeast_name
+      obs = yeast_pheno_infos
+      return nil if obs.empty?
+      obs.each do |ob|
+        return true if ob.lethal?
+      end
+      return false
+    elsif get_species.name == Species.fly_name
+      obs = drosophila_allele_genes.pick(:drosophila_allele_phenotypes).flatten
+      return nil if obs.empty?
+      obs.each do |ob|
+        return true if ob.lethal?
+      end
+      return false
+    else
+      raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
+    end
+    
+  end
 end
+
+
+
 
 class CodingRegionNotFoundException < Exception
 end

@@ -48,4 +48,8 @@ class Species < ActiveRecord::Base
   def self.mouse_name
     'mouse'
   end
+  
+  def self.fly_name
+    'fly'
+  end
 end
