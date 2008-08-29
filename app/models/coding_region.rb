@@ -344,6 +344,11 @@ class CodingRegion < ActiveRecord::Base
     end
     
   end
+  
+  
+  def name_with_localisation
+    "#{string_id} - #{localisations.join(' ')}"
+  end
 end
 
 

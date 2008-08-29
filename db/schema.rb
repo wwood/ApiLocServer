@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080828071634) do
+ActiveRecord::Schema.define(:version => 20080829053209) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -335,9 +335,10 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
   end
 
   create_table "localisations", :force => true do |t|
-    t.string   "name",       :null => false
+    t.string   "name",                      :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "top_level_localisation_id"
   end
 
   create_table "microarray_measurements", :force => true do |t|
@@ -548,6 +549,12 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
   end
 
   create_table "taxons", :force => true do |t|
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top_level_localisations", :force => true do |t|
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

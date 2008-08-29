@@ -1,6 +1,7 @@
 class Localisation < ActiveRecord::Base
   has_many :coding_regions, :through => :coding_region_localisations
   has_many :coding_region_localisations, :dependent => :destroy
+  belongs_to :top_level_localisation
   
   # Return a list of ORFs that have this and only this localisation
   def get_individual_localisations
@@ -47,7 +48,8 @@ class Localisation < ActiveRecord::Base
   def upload_localisation_synonyms
     {
       'ER' => 'endoplasmic reticulum',
-      'tER' => 'endoplasmic reticulum'
+      'tER' => 'endoplasmic reticulum',
+      'IMC' => 'inner membrane complex'
     }.each do |key, value|
       loc = Localisation.find_by_name(value)
       if loc
@@ -65,7 +67,9 @@ class Localisation < ActiveRecord::Base
   
   # Upload all the data from the localisation list manually collected by ben
   def upload_other_falciparum_list(filename='/home/ben/phd/gene lists/other/other.csv')
-    CSV.open(filename) do |row|
+    require 'csv'
+    CSV.open(filename, 'r', "\t") do |row|
+      p row
       
       next if row[0].match(/^\#/) # ignore lines starting with # (comment) characters
       next if row.length < 1 #ignore blank lines
@@ -99,6 +103,8 @@ class Localisation < ActiveRecord::Base
         end
       end
     end
+    
+    puts code.name_with_localisation
   end
   
   # Parse a line from the dirty localisation files. Return an array of (unsaved) DevelopmentalStageLocalisation objects
@@ -157,6 +163,12 @@ class Localisation < ActiveRecord::Base
   
   
   def self.find_by_name_or_alternate(localisation_string)
-    Localisation.find_by_name(localisation_string)
+    locs = Localisation.find_all_by_name(localisation_string)
+    return locs[0] if locs.length == 1
+    if s = LocalisationSynonym.find_by_name(localisation_string)
+      return s.localisation
+    else
+      return nil
+    end
   end
 end
