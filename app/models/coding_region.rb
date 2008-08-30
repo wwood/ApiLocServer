@@ -21,6 +21,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :amino_acid_sequence, :dependent => :destroy
   has_many :microarray_measurements, :dependent => :destroy
   has_many :expression_contexts, :dependent => :destroy
+  has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation
   
   
   # transmembrane domain things

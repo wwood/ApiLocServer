@@ -3,6 +3,7 @@ class Localisation < ActiveRecord::Base
   has_many :coding_region_localisations, :dependent => :destroy
   belongs_to :top_level_localisation
   has_many :expression_contexts, :dependent => :destroy
+  has_many :expressed_coding_regions, :through => :expression_contexts, :source => :coding_region
   
   named_scope :recent, lambda { { :conditions => ['created_at > ?', 1.week.ago] } }
   
@@ -72,7 +73,7 @@ class Localisation < ActiveRecord::Base
     {
       'ER' => 'endoplasmic reticulum',
       'tER' => 'endoplasmic reticulum',
-      'IMC' => 'inner membrane complex',
+      'imc' => 'inner membrane complex',
       'cis-golgi' => 'golgi',
       'trans-golgi' => 'golgi', 
       'pv' => 'parasitophorous vacuole',
