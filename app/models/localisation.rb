@@ -26,26 +26,44 @@ class Localisation < ActiveRecord::Base
       'food vacuole',
       'food vacuole membrane',
       'mitochondria',
+      'mitochondrial membrane',
       'apicoplast',
       'cytosol',
       'cytoplasm',
       'nucleus',
+      'nuclear membrane',
       'golgi',
       'endoplasmic reticulum',
       'vesicles',
+      'intracellular vacuole',
       'merozoite surface', #start of merozoite locs
       'inner membrane complex',
       'rhoptry',
       'microneme',
       'mononeme',
       'dense granule',
+      'apical',
+      'merozoite cytoplasm',
       'gametocyte surface', #gametocyte locs
+      'gametocyte nucleus',
+      'gametocyte cytoplasm',
+      'gametocyte parasitophorous vacuole',
+      'gametocyte osmiophilic body',
       'sporozoite surface', #sporozoite locs
       'sporozoite cytoplasm',
-      'ookinete' #mosquito stage locs
+      'ookinete', #mosquito stage locs
+      'ookinete microneme',
+      'hepatocyte cytoplasm',
+      'hepatocyte nucleus',
+      'hepatocyte parasitophorous vacuole membrane'
     ].each do |loc|
       if !Localisation.find_or_create_by_name(loc)
         raise Exception, "Failed to upload loc '#{loc}' for some reason"
+      end
+      
+      # not that localisation is also a localisation
+      if !Localisation.find_or_create_by_name("not #{loc}")
+        raise Exception, "Failed to upload NOT loc '#{loc}' for some reason"
       end
     end
   end
@@ -59,7 +77,43 @@ class Localisation < ActiveRecord::Base
       'trans-golgi' => 'golgi', 
       'pv' => 'parasitophorous vacuole',
       'maurer\'s cleft' => 'maurer\'s clefts',
-      'knobs' => 'knob'
+      'knobs' => 'knob',
+      'RBC Surface' => 'erythrocyte cytoplasm',
+      'FV' => 'food vacuole',
+      'erythrocyte membrane' => 'erythrocyte plasma membrane',
+      'erythrocyte surface' => 'erythrocyte plasma membrane',
+      'rhoptries' => 'rhoptry',
+      'micronemes' => 'microneme',
+      'mitochondrion' => 'mitochondria',
+      'cytosol membranous structures' => 'cytosol',
+      'cytoplasmic foci' => 'cytoplasm',
+      'nucleolus' => 'nucleus',
+      'telomeric foci' => 'nucleus',
+      'male gametocyte surface' => 'gametocyte surface',
+      'female gametocyte surface' => 'gametocyte surface',
+      'gametocyte pv' => 'gametocyte parasitophorous vacuole',
+      'cytoplasmic vesicles' => 'cytoplasm',
+      'pv membrane' => 'parasitophorous vacuole membrane',
+      'erythrocyte cytoplasm punctate' => 'erythrocyte cytoplasm',
+      'vesicle' => 'cytoplasm',
+      'plasma membrane' => 'parasite plasma membrane',
+      'fv membrane' => 'food vacuole membrane',
+      'limiting membranes' => 'parasite plasma membrane',
+      'dense granules' => 'dense granule',
+      'rhoptry neck' => 'rhoptry',
+      'hepatocyte pv membrane' => 'hepatocyte parasitophorous vacuole membrane',
+      'osmiophilic body' => 'gametocyte osmiophilic body',
+      'cytosol diffuse' => 'cytosol',
+      'vesicles under rbc surface' => 'erythrocyte cytoplasm',
+      'punctate peripheral cytoplasm' => 'cytoplasm',
+      'parasite periphery' => 'cytoplasm',
+      'nucleoplasm' => 'nucleus',
+      'nuclear' => 'nucleus',
+      'rbc' => 'erythrocyte cytoplasm',
+      'red blood cell surface' => 'erythrocyte plasma membrane',
+      'er foci' => 'endoplasmic reticulum',
+      'food vacuole foci' => 'food vacuole',
+      'erythrocyte cytosol' => 'erythrocyte cytoplasm'
     }.each do |key, value|
       l = value.downcase
       loc = Localisation.find_by_name(l)
@@ -95,6 +149,7 @@ class Localisation < ActiveRecord::Base
       
       # make sure the coding region is in the database properly.
       plasmodb_id.strip!
+      next if ['PF13_0115'].include?(plasmodb_id)
       code = CodingRegion.ff(plasmodb_id)
       if !code
         raise Exception, "No coding region '#{plasmodb_id}' found."
@@ -188,9 +243,9 @@ class Localisation < ActiveRecord::Base
       splits = loc.split(' then ')
       
       if splits.length == 1
-        l = Localisation.find_by_name_or_alternate(splits[0])
+        l = parse_small_small_name(splits[0])
       elsif splits.length == 2 #forget the first localisation - we'll just take the second
-        l = Localisation.find_by_name_or_alternate(splits[1])
+        l = parse_small_small_name(splits[1])
       else
         raise ParseException, "fragment not understood: #{fragment}"
       end
@@ -198,6 +253,19 @@ class Localisation < ActiveRecord::Base
       locs.push l
     end
     return locs
+  end
+  
+  def parse_small_small_name(frag)
+    l = Localisation.find_by_name_or_alternate(frag)
+    if !l and matches = frag.match(/^not (.+)$/)
+      syn = LocalisationSynonym.find_by_name(matches[1])
+      if syn
+        l = Localisation.find_by_name("not #{syn.localisation.name}")
+      end
+    end
+    
+    raise ParseException, "Localisation not understood: #{frag}" if !l
+    return l
   end
   
 end

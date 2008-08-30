@@ -1013,12 +1013,12 @@ class Script < ActiveRecord::Base
   
   # Load the data from the groups file alone - upload all genes and groups
   # in the process
-  def orthomcl_groups_to_database
+  def orthomcl_groups_to_database(filename="#{DATA_DIR}/orthomcl/groups_orthomcl-2.txt")
     #    OrthomclGene.delete_all 
     #    OrthomclGroup.delete_all 
     #    OrthomclGeneCodingRegion.delete_all
     
-    r = File.open("#{WORK_DIR}/Orthomcl/groups_orthomcl-2.txt")
+    r = File.open(filename)
     
     run = OrthomclRun.official_run_v2
     

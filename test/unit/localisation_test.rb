@@ -10,6 +10,11 @@ class LocalisationTest < ActiveSupport::TestCase
     stuff = @l.parse_name('apicoplast')
     assert_equal_expression_contexts [ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'))],
       stuff, 'simple'
+    
+    #bad one
+    assert_raise ParseException do
+      @l.parse_name('not a localisation')
+    end
   end
   
   #during
@@ -20,6 +25,21 @@ class LocalisationTest < ActiveSupport::TestCase
         :developmental_stage => DevelopmentalStage.find_by_name('schizont')
       )],
       stuff, 'during'
+  end
+  
+  def test_not
+    stuff = @l.parse_name('not apicoplast')
+    assert_equal_expression_contexts [ExpressionContext.new(:localisation => Localisation.find_by_name('not apicoplast'))],
+      stuff, "a simple not"
+    
+    #with a synonym
+    stuff = @l.parse_name('not fv')
+    assert_equal_expression_contexts [ExpressionContext.new(:localisation => Localisation.find_by_name('not food vacuole'))],
+      stuff, "a simple not with synonym"
+    
+    assert_raise ParseException do
+      @l.parse_name('not a localisation')
+    end
   end
     
   #api, mito during 1 stage
@@ -65,15 +85,16 @@ class LocalisationTest < ActiveSupport::TestCase
   end
   
   
+  
   def assert_equal_expression_contexts(array_of_dev_stage_loc_objects_expected, actual, message)
     assert_equal array_of_dev_stage_loc_objects_expected.length, actual.length, "#{message}: length of arrays - #{array_of_dev_stage_loc_objects_expected.inspect} vs #{actual.inspect}"
     array_of_dev_stage_loc_objects_expected.each_with_index { |exp,index|
       act = actual[index]
       assert_kind_of ExpressionContext, act
       assert_equal exp.developmental_stage_id, act.developmental_stage_id, "#{message}: dev stage id #{index}: \n#{array_of_dev_stage_loc_objects_expected.inspect} vs \n#{actual.inspect}"
-      assert_equal exp.localisation_id, act.localisation_id, "#{message}: localisation id"
-      assert_equal exp.coding_region_id, act.coding_region_id, "#{message}: coding region id"
-      assert_equal exp.publication_id, act.publication_id, "#{message}: publication_id id"
+      assert_equal exp.localisation_id, act.localisation_id, "#{message}: localisation id: \n#{array_of_dev_stage_loc_objects_expected.inspect} vs \n#{actual.inspect}"
+      assert_equal exp.coding_region_id, act.coding_region_id, "#{message}: coding region id: \n#{array_of_dev_stage_loc_objects_expected.inspect} vs \n#{actual.inspect}"
+      assert_equal exp.publication_id, act.publication_id, "#{message}: publication_id: \n#{array_of_dev_stage_loc_objects_expected.inspect} vs \n#{actual.inspect}"
     }
   end
     
