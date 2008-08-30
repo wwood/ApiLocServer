@@ -4197,5 +4197,11 @@ class Script < ActiveRecord::Base
       end
     end
   end
+  
+  def upload_other_meta
+    Localisation.new.upload_known_localisations
+    Localisation.new.upload_localisation_synonyms
+    Localisation.new.upload_other_falciparum_list
+  end
 end
 

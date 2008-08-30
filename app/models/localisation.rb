@@ -3,6 +3,8 @@ class Localisation < ActiveRecord::Base
   has_many :coding_region_localisations, :dependent => :destroy
   belongs_to :top_level_localisation
   
+  named_scope :recent, lambda { { :conditions => ['created_at > ?', 1.week.ago] } }
+  
   # Return a list of ORFs that have this and only this localisation
   def get_individual_localisations
     coding_regions = CodingRegion.find_by_sql(
@@ -21,6 +23,7 @@ class Localisation < ActiveRecord::Base
       'parasitophorous vacuole membrane',
       'parasite plasma membrane',
       'food vacuole',
+      'food vacuole membrane',
       'mitochondria',
       'apicoplast',
       'cytosol',
@@ -37,6 +40,7 @@ class Localisation < ActiveRecord::Base
       'dense granule',
       'gametocyte surface', #gametocyte locs
       'sporozoite surface', #sporozoite locs
+      'sporozoite cytoplasm',
       'ookinete' #mosquito stage locs
     ].each do |loc|
       if !Localisation.find_or_create_by_name(loc)
@@ -49,18 +53,24 @@ class Localisation < ActiveRecord::Base
     {
       'ER' => 'endoplasmic reticulum',
       'tER' => 'endoplasmic reticulum',
-      'IMC' => 'inner membrane complex'
+      'IMC' => 'inner membrane complex',
+      'cis-golgi' => 'golgi',
+      'trans-golgi' => 'golgi', 
+      'pv' => 'parasitophorous vacuole',
+      'maurer\'s cleft' => 'maurer\'s clefts',
+      'knobs' => 'knob'
     }.each do |key, value|
-      loc = Localisation.find_by_name(value)
+      l = value.downcase
+      loc = Localisation.find_by_name(l)
       if loc
         if !LocalisationSynonym.find_or_create_by_localisation_id_and_name(
             loc.id, 
-            key
+            key.downcase
           )
           raise
         end
       else
-        raise Exception, "Could not find localisation #{value}"
+        raise Exception, "Could not find localisation #{l}"
       end
     end
   end
@@ -97,7 +107,7 @@ class Localisation < ActiveRecord::Base
       parse_name(localisation_string).each do |dsl|
         dsl.save!
         pubs.each do |pub|
-          DevelopmentalStageLocalisationPublication.find_or_create_by_developmental_stage_localisation_id_and_publication_id(
+          DevelopmentalStageLocalisationPublication.find_or_create_by_developmental_stage_localisations_id_and_publication_id(
             dsl.id, pub.id
           )
         end
@@ -111,21 +121,15 @@ class Localisation < ActiveRecord::Base
   def parse_name(dirt)
     locstages = []
     
+    unknown_dev_stage = DevelopmentalStage.find_or_create_by_name(DevelopmentalStage::UNKNOWN_NAME)
+    
     # split on commas
     dirt.split(',').each do |fragment|
       if matches = fragment.match('^(.*) during (.*)')
-        locs = []
         stages = []
         
-        # split each of the localisations by 'and'
-        matches[1].split(' and ').each do |loc|
-          l = Localisation.find_by_name_or_alternate(loc)
-          if !l
-            raise Exception, "No such localisation '#{loc}' found."
-          else
-            locs.push l
-          end
-        end
+        # split each of the localisations by 'and', 'then', etc.
+        locs = parse_small_name(matches[1])
         
         # split each of the stages by 'and'
         matches[2].split(' and ').each do |stage|
@@ -147,13 +151,12 @@ class Localisation < ActiveRecord::Base
         
       else #no during - it's just a straight localisation
         # split each of the localisations by 'and'
-        fragment.split(' and ').each do |loc|
-          l = Localisation.find_by_name_or_alternate(loc)
-          if !l
-            raise Exception, "No such localisation '#{loc}' found."
-          else
-            locstages.push DevelopmentalStageLocalisation.new(:localisation => l)
-          end
+        locs = parse_small_name(fragment)
+        locs.each do |l|
+          locstages.push DevelopmentalStageLocalisation.new(
+            :localisation => l,
+            :developmental_stage => unknown_dev_stage
+          )
         end
       end
     end
@@ -171,4 +174,24 @@ class Localisation < ActiveRecord::Base
       return nil
     end
   end
+  
+  
+  # To parse names like 
+  def parse_small_name(fragment)
+    locs = []
+    fragment.split(' and ').each do |loc|
+      loc.strip!
+      loc.downcase!
+      loc.split(' then ').each do |another_loc|
+        l = Localisation.find_by_name_or_alternate(another_loc)
+        if !l
+          raise Exception, "No such localisation '#{another_loc}' found."
+        else
+          locs.push l
+        end
+      end
+    end
+    return locs
+  end
+  
 end
