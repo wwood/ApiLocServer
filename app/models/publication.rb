@@ -1,5 +1,5 @@
 class Publication < ActiveRecord::Base
-  has_many :developmental_stage_localisation_publications
+  has_many :expression_contexts, :dependent => :destroy
   
   # Given a pubmed id, or url (or more than one separated by commas. Create them and return an array of them
   def self.create_from_ids_or_urls(publications_string)

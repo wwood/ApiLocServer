@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080829053209) do
+ActiveRecord::Schema.define(:version => 20080830031036) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -167,22 +167,6 @@ ActiveRecord::Schema.define(:version => 20080829053209) do
     t.datetime "updated_at"
   end
 
-  create_table "developmental_stage_localisation_publications", :force => true do |t|
-    t.integer  "developmental_stage_localisations_id", :null => false
-    t.integer  "publication_id",                       :null => false
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "developmental_stage_localisation_publications", ["developmental_stage_localisations_id", "publication_id"], :name => "index_developmental_stage_localisation_publications_on_developm", :unique => true
-
-  create_table "developmental_stage_localisations", :force => true do |t|
-    t.integer  "localisation_id",        :null => false
-    t.integer  "developmental_stage_id", :null => false
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
     t.string   "name",       :null => false
@@ -217,6 +201,17 @@ ActiveRecord::Schema.define(:version => 20080829053209) do
   end
 
   add_index "drosophila_allele_phenotypes", ["phenotype"], :name => "index_drosophila_allele_phenotypes_on_phenotype"
+
+  create_table "expression_contexts", :force => true do |t|
+    t.integer  "coding_region_id",       :null => false
+    t.integer  "publication_id"
+    t.integer  "localisation_id"
+    t.integer  "developmental_stage_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "expression_contexts", ["coding_region_id"], :name => "index_expression_contexts_on_coding_region_id"
 
   create_table "gene_alternate_names", :force => true do |t|
     t.integer  "gene_id"
@@ -310,13 +305,6 @@ ActiveRecord::Schema.define(:version => 20080829053209) do
   add_index "go_terms", ["go_identifier"], :name => "go_term_idx_name", :unique => true
 
   create_table "gus", :force => true do |t|
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  create_table "localisation_literatures", :force => true do |t|
-    t.integer  "pmid",                   :null => false
-    t.integer  "localisation_method_id", :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end

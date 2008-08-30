@@ -1,9 +1,0 @@
-# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
-
-one:
-  localisation_id: 1
-  developmental_stage: 1
-
-two:
-  localisation_id: 1
-  developmental_stage: 2

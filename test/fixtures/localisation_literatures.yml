@@ -1,9 +1,0 @@
-# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
-
-one:
-  pmid: 1
-  localisation_method_id: 1
-
-two:
-  pmid: 1
-  localisation_method_id: 1

@@ -2,6 +2,7 @@ class Localisation < ActiveRecord::Base
   has_many :coding_regions, :through => :coding_region_localisations
   has_many :coding_region_localisations, :dependent => :destroy
   belongs_to :top_level_localisation
+  has_many :expression_contexts, :dependent => :destroy
   
   named_scope :recent, lambda { { :conditions => ['created_at > ?', 1.week.ago] } }
   
