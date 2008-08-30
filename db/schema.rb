@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080830031036) do
+ActiveRecord::Schema.define(:version => 20080830064227) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -167,6 +167,16 @@ ActiveRecord::Schema.define(:version => 20080830031036) do
     t.datetime "updated_at"
   end
 
+  create_table "developmental_stage_synonyms", :force => true do |t|
+    t.integer  "developmental_stage_id"
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "developmental_stage_synonyms", ["developmental_stage_id"], :name => "index_developmental_stage_synonyms_on_developmental_stage_id"
+  add_index "developmental_stage_synonyms", ["name"], :name => "index_developmental_stage_synonyms_on_name"
+
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
     t.string   "name",       :null => false
@@ -232,6 +242,8 @@ ActiveRecord::Schema.define(:version => 20080830031036) do
     t.datetime "updated_at"
   end
 
+  add_index "gene_network_edges", ["gene_id_first"], :name => "index_gene_network_edges_on_gene_id_first"
+  add_index "gene_network_edges", ["gene_id_second"], :name => "index_gene_network_edges_on_gene_id_second"
   add_index "gene_network_edges", ["gene_id_first", "gene_id_second", "gene_network_id"], :name => "index_gene_network_edges_on_gene_network_id_and_gene_id_first_a", :unique => true
 
   create_table "gene_networks", :force => true do |t|
@@ -558,6 +570,7 @@ ActiveRecord::Schema.define(:version => 20080830031036) do
   end
 
   add_index "transmembrane_domain_measurements", ["coding_region_id", "type"], :name => "index_min_transmembrane_domain_lengths_on_coding_region_id_and_", :unique => true
+  add_index "transmembrane_domain_measurements", ["coding_region_id"], :name => "index_transmembrane_domain_measurements_on_coding_region_id"
 
   create_table "transmembrane_domains", :force => true do |t|
     t.integer  "coding_region_id", :null => false

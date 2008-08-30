@@ -288,7 +288,7 @@ class Script < ActiveRecord::Base
   
   def falciparum_to_database
     # abstraction!
-    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
+    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
   end
   
   def calculate_falciparum_distances
@@ -4199,6 +4199,7 @@ class Script < ActiveRecord::Base
   end
   
   def upload_other_meta
+    DevelopmentalStage.new.upload_known_falciparum_developmental_stages
     Localisation.new.upload_known_localisations
     Localisation.new.upload_localisation_synonyms
     Localisation.new.upload_other_falciparum_list

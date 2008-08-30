@@ -2,8 +2,6 @@
 
 one:
   allele: MyString
-  gene_id: 1
 
 two:
-  allele: MyString
-  gene_id: 1
+  allele: MyString1

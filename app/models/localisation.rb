@@ -82,7 +82,9 @@ class Localisation < ActiveRecord::Base
     CSV.open(filename, 'r', "\t") do |row|
       p row
       
-      next if row[0].match(/^\#/) # ignore lines starting with # (comment) characters
+      if row[0]
+        next if row[0].match(/^\#/) # ignore lines starting with # (comment) characters
+      end
       next if row.length < 1 #ignore blank lines
       
       # name the columns sensibly
@@ -92,7 +94,8 @@ class Localisation < ActiveRecord::Base
       localisation_string = row[3]
       
       # make sure the coding region is in the database properly.
-      code = CodingRegion.find_by_name_or_alternate_and_organism(plasmodb_id, Species.falciparum_name)
+      plasmodb_id.strip!
+      code = CodingRegion.ff(plasmodb_id)
       if !code
         raise Exception, "No coding region '#{plasmodb_id}' found."
       end
@@ -104,12 +107,14 @@ class Localisation < ActiveRecord::Base
       end
 
       
-      # parse the localisation properly
-      parse_name(localisation_string).each do |dsl|
-        dsl.save!
+      # add the coding region and publication for each of the names
+      parse_name(localisation_string).each do |context|
         pubs.each do |pub|
-          DevelopmentalStageLocalisationPublication.find_or_create_by_developmental_stage_localisations_id_and_publication_id(
-            dsl.id, pub.id
+          ExpressionContext.find_or_create_by_coding_region_id_and_developmental_stage_id_and_localisation_id_and_publication_id(
+            code.id,
+            context.developmental_stage_id,
+            context.localisation_id,
+            pub.id
           )
         end
       end
@@ -118,11 +123,9 @@ class Localisation < ActiveRecord::Base
     puts code.name_with_localisation
   end
   
-  # Parse a line from the dirty localisation files. Return an array of (unsaved) DevelopmentalStageLocalisation objects
+  # Parse a line from the dirty localisation files. Return an array of (unsaved) ExpressionContext objects
   def parse_name(dirt)
-    locstages = []
-    
-    unknown_dev_stage = DevelopmentalStage.find_or_create_by_name(DevelopmentalStage::UNKNOWN_NAME)
+    contexts = []
     
     # split on commas
     dirt.split(',').each do |fragment|
@@ -134,7 +137,7 @@ class Localisation < ActiveRecord::Base
         
         # split each of the stages by 'and'
         matches[2].split(' and ').each do |stage|
-          d = DevelopmentalStage.find_by_name(stage)
+          d = DevelopmentalStage.find_by_name_or_alternate(stage)
           if !d
             raise Exception, "No such dev stage '#{stage}' found."
           else
@@ -144,25 +147,24 @@ class Localisation < ActiveRecord::Base
         
         # add each of the resulting pairs
         locs.pairs(stages).each do |arr|
-          locstages.push DevelopmentalStageLocalisation.new(
+          contexts.push ExpressionContext.new(
             :localisation => arr[0],
             :developmental_stage => arr[1]
           )
         end
         
       else #no during - it's just a straight localisation
-        # split each of the localisations by 'and'
+        # split each of the localisations by 'and' and 'then'
         locs = parse_small_name(fragment)
         locs.each do |l|
-          locstages.push DevelopmentalStageLocalisation.new(
-            :localisation => l,
-            :developmental_stage => unknown_dev_stage
+          contexts.push ExpressionContext.new(
+            :localisation => l
           )
         end
       end
     end
     
-    return locstages.flatten
+    return contexts.flatten
   end
   
   
@@ -177,22 +179,29 @@ class Localisation < ActiveRecord::Base
   end
   
   
-  # To parse names like 
+  # To parse names like 'cytoplasm and rbc surface' or 'pv then rbc surface'
   def parse_small_name(fragment)
     locs = []
     fragment.split(' and ').each do |loc|
       loc.strip!
       loc.downcase!
-      loc.split(' then ').each do |another_loc|
-        l = Localisation.find_by_name_or_alternate(another_loc)
-        if !l
-          raise Exception, "No such localisation '#{another_loc}' found."
-        else
-          locs.push l
-        end
+      splits = loc.split(' then ')
+      
+      if splits.length == 1
+        l = Localisation.find_by_name_or_alternate(splits[0])
+      elsif splits.length == 2 #forget the first localisation - we'll just take the second
+        l = Localisation.find_by_name_or_alternate(splits[1])
+      else
+        raise ParseException, "fragment not understood: #{fragment}"
       end
+
+      locs.push l
     end
     return locs
   end
   
+end
+
+  
+class ParseException < Exception
 end

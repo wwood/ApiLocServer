@@ -11,7 +11,7 @@ class Publication < ActiveRecord::Base
         pub.pubmed_id = str.to_i
       else
         # make sure the parsing problem is a-ok
-        if !str.match('^http')
+        if !str.match('^http') and !str.match('unpublished')
           raise ParseException, "Couldn't parse #{pub} as a publication"
         end
         pub.url = str

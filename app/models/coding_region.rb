@@ -20,7 +20,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :annotation, :dependent => :destroy
   has_one :amino_acid_sequence, :dependent => :destroy
   has_many :microarray_measurements, :dependent => :destroy
-  has_many :expression_contexts
+  has_many :expression_contexts, :dependent => :destroy
   
   
   # transmembrane domain things
@@ -349,6 +349,16 @@ class CodingRegion < ActiveRecord::Base
   
   def name_with_localisation
     "#{string_id} - #{localisations.join(' ')}"
+  end
+  
+  class << self
+    alias_method(:f, :find_by_name_or_alternate)
+    alias_method(:fs, :find_by_name_or_alternate_and_organism)
+  end
+  
+  # convenience method for falciparum
+  def self.ff(string_id)
+    find_by_name_or_alternate_and_organism(string_id, Species.falciparum_name)
   end
 end
 

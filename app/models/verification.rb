@@ -62,7 +62,7 @@ class Verification < ActiveRecord::Base
     if !code
       p "should have found PFL0010c as a coding region"
     else
-      ids = code.coding_region_alternate_string_id
+      ids = code.coding_region_alternate_string_ids
       if !ids or ids.length != 2
         p "PFL0010c should have 2 alternate ids: 2277.t00002,MAL12P1.2, was #{ids}"
       end
@@ -89,6 +89,19 @@ class Verification < ActiveRecord::Base
     #        p "bad coding_region_id"
     #      end
     #    end
+    
+    
+    # ben@ben:~/phd/data/falciparum/genome/plasmodb/5.4$ grep '       gene    ' *.gff |grep 'apidb|MAL' |wc -l
+    # 5532
+    # ben@ben:~/phd/data/falciparum/genome/plasmodb/5.4$ grep '>' PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta |wc -l
+    # 5460
+    count = CodingRegion.species_name(Species.falciparum_name).count
+    if count  != 5532
+      p "Unexpected number of falciparum genes found uploaded: #{count}"
+    end
+    
+    # a troublesome one
+    raise if !CodingRegion.ff('PFC0890w')
     
   end
   
