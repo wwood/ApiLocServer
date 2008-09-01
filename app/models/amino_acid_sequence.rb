@@ -33,4 +33,12 @@ class AminoAcidSequence < Sequence
   def signalp_columns
     return SignalP.calculate_signal(sequence).all_results
   end
+  
+  alias_method :signal?, :signal_p?
+  alias_method :signalp?, :signal_p?
+  
+  
+  def targetp
+    TargetPWrapper.new.targetp(sequence)
+  end
 end

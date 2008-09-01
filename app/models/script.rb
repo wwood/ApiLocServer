@@ -4204,5 +4204,30 @@ class Script < ActiveRecord::Base
     Localisation.new.upload_localisation_synonyms
     Localisation.new.upload_other_falciparum_list
   end
+  
+  def localisation_signalp
+    Localisation.known.all.each do |loc|
+      
+      # work out if it has a signal peptide
+      yes = total = 0
+      loc.expression_contexts.collect do |context|
+        total += 1
+        if context.coding_region.amino_acid_sequence.signalp?
+          yes += 1
+        end
+      end
+      
+      puts [
+        loc.name,
+        yes.to_f / total.to_f,
+        yes,
+        total
+      ].join("\t")
+    end
+  end
+  
+  def localisation_spreadsheet
+    # For all genes that only have 1 localisation
+  end
 end
 
