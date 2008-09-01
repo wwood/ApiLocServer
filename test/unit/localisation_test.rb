@@ -85,6 +85,15 @@ class LocalisationTest < ActiveSupport::TestCase
   end
   
   
+  def test_known_named_scope
+    assert_equal 1, Localisation.known.find_all_by_name('mitochondria').length #good
+    assert Localisation.known.find_by_name('mitochondria') #good again
+    assert_equal 'mitochondria', Localisation.known.find_by_name('mitochondria').name #good again
+    assert_equal 0, Localisation.known.find_all_by_name('mitochondrias').length #stupid
+    assert_equal 0, Localisation.known.find_all_by_name('fv').length #synonym
+  end
+  
+  
   
   def assert_equal_expression_contexts(array_of_dev_stage_loc_objects_expected, actual, message)
     assert_equal array_of_dev_stage_loc_objects_expected.length, actual.length, "#{message}: length of arrays - #{array_of_dev_stage_loc_objects_expected.inspect} vs #{actual.inspect}"

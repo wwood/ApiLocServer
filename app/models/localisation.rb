@@ -6,17 +6,9 @@ class Localisation < ActiveRecord::Base
   has_many :expressed_coding_regions, :through => :expression_contexts, :source => :coding_region
   
   named_scope :recent, lambda { { :conditions => ['created_at > ?', 1.week.ago] } }
+  named_scope :known, lambda { { :conditions => ['name in (?)', KNOWN_FALCIPARUM_LOCALISATIONS] } }
   
-  # Return a list of ORFs that have this and only this localisation
-  def get_individual_localisations
-    coding_regions = CodingRegion.find_by_sql(
-      "select foo.coding_region_id from (select coding_region_id, count(*) from coding_region_localisations group by coding_region_id having count(*)=1) as foo join coding_region_localisations as food on foo.coding_region_id = food.coding_region_id where food.localisation_id=#{id}"
-    )
-    return coding_regions
-  end
-  
-  def upload_known_localisations
-    [
+  KNOWN_FALCIPARUM_LOCALISATIONS = [
       'knob', #start of ring, troph, schizont stage locs
       'erythrocyte cytoplasm',
       'maurer\'s clefts',
@@ -57,7 +49,18 @@ class Localisation < ActiveRecord::Base
       'hepatocyte cytoplasm',
       'hepatocyte nucleus',
       'hepatocyte parasitophorous vacuole membrane'
-    ].each do |loc|
+    ]
+  
+  # Return a list of ORFs that have this and only this localisation
+  def get_individual_localisations
+    coding_regions = CodingRegion.find_by_sql(
+      "select foo.coding_region_id from (select coding_region_id, count(*) from coding_region_localisations group by coding_region_id having count(*)=1) as foo join coding_region_localisations as food on foo.coding_region_id = food.coding_region_id where food.localisation_id=#{id}"
+    )
+    return coding_regions
+  end
+  
+  def upload_known_localisations
+    KNOWN_FALCIPARUM_LOCALISATIONS.each do |loc|
       if !Localisation.find_or_create_by_name(loc)
         raise Exception, "Failed to upload loc '#{loc}' for some reason"
       end
@@ -257,6 +260,8 @@ class Localisation < ActiveRecord::Base
   end
   
   def parse_small_small_name(frag)
+    frag.strip!
+    frag.downcase!
     l = Localisation.find_by_name_or_alternate(frag)
     if !l and matches = frag.match(/^not (.+)$/)
       syn = LocalisationSynonym.find_by_name(matches[1])
@@ -265,7 +270,7 @@ class Localisation < ActiveRecord::Base
       end
     end
     
-    raise ParseException, "Localisation not understood: #{frag}" if !l
+    raise ParseException, "Localisation not understood: '#{frag}'" if !l
     return l
   end
   
