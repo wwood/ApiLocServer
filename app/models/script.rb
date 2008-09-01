@@ -4226,8 +4226,70 @@ class Script < ActiveRecord::Base
     end
   end
   
+  def localisation_targetp
+    Localisation.known.all.each do |loc|
+      
+      # work out if it has a signal peptide
+      counts = {
+        'M' => 0,
+        '_' => 0,
+        'S' => 0
+      }
+      total = 0
+      loc.expression_contexts.collect do |context|
+        total += 1
+        t = context.coding_region.amino_acid_sequence.targetp
+        counts[t.pred['Loc']] += 1
+      end
+      
+      puts [
+        loc.name,
+        counts['M'].to_f / total.to_f,
+        counts['M'],
+        counts['_'].to_f / total.to_f,
+        counts['_'],
+        counts['S'].to_f / total.to_f,
+        counts['S'],
+        total
+      ].join("\t")
+    end
+  end
+  
   def localisation_spreadsheet
     # For all genes that only have 1 localisation
+    
+  end
+  
+  def upload_snp_data_jeffares
+    # http://www.nature.com.ezproxy.lib.unimelb.edu.au/ng/journal/v39/n1/suppinfo/ng1931_S1.html
+    # Supplementary Table 1, saved as csv using tab separation and no text delimiter
+    good_stuff = 0
+    CSV.open("#{DATA_DIR}/falciparum/polymorphism/ng1931-S4.csv", 'r', "\t") do |row|
+      # skip until the useful bit
+      if good_stuff == 0
+        if row[0] === '#Data'
+          good_stuff = 1
+        end
+        next
+      elsif good_stuff == 1
+        good_stuff += 1
+        next
+      end
+      
+      gene = row[0]
+      it_syn = row[6]
+      it_non_syn = row[7]
+      
+      code = CodingRegion.ff(gene)
+      if !code
+        $stderr.puts "Coding region not find: #{gene}"
+        next   
+      end
+      
+      next if it_syn == 'NA' or it_non_syn == 'NA'
+      ItSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, it_syn) or raise
+      ItNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, it_non_syn) or raise
+    end
   end
 end
 

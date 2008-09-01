@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080830064227) do
+ActiveRecord::Schema.define(:version => 20080901124937) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -179,12 +179,10 @@ ActiveRecord::Schema.define(:version => 20080830064227) do
 
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
-    t.string   "name",       :null => false
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
-
-  add_index "developmental_stages", ["name"], :name => "index_developmental_stages_on_name"
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false
@@ -222,6 +220,16 @@ ActiveRecord::Schema.define(:version => 20080830064227) do
   end
 
   add_index "expression_contexts", ["coding_region_id"], :name => "index_expression_contexts_on_coding_region_id"
+
+  create_table "float_coding_region_measurements", :force => true do |t|
+    t.string   "type"
+    t.integer  "coding_region_id"
+    t.float    "value"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "float_coding_region_measurements", ["coding_region_id", "type"], :name => "index_float_coding_region_measurements_on_type_and_coding_regio"
 
   create_table "gene_alternate_names", :force => true do |t|
     t.integer  "gene_id"
@@ -275,7 +283,7 @@ ActiveRecord::Schema.define(:version => 20080830064227) do
     t.datetime "updated_at"
   end
 
-  add_index "go_alternates", ["go_identifier"], :name => "index_go_alternates_on_go_identifier", :unique => true
+  add_index "go_alternates", ["go_identifier"], :name => "go_alternate_index", :unique => true
 
   create_table "go_list_entries", :force => true do |t|
     t.integer  "go_list_id"
@@ -320,6 +328,16 @@ ActiveRecord::Schema.define(:version => 20080830064227) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "integer_coding_region_measurements", :force => true do |t|
+    t.string   "type"
+    t.integer  "coding_region_id"
+    t.integer  "value"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "integer_coding_region_measurements", ["coding_region_id", "type"], :name => "index_integer_coding_region_measurements_on_type_and_coding_reg"
 
   create_table "localisation_methods", :force => true do |t|
     t.string   "description"
@@ -587,8 +605,8 @@ ActiveRecord::Schema.define(:version => 20080830064227) do
   end
 
   create_table "yeast_pheno_infos", :force => true do |t|
-    t.string   "experiment_type", :null => false
-    t.string   "phenotype",       :null => false
+    t.string   "experiment_type"
+    t.string   "phenotype"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
