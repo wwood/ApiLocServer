@@ -1,6 +1,13 @@
- 
+require 'tempfile' 
+require 'bio'
 
 class TargetPWrapper
+  # PLANT or NON-PLANT as per signalp
+  attr_accessor :network
+  
+  PLANT = 'PLANT'
+  NON_PLANT = 'NON-PLANT'
+  
   # Return a bioruby targetp object once targetp has been run on the given sequence (which is just letters)
   def targetp(sequence)
     Tempfile.open('targetp_in') { |tempfilein|
@@ -10,14 +17,27 @@ class TargetPWrapper
       tempfilein.close #required. Maybe because it doesn't flush otherwise?
       
       Tempfile.open('targetp_out') {|out|
-        result = system("targetp #{tempfilein.path} >#{out.path}")
+        args = ''
+        if @network and @network === PLANT
+          args = " -P"
+        end
+        result = system("targetp #{args} #{tempfilein.path} >#{out.path}")
         
         if !result
           raise Exception, "Running targetp program failed. See $? for details."
         end
-        line = tempfilein.read
+        line = out.open.read
+        #        puts line
         return Bio::TargetP::Report.new(line)
       }
     }
+  end
+  
+  def set_plant
+    @network = PLANT
+  end
+  
+  def set_non_plant
+    @network = NON_PLANT
   end
 end
