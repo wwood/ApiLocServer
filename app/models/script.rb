@@ -4291,5 +4291,11 @@ class Script < ActiveRecord::Base
       ItNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, it_non_syn) or raise
     end
   end
+  
+  def upload_snp_data_mu
+    CSV.open("#{DATA_DIR}/falciparum/polymorphism/ng1931-S4.csv", 'r', "\t") do |row|
+      
+    end
+  end
 end
 
