@@ -577,4 +577,13 @@ class Verification < ActiveRecord::Base
       raise Exception, "start or stop wrong for #{name}: #{cd.inspect}"
     end
   end
+  
+  def nucleo
+    raise if NucleoNls.count != NucleoNonNls.count
+    # $ uniq ../data/falciparum/localisation/prediction\ outputs/nucleoV20080902.tab  |wc -l 
+    # 292
+    raise if NucleoNls.count != 292
+    raise if CodingRegion.ff('PFE0355c').nucleo_nls.value != 0.83
+    raise if CodingRegion.ff('PFI0105c').nucleo_non_nls.value != 0.57
+  end
 end

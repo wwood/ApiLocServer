@@ -4297,5 +4297,48 @@ class Script < ActiveRecord::Base
       
     end
   end
+  
+  # print out a fasta file of all the proteins with known localisation
+  def localisation_fasta
+    ExpressionContext.all(:select => 'distinct(coding_region_id)').each do |context|
+      code = context.coding_region
+      raise Exception, "Coding region for context #{context.inspect} not found!" if !code
+      
+      puts ">#{code.string_id}|#{code.localisation_english}|#{code.annotation.annotation}"
+      puts code.amino_acid_sequence.sequence
+    end
+  end
+  
+  def upload_nucleo_predictions
+    CSV.open("#{DATA_DIR}/falciparum/localisation/prediction outputs/nucleoV20080902.tab",'r',"\t").each do |row|
+      raise if !match = row[0].match(/^(.+?)\|(.+)$/)
+      p match[0]
+      p match[1]
+      code = CodingRegion.ff(match[1])
+      raise if !code
+      NucleoNls.find_or_create_by_value_and_coding_region_id(row[1], code.id)
+      NucleoNonNls.find_or_create_by_value_and_coding_region_id(row[2], code.id)
+    end
+  end
+  
+  def nucleo_test
+    
+    Localisation.known.all.each do |loc|
+      total = 0
+      yes = 0
+      loc.expression_contexts.collect do |context|
+        total += 1
+        code = context.coding_region
+        yes += 1 if code.nucleo_nls.value > code.nucleo_non_nls.value
+      end
+      
+      puts [
+        loc.name,
+        yes.to_f / total.to_f,
+        yes,
+        total
+      ].join("\t")
+    end
+  end
 end
 

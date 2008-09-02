@@ -44,7 +44,7 @@ class Localisation < ActiveRecord::Base
       'gametocyte osmiophilic body',
       'sporozoite surface', #sporozoite locs
       'sporozoite cytoplasm',
-      'ookinete', #mosquito stage locs
+#      'ookinete', #mosquito stage locs - removed because there's no locs here (yet!)
       'ookinete microneme',
       'hepatocyte cytoplasm',
       'hepatocyte nucleus',
@@ -117,7 +117,8 @@ class Localisation < ActiveRecord::Base
       'red blood cell surface' => 'erythrocyte plasma membrane',
       'er foci' => 'endoplasmic reticulum',
       'food vacuole foci' => 'food vacuole',
-      'erythrocyte cytosol' => 'erythrocyte cytoplasm'
+      'erythrocyte cytosol' => 'erythrocyte cytoplasm',
+      'erythrocyte cytoplasmic vesicles' => 'erythrocyte cytoplasm'
     }.each do |key, value|
       l = value.downcase
       loc = Localisation.find_by_name(l)
@@ -160,7 +161,7 @@ class Localisation < ActiveRecord::Base
       end
       
       # Create the publication(s) we are relying on
-      pubs = Publication.create_from_ids_or_urls pubmed_id
+      pubs = Publication.find_create_from_ids_or_urls pubmed_id
       if !pubs or pubs.empty?
         raise Exception, "No publications found for line #{row.inspect}"
       end
@@ -169,6 +170,9 @@ class Localisation < ActiveRecord::Base
       # add the coding region and publication for each of the names
       parse_name(localisation_string).each do |context|
         pubs.each do |pub|
+          if code.string_id == 'PFA0445w'
+            puts "'PFA0445w' found: #{pub} #{context.inspect}"
+          end
           ExpressionContext.find_or_create_by_coding_region_id_and_developmental_stage_id_and_localisation_id_and_publication_id(
             code.id,
             context.developmental_stage_id,
@@ -179,7 +183,6 @@ class Localisation < ActiveRecord::Base
       end
     end
     
-    puts code.name_with_localisation
   end
   
   # Parse a line from the dirty localisation files. Return an array of (unsaved) ExpressionContext objects

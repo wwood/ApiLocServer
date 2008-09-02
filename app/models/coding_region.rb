@@ -1,7 +1,5 @@
 class CodingRegion < ActiveRecord::Base
   
-  $stderr.puts(0.second.ago)
-  
   #  validates_presence_of :orientation
   
   has_one :coding_region_go_term, :dependent => :destroy
@@ -36,6 +34,10 @@ class CodingRegion < ActiveRecord::Base
   has_one :memsat_max_transmembrane_domain_length, :dependent => :destroy
   
   has_many :membrain_transmembrane_domains
+  
+  # Measurements
+  has_one :nucleo_nls
+  has_one :nucleo_non_nls
   
   # Worm project
   # elegans
@@ -361,6 +363,12 @@ class CodingRegion < ActiveRecord::Base
   # convenience method for falciparum
   def self.ff(string_id)
     find_by_name_or_alternate_and_organism(string_id, Species.falciparum_name)
+  end
+  
+  # Print a coding region out like it is in my other localisation spreadsheet
+  def localisation_english
+    contexts = expression_contexts
+    return contexts.pick(:english).sort.join(', ')    
   end
 end
 

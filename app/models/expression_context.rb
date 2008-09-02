@@ -19,4 +19,13 @@ class ExpressionContext < ActiveRecord::Base
     end
     return 0
   end
+  
+  def english
+    return nil if !localisation_id
+    if developmental_stage_id
+      return "#{localisation.name} during #{developmental_stage.name}"
+    else
+      return localisation.name
+    end
+  end
 end

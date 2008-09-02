@@ -5,7 +5,7 @@ class PublicationTest < ActiveSupport::TestCase
   def test_create_id
     id = '1244'
     assert_difference 'Publication.count', 1 do
-      pubs = Publication.create_from_ids_or_urls(id)
+      pubs = Publication.find_create_from_ids_or_urls(id)
       assert_equal 1, pubs.length
       assert_kind_of Publication, pubs[0]
       assert_equal 1244, pubs[0].pubmed_id
@@ -17,7 +17,7 @@ class PublicationTest < ActiveSupport::TestCase
   def test_url
     id = 'http://nowhere.com'
     assert_difference 'Publication.count', 1 do
-      pubs = Publication.create_from_ids_or_urls(id)
+      pubs = Publication.find_create_from_ids_or_urls(id)
       assert_equal 1, pubs.length
       assert_kind_of Publication, pubs[0]
       assert_equal 'http://nowhere.com', pubs[0].url
@@ -29,7 +29,7 @@ class PublicationTest < ActiveSupport::TestCase
   def test_url_and_id
     id = 'http://nowhere.com/ ww, 1234'
     assert_difference 'Publication.count', 2 do
-      pubs = Publication.create_from_ids_or_urls(id)
+      pubs = Publication.find_create_from_ids_or_urls(id)
       assert_equal 2, pubs.length
       
       assert_kind_of Publication, pubs[0]
@@ -45,7 +45,17 @@ class PublicationTest < ActiveSupport::TestCase
   def test_half_number
     id = '123a'
     assert_raise ParseException do
-      Publication.create_from_ids_or_urls(id)
+      Publication.find_create_from_ids_or_urls(id)
     end    
+  end
+  
+  def test_upload_again
+    id = '145'
+    assert_difference 'Publication.count' do
+      Publication.find_create_from_ids_or_urls(id)
+    end
+    assert_difference 'Publication.count', 0 do
+      Publication.find_create_from_ids_or_urls(id)
+    end
   end
 end
