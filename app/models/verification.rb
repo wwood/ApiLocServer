@@ -593,4 +593,12 @@ class Verification < ActiveRecord::Base
     raise if CodingRegion.ff('PFA0410w').pats_prediction.value != false
     raise if CodingRegion.ff('PFA0445w').pats_score.value != 0.702
   end
+  
+  def pprowler
+    raise if PprowlerMtpScore.count != PprowlerOtherScore.count
+    raise if PprowlerMtpScore.count != PprowlerSignalScore.count
+    raise if PprowlerMtpScore.count != 269
+    raise if CodingRegion.ff('PFA0410w').pprowler_mtp_score.value != 0.03
+    raise if CodingRegion.ff('PFA0445w').pprowler_signal_score.value != 0.96
+  end
 end

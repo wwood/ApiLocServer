@@ -1,0 +1,2 @@
+class PprowlerSignalScore < FloatCodingRegionMeasurement
+end

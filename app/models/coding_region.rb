@@ -40,6 +40,9 @@ class CodingRegion < ActiveRecord::Base
   has_one :nucleo_non_nls
   has_one :pats_prediction
   has_one :pats_score
+  has_one :pprowler_mtp_score
+  has_one :pprowler_other_score
+  has_one :pprowler_signal_score
   
   # Worm project
   # elegans

@@ -4381,5 +4381,59 @@ class Script < ActiveRecord::Base
       ].join("\t")
     end
   end
+  
+  def pprowler_to_database
+    require 'pprowler'
+    
+    p = Bio::Pprowler::Report.new
+    p.parse(File.open("#{DATA_DIR}/falciparum/localisation/prediction outputs/pprowlerV20080902.1.tab").read)
+    
+    p.predictions.each do |pro, result|
+      code = deencode(pro)
+      raise if !code
+      
+      PprowlerSignalScore.find_or_create_by_value_and_coding_region_id result.sp, code.id
+      PprowlerMtpScore.find_or_create_by_value_and_coding_region_id result.mtp, code.id
+      PprowlerOtherScore.find_or_create_by_value_and_coding_region_id result.other, code.id
+    end
+  end
+  
+  def pprowler_test
+    Localisation.known.all.each do |loc|
+      total = 0
+      mtp = signal = other = 0
+      
+      CodingRegion.all(:joins => :expression_contexts, 
+        :conditions => {:expression_contexts => {:localisation_id => loc.id}}).collect do |code|
+        
+        total += 1
+
+        isignal = code.pprowler_signal_score.value
+        imtp = code.pprowler_mtp_score.value
+        iother = code.pprowler_other_score.value
+        
+        if imtp > isignal and imtp > iother
+          mtp += 1
+        elsif isignal > imtp and isignal > iother
+          signal += 1
+        elsif iother >isignal and iother > imtp
+          other += 1
+        else
+          $stderr.puts "Unsure about #{code.inspect}"
+        end
+      end
+      
+      puts [
+        loc.name,
+        signal.to_f / total.to_f,
+        #        signal,
+        mtp.to_f / total.to_f,
+        #        mtp,
+        other.to_f / total.to_f,
+        #        other,
+        total
+      ].join("\t")
+    end
+  end
 end
 
