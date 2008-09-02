@@ -586,4 +586,11 @@ class Verification < ActiveRecord::Base
     raise if CodingRegion.ff('PFE0355c').nucleo_nls.value != 0.83
     raise if CodingRegion.ff('PFI0105c').nucleo_non_nls.value != 0.57
   end
+  
+  def pats
+    raise if PatsPrediction.count != PatsScore.count
+    raise if PatsPrediction.count != 269
+    raise if CodingRegion.ff('PFA0410w').pats_prediction.value != false
+    raise if CodingRegion.ff('PFA0445w').pats_score.value != 0.702
+  end
 end

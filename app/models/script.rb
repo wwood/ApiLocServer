@@ -4322,7 +4322,6 @@ class Script < ActiveRecord::Base
   end
   
   def nucleo_test
-    
     Localisation.known.all.each do |loc|
       total = 0
       yes = 0
@@ -4330,6 +4329,48 @@ class Script < ActiveRecord::Base
         total += 1
         code = context.coding_region
         yes += 1 if code.nucleo_nls.value > code.nucleo_non_nls.value
+      end
+      
+      puts [
+        loc.name,
+        yes.to_f / total.to_f,
+        yes,
+        total
+      ].join("\t")
+    end
+  end
+  
+  def pats_to_database
+    require 'pats'
+    
+    p = Bio::Pats::Report.new
+    p.parse(File.open("#{DATA_DIR}/falciparum/localisation/prediction outputs/patsV20080902.1.txt").read)
+    
+    p.predictions.each do |pro, result|
+      p pro
+      code = deencode(pro)
+      raise if !code
+      
+      PatsPrediction.find_or_create_by_value_and_coding_region_id result.prediction, code.id
+      PatsScore.find_or_create_by_value_and_coding_region_id result.score, code.id
+    end
+  end
+  
+  def deencode(long_id)
+    if matches = long_id.match(/^(.+?)\|/)
+      return CodingRegion.ff(matches[1])
+    end
+    raise Exception, "Couldn't parse line: #{long_id}"
+  end
+  
+  def pats_test
+    Localisation.known.all.each do |loc|
+      total = 0
+      yes = 0
+      loc.expression_contexts.collect do |context|
+        total += 1
+        code = context.coding_region
+        yes += 1 if code.pats_prediction.value
       end
       
       puts [

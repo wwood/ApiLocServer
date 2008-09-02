@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080902041238) do
+ActiveRecord::Schema.define(:version => 20080902041615) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"

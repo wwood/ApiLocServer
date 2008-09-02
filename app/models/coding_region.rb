@@ -38,6 +38,8 @@ class CodingRegion < ActiveRecord::Base
   # Measurements
   has_one :nucleo_nls
   has_one :nucleo_non_nls
+  has_one :pats_prediction
+  has_one :pats_score
   
   # Worm project
   # elegans
