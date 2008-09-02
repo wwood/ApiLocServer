@@ -1,0 +1,2 @@
+class NucleoNls < FloatCodingRegionMeasurement
+end
