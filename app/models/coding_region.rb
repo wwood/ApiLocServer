@@ -391,6 +391,11 @@ class CodingRegion < ActiveRecord::Base
       :conditions => {:expression_contexts => {:coding_region_id => id}}
     )
   end
+  
+  def single_orthomcl
+    genes = OrthomclGene.all(
+    )
+  end
 end
 
 

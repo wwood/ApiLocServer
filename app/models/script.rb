@@ -4261,7 +4261,12 @@ class Script < ActiveRecord::Base
       :select => 'distinct(coding_regions.*)',
       :joins => {:expressed_localisations => :malaria_top_level_localisation}
     ).all.each do |code|
-      
+      results = [
+        code.string_id,
+        code.annotation.annotation,
+        code.amino_acid_sequence.sequence,
+        code.ortho
+      ]
     end
   end
   
