@@ -1,0 +1,9 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  localisation_id: 1
+  top_level_localisation_id: 1
+
+two:
+  localisation_id: 1
+  top_level_localisation_id: 1

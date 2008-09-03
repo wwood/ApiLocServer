@@ -1,5 +1,6 @@
 class TopLevelLocalisation < ActiveRecord::Base
-  has_many :localisations
+  has_many :malaria_localisation_top_level_localisations
+  has_many :malaria_localisations, :through => :malaria_localisation_top_level_localisations
   
   # A hash of all non-top levels locs to top level ones
   LOC_HASH = {
@@ -8,7 +9,7 @@ class TopLevelLocalisation < ActiveRecord::Base
     'maurer\'s clefts' => 'exported',
     'erythrocyte plasma membrane' => 'exported',
     'parasitophorous vacuole membrane' => 'parasitophorous vacuole',
-    'parasite plasma membrane' => 'parasite plasma membrane',
+    'parasite plasma membrane' => 'cytosol',
     'food vacuole membrane' => 'food vacuole',
     'mitochondrial membrane' => 'mitochondria',
     'cytoplasm' => 'cytosol',
@@ -18,20 +19,20 @@ class TopLevelLocalisation < ActiveRecord::Base
     'mononeme' => 'apical',
     'dense granule' => 'apical',
     'gametocyte nucleus' => 'nucleus',
-    'gametocyte cytoplasm' => 'cytoplasm',
+    'gametocyte cytoplasm' => 'cytosol',
     'gametocyte parasitophorous vacuole' => 'parasitophorous vacuole',
-    'sporozoite cytoplasm' => 'cytoplasm',
+    'sporozoite cytoplasm' => 'cytosol',
     'ookinete microneme' => 'apical',
-    'hepatocyte cytoplasm' => 'cytoplasm',
+    'hepatocyte cytoplasm' => 'cytosol',
     'hepatocyte nucleus' => 'nucleus',
     'hepatocyte parasitophorous vacuole membrane' => 'parasitophorous vacuole'
   }
   
   TOP_LEVEL_LOCALISATIONS = [
+    'exported',
     'mitochondria',
     'food vacuole',
-    'parasitophorous vacuole',    
-    'mitochondria',
+    'parasitophorous vacuole',
     'apicoplast',
     'cytosol',
     'nucleus',
@@ -40,21 +41,31 @@ class TopLevelLocalisation < ActiveRecord::Base
     'merozoite surface',
     'inner membrane complex',
     'gametocyte surface',
-    'sporozoite surface'
+    'sporozoite surface',
+    'apical'
   ]
   
   def upload_localisations
     # upload all the normal ones
     TOP_LEVEL_LOCALISATIONS.each do |top|
-      TopLevelLocalisation.find_or_create_by_name(top) or raise
+      t = TopLevelLocalisation.find_or_create_by_name(top)
+      if top != 'exported'
+        l = Localisation.find_by_name(top) or raise
+        MalariaLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
+          t.id,
+          l.id
+        ) or raise
+      end
     end
     
     # upload all the other ones
     LOC_HASH.each do |loc, top|
-      t = TopLevelLocalisation.find_by_name(top) or raise
+      t = TopLevelLocalisation.find_by_name(top) or raise Exception, "Couldn't find top #{top}"
       l = Localisation.find_by_name(loc) or raise
-      l.top_level_localisation_id = t.id
-      l.save!
+      MalariaLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
+        t.id,
+        l.id
+      ) or raise
     end
   end
 end

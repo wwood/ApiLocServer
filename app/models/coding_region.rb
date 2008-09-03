@@ -44,6 +44,10 @@ class CodingRegion < ActiveRecord::Base
   has_one :pprowler_other_score
   has_one :pprowler_signal_score
   
+  #snp
+  has_one :it_synonymous_snp
+  has_one :it_non_synonymous_snp
+  
   # Worm project
   # elegans
   has_many :coding_region_phenotype_informations, :dependent => :destroy

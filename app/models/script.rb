@@ -4257,7 +4257,9 @@ class Script < ActiveRecord::Base
   
   def localisation_spreadsheet
     # For all genes that only have 1 localisation
-    
+    TopLevelLocalisation.all.each do |loc|
+      
+    end
   end
   
   def upload_snp_data_jeffares

@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080902041615) do
+ActiveRecord::Schema.define(:version => 20080903012939) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -19,6 +19,17 @@ ActiveRecord::Schema.define(:version => 20080902041615) do
   end
 
   add_index "annotations", ["annotation", "coding_region_id"], :name => "index_annotations_on_coding_region_id_and_annotation", :unique => true
+
+  create_table "binary_coding_region_measurements", :force => true do |t|
+    t.integer  "coding_region_id", :null => false
+    t.boolean  "value"
+    t.string   "type"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "binary_coding_region_measurements", ["coding_region_id"], :name => "index_binary_coding_region_measurements_on_coding_region_id"
+  add_index "binary_coding_region_measurements", ["coding_region_id", "type"], :name => "index_binary_coding_region_measurements_on_coding_region_id_and"
 
   create_table "brafl_upstream_distances", :force => true do |t|
     t.integer  "go_term_id",        :null => false
@@ -356,11 +367,22 @@ ActiveRecord::Schema.define(:version => 20080902041615) do
     t.datetime "updated_at"
   end
 
-  create_table "localisations", :force => true do |t|
-    t.string   "name",                      :null => false
+  create_table "localisation_top_level_localisations", :force => true do |t|
+    t.integer  "localisation_id"
+    t.integer  "top_level_localisation_id"
+    t.string   "type"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "top_level_localisation_id"
+  end
+
+  add_index "localisation_top_level_localisations", ["localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_localisation_id_a"
+  add_index "localisation_top_level_localisations", ["top_level_localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_top_level_localis"
+  add_index "localisation_top_level_localisations", ["localisation_id", "top_level_localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_type_and_localisa"
+
+  create_table "localisations", :force => true do |t|
+    t.string   "name",       :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "microarray_measurements", :force => true do |t|

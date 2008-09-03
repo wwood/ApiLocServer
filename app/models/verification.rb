@@ -578,6 +578,12 @@ class Verification < ActiveRecord::Base
     end
   end
   
+  def snp_jeffares
+    raise if CodingRegion.ff('MAL13P1.12').it_synonymous_snp
+    raise if !CodingRegion.ff('MAL13P1.148').it_synonymous_snp
+    raise if ItSynonymousSnp.count != ItNonSynonymousSnp.count
+  end
+  
   def nucleo
     raise if NucleoNls.count != NucleoNonNls.count
     # $ uniq ../data/falciparum/localisation/prediction\ outputs/nucleoV20080902.tab  |wc -l 
@@ -600,5 +606,10 @@ class Verification < ActiveRecord::Base
     raise if PprowlerMtpScore.count != 269
     raise if CodingRegion.ff('PFA0410w').pprowler_mtp_score.value != 0.03
     raise if CodingRegion.ff('PFA0445w').pprowler_signal_score.value != 0.96
+  end
+  
+  def top_level_localisations
+    raise Exception, "Count not right: #{TopLevelLocalisation.count}" if TopLevelLocalisation::TOP_LEVEL_LOCALISATIONS.length != TopLevelLocalisation.count
+    raise if Localisation.find_by_name('hepatocyte nucleus').malaria_top_level_localisations.pick(:name) != ['nucleus']
   end
 end
