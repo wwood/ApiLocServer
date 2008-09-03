@@ -4,9 +4,9 @@ class Localisation < ActiveRecord::Base
   has_many :expression_contexts, :dependent => :destroy
   has_many :expressed_coding_regions, :through => :expression_contexts, :source => :coding_region
   
-  has_many :malaria_localisation_top_level_localisations
-  has_many :malaria_top_level_localisations, 
-    :through => :malaria_localisation_top_level_localisations,
+  has_one :malaria_localisation_top_level_localisation
+  has_one :malaria_top_level_localisation, 
+    :through => :malaria_localisation_top_level_localisation,
     :source => :top_level_localisation
   
   named_scope :recent, lambda { { :conditions => ['created_at > ?', 1.week.ago] } }

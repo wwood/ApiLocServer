@@ -1,6 +1,10 @@
 class TopLevelLocalisation < ActiveRecord::Base
   has_many :malaria_localisation_top_level_localisations
-  has_many :malaria_localisations, :through => :malaria_localisation_top_level_localisations
+  has_many :malaria_localisations, 
+    :through => :malaria_localisation_top_level_localisations,
+    :source => :localisation
+  
+  named_scope :known, lambda { { :conditions => ['name in (?)', TOP_LEVEL_LOCALISATIONS] } }
   
   # A hash of all non-top levels locs to top level ones
   LOC_HASH = {
@@ -52,8 +56,8 @@ class TopLevelLocalisation < ActiveRecord::Base
       if top != 'exported'
         l = Localisation.find_by_name(top) or raise
         MalariaLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
-          t.id,
-          l.id
+          l.id,
+          t.id
         ) or raise
       end
     end
@@ -63,8 +67,8 @@ class TopLevelLocalisation < ActiveRecord::Base
       t = TopLevelLocalisation.find_by_name(top) or raise Exception, "Couldn't find top #{top}"
       l = Localisation.find_by_name(loc) or raise
       MalariaLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
-        t.id,
-        l.id
+        l.id,
+        t.id
       ) or raise
     end
   end

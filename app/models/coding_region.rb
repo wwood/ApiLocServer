@@ -379,6 +379,18 @@ class CodingRegion < ActiveRecord::Base
     contexts = expression_contexts
     return contexts.pick(:english).sort.join(', ')    
   end
+  
+  # return true if there is only 1 top level localisation associated with this coding region
+  def uniq_top?
+    tops.pick(:id).uniq.length == 1
+  end
+  
+  def tops
+    TopLevelLocalisation.all(
+      :joins => {:malaria_localisations => :expression_contexts},
+      :conditions => {:expression_contexts => {:coding_region_id => id}}
+    )
+  end
 end
 
 

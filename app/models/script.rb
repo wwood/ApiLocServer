@@ -4257,8 +4257,81 @@ class Script < ActiveRecord::Base
   
   def localisation_spreadsheet
     # For all genes that only have 1 localisation
-    TopLevelLocalisation.all.each do |loc|
+    CodingRegion.species_name(Species.falciparum_name).all(
+      :select => 'distinct(coding_regions.*)',
+      :joins => {:expressed_localisations => :malaria_top_level_localisation}
+    ).all.each do |code|
       
+    end
+  end
+  
+  def top_level_localisation_overlap
+    TopLevelLocalisation.known.all.each do |top|
+      codes = CodingRegion.all(
+        :joins => {:expressed_localisations => :malaria_localisation_top_level_localisation},
+        :conditions => ['top_level_localisation_id = ?', top.id]
+      )
+      results = [top.name, codes.length]
+      hash = {}
+      
+      codes.each do |code|
+        code.expressed_localisations.each do |l|
+          t = l.malaria_top_level_localisation
+          if !t
+            $stderr.puts "No top level found for #{l.inspect}"
+            next
+          end
+          
+          if t.id != top.id
+            if hash[t.name].nil?
+              hash[t.name] = 1
+            else
+              hash[t.name] += 1
+            end
+          end
+          
+        end
+      end
+      results.push hash.sort{|a,b|
+        b[1] <=> a[1]
+      }
+      puts results.flatten.join("\t")
+    end
+  end
+  
+  def top_level_localisation_overlap_annotation
+    TopLevelLocalisation.known.all.each do |top|
+      codes = CodingRegion.all(
+        :joins => {:expressed_localisations => :malaria_localisation_top_level_localisation},
+        :conditions => ['top_level_localisation_id = ?', top.id]
+      )
+      
+      codes.uniq.each do |code|
+        next if code.uniq_top?
+        puts [
+          top.name,
+          code.string_id,
+          code.tops.pick(:name).uniq.sort.join(', '),
+          code.annotation.annotation
+        ].join("\t")
+      end
+    end
+  end
+  
+  def membrane_and_other_localisations
+    goods = Localisation::KNOWN_FALCIPARUM_LOCALISATIONS.reject do |l|
+      l != 'endoplasmic reticulum' and l != 'golgi' and !l.match(/membrane/i) 
+    end
+    
+    CodingRegion.species_name(Species.falciparum_name).all(
+      :include => :expressed_localisations,
+      :conditions => ['localisations.name in (?)', goods]
+    ).each do |code|
+      puts [
+        code.string_id,
+        code.annotation.annotation,
+        code.expressed_localisations(:reload => true).pick(:name).join(",")
+      ].join("\t")
     end
   end
   
