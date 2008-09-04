@@ -12,4 +12,11 @@ class OrthomclRun < ActiveRecord::Base
   def self.seven_species_no_filtering_name
     'Seven species for Babesia (no low complex filter)'
   end
+  
+  def self.seven_species_filtering_name
+    'Seven species for Babesia'
+  end
+  def self.seven_species_name
+    Species.seven_species_filtering_name
+  end
 end

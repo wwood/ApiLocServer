@@ -1345,11 +1345,12 @@ class Script < ActiveRecord::Base
   end
   
   def seven_species_orthomcl_upload
-    run = OrthomclRun.find_or_create_by_name("Seven species for Babesia")
+    run = OrthomclRun.find_or_create_by_name(OrthomclRun.seven_species_filtering_name)
     
     #Setup babesia and TANN genes and scaffs
-    babSpecies = Species.find_or_create_by_name('Babesia bovis')
-    babScaff = Scaffold.find_or_create_by_name_and_species_id("Babesia dummy", babSpecies.id)
+    #    babSpecies = Species.find_or_create_by_name('Babesia bovis')
+    #    #babScaff might not be used in the end, because babesia has been uploaded properly.
+    #    babScaff = Scaffold.find_or_create_by_name_and_species_id("Babesia dummy", babSpecies.id)
     tannSpecies = Species.find_or_create_by_name('Theileria annulata')
     tannScaff = Scaffold.find_or_create_by_name_and_species_id("Theileria annulata dummy", tannSpecies.id)
     parvSpecies = Species.find_or_create_by_name('Cryptosporidium parvum')
@@ -1390,30 +1391,20 @@ class Script < ActiveRecord::Base
         
         case matches[2]
         when 'BabesiaWGS'
-          # gene won't exist in database. Have to create it
-          g = Gene.find_or_create_by_name_and_scaffold_id(
-            matches[1],
-            babScaff.id
-          )
-          code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
-            matches[1],
-            g.id,
-            CodingRegion.unknown_orientation_char
-          )
+          # Only create the new gene and database if the coding region doesn't already exist
+          raise if !code = CodingRegion.fs(matches[1], Species.babesia_bovis_name)
         when 'TANN.GeneDB.pep'
           # gene won't exist in database. Have to create it
           g = Gene.find_or_create_by_name_and_scaffold_id(
             matches[1],
             tannScaff.id
           )
-          code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
+          code = CodingRegion.find_or_create_by_string_id_and_gene_id(
             matches[1],
-            g.id,
-            CodingRegion.unknown_orientation_char
+            g.id
           )
         when 'ChominisAnnotatedProtein.fsa'
           # gene won't exist in database. Have to create it
-          
           ems = matches[1].match('Cryptosporidium_.*?\|.*?\|(.*)\|Annotation\|GenBank|\(protein')
           if !ems
             raise Exception, "Unexpected gene name: #{code.string_id}"
@@ -1430,26 +1421,33 @@ class Script < ActiveRecord::Base
           )
           
         when 'CparvumAnnotatedProtein.fsa'
-          # gene won't exist in database. Have to create it
-          g = Gene.find_or_create_by_name_and_scaffold_id(
-            matches[1],
-            parvScaff.id
-          )
-          code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
-            matches[1],
-            g.id,
-            CodingRegion.unknown_orientation_char
-          )
+          ems = matches[1].match('Cryptosporidium_parvum\|.*?\|(.+?)\|Annotation\|.+\|\(protein')
+          if !ems
+            raise Exception, "Badly handled crypto: #{matches[1]}"
+          end
+          
+          if !code = CodingRegion.fs(ems[1], Species.cryptosporidium_parvum_name)
+          
+            # gene won't exist in database. Have to create it
+            g = Gene.find_or_create_by_name_and_scaffold_id(
+              ems[1],
+              parvScaff.id
+            )
+            code = CodingRegion.find_or_create_by_string_id_and_gene_id(
+              ems[1],
+              g.id
+            )
+          end
         when 'PvivaxAnnotatedProteins_plasmoDB-5.2'
           #          p 'found a vivax'
           ems = matches[1].match('Plasmodium_vivax.*?\|.*?\|(.*)\|Pv')
-          code = CodingRegion.find_by_name_or_alternate(ems[1])
+          code = CodingRegion.fs(ems[1], Species.vivax_name)
         when 'TPA1.pep'
-          code = CodingRegion.find_by_name_or_alternate(matches[1])
+          code = CodingRegion.fs(matches[1], Species.theileria_parva_name)
         else
           if matches[1].match('^Plasmodium_falciparum_3D7')
             ems = matches[1].match('Plasmodium_falciparum_3D7\|.*?\|(.*)\|Pf')
-            code = CodingRegion.find_by_name_or_alternate(ems[1])
+            code = CodingRegion.ff(ems[1])
           else
             raise Exception, "Didn't recognize source: '#{matches[2]}', #{matches}"
           end
@@ -1881,11 +1879,11 @@ class Script < ActiveRecord::Base
   def crypto_fasta_to_database
     fa = ApiDbFasta.new.load("#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/3.4/CparvumAnnotatedProtein.fsa")
     sp = Species.find_by_name(Species.cryptosporidium_parvum_name)
-    upload_fasta_general(fa, sp)
+    upload_fasta_general!(fa, sp)
     
     fa = ApiDbFasta.new.load("#{DATA_DIR}/Cryptosporidium hominis/genome/cryptoDB/3.4/ChominisAnnotatedProtein.fsa")
-    sp = Species.find_by_name(Species.cryptosporidium_parvum_name)
-    upload_fasta_general(fa, sp)
+    sp = Species.find_by_name(Species.cryptosporidium_hominis_name)
+    upload_fasta_general!(fa, sp)
   end
     
     
@@ -2256,9 +2254,14 @@ class Script < ActiveRecord::Base
   
   
   # Upload a fasta file by filling in scaffold, annotation, sequence
+  # Accepts a block that takes the name from the fasta line and turns it into something more useful
   def upload_fasta_general(fa, species)
     while f = fa.next_entry
-      code = CodingRegion.find_by_name_or_alternate(f.name)
+      name = f.name
+      if block_given?
+        name = yield f.name
+      end
+      code = CodingRegion.fs(name, species)
       if !code
         scaff = Scaffold.find_or_create_by_species_id_and_name(
           species.id,
@@ -2266,14 +2269,35 @@ class Script < ActiveRecord::Base
         )
         g = Gene.find_or_create_by_scaffold_id_and_name(
           scaff.id,
-          f.name
+          name
         )
-        code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
-          f.name,
-          g.id,
-          CodingRegion.unknown_orientation_char
+        code = CodingRegion.find_or_create_by_string_id_and_gene_id(
+          name,
+          g.id
         )
       end
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        f.sequence
+      )
+      Annotation.find_or_create_by_coding_region_id_and_annotation(
+        code.id,
+        f.annotation
+      )
+    end
+  end
+  
+  # Upload a fasta file by filling in scaffold, annotation, sequence, but do not create coding regions, genes or scaffolds - assume they
+  # already exist in the database, and throw an exception if that isn't the case.
+  # Accepts a block that takes the name from the fasta line and turns it into something more useful
+  def upload_fasta_general!(fa, species)
+    while f = fa.next_entry
+      name = f.name
+      if block_given?
+        name = yield f.name
+      end
+      code = CodingRegion.fs(name, species)
+      raise Exception, "No coding region found to attach a sequence/annotation to: #{f.name}"
       AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
         code.id,
         f.sequence
@@ -4255,19 +4279,110 @@ class Script < ActiveRecord::Base
     end
   end
   
+  # Some methods to help upload the data before the localisation spreadsheet can
+  # be created
+  def localisation_spreadsheet_preparation
+    link_orthomcl_and_coding_regions(['pfa'])
+    seven_species_orthomcl_upload
+    upload_snp_data_jeffares
+  end
+  
   def localisation_spreadsheet
+    sep = "\t"
+    
+    # headings
+    headings = [
+      'PlasmoDB ID',
+      'Annotation',
+      'Amino Acid Sequence',
+      'Number of P. falciparum Genes in Official Orthomcl Group', #orthomcl
+      'Number of P. vivax Genes in Official Orthomcl Group',
+      'Number of C. parvum Genes in Official Orthomcl Group',
+      'Number of C. homonis Genes in Official Orthomcl Group',
+      'Number of T. parva Genes in Official Orthomcl Group',
+      'Number of T. annulata Genes in Official Orthomcl Group',
+      'Number of Arabidopsis Genes in Official Orthomcl Group',
+      'Number of Yeast Genes in Official Orthomcl Group',
+      'Number of Mouse Genes in Official Orthomcl Group',
+      'Number of P. falciparum Genes in 7species Orthomcl Group', #7species orthomcl
+      'Number of P. vivax Genes in 7species Orthomcl Group',
+      'Number of Babesia Genes in 7species Orthomcl Group',
+      'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
+      'Number of Non-Synonymous IT SNPs according to Jeffares et al',
+      'Number of Synonymous Clinical SNPs according to Jeffares et al',
+      'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+    ]
+    puts headings.join(sep)
+    
+    # genes that are understandably not in the orthomcl databases, because
+    # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
+    # if any of them has any old names that were included, but meh for the moment.
+    fivepfour = ['PFL0040c', 'PF14_0078', 'PF14_0744']
+    
     # For all genes that only have 1 localisation
     CodingRegion.species_name(Species.falciparum_name).all(
       :select => 'distinct(coding_regions.*)',
       :joins => {:expressed_localisations => :malaria_top_level_localisation}
-    ).all.each do |code|
+    ).each do |code|
       results = [
         code.string_id,
         code.annotation.annotation,
         code.amino_acid_sequence.sequence,
-        code.ortho
       ]
+      
+      # official orthomcl
+      interestings = ['pfa','pvi','cpa','cho','tpa','tan','ath','sce','mmu']
+      if !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
+        # Fill with non-empty cells
+        group = single.orthomcl_group
+        interestings.each do |three|
+          results.push group.orthomcl_genes.code(three).length
+        end
+      else
+        # fill with empty cells
+        1..interestings.length.times do
+          results.push nil 
+        end
+      end
+      
+      # 7species orthomcl
+      seven_name_hash = {}
+      if !fivepfour.include?(code.string_id) #Used 5.2 for 7species too, so ignore new genes
+        og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
+        raise Exception, "7species falciparum not found for #{code.inspect}" if !og
+        og.orthomcl_group.orthomcl_genes.all.each do |gene|
+          species_name = gene.single_code.gene.scaffold.species.name
+          if seven_name_hash[species_name]
+            seven_name_hash[species_name] += 1
+          else
+            seven_name_hash[species_name] = 1
+          end
+        end
+      end
+      [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
+        results.push seven_name_hash[name] ? seven_name_hash[name] : 0
+      end
+      
+      #            'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
+      #      'Number of Non-Synonymous IT SNPs according to Jeffares et al',
+      #      'Number of Synonymous Clinical SNPs according to Jeffares et al',
+      #      'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+      [:it_synonymous_snp, :it_non_synonymous_snp, :pf_clin_synonymous_snp, :pf_clin_non_synonymous_snp].each do |method|
+        if s = code.send(method)
+          results.push s.value
+        else
+          results.push nil
+        end
+      end
+      
+      # Check to make sure that all the rows have the same number of entries as a debug thing
+      if results.length != headings.length
+        raise Exception, "Bad number of entries in the row for code #{code.inspect}: #{results.inspect}"
+      end
+      puts results.join(sep)
     end
+    
+    
   end
   
   def top_level_localisation_overlap
@@ -4357,8 +4472,10 @@ class Script < ActiveRecord::Base
       end
       
       gene = row[0]
-      it_syn = row[6]
-      it_non_syn = row[7]
+      it_syn = row[7]
+      it_non_syn = row[6]
+      pf_clin_syn = row[11]
+      pf_clin_non_syn = row[10]
       
       code = CodingRegion.ff(gene)
       if !code
@@ -4366,9 +4483,15 @@ class Script < ActiveRecord::Base
         next   
       end
       
-      next if it_syn == 'NA' or it_non_syn == 'NA'
-      ItSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, it_syn) or raise
-      ItNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, it_non_syn) or raise
+      if it_syn != 'NA' and it_non_syn != 'NA'
+        ItSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, it_syn) or raise
+        ItNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, it_non_syn) or raise
+      end
+      
+      if pf_clin_syn !='NA' and pf_clin_non_syn !='NA'
+        PfClinSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, pf_clin_syn) or raise
+        PfClinNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, pf_clin_non_syn) or raise
+      end
     end
   end
   
@@ -4514,6 +4637,18 @@ class Script < ActiveRecord::Base
         total
       ].join("\t")
     end
+  end
+  
+  def destroy_dead_orthomcl_genes
+    count = 0
+    OrthomclGene.all(:select => 'id, orthomcl_group_id').each do |gene|
+      if !gene.orthomcl_group
+        gene.destroy
+        count += 1
+        nil # Don't retain anything
+      end
+    end
+    puts "Deleted #{count} genes"
   end
 end
 

@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080903012939) do
+ActiveRecord::Schema.define(:version => 20080904025228) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -481,11 +481,16 @@ ActiveRecord::Schema.define(:version => 20080903012939) do
     t.integer  "orthomcl_run_id", :null => false
   end
 
+  add_index "orthomcl_groups", ["orthomcl_run_id"], :name => "index_orthomcl_groups_on_orthomcl_run_id"
+  add_index "orthomcl_groups", ["orthomcl_name", "orthomcl_run_id"], :name => "index_orthomcl_groups_on_orthomcl_run_id_and_orthomcl_name"
+
   create_table "orthomcl_runs", :force => true do |t|
     t.string   "name",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "orthomcl_runs", ["name"], :name => "index_orthomcl_runs_on_name", :unique => true
 
   create_table "phenotype_informations", :force => true do |t|
     t.string   "dbxref"
@@ -586,6 +591,7 @@ ActiveRecord::Schema.define(:version => 20080903012939) do
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "orthomcl_three_letter"
   end
 
   create_table "taxon_names", :force => true do |t|

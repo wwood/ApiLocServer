@@ -1,0 +1,2 @@
+class PfClinNonSynonymousSnp < FloatCodingRegionMeasurement
+end

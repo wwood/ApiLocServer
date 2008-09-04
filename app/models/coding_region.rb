@@ -47,6 +47,8 @@ class CodingRegion < ActiveRecord::Base
   #snp
   has_one :it_synonymous_snp
   has_one :it_non_synonymous_snp
+  has_one :pf_clin_synonymous_snp
+  has_one :pf_clin_non_synonymous_snp
   
   # Worm project
   # elegans
@@ -392,14 +394,20 @@ class CodingRegion < ActiveRecord::Base
     )
   end
   
-  def single_orthomcl
-    genes = OrthomclGene.all(
-    )
+  # convenience method for getting the single orthomcl gene associated with this coding region.
+  # optional argument run_name is the name of the orthomcl_run to be searched for.
+  def single_orthomcl(run_name = OrthomclRun.official_run_v2_name, options = {})
+    genes = orthomcl_genes.run(run_name).all(options)
+    if genes.length != 1
+      raise UnexpectedOrthomclGeneCount, "Unexpected number of orthomcl genes found for #{inspect}: #{genes.inspect}"
+    else
+      return genes[0]
+    end
   end
 end
 
 
 
 
-class CodingRegionNotFoundException < Exception
-end
+class CodingRegionNotFoundException < Exception; end
+class UnexpectedOrthomclGeneCount < Exception; end

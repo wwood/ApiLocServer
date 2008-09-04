@@ -265,10 +265,7 @@ class Verification < ActiveRecord::Base
   end
   
   def orthomcl
-    if OrthomclGroup.count(
-        :include => :orthomcl_run,
-        :conditions => "orthomcl_runs.name='#{OrthomclRun.official_run_v2_name}'"
-      ) != 79695
+    if OrthomclGroup.official.count != 79695
       puts "Incorrect number of gene groups"
     end
     
@@ -582,6 +579,8 @@ class Verification < ActiveRecord::Base
     raise if CodingRegion.ff('MAL13P1.12').it_synonymous_snp
     raise if !CodingRegion.ff('MAL13P1.148').it_synonymous_snp
     raise if ItSynonymousSnp.count != ItNonSynonymousSnp.count
+    raise if PfClinSynonymousSnp.count != PfClinNonSynonymousSnp.count
+    raise if CodingRegion.ff('MAL13P1.107').pf_clin_non_synonymous_snp.value != 2.89
   end
   
   def nucleo
@@ -611,5 +610,14 @@ class Verification < ActiveRecord::Base
   def top_level_localisations
     raise Exception, "Count not right: #{TopLevelLocalisation.count}" if TopLevelLocalisation::TOP_LEVEL_LOCALISATIONS.length != TopLevelLocalisation.count
     raise if Localisation.find_by_name('hepatocyte nucleus').malaria_top_level_localisations.pick(:name) != ['nucleus']
+  end
+  
+  def seven_species_orthomcl
+    r = OrthomclRun.find_by_name(OrthomclRun.seven_species_filtering_name)
+    raise if r.orthomcl_groups.count != 7657
+    raise if r.orthomcl_groups.count(:conditions => {:orthomcl_name => 'ORTHOMCL7653'}) != 1
+    raise if r.orthomcl_groups.first(:conditions => {:orthomcl_name => 'ORTHOMCL7653'}).orthomcl_genes.pick(:orthomcl_name).sort !=
+      ['TA05550','TA16035'].sort
+    raise if !r.orthomcl_groups.first(:conditions => {:orthomcl_name => 'ORTHOMCL42'}).orthomcl_genes.pick(:orthomcl_name).include?('Cryptosporidium_parvum|AAEE01000006|cgd1_330|Annotation|GenBank|(protein')
   end
 end

@@ -7,6 +7,16 @@ class OrthomclGene < ActiveRecord::Base
   named_scope :code, lambda { |three_letter_species_code| {
       :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
     }}
+  named_scope :official, {
+    :include => {:orthomcl_group => :orthomcl_run},
+    :conditions => {:orthomcl_runs => {:name => OrthomclRun.official_run_v2_name}}
+  }
+  named_scope :run, lambda {|run_name|
+    {
+      :include => {:orthomcl_group => :orthomcl_run},
+      :conditions => {:orthomcl_runs => {:name => run_name}}
+    }
+  }
   
   def accepted_database_id
     matches = orthomcl_name.match('pfa\|(.*)$')
@@ -136,7 +146,7 @@ class OrthomclGene < ActiveRecord::Base
   # Convenience method so you can map to a single coding region, as is most often done
   # Raise Exception if 0 or (2 or more) coding regions are found connected
   def single_code
-    codes = coding_regions
+    codes = coding_regions(:reload => true)
     
     if coding_regions.length != 1
       raise UnexpectedCodingRegionCount, "Unexpected number of coding regions found for #{inspect}: #{codes.inspect}"
