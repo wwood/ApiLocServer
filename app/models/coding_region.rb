@@ -18,6 +18,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :annotation, :dependent => :destroy
   has_one :amino_acid_sequence, :dependent => :destroy
   has_many :microarray_measurements, :dependent => :destroy
+  has_many :microarray_timepoints, :through => :microarray_measurements
   has_many :expression_contexts, :dependent => :destroy
   has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation
   has_many :integer_coding_region_measurements, :dependent => :destroy
