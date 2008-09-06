@@ -72,6 +72,12 @@ class CodingRegion < ActiveRecord::Base
       :conditions => ['species.name = ?', species_name]
     }
   }
+  named_scope :top, lambda {|top_name|
+    {
+      :joins => {:expressed_localisations => :malaria_top_level_localisation},
+      :conditions => ['top_level_localisations.name = ?', top_name]
+    }
+  }
   
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'

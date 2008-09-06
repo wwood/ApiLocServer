@@ -17,6 +17,6 @@ class OrthomclRun < ActiveRecord::Base
     'Seven species for Babesia'
   end
   def self.seven_species_name
-    Species.seven_species_filtering_name
+    self.seven_species_filtering_name
   end
 end

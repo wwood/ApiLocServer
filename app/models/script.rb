@@ -10,6 +10,7 @@ require 'rubygems'
 require 'csv'
 require 'bio'
 require 'mscript'
+require 'reach'
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -4311,13 +4312,23 @@ class Script < ActiveRecord::Base
       'Number of Non-Synonymous IT SNPs according to Jeffares et al',
       'Number of Synonymous Clinical SNPs according to Jeffares et al',
       'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+      'SignalP Prediction',
     ]
+    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
+    headings.push derisi_timepoints.collect{|t| 
+      'DeRisi 2006 3D7 '+t.name
+    }
+    headings.push 'Top Level Localisations'
+    
+    headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
     puts headings.join(sep)
     
     # genes that are understandably not in the orthomcl databases, because
     # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
     # if any of them has any old names that were included, but meh for the moment.
-    fivepfour = ['PFL0040c', 'PF14_0078', 'PF14_0744']
+    fivepfour = ['PFL0040c', 'PF14_0078', 'PF14_0744','PF10_0344','PFD1150c','PFD1145c','PFD0110w','PFI1780w','PFI1740c','PFI0105c','PFI0100c','MAL7P1.231']
+    # Genes that have 2 orthomcl entries but only 1 plasmoDB entry
+    merged_genes = ['PFD0100c']
     
     # For all genes that only have 1 localisation
     CodingRegion.species_name(Species.falciparum_name).all(
@@ -4332,7 +4343,15 @@ class Script < ActiveRecord::Base
       
       # official orthomcl
       interestings = ['pfa','pvi','cpa','cho','tpa','tan','ath','sce','mmu']
-      if !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
+      
+      # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
+      if merged_genes.include?(code.string_id)
+        # Fill with non-empty cells
+        group = code.orthomcl_genes[0].orthomcl_group
+        interestings.each do |three|
+          results.push group.orthomcl_genes.code(three).length
+        end        
+      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
         # Fill with non-empty cells
         group = single.orthomcl_group
         interestings.each do |three|
@@ -4347,17 +4366,21 @@ class Script < ActiveRecord::Base
       
       # 7species orthomcl
       seven_name_hash = {}
-      if !fivepfour.include?(code.string_id) #Used 5.2 for 7species too, so ignore new genes
-        og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
-        raise Exception, "7species falciparum not found for #{code.inspect}" if !og
-        og.orthomcl_group.orthomcl_genes.all.each do |gene|
-          species_name = gene.single_code.gene.scaffold.species.name
-          if seven_name_hash[species_name]
-            seven_name_hash[species_name] += 1
-          else
-            seven_name_hash[species_name] = 1
+      begin
+        if !fivepfour.include?(code.string_id) #Used 5.2 for 7species too, so ignore new genes
+          og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
+          raise Exception, "7species falciparum not found for #{code.inspect}" if !og
+          og.orthomcl_group.orthomcl_genes.all.each do |gene|
+            species_name = gene.single_code.gene.scaffold.species.name
+            if seven_name_hash[species_name]
+              seven_name_hash[species_name] += 1
+            else
+              seven_name_hash[species_name] = 1
+            end
           end
         end
+      rescue UnexpectedOrthomclGeneCount => e
+        # This happens for singlet genes
       end
       [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
         results.push seven_name_hash[name] ? seven_name_hash[name] : 0
@@ -4375,14 +4398,65 @@ class Script < ActiveRecord::Base
         end
       end
       
+      
+      SignalP
+      results.push(
+        code.amino_acid_sequence.signal?
+      )
+
+      # Microarray DeRisi
+      derisi_timepoints.each do |timepoint|
+        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+          code.id,
+          timepoint.id
+        )
+        if !measures.nil?
+          results.push measures.measurement
+        else
+          results.push nil
+        end
+      end
+      
+      # Top level localisations
+      results.push(code.tops.pick(:name).uniq.sort.join(', '))
+      
       # Check to make sure that all the rows have the same number of entries as a debug thing
       if results.length != headings.length
         raise Exception, "Bad number of entries in the row for code #{code.inspect}: #{results.inspect}"
       end
       puts results.join(sep)
     end
+  end
+  
+  def test_spreadsheet
+    first = true
+    # nicknames for rows that should be there
+    pfemp = snp = false
+    CSV.open("#{PHD_DIR}/spreadsheet/localisation_spreadsheet20080906.csv", 'r', "\t") do |row|
+      if first
+        expected = "PlasmoDB ID	Annotation	Amino Acid Sequence	Number of P. falciparum Genes in Official Orthomcl Group	Number of P. vivax Genes in Official Orthomcl Group	Number of C. parvum Genes in Official Orthomcl Group	Number of C. homonis Genes in Official Orthomcl Group	Number of T. parva Genes in Official Orthomcl Group	Number of T. annulata Genes in Official Orthomcl Group	Number of Arabidopsis Genes in Official Orthomcl Group	Number of Yeast Genes in Official Orthomcl Group	Number of Mouse Genes in Official Orthomcl Group	Number of P. falciparum Genes in 7species Orthomcl Group	Number of P. vivax Genes in 7species Orthomcl Group	Number of Babesia Genes in 7species Orthomcl Group	Number of Synonymous IT SNPs according to Jeffares et al	Number of Non-Synonymous IT SNPs according to Jeffares et al	Number of Synonymous Clinical SNPs according to Jeffares et al	Number of Non-Synonymous Clinical SNPs according to Jeffares et al	SignalP Prediction	DeRisi 2006 3D7 freqMAX	DeRisi 2006 3D7 powerTOTAL	DeRisi 2006 3D7 powerSIGNAL	DeRisi 2006 3D7 Percentage	DeRisi 2006 3D7 Phase	DeRisi 2006 3D7 MAX HOUR	DeRisi 2006 3D7 MIN HOUR	DeRisi 2006 3D7 AMPLITUDE	DeRisi 2006 3D7 Timepoint 1	DeRisi 2006 3D7 Timepoint 2	DeRisi 2006 3D7 Timepoint 3	DeRisi 2006 3D7 Timepoint 4	DeRisi 2006 3D7 Timepoint 5	DeRisi 2006 3D7 Timepoint 6	DeRisi 2006 3D7 Timepoint 7	DeRisi 2006 3D7 Timepoint 8	DeRisi 2006 3D7 Timepoint 9	DeRisi 2006 3D7 Timepoint 10	DeRisi 2006 3D7 Timepoint 11	DeRisi 2006 3D7 Timepoint 12	DeRisi 2006 3D7 Timepoint 13	DeRisi 2006 3D7 Timepoint 14	DeRisi 2006 3D7 Timepoint 15	DeRisi 2006 3D7 Timepoint 16	DeRisi 2006 3D7 Timepoint 17	DeRisi 2006 3D7 Timepoint 18	DeRisi 2006 3D7 Timepoint 19	DeRisi 2006 3D7 Timepoint 20	DeRisi 2006 3D7 Timepoint 21	DeRisi 2006 3D7 Timepoint 22	DeRisi 2006 3D7 Timepoint 23	DeRisi 2006 3D7 Timepoint 24	DeRisi 2006 3D7 Timepoint 25	DeRisi 2006 3D7 Timepoint 26	DeRisi 2006 3D7 Timepoint 27	DeRisi 2006 3D7 Timepoint 28	DeRisi 2006 3D7 Timepoint 29	DeRisi 2006 3D7 Timepoint 30	DeRisi 2006 3D7 Timepoint 31	DeRisi 2006 3D7 Timepoint 32	DeRisi 2006 3D7 Timepoint 33	DeRisi 2006 3D7 Timepoint 34	DeRisi 2006 3D7 Timepoint 35	DeRisi 2006 3D7 Timepoint 36	DeRisi 2006 3D7 Timepoint 37	DeRisi 2006 3D7 Timepoint 38	DeRisi 2006 3D7 Timepoint 39	DeRisi 2006 3D7 Timepoint 40	DeRisi 2006 3D7 Timepoint 41	DeRisi 2006 3D7 Timepoint 42	DeRisi 2006 3D7 Timepoint 43	DeRisi 2006 3D7 Timepoint 44	DeRisi 2006 3D7 Timepoint 45	DeRisi 2006 3D7 Timepoint 46	DeRisi 2006 3D7 Timepoint 47	DeRisi 2006 3D7 Timepoint 48	DeRisi 2006 3D7 Timepoint 49	DeRisi 2006 3D7 Timepoint 50	DeRisi 2006 3D7 Timepoint 51	DeRisi 2006 3D7 Timepoint 52	DeRisi 2006 3D7 Timepoint 53	Top Level Localisations".split("\t")
+        raise Exception, "first row was expected #{expected.inspect} vs. #{row.inspect}" if row != expected
+        first = false
+        raise Exception, "#{expected.inspect} expected, but #{row.inspect} found." if expected != row
+      end
+
+      if row[0] == 'PFA0110w'
+        raise if pfemp
+        pfemp = true
+        expected = "PFA0110w	(protein coding) ring-infected erythrocyte surface antigen	MRPFHAYSWIFSQQYMDTKNVKEKNPTIYSFDDEEKRNENKSFLKVLCSKRGVLPIIGILYIILNGNLGYNGSSSSGVQFTDRCSRNLYGETLPVNPYADSENPIVVSQVFGLPFEKPTFTLESPPDIDHTNILGFNEKFMTDVNRYRYSNNYEAIPHISEFNPLIVDKVLFDYNEKVDNLGRSGGDIIKKMQTLWDEIMDINKRKYDSLKEKLQKTYSQYKVQYDMPKEAYESKWTQCIKLIDQGGENLEERLNSQFKNWYRQKYLNLEEYRRLTVLNQIAWKALSNQIQYSCRKIMNSDISSFKHINELKSLEHRAAKAAEAEMKKRAQKPKKKKSRRGWLCCGGGDIETVEPQQEEPVQTVQEQQVNEYGDILPSLRASITNSAINYYDTVKDGVYLDHETSDALYTDEDLLFDLEKQKYMDMLDTSEEESVKENEEEHTVDDEHVEEHTADDEHVEEPTVADDEHVEEPTVADEHVEEPTVAEEHVEEPTVAEEHVEEPASDVQQTSEAAPTIEIPDTLYYDILGVGVNADMNEITERYFKLAENYYPYQRSGSTVFHNFRKVNEAYQVLGDIDKKRWYNKYGYDGIKQVNFMNPSIFYLLSSLEKFKDFTGTPQIVTLLRFFFEKRLSMNDLENKSEHLLKFMEQYQKEREAHVSEYLLNILQPCIAGDSKWNVPIITKLEGLKGSRFDIPILESLRWIFKHVAKTHLKKSSKSAKKLQQRTQANKQELANINNNLMSTLKEYVGSSEQMNSITYNFENINSNVDNGNQSKNISDLSYTDQKEILEKIVSYIVDISLYDIENTALNAAEQLLSDNSVDEKTLKKRAQSLKKLSSIMERYAGGKRNDKKAKKYDTQDVVGYIMHGISTINKEMKNQNENVPEHVQHNAEANVEHDAEENVEHDAEENVEENVEENVEENVEENVEENVEENVEENVEENVEENVEENVEENVEENVEENVEENVEEYDEENVEEVEENVEEYDEENVEEVEENVEENVEENVEENVEEYDEENVEEVEENVEENVEENVEENVEENVEEVEENVEENVEENVEENVEENVEENVEEYDEENVEEHNEEYDE	7	0	0	0	0	0	0	0	0	9	0	0					false	1.0	65.15064125	61.8514768	0.946496287	-0.213406933	53.0	33.0	4.8	0.950989117	2.547809381	2.440242599	2.132644048	2.8065786	2.92410527	2.228015733	1.618724087	1.789188313	2.282408184	1.217526673	1.233878	1.162968466	0.973226078	1.167071673	0.850600785	0.631416235	0.729440491	0.505505975	0.536052781	0.535533558	0.426743915	0.240154404	0.216655955	0.155230136	0.126317157	0.178000599	0.110052583	0.149322669	0.170624622	0.088041575	0.127260058	0.107923081	0.085341258	0.124155261	0.130252248	0.155654932	0.225190376	0.265762162	0.406316062	0.266200706	0.190359656	0.400755818	0.589980928	0.952900824	0.933452278	1.030005562	0.724372281	0.962402703	0.977516449	4.179638111	3.597917291	2.340871178	apical, exported, parasitophorous vacuole".split("\t")
+        expected = expected.collect{|e| e=="" ? nil : e}
+        raise Exception, "#{expected.inspect} expected, but #{row.inspect} found." if expected != row
+      elsif row[0] == 'PFA0410w'
+        raise if snp
+        snp = true
+        expected = "PFA0410w	hypothetical protein, conserved	MESYIRESKKLTLKSNKGKKLLRYLDISLNNKSLHDSHILELVKILKKIIKIVYNTYYCLNIDLSENYITCIGLKTLLKYILNYNENIGVNILKLYKNSIKDDGALLIKQLVYIQKIPMEELHLSHNLIQDNACKELLLSFVQAKKDSTYVYPRYDKYQNPYKHAQIPVWIRLEYNCIHNPKDILKEVEDCAKKKRGYKSNLIVCSALKSDKRCCPYKCLNASIRNTPIMHVYMFIHQKENIVNGKMKEEKNDFVSLEGVLDKNEKSNFNNDKNADENMIKLDSSKLGNKNKFKNENDEFEEEEEEIDVDDVDDVDDVDDVDDVDDVDDVDDDEDDEDDEDDEDDDEDDDEDDDDDEDEDDDDDEDEDDDEDDDDDEDYDDDDDEDYDEDEDDDDENYNLKDKNNLKGFENNKRIKGNKKGSEKPFVVNKEMVVENKNKNINNEEDEKNIDKKKSMNKKKRKKKKKRVNNYNNNNNINNNNNNNSNNKKKSNLVKDKKNSSTSTCNKFMNNTHNLNKSFSNIASDMYNKDTNMSSLNTSENTLPLYIILDCSAVLDMKELWKDKSILPFSFPGLLYLYNNKLLKANTIGNNNIHMNSNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNSSSGNNNTNKPGNDNFICLMCSYVANELKMVCQKSEIIRQKMINLKLNIWDKLSELGIIEFLSVPKDFKENKKNFLNSSFLTDEQIKLANEYYDISYETLQMIQFSIVWSTYIFKISNKEIIIENNKKEINKSDMKKSKKTIFTEVLYLTSSSNIYSFFEYLYEQDINFILPLCVTVNQINKYIQDEHSYIIDILMNNAKADKYGKLQFNKSFFQQFIKEKYSKYLYTNTKEEIINDKKKQSKSTLCNTKPLSCDILEQVNEEQQMFNSIKNKDGILSSQNNLQNNNGSEYLIDDGMGTMRISDDMLNNSNDIKKKKNNNNKKFSSVQQMVDNKSVAQPILSHNNNNNNNVNSINNNNNSYDIYDIISVKSFSNDNVNNMCNVDKMMNVHNNIVSSKNMKEDELLKEHHLYLKKGSEVVPNNQYYNLGEYNKLNLQMLNITDLDILEKRTDINDIFNNSLSETNKSANNTTTNNNNNNNNIHNNIHNNIHNNIHNNGAVRTNPVSSENHLILDNRNNKKKTDMLENMLYCSTVESKLMGLNKNKMEANLDMNNDNINNDNINNDHLNNDNINNVARGHTVDSELTTEDPVIQKKGVCKDKSGTPSDNKVSIYELLINAFNGKKKNVTKNVNEKNKNGVNEEGVGLMNDANCNTNNMNNVDNTNNVDNTDKLDNTDNLDNTNNVDNTNNVDNTNNVDNTNNMNNNNNMNRDDKDQSILMSQIKLKNDHRIEEEELQLKGKTNHKDNVINEKRKSMVEKKSISLHKNVNNNDNLAFLNNQQDDNVSHANHTRSTIHKMSVFHNNNMSNIPSGCAMQNDEDNMVLLGNENMLFKKGGSIMNFGDVDNNTTCAMNKNERRLTNNMKSGHNIIADNKDEELLNVEKINNGELLHIGKNICSEQLINQRKVVEWKHSFENHKVDIVNTSMLLEELILNPTVCKYVPGELYNRILKCYEKLDFMITNLNNINEEMETMKNVYNTEGNNNKNNNNNNNNEHGEHNIDNIVNKNVRTSLLKNDNIKTTTTERNNSINHSMNKNDVSMMYDDFKNYWDSPLGKNNSINNLMMMNNSINNINSGFNSMNLTASELMKSLSNGIHLNQKMNTLTSSLPHDFLLNNNMLGSMTNNNNNSNNNNNNNNSNNNNNSNNNNNSNNNNINLGMTTPLNNANIIQNHLNNSMLKNNMVNKNSAHNLASHLNNNNKVSKKKSTLSTYNNNMNEGNNSMNLNMNMNSTNNLNSSSVMMMLMNSAQNNSIQKKYINNNNNNNYNNNSNSNNNSSNSNNNNDMTVLLNNMNDVRINPNVLLNNNNLFFQGNNYKKDESNTGNKMSKDMNVINNAHANVEIMKNDNMSNNNSSNNNFVVGRDLKDIKTLNKILLLNNSNLNSVKGVSLNEKQLLNYINNNNNNSSSSSNNNMSGIPSVNSNIDTNLLTLLNMTKNNNNNNNNNNNNNNYINNIGSGINSTGISNKNLMINHQNAKNNNHNNNNNDKFKGNPFNDFNGIVTSNNIKKILNNENNNNNNLYMMNNNKTPINDINVKYVEALNSQFNFLSRDSRKIDTENNAINILNFSNDLEKKSNNTMVDICEKTNDKKI	1	1	0	0	0	0	0	0	0	1	1	0	0.97	1.8	1.0	0.92	false	1.0	16.54179211	15.90733899	0.961645442	1.058371784	18.0	42.0	2.9	0.708414508	0.850474392	1.164846555	1.214640754	1.349986931	1.833209262	1.694371744	1.570810607	1.807170141	2.199797692	1.657571066	1.548516884	1.53369642	1.994006464	2.202698416	1.828353161	1.849147589	2.39714168	1.873107239	2.042406007	1.738207721	1.79773823	1.52686801	1.220617631	1.238416874	0.850535574	0.934000916	0.805808757	1.12965851	3.996632785	0.604604122	0.569513843	0.485653866	0.429168049	0.413672558	0.366930112	0.434992442	0.48674689	0.44596171	0.337057639	0.235187045	0.241183843	0.286254145	0.405704757	0.368652491	0.485168222	0.596610953	0.605134095	0.465628506	0.42103379	1.062214377	0.815042508	0.735352181	exported, gametocyte surface".split("\t")
+        expected = expected.collect{|e| e=="" ? nil : e}
+        raise Exception, "#{expected.inspect} expected, but #{row.inspect} found." if expected != row
+      end
+    end
     
-    
+    raise if !pfemp
+    raise if !snp
   end
   
   def top_level_localisation_overlap
@@ -4649,6 +4723,37 @@ class Script < ActiveRecord::Base
       end
     end
     puts "Deleted #{count} genes"
+  end
+  
+  def babesia_exported_conversed
+    puts [
+      'Falciparum PlasmoDB ID',
+      'Falciparum Annotation',
+      'Falciparum Localisations',
+      'Babesia Orthologs',
+      'Babesia Annotations'
+    ].join("\t")
+    CodingRegion.top('exported').uniq.each{|code|
+      begin
+        babesias = code.single_orthomcl(OrthomclRun.seven_species_name).orthomcl_group.orthomcl_genes.all(
+          :conditions => ['orthomcl_name like ?', 'BB%']
+        )
+        puts [
+          code.string_id,
+          code.annotation.annotation,
+          code.expressed_localisations.known.pick(:name).join(', '),
+          babesias.pick(:orthomcl_name).join(', '),
+          babesias.collect{|b| b.single_code.annotation.annotation}.join(' || ')
+        ].join("\t")
+      rescue UnexpectedOrthomclGeneCount => e
+        puts [
+          code.string_id,
+          code.annotation.annotation,
+          code.expressed_localisations.known.pick(:name).join(', '),
+          'Not included in OrthoMCL or Singlet'
+        ].join("\t")
+      end
+    }
   end
 end
 
