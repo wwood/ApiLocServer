@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+
 require 'bio'
 require 'signalp'
 
@@ -41,6 +43,7 @@ module Bio
     #least 5 to 3.
     def set1?(cleaved_amino_acids)
       set1 = false
+      return false if cleaved_amino_acids.length <= 15
       aa = Bio::Sequence::AA.new(cleaved_amino_acids[0..14])
       if aa.acidic_count <= 2 # ii)
         aa = Bio::Sequence::AA.new(cleaved_amino_acids[15..15+80-1])
@@ -74,6 +77,7 @@ module Bio
     #basic to acidic residues of at least 10 to 9.
     def set2?(cleaved_amino_acids)
       set2 = false
+      return false if cleaved_amino_acids.length <= 21
       aa = Bio::Sequence::AA.new(cleaved_amino_acids[0..21])
       if aa.basic_count.to_f / aa.acidic_count.to_f >= 10.0/7.0 #ii)
         
@@ -141,5 +145,31 @@ module Bio
     def ==(another)
       @points == another.points
     end
+    
+    # '+' or '++' scores were taken as apicoplast targeted in the paper
+    # does this result pass that test?
+    def apicoplast_targeted?
+      @points >= 4
+    end
   end
 end # End module Bio
+
+if $0 == __FILE__
+  runner = Bio::PlasmoAP.new
+  
+  # print out a list of proteins with yes/no answers
+  puts [
+    'Name',
+    'PlasmoAP Score',
+    'Apicoplast Targeted'
+  ].join("\t")
+  Bio::FlatFile.auto(ARGF).each do |seq|
+    result = runner.calculate_score(seq.seq)
+    print "#{seq.definition}\t#{result.to_s}\t"
+    if result.apicoplast_targeted?
+      puts 1
+    else
+      puts 0
+    end
+  end
+end

@@ -2,6 +2,7 @@
 #gem 'bio'
 require 'bio'
 require 'bl2seq_runner'
+require 'plasmo_a_p'
 
 class AminoAcidSequence < Sequence
   belongs_to :coding_region
@@ -40,5 +41,9 @@ class AminoAcidSequence < Sequence
   
   def targetp
     TargetPWrapper.new.targetp(sequence)
+  end
+  
+  def plasmo_a_p
+    Bio::PlasmoAP.new.calculate_score(sequence)
   end
 end

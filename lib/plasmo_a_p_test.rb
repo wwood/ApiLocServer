@@ -106,5 +106,8 @@ class PlasmoAPTest < Test::Unit::TestCase
     end
   end
   
-  
+  def test_short
+    obj = @plasmoap.calculate_score('MMM')
+    assert_equal 0, obj.points
+  end
 end
