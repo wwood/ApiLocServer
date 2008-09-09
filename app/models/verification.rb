@@ -620,4 +620,9 @@ class Verification < ActiveRecord::Base
       ['TA05550','TA16035'].sort
     raise if !r.orthomcl_groups.first(:conditions => {:orthomcl_name => 'ORTHOMCL42'}).orthomcl_genes.pick(:orthomcl_name).include?('Cryptosporidium_parvum|AAEE01000006|cgd1_330|Annotation|GenBank|(protein')
   end
+  
+  def vivax
+    raise if !CodingRegion.fs('Pv085115', Species.vivax_name)
+    raise if !CodingRegion.fs('Pv085115', Species.vivax_name).amino_acid_sequence
+  end
 end

@@ -7,6 +7,15 @@ class OrthomclGene < ActiveRecord::Base
   named_scope :code, lambda { |three_letter_species_code| {
       :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
     }}
+  named_scope :codes, lambda { |three_letter_species_codes| 
+    pre = 'orthomcl_name like ?'
+    post = ["#{three_letter_species_codes[0]}%"]
+    three_letter_species_codes.each {|code|
+      pre += ' or orthomcl_name like ?'
+      post.push ["#{code}%"]
+    }
+    {:conditions => [pre, post].flatten}
+  }
   named_scope :official, {
     :include => {:orthomcl_group => :orthomcl_run},
     :conditions => {:orthomcl_runs => {:name => OrthomclRun.official_run_v2_name}}
@@ -152,6 +161,23 @@ class OrthomclGene < ActiveRecord::Base
       raise UnexpectedCodingRegionCount, "Unexpected number of coding regions found for #{inspect}: #{codes.inspect}"
     end
     return codes[0]
+  end
+  
+  def self.official_orthomcl_apicomplexa_codes
+    [
+      'tth',
+      'cpa',
+      'cho',
+      'tgo',
+      'pfa',
+      'pyo',
+      'pvi',
+      'pkn',
+      'pbe',
+      'pch',
+      'the',
+      'tan'
+    ]
   end
 end
 

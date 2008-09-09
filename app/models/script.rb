@@ -1881,11 +1881,11 @@ class Script < ActiveRecord::Base
   def crypto_fasta_to_database
     fa = ApiDbFasta.new.load("#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/3.4/CparvumAnnotatedProtein.fsa")
     sp = Species.find_by_name(Species.cryptosporidium_parvum_name)
-    upload_fasta_general!(fa, sp)
+    upload_fasta_general(fa, sp)
     
     fa = ApiDbFasta.new.load("#{DATA_DIR}/Cryptosporidium hominis/genome/cryptoDB/3.4/ChominisAnnotatedProtein.fsa")
     sp = Species.find_by_name(Species.cryptosporidium_hominis_name)
-    upload_fasta_general!(fa, sp)
+    upload_fasta_general(fa, sp)
   end
     
     
@@ -2213,14 +2213,16 @@ class Script < ActiveRecord::Base
   
   
   def upload_theileria_fasta
-    fa = TigrFasta.new("#{DATA_DIR}/Theileria annulata/TANN.GeneDB.pep")
+    t = TigrFasta.new
+    fa = t.load("#{DATA_DIR}/Theileria annulata/TANN.GeneDB.pep")
     scaff = Scaffold.find(:first,
       :include => :species,
       :conditions => "species.name='Theileria annulata'"
     )
     upload_fasta_simplistic(fa, scaff)
 
-    fa = TigrFasta.new("#{DATA_DIR}/Theileria parva/TPA1.pep")
+    t = TigrFasta.new
+    fa = t.load("#{DATA_DIR}/Theileria parva/TPA1.pep")
     scaff = Scaffold.find(:first,
       :include => :species,
       :conditions => "species.name='Theileria annulata'"
@@ -2263,7 +2265,7 @@ class Script < ActiveRecord::Base
       if block_given?
         name = yield f.name
       end
-      code = CodingRegion.fs(name, species)
+      code = CodingRegion.fs(name, species.name)
       if !code
         scaff = Scaffold.find_or_create_by_species_id_and_name(
           species.id,
@@ -2298,7 +2300,7 @@ class Script < ActiveRecord::Base
       if block_given?
         name = yield f.name
       end
-      code = CodingRegion.fs(name, species)
+      code = CodingRegion.fs(name, species.name)
       raise Exception, "No coding region found to attach a sequence/annotation to: #{f.name}"
       AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
         code.id,
@@ -4437,7 +4439,7 @@ class Script < ActiveRecord::Base
     first = true
     # nicknames for rows that should be there
     pfemp = snp = false
-    CSV.open("#{PHD_DIR}/spreadsheet/falciparum_localisation_spreadsheet20080908.tsv", 'r', "\t") do |row|
+    CSV.open("#{PHD_DIR}/spreadsheet/falciparum_localisation_spreadsheet20080909.tsv", 'r', "\t") do |row|
       if first
         expected = "PlasmoDB ID	Annotation	Amino Acid Sequence	Number of P. falciparum Genes in Official Orthomcl Group	Number of P. vivax Genes in Official Orthomcl Group	Number of C. parvum Genes in Official Orthomcl Group	Number of C. homonis Genes in Official Orthomcl Group	Number of T. parva Genes in Official Orthomcl Group	Number of T. annulata Genes in Official Orthomcl Group	Number of Arabidopsis Genes in Official Orthomcl Group	Number of Yeast Genes in Official Orthomcl Group	Number of Mouse Genes in Official Orthomcl Group	Number of P. falciparum Genes in 7species Orthomcl Group	Number of P. vivax Genes in 7species Orthomcl Group	Number of Babesia Genes in 7species Orthomcl Group	Number of Synonymous IT SNPs according to Jeffares et al	Number of Non-Synonymous IT SNPs according to Jeffares et al	Number of Synonymous Clinical SNPs according to Jeffares et al	Number of Non-Synonymous Clinical SNPs according to Jeffares et al	SignalP Prediction	PlasmoAP Score	DeRisi 2006 3D7 freqMAX	DeRisi 2006 3D7 powerTOTAL	DeRisi 2006 3D7 powerSIGNAL	DeRisi 2006 3D7 Percentage	DeRisi 2006 3D7 Phase	DeRisi 2006 3D7 MAX HOUR	DeRisi 2006 3D7 MIN HOUR	DeRisi 2006 3D7 AMPLITUDE	DeRisi 2006 3D7 Timepoint 1	DeRisi 2006 3D7 Timepoint 2	DeRisi 2006 3D7 Timepoint 3	DeRisi 2006 3D7 Timepoint 4	DeRisi 2006 3D7 Timepoint 5	DeRisi 2006 3D7 Timepoint 6	DeRisi 2006 3D7 Timepoint 7	DeRisi 2006 3D7 Timepoint 8	DeRisi 2006 3D7 Timepoint 9	DeRisi 2006 3D7 Timepoint 10	DeRisi 2006 3D7 Timepoint 11	DeRisi 2006 3D7 Timepoint 12	DeRisi 2006 3D7 Timepoint 13	DeRisi 2006 3D7 Timepoint 14	DeRisi 2006 3D7 Timepoint 15	DeRisi 2006 3D7 Timepoint 16	DeRisi 2006 3D7 Timepoint 17	DeRisi 2006 3D7 Timepoint 18	DeRisi 2006 3D7 Timepoint 19	DeRisi 2006 3D7 Timepoint 20	DeRisi 2006 3D7 Timepoint 21	DeRisi 2006 3D7 Timepoint 22	DeRisi 2006 3D7 Timepoint 23	DeRisi 2006 3D7 Timepoint 24	DeRisi 2006 3D7 Timepoint 25	DeRisi 2006 3D7 Timepoint 26	DeRisi 2006 3D7 Timepoint 27	DeRisi 2006 3D7 Timepoint 28	DeRisi 2006 3D7 Timepoint 29	DeRisi 2006 3D7 Timepoint 30	DeRisi 2006 3D7 Timepoint 31	DeRisi 2006 3D7 Timepoint 32	DeRisi 2006 3D7 Timepoint 33	DeRisi 2006 3D7 Timepoint 34	DeRisi 2006 3D7 Timepoint 35	DeRisi 2006 3D7 Timepoint 36	DeRisi 2006 3D7 Timepoint 37	DeRisi 2006 3D7 Timepoint 38	DeRisi 2006 3D7 Timepoint 39	DeRisi 2006 3D7 Timepoint 40	DeRisi 2006 3D7 Timepoint 41	DeRisi 2006 3D7 Timepoint 42	DeRisi 2006 3D7 Timepoint 43	DeRisi 2006 3D7 Timepoint 44	DeRisi 2006 3D7 Timepoint 45	DeRisi 2006 3D7 Timepoint 46	DeRisi 2006 3D7 Timepoint 47	DeRisi 2006 3D7 Timepoint 48	DeRisi 2006 3D7 Timepoint 49	DeRisi 2006 3D7 Timepoint 50	DeRisi 2006 3D7 Timepoint 51	DeRisi 2006 3D7 Timepoint 52	DeRisi 2006 3D7 Timepoint 53	Top Level Localisations".split("\t")
         raise Exception, "first row was expected #{expected.inspect} vs. #{row.inspect}" if row != expected
@@ -4762,24 +4764,190 @@ class Script < ActiveRecord::Base
   end
   
   def babesia_orthologs_signal_peptides
+    puts [
+      'bovis id',
+      'bovis annotation',
+      'bovis SignalP?',
+      'ortholog name',
+      'ortholog SignalP?',
+      'repeat for each ortholog'
+    ].join("\t")
     PlasmodbGeneList.find_by_description('babesiaInteresting20080908').coding_regions.each do |code|
       results = [
         code.string_id,
         code.annotation.annotation,
         code.amino_acid_sequence.signalp?
       ]
-      og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
-      results.push og.orthomcl_name
+      begin
+        og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
       
-      og.orthomcl_group.orthomcl_genes.all(:conditions => ['orthomcl_name not like ?', 'BB%']).each do |gene|
-        code = gene.single_code
-        results.push code.string_id
-        p code.string_id
-        results.push code.amino_acid_sequence.signalp?
+        og.orthomcl_group.orthomcl_genes.all(:conditions => ['orthomcl_name not like ?', 'BB%']).each do |gene|
+          code = gene.single_code
+          results.push code.string_id
+          results.push code.amino_acid_sequence.signalp?
+        end
+      rescue UnexpectedOrthomclGeneCount => e
+        $stderr.puts e
       end
       puts results.join("\t")
     end
   end
   
+  
+  def crypto_gff_to_database
+    apidb_species_to_database(Species.cryptosporidium_hominis_name, "#{DATA_DIR}/Cryptosporidium homonis/genome/cryptoDB/3.4/c_hominis_tu502.gff")
+  end
+  
+  def previous_signalp
+    loc_counts = {}
+    loc_totals = {}
+    TopLevelLocalisation.all.each do |l|
+      loc_counts[l.name] = 0
+      loc_totals[l.name] = 0
+    end
+    CodingRegion.species_name(Species.falciparum_name).all(:include => {:expressed_localisations => :malaria_top_level_localisation}).each do |code|
+      if code.uniq_top?
+        loc_totals[code.tops[0].name] += 1
+        if code.amino_acid_sequence.signalp?
+          loc_counts[code.tops[0].name] += 1
+        end
+      end
+    end
+    
+    loc_counts.each do |loc, count|
+      puts [
+        loc,
+        count,
+        loc_totals[loc],
+        count.to_f / loc_totals[loc].to_f
+      ].join("\t")
+    end
+  end
+  
+  def previous_plasmoap
+    loc_counts = {}
+    loc_totals = {}
+    TopLevelLocalisation.all.each do |l|
+      loc_counts[l.name] = 0
+      loc_totals[l.name] = 0
+    end
+    CodingRegion.species_name(Species.falciparum_name).all(:include => {:expressed_localisations => :malaria_top_level_localisation}).each do |code|
+      if code.uniq_top?
+        loc_totals[code.tops[0].name] += 1
+        if code.amino_acid_sequence.plasmo_a_p.points >= 4
+          loc_counts[code.tops[0].name] += 1
+        end
+      end
+    end
+    
+    loc_counts.each do |loc, count|
+      puts [
+        loc,
+        count,
+        loc_totals[loc],
+        count.to_f / loc_totals[loc].to_f
+      ].join("\t")
+    end
+  end
+  
+  
+  def previous_exportpred
+    loc_counts = {}
+    loc_totals = {}
+    TopLevelLocalisation.all.each do |l|
+      loc_counts[l.name] = 0
+      loc_totals[l.name] = 0
+    end
+    CodingRegion.species_name(Species.falciparum_name).all(:include => {:expressed_localisations => :malaria_top_level_localisation}).each do |code|
+      if code.uniq_top?
+        loc_totals[code.tops[0].name] += 1
+        if code.amino_acid_sequence.exportpred.predicted?
+        end
+      end
+    end
+    
+    loc_counts.each do |loc, count|
+      puts [
+        loc,
+        count,
+        loc_totals[loc],
+        count.to_f / loc_totals[loc].to_f
+      ].join("\t")
+    end
+  end
+  
+  # A generic method for counting up the percentages for the
+  # the (unique) top level localisations
+  def localisation_counts
+    loc_counts = {}
+    loc_totals = {}
+    TopLevelLocalisation.all.each do |l|
+      loc_counts[l.name] = 0
+      loc_totals[l.name] = 0
+    end
+    CodingRegion.species_name(Species.falciparum_name).all(:include => {:expressed_localisations => :malaria_top_level_localisation}).each do |code|
+      if code.uniq_top?
+        loc_totals[code.tops[0].name] += 1
+        if yield code
+          loc_counts[code.tops[0].name] += 1
+        end
+      end
+    end
+    
+    loc_counts.each do |loc, count|
+      puts [
+        loc,
+        count,
+        loc_totals[loc],
+        count.to_f / loc_totals[loc].to_f
+      ].join("\t")
+    end
+    return loc_counts, loc_totals
+  end
+  
+  
+  def predictor_orthology_paralogs_falciparum
+    localisation_counts do |code|
+      begin
+        code.single_orthomcl.orthomcl_group.orthomcl_genes.code('pfa').count > 1
+      rescue UnexpectedOrthomclGeneCount
+        false
+      end
+    end
+  end
+  
+  def has_orthologs_outside_of_apicomplexa
+    localisation_counts do |code|
+      begin
+        group = code.single_orthomcl.orthomcl_group
+        if group.orthomcl_genes.count > group.orthomcl_genes.codes(OrthomclGene.official_orthomcl_apicomplexa_codes).count
+          true
+        end
+      rescue UnexpectedOrthomclGeneCount
+        false
+      end
+    end
+  end
+  
+  def falciparum_non_hypothetical_count
+    # Count genes that have relatives outside apicomplexa / alveolata
+    collect = CodingRegion.species_name(Species.falciparum_name).all.each do |code|
+      begin
+        group = code.single_orthomcl.orthomcl_group
+        if group.orthomcl_genes.count > group.orthomcl_genes.codes(OrthomclGene.official_orthomcl_apicomplexa_codes).count
+          1
+        else
+          0
+        end
+      rescue UnexpectedOrthomclGeneCount
+        0
+      end
+    end
+    puts [
+      collect.sum,
+      collect.length,
+      collect.sum.to_f / collect.length.to_f
+    ]
+  end
 end
 
