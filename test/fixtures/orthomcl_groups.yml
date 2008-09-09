@@ -16,3 +16,7 @@ multiple_twos:
   id: 4
   orthomcl_name: Official Group with one and multiple twos
   orthomcl_run_id: 1
+random:
+  id: 5
+  orthomcl_name: nothn
+  orthomcl_run_id: 1

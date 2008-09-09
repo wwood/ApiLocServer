@@ -44,3 +44,7 @@ seven:
   id: 11
   orthomcl_name: one|dmoe13r
   orthomcl_group_id: 4
+compute_test:
+  id: 12
+  orthomcl_name: pfa|PF1
+  orthomcl_group_id: 5 #I don't care about this

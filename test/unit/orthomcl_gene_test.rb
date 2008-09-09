@@ -14,9 +14,9 @@ class OrthomclGeneTest < ActiveSupport::TestCase
     
     assert OrthomclGene.find(1).orthomcl_group
     
-    code = OrthomclGene.find(1).compute_coding_region
+    code = OrthomclGene.find(12).compute_coding_region
     assert code
-    assert_equal 7, code.id
+    assert_equal 5, code.id
   end
   
   def test_compute_coding_region!
@@ -40,5 +40,10 @@ class OrthomclGeneTest < ActiveSupport::TestCase
   def test_code_named_scope
     assert OrthomclGene.code('ath').all.pick(:orthomcl_name).include?('ath|ad01')
     assert_equal false, OrthomclGene.code('ath').all.pick(:orthomcl_name).include?('pfa|PF01')
+  end
+  
+  def test_codes_named_scope
+    assert_equal 3, OrthomclGene.codes(['two']).count
+    assert_equal 4, OrthomclGene.codes(['two','one']).count
   end
 end
