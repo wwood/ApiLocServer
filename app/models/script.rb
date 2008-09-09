@@ -4931,23 +4931,64 @@ class Script < ActiveRecord::Base
   
   def falciparum_non_hypothetical_count
     # Count genes that have relatives outside apicomplexa / alveolata
-    collect = CodingRegion.species_name(Species.falciparum_name).all.each do |code|
+    collect = CodingRegion.species_name(Species.falciparum_name).all.collect do |code|
       begin
+        inc = 0
         group = code.single_orthomcl.orthomcl_group
         if group.orthomcl_genes.count > group.orthomcl_genes.codes(OrthomclGene.official_orthomcl_apicomplexa_codes).count
-          1
+          inc = 1
         else
-          0
         end
       rescue UnexpectedOrthomclGeneCount
-        0
       end
+      inc
     end
     puts [
       collect.sum,
       collect.length,
       collect.sum.to_f / collect.length.to_f
-    ]
+    ].join("\t")
+  end
+  
+  
+  def localisation_timing_max
+    loc_counts = {}
+    TopLevelLocalisation.all.each do |l|
+      loc_counts[l.name] = {}
+    end
+    CodingRegion.species_name(Species.falciparum_name).all(:include => {:expressed_localisations => :malaria_top_level_localisation}).each do |code|
+      if code.uniq_top?
+        loc = code.tops[0].name
+        if timepoint = code.microarray_timepoints.first(:include => :microarray, 
+            :conditions => ['microarrays.description = ? and microarray_timepoints.name = ?', Microarray.derisi_2006_3D7_default, 'MAX HOUR'])
+          meas = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(code.id, timepoint.id)
+          max = meas.measurement.to_i
+          p [loc, code.string_id, max]
+          if loc_counts[loc][max]
+            loc_counts[loc][max] += 1
+          else
+            loc_counts[loc][max] = 1
+          end
+        end
+      end
+    end
+    
+    print 'Localisation'
+    (1..53).each do |j|
+      print "\t#{j}."
+    end
+    puts
+    loc_counts.each do |loc, hash|
+      results = [loc]
+      (1..53).each do |num|
+        if hash[num]
+          results.push hash[num]
+        else
+          results.push 0
+        end
+      end
+      puts results.join("\t")
+    end
   end
 end
 

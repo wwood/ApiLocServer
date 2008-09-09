@@ -18,12 +18,12 @@ class OrthomclGene < ActiveRecord::Base
   }
   named_scope :official, {
     :include => {:orthomcl_group => :orthomcl_run},
-    :conditions => {:orthomcl_runs => {:name => OrthomclRun.official_run_v2_name}}
+    :conditions => ['orthomcl_runs.name = ?', OrthomclRun.official_run_v2_name]
   }
-  named_scope :run, lambda {|run_name|
+  named_scope :run, lambda { |run_name|
     {
       :include => {:orthomcl_group => :orthomcl_run},
-      :conditions => {:orthomcl_runs => {:name => run_name}}
+      :conditions => ['orthomcl_runs.name = ?', run_name]
     }
   }
   
@@ -165,7 +165,6 @@ class OrthomclGene < ActiveRecord::Base
   
   def self.official_orthomcl_apicomplexa_codes
     [
-      'tth',
       'cpa',
       'cho',
       'tgo',

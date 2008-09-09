@@ -397,7 +397,7 @@ class CodingRegion < ActiveRecord::Base
   def tops
     TopLevelLocalisation.all(
       :joins => {:malaria_localisations => :expression_contexts},
-      :conditions => {:expression_contexts => {:coding_region_id => id}}
+      :conditions => ['expression_contexts.coding_region_id = ?', id]
     )
   end
   
