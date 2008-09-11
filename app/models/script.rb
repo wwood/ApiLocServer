@@ -4990,5 +4990,24 @@ class Script < ActiveRecord::Base
       puts results.join("\t")
     end
   end
+  
+  def nuclear_in_vivax
+    # nuclear localisation should be much easier to predict in vivax because
+    # of the lower AT content.
+    CodingRegion.all(
+      :include => {:expressed_localisations => :malaria_top_level_localisation},
+      :conditions => ['top_level_localisations.id = ?', TopLevelLocalisation.find_by_name('nucleus').id]
+    ).each do |code|
+      #        puts [
+      #          code.string_id,
+      #          code.single_orthomcl.orthomcl_group.orthomcl_genes.code('pvi').reach.orthomcl_name.gsub('pvi|','').retract.join(', ')
+      #        ].join("\t")
+      oes = code.single_orthomcl.orthomcl_group.orthomcl_genes.code('pvi').all
+      oes.each do |ogene|
+        puts ">#{code.string_id}|#{ogene.orthomcl_name}"
+        puts ogene.orthomcl_gene_official_data.sequence
+      end
+    end
+  end
 end
 
