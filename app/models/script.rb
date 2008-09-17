@@ -678,7 +678,7 @@ class Script < ActiveRecord::Base
     
     # I hope the dependents work...
     sp.scaffolds.each do |scaff|
-      scaff.destroy
+      puts scaff.destroy.name
     end
     
     puts "Inserting..."
@@ -4929,6 +4929,26 @@ class Script < ActiveRecord::Base
     end
   end
   
+  def genome_wide_has_orthologs_outside_of_apicomplexa
+    count = total = 0
+    CodingRegion.species_name(Species.falciparum_name).all(:select => 'coding_regions.id').each do |code|
+      total += 1
+      begin
+        group = code.single_orthomcl.orthomcl_group
+        if group.orthomcl_genes.count > group.orthomcl_genes.codes(OrthomclGene.official_orthomcl_apicomplexa_codes).count
+          count += 1
+        end
+      rescue UnexpectedOrthomclGeneCount
+        # not in the same group or not anywhere else
+      end
+    end
+    puts [
+      count,
+      total,
+      count.to_f/total.to_f
+    ].join("\t")
+  end
+  
   def falciparum_non_hypothetical_count
     # Count genes that have relatives outside apicomplexa / alveolata
     collect = CodingRegion.species_name(Species.falciparum_name).all.collect do |code|
@@ -5006,6 +5026,44 @@ class Script < ActiveRecord::Base
       oes.each do |ogene|
         puts ">#{code.string_id}|#{ogene.orthomcl_name}"
         puts ogene.orthomcl_gene_official_data.sequence
+      end
+    end
+  end
+  
+  # Print out the mapping of high level to low level mappings in latex format
+  def localisation_map_table
+    TopLevelLocalisation::TOP_LEVEL_LOCALISATIONS.each do |top|
+      t = TopLevelLocalisation.find_by_name(top)
+      raise if !t
+      
+      print "#{top}"
+      t.malaria_localisations.each do |m|
+        puts " & #{m.name}\\\\"
+      end
+      puts '\hline'
+    end
+  end
+  
+  
+  def yeast_gfp_er_apicomplexa_orthologues
+    CodingRegion.species_name(Species.yeast_name).all(
+      :select => 'coding_regions.id, coding_regions.string_id', 
+      :joins => [:localisations],
+      :conditions => ['localisations.id = ?', Localisation.find_by_name_or_alternate('ER').id]
+    ).each do |yeast_code|
+      begin
+        group = yeast_code.single_orthomcl.orthomcl_group
+        fals = group.orthomcl_genes.code('pfa').all
+        if fals.length == 1 and group.orthomcl_genes.code('sce').count == 1 and yeast_code.localisations.length == 1
+          c = fals[0].single_code
+          puts ">#{c.string_id}"
+          seq = c.amino_acid_sequence.sequence
+          puts seq[seq.length-30..seq.length-1]
+        else
+          $stderr.puts "#{yeast_code.string_id} is no good - it has #{fals.length} orthomcls"
+        end
+      rescue UnexpectedOrthomclGeneCount => e
+        $stderr.puts e
       end
     end
   end
