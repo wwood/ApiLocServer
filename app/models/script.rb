@@ -4732,35 +4732,42 @@ class Script < ActiveRecord::Base
     puts "Deleted #{count} genes"
   end
   
-  def babesia_exported_conversed
+  def babesia_localised_conserved
     puts [
+      'Top Level Localisation',
       'Falciparum PlasmoDB ID',
       'Falciparum Annotation',
       'Falciparum Localisations',
       'Babesia Orthologs',
       'Babesia Annotations'
     ].join("\t")
-    CodingRegion.top('exported').uniq.each{|code|
-      begin
-        babesias = code.single_orthomcl(OrthomclRun.seven_species_name).orthomcl_group.orthomcl_genes.all(
-          :conditions => ['orthomcl_name like ?', 'BB%']
-        )
-        puts [
+    TopLevelLocalisation.all.each do |top|
+      CodingRegion.top(top.name).uniq.each do |code|
+        results = [
+          top.name,
           code.string_id,
           code.annotation.annotation,
-          code.expressed_localisations.known.pick(:name).join(', '),
-          babesias.pick(:orthomcl_name).join(', '),
-          babesias.collect{|b| b.single_code.annotation.annotation}.join(' || ')
-        ].join("\t")
-      rescue UnexpectedOrthomclGeneCount => e
-        puts [
-          code.string_id,
-          code.annotation.annotation,
-          code.expressed_localisations.known.pick(:name).join(', '),
-          'Not included in OrthoMCL or Singlet'
-        ].join("\t")
+          code.expressed_localisations.known.pick(:name).uniq.join(', ')
+        ]
+        babesias = []
+        begin
+          babesias = code.single_orthomcl(OrthomclRun.seven_species_name).orthomcl_group.orthomcl_genes.all(
+            :conditions => ['orthomcl_name like ?', 'BB%']
+          )
+        rescue UnexpectedOrthomclGeneCount => e
+          results.push 'Not included in OrthoMCL or Singlet'
+          puts results.join("\t")
+          next
+        end
+        if !babesias.empty?
+          results.push babesias.pick(:orthomcl_name).join(', ')
+          results.push babesias.collect{|b| b.single_code.annotation.annotation}.join(' || ')
+          puts results.join("\t")
+        else
+          raise Exception, "huh"
+        end
       end
-    }
+    end
   end
   
   def babesia_orthologs_signal_peptides
@@ -5058,7 +5065,7 @@ class Script < ActiveRecord::Base
           c = fals[0].single_code
           puts ">#{c.string_id}"
           seq = c.amino_acid_sequence.sequence
-          puts seq[seq.length-30..seq.length-1]
+          puts seq[seq.length-5..seq.length-1]
         else
           $stderr.puts "#{yeast_code.string_id} is no good - it has #{fals.length} orthomcls"
         end
@@ -5067,5 +5074,15 @@ class Script < ActiveRecord::Base
       end
     end
   end
+  
+  
+  def experimental_align_er
+    Localisation.find_by_name('endoplasmic reticulum').expressed_coding_regions.uniq.each do |code|
+      puts ">#{code.string_id}"
+      a = code.amino_acid_sequence.sequence
+      puts a[a.length-5..a.length-1]
+    end
+  end
+  
 end
 
