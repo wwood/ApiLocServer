@@ -7,6 +7,7 @@ $:.unshift File.join(File.dirname(__FILE__),'..','lib')
 
 require 'test/unit'
 require 'api_db_genes'
+require 'bio'
 
 class ApiDbGenesTest < Test::Unit::TestCase
   def test_foo
@@ -132,6 +133,35 @@ class ApiDbGenesTest < Test::Unit::TestCase
     puts "MEMEME"
     genes = ApiDbGenes.new('lib/testFiles/apiDbTestBug2.gff')
     assert_nil genes.next_gene
+  end
+  
+  def test_ignore_line?
+    gff = Bio::GFF::Record.new('')
+    api = ApiDbGenes.new('lib/testFiles/apiDbTestBug2.gff')
+    gff.feature = 'supercontig'
+    assert api.ignore_line?(gff)
+    
+    gff.feature = 'blah'
+    assert_equal false, api.ignore_line?(gff)
+    
+    gff.feature = 'introgressed_chromosome_region45'
+    assert_equal false, api.ignore_line?(gff)
+    
+    gff.feature = 'introgressed_chromosome_region'
+    assert api.ignore_line?(gff)
+  end
+  
+  def test_ignore_record?
+    gff = Bio::GFF::Record.new('')
+    api = ApiDbGenes.new('lib/testFiles/apiDbTestBug2.gff')
+    
+    [nil, 'MAL2', 'apidb|API_IRAB'].each do |bad|
+      gff.seqname = bad
+      assert api.ignore_record?(gff)
+    end
+    
+    gff.seqname = 'apidb|MAL3'
+    assert_equal false, api.ignore_record?(gff)
   end
 
 end

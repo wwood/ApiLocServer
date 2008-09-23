@@ -290,7 +290,8 @@ class Script < ActiveRecord::Base
   
   def falciparum_to_database
     # abstraction!
-    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
+#    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
+    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
   end
   
   def calculate_falciparum_distances
@@ -1865,7 +1866,8 @@ class Script < ActiveRecord::Base
   
   # upload the fasta sequences from falciparum file to the database
   def falciparum_fasta_to_database
-    fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.4/PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta")
+#    fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.4/PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta")
+    fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAnnotatedProteins_PlasmoDB-5.5.fasta")
     sp = Species.find_by_name(Species.falciparum_name)
     upload_fasta_general(fa, sp)
   end

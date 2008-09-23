@@ -42,4 +42,12 @@ module Transmembrane
       length <=> other.length
     end
   end
+  
+  class ConfidencedTransmembraneDomain<TransmembraneDomain
+    attr_accessor :confidence
+    
+    def <=>(other)
+      return (start <=> other.start or stop <=> other.stop or confidence <=> other.confidence)
+    end
+  end
 end

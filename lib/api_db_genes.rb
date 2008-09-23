@@ -52,7 +52,7 @@ class ApiDbGenes < JgiGenesGff
     
     if cur.feature != 'mRNA'
       # skip rRNA type genes because they are not relevant
-      if @features_to_ignore.include?(cur.feature)
+      if ignore_record?(cur)
         # skip forward to the next gene
         while cur.feature != 'gene'
           cur = read_record
@@ -113,7 +113,18 @@ class ApiDbGenes < JgiGenesGff
   
   # ignore this line when parsing the file
   def ignore_line?(cur)
-    cur.feature === 'supercontig'
+    return ['supercontig', 'introgressed_chromosome_region'].include?(cur.feature)
+  end
+  
+  # Certain things I don't want uploaded, like apicoplast genome, etc.
+  def ignore_record?(record)
+    if !record or !record.seqname or
+        @features_to_ignore.include?(record.feature) or 
+        !record.seqname.match(/^apidb\|MAL\d+/)
+      return true
+    else
+      return false
+    end
   end
   
   private
