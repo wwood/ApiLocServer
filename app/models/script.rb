@@ -12,6 +12,8 @@ require 'bio'
 require 'mscript'
 require 'reach'
 require 'plasmo_a_p'
+require 'top_db_xml'
+require 'pdb_tm'
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -290,7 +292,7 @@ class Script < ActiveRecord::Base
   
   def falciparum_to_database
     # abstraction!
-#    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
+    #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
     apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
   end
   
@@ -1866,7 +1868,7 @@ class Script < ActiveRecord::Base
   
   # upload the fasta sequences from falciparum file to the database
   def falciparum_fasta_to_database
-#    fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.4/PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta")
+    #    fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.4/PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta")
     fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAnnotatedProteins_PlasmoDB-5.5.fasta")
     sp = Species.find_by_name(Species.falciparum_name)
     upload_fasta_general(fa, sp)
@@ -5083,6 +5085,53 @@ class Script < ActiveRecord::Base
       puts ">#{code.string_id}"
       a = code.amino_acid_sequence.sequence
       puts a[a.length-5..a.length-1]
+    end
+  end
+  
+  def top_db_membrane_length_distribution
+    dir = "#{DATA_DIR}/transmembrane/topdb/1/topdb_releases"
+    counts = []
+    Dir.foreach(dir) do |file|
+      next if !file.match(/.xml$/) #skip non-xml files like .svn directories
+      
+      xml = File.open(File.join(dir, file))
+      
+      t = Bio::TopDb::TopDbXml.new(xml.read)
+      t.transmembrane_domains.each do |tmd|
+        if counts[tmd.length]
+          counts[tmd.length] += 1
+        else
+          counts[tmd.length] = 1
+        end
+      end
+    end
+    
+    (0..counts.length-1).each do |length|
+      puts [
+        length,
+        counts[length]
+      ].join("\t")
+    end
+  end
+  
+  
+  def pdb_tm_membrane_length_distribution
+    counts = []
+    Bio::PdbTm::Xml.new(File.open("#{DATA_DIR}/transmembrane/pdbtm/20080923/pdbtmalpha.xml")).entries.each do |e|
+      e.transmembrane_domains.each do |tmd|
+        if counts[tmd.length]
+          counts[tmd.length] += 1
+        else
+          counts[tmd.length] = 1
+        end
+      end
+    end
+
+    (0..counts.length-1).each do |length|
+      puts [
+        length,
+        counts[length]
+      ].join("\t")
     end
   end
   

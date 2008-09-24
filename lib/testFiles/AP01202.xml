@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<TOPDB xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://topdb.enzim.hu/ TOPDB.xsd" ID="AP01202">
+  <Copyright>Copyrighted by the Institute of Enzymology, BRC, HAS, see http://topdb.enzim.hu/?m=terms</Copyright>
+  <Name>Putative potassium channel protein.</Name>
+  <Organism>Escherichia coli</Organism>
+  <CrossRef>
+    <UniProt ID="KCH_ECOLI">
+      <AC>P31069</AC>
+      <AC>P94716</AC>
+      <AC>P94717</AC>
+      <AC>P94723</AC>
+      <AC>P94729</AC>
+      <AC>P97198</AC>
+      <AC>P97225</AC>
+    </UniProt>
+  </CrossRef>
+  <Sequence Len="417" Checksum="1eb606362774bbd5f55c3821d08cd428">
+    <Seq>
+      MSHWATFKQT ATNLWVTLRH DILALAVFLN GLLIFKTIYG MSVNLLDIFH 
+      IKAFSELDLS LLANAPLFML GVFLVLNSIG LLFRAKLAWA ISIILLLIAL 
+      IYTLHFYPWL KFSIGFCIFT LVFLLILRKD FSHSSAAAGT IFAFISFTTL 
+      LFYSTYGALY LSEGFNPRIE SLMTAFYFSI ETMSTVGYGD IVPVSESARL 
+      FTISVIISGI TVFATSMTSI FGPLIRGGFN KLVKGNNHTM HRKDHFIVCG 
+      HSILAINTIL QLNQRGQNVT VISNLPEDDI KQLEQRLGDN ADVIPGDSND 
+      SSVLKKAGID RCRAILALSD NDADNAFVVL SAKDMSSDVK TVLAVSDSKN 
+      LNKIKMVHPD IILSPQLFGS EILARVLNGE EINNDMLVSM LLNSGHGIFS 
+      DNDELETKAD SKESAQK
+    </Seq>
+  </Sequence>
+  <Membrane>Bacterial inner membrane;Cytoplasm;Periplasmic space</Membrane>
+  <Topology>
+    <Reliability>100</Reliability>
+    <Numtm Count="6"/>
+    <Regions>
+      <Region Begin="1" End="21" Loc="Inside"/>
+      <Region Begin="22" End="45" Loc="Membrane"/>
+      <Region Begin="46" End="58" Loc="Outside"/>
+      <Region Begin="59" End="82" Loc="Membrane"/>
+      <Region Begin="83" End="86" Loc="Inside"/>
+      <Region Begin="87" End="102" Loc="Membrane"/>
+      <Region Begin="103" End="111" Loc="Outside"/>
+      <Region Begin="112" End="127" Loc="Membrane"/>
+      <Region Begin="128" End="135" Loc="Inside"/>
+      <Region Begin="136" End="159" Loc="Membrane"/>
+      <Region Begin="160" End="172" Loc="Outside"/>
+      <Region Begin="173" End="188" Loc="Membloop"/>
+      <Region Begin="189" End="197" Loc="Outside"/>
+      <Region Begin="198" End="221" Loc="Membrane"/>
+      <Region Begin="222" End="417" Loc="Inside"/>
+    </Regions>
+    <hmmtop_arguments>-bias 0.001 -plug mloop_rep.xml </hmmtop_arguments>
+  </Topology>
+  <Experiments>
+    <Region Begin="150" End="158" Loc="Membrane" ID="00001">
+      <Exp Ref="AP00415" Ref2="00002">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="150" End="161" Loc="Membrane" ID="00002">
+      <Exp Ref="AP00415" Ref2="00003">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="159" End="172" Loc="Side1" ID="00003">
+      <Exp Ref="AP00415" Ref2="00004">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="163" End="172" Loc="Side1" ID="00004">
+      <Exp Ref="AP00415" Ref2="00005">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="173" End="188" Loc="Membloop" ID="00005">
+      <Exp Ref="AP00415" Ref2="00006">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="189" End="196" Loc="Side1" ID="00006">
+      <Exp Ref="AP00415" Ref2="00007">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="189" End="197" Loc="Side1" ID="00007">
+      <Exp Ref="AP00415" Ref2="00008">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="197" End="221" Loc="Membrane" ID="00008">
+      <Exp Ref="AP00415" Ref2="00009">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="198" End="221" Loc="Membrane" ID="00009">
+      <Exp Ref="AP00415" Ref2="00010">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="222" End="224" Loc="Side2" ID="00010">
+      <Exp Ref="AP00415" Ref2="00011">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="239" End="378" Loc="Side1" ID="00011">
+      <Exp Ref="AP00415" Ref2="00012">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="241" End="378" Loc="Side1" ID="00012">
+      <Exp Ref="AP00415" Ref2="00013">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="242" End="378" Loc="Side1" ID="00013">
+      <Exp Ref="AP00415" Ref2="00014">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="242" End="378" Loc="Side2" ID="00014">
+      <Exp Ref="AP00415" Ref2="00015">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="242" End="378" Loc="Side1" ID="00015">
+      <Exp Ref="AP00415" Ref2="00016">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="242" End="378" Loc="Side1" ID="00016">
+      <Exp Ref="AP00415" Ref2="00017">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="417" End="417" Loc="Inside" ID="00017">
+      <Exp Ref="15919996">
+        <Type>Fusion</Type>
+        <Subtype>PhoA</Subtype>
+        <Expdata>
+          <Value>0.01</Value>
+        </Expdata>
+      </Exp>
+    </Region>
+    <Region Begin="417" End="417" Loc="Inside" ID="00018">
+      <Exp Ref="15919996">
+        <Type>Fusion</Type>
+        <Subtype>GFP</Subtype>
+        <Expdata>
+          <Value>1.21</Value>
+        </Expdata>
+      </Exp>
+    </Region>
+  </Experiments>
+  <References>
+    <Reference PMID="15919996">
+      <Journal>Science. 2005 May 27;308(5726):1321-3.</Journal>
+      <Note>Colibri gene id: Kch</Note>
+    </Reference>
+  </References>
+</TOPDB>

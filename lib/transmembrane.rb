@@ -41,13 +41,26 @@ module Transmembrane
     def <=>(other)
       length <=> other.length
     end
+    
+    def ==(other)
+      start == other.start and
+        stop == other.stop
+    end
   end
   
   class ConfidencedTransmembraneDomain<TransmembraneDomain
     attr_accessor :confidence
     
     def <=>(other)
-      return (start <=> other.start or stop <=> other.stop or confidence <=> other.confidence)
+      return start<=>other.start if start<=>other.start
+      return stop<=>other.start if stop<=>other.stop
+      return confidence <=> other.confidence
+    end
+    
+    def ==(other)
+      start == other.start and
+        stop == other.stop and
+        confidence == other.confidence
     end
   end
 end
