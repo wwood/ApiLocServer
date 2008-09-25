@@ -1871,14 +1871,14 @@ class Script < ActiveRecord::Base
     #    fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.4/PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta")
     fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAnnotatedProteins_PlasmoDB-5.5.fasta")
     sp = Species.find_by_name(Species.falciparum_name)
-    upload_fasta_general(fa, sp)
+    upload_fasta_general!(fa, sp)
   end
   
   # upload the fasta sequences from falciparum file to the database
   def vivax_fasta_to_database
     fa = ApiDbFasta.new.load("#{DATA_DIR}/vivax/genome/plasmodb/5.4/PvivaxAnnotatedProteins_plasmoDB-5.4.fasta")
     sp = Species.find_by_name(Species.vivax_name)
-    upload_fasta_general(fa, sp)
+    upload_fasta_general!(fa, sp)
   end
   
   

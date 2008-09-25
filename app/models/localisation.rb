@@ -13,47 +13,47 @@ class Localisation < ActiveRecord::Base
   named_scope :known, lambda { { :conditions => ['name in (?)', KNOWN_FALCIPARUM_LOCALISATIONS] } }
   
   KNOWN_FALCIPARUM_LOCALISATIONS = [
-      'knob', #start of ring, troph, schizont stage locs
-      'erythrocyte cytoplasm',
-      'maurer\'s clefts',
-      'erythrocyte plasma membrane',
-      'parasitophorous vacuole',
-      'parasitophorous vacuole membrane',
-      'parasite plasma membrane',
-      'food vacuole',
-      'food vacuole membrane',
-      'mitochondria',
-      'mitochondrial membrane',
-      'apicoplast',
-      'cytosol',
-      'cytoplasm',
-      'nucleus',
-      'nuclear membrane',
-      'golgi',
-      'endoplasmic reticulum',
-      'vesicles',
-      'intracellular vacuole',
-      'merozoite surface', #start of merozoite locs
-      'inner membrane complex',
-      'rhoptry',
-      'microneme',
-      'mononeme',
-      'dense granule',
-      'apical',
-      'merozoite cytoplasm',
-      'gametocyte surface', #gametocyte locs
-      'gametocyte nucleus',
-      'gametocyte cytoplasm',
-      'gametocyte parasitophorous vacuole',
-      'gametocyte osmiophilic body',
-      'sporozoite surface', #sporozoite locs
-      'sporozoite cytoplasm',
-#      'ookinete', #mosquito stage locs - removed because there's no locs here (yet!)
-      'ookinete microneme',
-      'hepatocyte cytoplasm',
-      'hepatocyte nucleus',
-      'hepatocyte parasitophorous vacuole membrane'
-    ]
+    'knob', #start of ring, troph, schizont stage locs
+    'erythrocyte cytoplasm',
+    'maurer\'s clefts',
+    'erythrocyte plasma membrane',
+    'parasitophorous vacuole',
+    'parasitophorous vacuole membrane',
+    'parasite plasma membrane',
+    'food vacuole',
+    'food vacuole membrane',
+    'mitochondria',
+    'mitochondrial membrane',
+    'apicoplast',
+    'cytosol',
+    'cytoplasm',
+    'nucleus',
+    'nuclear membrane',
+    'golgi',
+    'endoplasmic reticulum',
+    'vesicles',
+    'intracellular vacuole',
+    'merozoite surface', #start of merozoite locs
+    'inner membrane complex',
+    'rhoptry',
+    'microneme',
+    'mononeme',
+    'dense granule',
+    'apical',
+    'merozoite cytoplasm',
+    'gametocyte surface', #gametocyte locs
+    'gametocyte nucleus',
+    'gametocyte cytoplasm',
+    'gametocyte parasitophorous vacuole',
+    'gametocyte osmiophilic body',
+    'sporozoite surface', #sporozoite locs
+    'sporozoite cytoplasm',
+    #      'ookinete', #mosquito stage locs - removed because there's no locs here (yet!)
+    'ookinete microneme',
+    'hepatocyte cytoplasm',
+    'hepatocyte nucleus',
+    'hepatocyte parasitophorous vacuole membrane'
+  ]
   
   # Return a list of ORFs that have this and only this localisation
   def get_individual_localisations
@@ -163,6 +163,12 @@ class Localisation < ActiveRecord::Base
       if !code
         raise Exception, "No coding region '#{plasmodb_id}' found."
       end
+      
+      # Create the common name as an alternate String ID
+      CodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
+        common_name,
+        code.id
+      )
       
       # Create the publication(s) we are relying on
       pubs = Publication.find_create_from_ids_or_urls pubmed_id
