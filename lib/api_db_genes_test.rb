@@ -16,22 +16,6 @@ class ApiDbGenesTest < Test::Unit::TestCase
     gene = genes.next_gene
     
     assert gene
-    assert_equal 1, gene.cds.length
-    assert_equal '-', gene.strand
-    assert_equal '734', gene.cds_start
-    assert_equal '1573', gene.cds_end
-    assert_equal 1, gene.exons.length
-    assert_nil gene.go_identifiers
-    assert_equal 'coxIII', gene.name
-    assert_equal 'apidb|NC_002375', gene.seqname
-    assert_equal ['PlfaoMp1'], gene.alternate_ids
-    assert_equal 'putative cytochrome oxidase III', gene.description
-    
-    gene = genes.next_gene
-    assert_nil gene.alternate_ids
-    
-    gene = genes.next_gene
-    gene = genes.next_gene
     assert_equal 'PFA0005w', gene.name
     assert_equal 2, gene.cds.length
     assert_equal '+', gene.strand
@@ -44,7 +28,7 @@ class ApiDbGenesTest < Test::Unit::TestCase
       'GO:0005539','GO:0050839'].sort,
       gene.go_identifiers.sort
     assert_equal 'PFA0005w', gene.name
-    assert_equal 'apidb|MAL1', gene.seqname
+    assert_equal 'apidb|MAL12', gene.seqname
     assert_equal ['MAL1P4.01','bentest'], gene.alternate_ids
     assert_equal 'erythrocyte membrane protein 1 (PfEMP1)', gene.description
     
@@ -68,12 +52,6 @@ class ApiDbGenesTest < Test::Unit::TestCase
     
     iter = genes.distance_iterator
     assert iter.has_next_distance
-    d = iter.next_distance
-      
-    assert_equal 1933-1573, d
-    d = iter.next_distance
-    assert_equal 1933-1573, d
-    d = iter.next_distance
     d = iter.next_distance
     
     # different scaffolds
@@ -128,9 +106,6 @@ class ApiDbGenesTest < Test::Unit::TestCase
   # Unfixed bug as at 21 Apr 2008. Error comes out on the cmd line
   # and there isn't anything wrong with the data as it is uploaded
   def test_bug2
-    puts
-    puts
-    puts "MEMEME"
     genes = ApiDbGenes.new('lib/testFiles/apiDbTestBug2.gff')
     assert_nil genes.next_gene
   end
@@ -155,13 +130,27 @@ class ApiDbGenesTest < Test::Unit::TestCase
     gff = Bio::GFF::Record.new('')
     api = ApiDbGenes.new('lib/testFiles/apiDbTestBug2.gff')
     
-    [nil, 'MAL2', 'apidb|API_IRAB'].each do |bad|
+    [nil, 'MAL2', 'apidb|API_IRAB','apidb|M76611'].each do |bad|
       gff.seqname = bad
       assert api.ignore_record?(gff)
     end
     
     gff.seqname = 'apidb|MAL3'
     assert_equal false, api.ignore_record?(gff)
+  end
+  
+  def test_ignore_mito
+    gff = Bio::GFF::Record.new('')
+    api = ApiDbGenes.new('lib/testFiles/mito.gff')
+    
+    g = api.next_gene
+    assert g
+    assert_equal 'MAL11_rRNA', g.name
+    g = api.next_gene
+    assert g
+    assert_equal 'MAL11_rRNA', g.name
+    assert_nil api.next_gene
+    
   end
 
 end

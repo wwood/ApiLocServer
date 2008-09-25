@@ -30,7 +30,7 @@ class ApiDbGenes < JgiGenesGff
     end
     
     # Ignore the supercontigs at the start of the file
-    while ignore_line?(cur)
+    while ignore_line?(cur) or ignore_record?(cur)
       @next_gff = read_record
       cur = @next_gff
       if !cur
