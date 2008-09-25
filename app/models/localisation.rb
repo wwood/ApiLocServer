@@ -52,7 +52,8 @@ class Localisation < ActiveRecord::Base
     'ookinete microneme',
     'hepatocyte cytoplasm',
     'hepatocyte nucleus',
-    'hepatocyte parasitophorous vacuole membrane'
+    'hepatocyte parasitophorous vacuole membrane',
+    'intracellular vacuole membrane'
   ]
   
   # Return a list of ORFs that have this and only this localisation
@@ -122,7 +123,8 @@ class Localisation < ActiveRecord::Base
       'er foci' => 'endoplasmic reticulum',
       'food vacuole foci' => 'food vacuole',
       'erythrocyte cytosol' => 'erythrocyte cytoplasm',
-      'erythrocyte cytoplasmic vesicles' => 'erythrocyte cytoplasm'
+      'erythrocyte cytoplasmic vesicles' => 'erythrocyte cytoplasm',
+      'pvm' => 'parasitophorous vacuole membrane'
     }.each do |key, value|
       l = value.downcase
       loc = Localisation.find_by_name(l)
@@ -155,6 +157,7 @@ class Localisation < ActiveRecord::Base
       plasmodb_id = row[1]
       pubmed_id = row[2]
       localisation_string = row[3]
+      comments = [row[4],row[5],row[6],row[7]]
       
       # make sure the coding region is in the database properly.
       plasmodb_id.strip!
@@ -183,12 +186,19 @@ class Localisation < ActiveRecord::Base
           if code.string_id == 'PFA0445w'
             puts "'PFA0445w' found: #{pub} #{context.inspect}"
           end
-          ExpressionContext.find_or_create_by_coding_region_id_and_developmental_stage_id_and_localisation_id_and_publication_id(
+          e = ExpressionContext.find_or_create_by_coding_region_id_and_developmental_stage_id_and_localisation_id_and_publication_id(
             code.id,
             context.developmental_stage_id,
             context.localisation_id,
             pub.id
           )
+          comments.each do |comment|
+            next if !comment
+            Comment.find_or_create_by_expression_context_id_and_comment(
+              e.id,
+              comment
+            )
+          end
         end
       end
     end

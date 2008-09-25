@@ -1,8 +1,12 @@
+require 'reach'
+
 class ExpressionContext < ActiveRecord::Base
   belongs_to :publication
   belongs_to :developmental_stage
   belongs_to :coding_region
   belongs_to :localisation
+  
+  has_many :comments
   
   # mainly for testing - order of things not particularly relevant
   def <=>(another)
@@ -27,5 +31,15 @@ class ExpressionContext < ActiveRecord::Base
     else
       return localisation.name
     end
+  end
+  
+  def spreadsheet_english
+    [
+      "\"#{coding_region.coding_region_alternate_string_ids.all(:order => 'created_at desc').reach.name.join(', ')}\"",
+      coding_region.string_id,
+      english,
+      publication.definition,
+      "\"#{comments.reach.comment.join(', ')}\""
+    ]
   end
 end

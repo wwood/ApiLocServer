@@ -20,6 +20,15 @@ class Publication < ActiveRecord::Base
     end
     return pubs
   end
+  
+  # A short definition - either a pubmed id or the url if no pubmed id is recorded
+  def definition
+    if pubmed_id.nil?
+      return url
+    else
+      return pubmed_id
+    end
+  end
 end
 
 

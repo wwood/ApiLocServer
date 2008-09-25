@@ -2,12 +2,12 @@
 
 one:
   coding_region_id: 1
-  publication_id: 
+  publication_id: 1
   localisation_id: 1
   developmental_stage_id: 1
 
 two:
   coding_region_id: 1
-  publication_id: 
+  publication_id: 2
   localisation_id: 1
   developmental_stage_id: 1

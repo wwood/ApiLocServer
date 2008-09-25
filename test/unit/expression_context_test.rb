@@ -2,7 +2,7 @@ require 'test_helper'
 
 class ExpressionContextTest < ActiveSupport::TestCase
   # Replace this with your real tests.
-  test "the truth" do
-    assert true
+  test "definition" do
+    assert_equal []
   end
 end

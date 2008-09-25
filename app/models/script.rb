@@ -1869,7 +1869,7 @@ class Script < ActiveRecord::Base
   # upload the fasta sequences from falciparum file to the database
   def falciparum_fasta_to_database
     #    fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.4/PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta")
-    fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAnnotatedProteins_PlasmoDB-5.5.fasta")
+    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAnnotatedProteins_PlasmoDB-5.5.fasta")
     sp = Species.find_by_name(Species.falciparum_name)
     upload_fasta_general!(fa, sp)
   end
@@ -2305,7 +2305,7 @@ class Script < ActiveRecord::Base
         name = yield f.name
       end
       code = CodingRegion.fs(name, species.name)
-      raise Exception, "No coding region found to attach a sequence/annotation to: #{f.name}"
+      raise Exception, "No coding region found to attach a sequence/annotation to: #{f.name}" if !code
       AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
         code.id,
         f.sequence
@@ -5135,5 +5135,11 @@ class Script < ActiveRecord::Base
     end
   end
   
+  
+  def parsed_full_spreadsheet
+    ExpressionContext.all.each do |context|
+      puts context.spreadsheet_english.join("\t")
+    end
+  end
 end
 
