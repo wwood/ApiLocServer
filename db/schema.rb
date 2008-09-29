@@ -200,10 +200,12 @@ ActiveRecord::Schema.define(:version => 20080929064304) do
 
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
-    t.string   "name"
+    t.string   "name",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "developmental_stages", ["name"], :name => "index_developmental_stages_on_name"
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false
