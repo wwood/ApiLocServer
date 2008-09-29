@@ -5137,6 +5137,13 @@ class Script < ActiveRecord::Base
   
   
   def parsed_full_spreadsheet
+    puts [
+      'Common Name(s)',
+      'PlasmoDB ID',
+      'Localisation',
+      'PubMed Id / URL',
+      'Comments'
+    ].join("\t")
     ExpressionContext.all.each do |context|
       puts context.spreadsheet_english.join("\t")
     end

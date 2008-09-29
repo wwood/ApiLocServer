@@ -35,7 +35,7 @@ class ExpressionContext < ActiveRecord::Base
   
   def spreadsheet_english
     [
-      "\"#{coding_region.coding_region_alternate_string_ids.all(:order => 'created_at desc').reach.name.join(', ')}\"",
+      "\"#{coding_region.coding_region_alternate_string_ids.all(:order => 'created_at desc').reach.name.reject{|n| n.nil?}.uniq.join(', ')}\"",
       coding_region.string_id,
       english,
       publication.definition,
