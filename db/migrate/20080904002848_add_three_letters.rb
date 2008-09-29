@@ -1,6 +1,6 @@
 class AddThreeLetters < ActiveRecord::Migration
   def self.up
-    add_column :species, :orthomcl_three_letter, :string, :length => 3
+    add_column :species, :orthomcl_three_letter, :string, :length => 3, :uniq => true
   end
 
   def self.down

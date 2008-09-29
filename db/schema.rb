@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080904025228) do
+ActiveRecord::Schema.define(:version => 20080929064304) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -78,6 +78,7 @@ ActiveRecord::Schema.define(:version => 20080904025228) do
     t.datetime "updated_at"
   end
 
+  add_index "coding_region_alternate_string_ids", ["coding_region_id"], :name => "index_coding_region_alternate_string_ids_on_coding_region_id"
   add_index "coding_region_alternate_string_ids", ["coding_region_id", "name"], :name => "index_coding_region_alternate_string_ids_on_coding_region_id_an", :unique => true
   add_index "coding_region_alternate_string_ids", ["name"], :name => "index_coding_region_alternate_string_ids_on_name"
 
@@ -172,6 +173,15 @@ ActiveRecord::Schema.define(:version => 20080904025228) do
   add_index "coding_regions", ["gene_id"], :name => "index_coding_regions_on_gene_id"
   add_index "coding_regions", ["orientation"], :name => "index_coding_regions_on_orientation"
   add_index "coding_regions", ["string_id"], :name => "index_coding_regions_on_string_id"
+
+  create_table "comments", :force => true do |t|
+    t.integer  "expression_context_id", :null => false
+    t.string   "comment",               :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "comments", ["expression_context_id"], :name => "index_comments_on_expression_context_id"
 
   create_table "derisi20063d7logmean", :force => true do |t|
     t.datetime "created_at"
@@ -577,8 +587,7 @@ ActiveRecord::Schema.define(:version => 20080904025228) do
     t.datetime "updated_at"
   end
 
-  add_index "sequences", ["coding_region_id"], :name => "index_sequences_on_coding_region_id", :unique => true
-  add_index "sequences", ["coding_region_id", "type"], :name => "index_sequences_on_coding_region_id_and_type"
+  add_index "sequences", ["coding_region_id", "type"], :name => "index_sequences_on_coding_region_id_and_type", :unique => true
 
   create_table "signal_ps", :force => true do |t|
     t.datetime "created_at"

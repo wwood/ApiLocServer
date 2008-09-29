@@ -1209,46 +1209,6 @@ class Script < ActiveRecord::Base
     puts "Uploaded #{hits} different coding regions"
   end
   
-  # Basically fill out the orthomcl_gene_coding_regions table appropriately
-  # for only the official one
-  def link_orthomcl_and_coding_regions(*interesting_orgs)
-    goods = 0
-    if !interesting_orgs
-      #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
-      #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
-      #    interesting_orgs = ['ath']
-      interesting_orgs = ['cel']
-    end
-    thing = "orthomcl_genes.orthomcl_name like '"+
-      interesting_orgs.join("%' or orthomcl_genes.orthomcl_name like '")+
-      "%'"
-    
-    puts "linking genes for species: #{interesting_orgs.inspect}: #{thing}"
-    
-    # Maybe a bit heavy handed but ah well.
-    OrthomclGene.all(
-      :joins => {:orthomcl_group => :orthomcl_run},
-      :conditions => "orthomcl_runs.name='#{OrthomclRun.official_run_v2_name}'"+
-        " and (#{thing})").each do |orthomcl_gene|
-    
-      code = orthomcl_gene.compute_coding_region
-      if !code
-        #        next #ignore for the moment
-        #        raise Exception, "No coding region found for #{orthomcl_gene.inspect}"
-        #        $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"
-        next
-      else
-        goods += 1
-      end
-      
-      OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
-        orthomcl_gene.id,
-        code.id
-      )
-    end
-    
-    puts "Properly linked #{goods} coding regions"
-  end
   
   # See if the arabidopsis gene locations help if I put them through orthomcl
   def florian_arabidopsis
@@ -1891,6 +1851,13 @@ class Script < ActiveRecord::Base
     sp = Species.find_by_name(Species.cryptosporidium_hominis_name)
     upload_fasta_general(fa, sp)
   end
+  
+  
+  def falciparum_transcripts_to_database
+    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAllTranscripts_PlasmoDB-5.5.fasta")
+    sp = Species.find_by_name(Species.falciparum_name)
+    upload_transcript_fasta_general!(fa, sp)
+  end
     
     
   # Then our babesia high-confidence apicoplast set will be those proteins
@@ -2297,7 +2264,7 @@ class Script < ActiveRecord::Base
   
   # Upload a fasta file by filling in scaffold, annotation, sequence, but do not create coding regions, genes or scaffolds - assume they
   # already exist in the database, and throw an exception if that isn't the case.
-  # Accepts a block that takes the name from the fasta line and turns it into something more useful
+  # Accepts a block that takes the name from the fasta line and turns it into something more useful - untested!
   def upload_fasta_general!(fa, species)
     while f = fa.next_entry
       name = f.name
@@ -2318,7 +2285,23 @@ class Script < ActiveRecord::Base
   end
   
   
-  
+  # Upload a transcript fasta file by filling in scaffold, annotation, sequence, but do not create coding regions, genes or scaffolds - assume they
+  # already exist in the database, and throw an exception if that isn't the case.
+  # Accepts a block that takes the name from the fasta line and turns it into something more useful - untested!
+  def upload_transcript_fasta_general!(fa, species)
+    while f = fa.next_entry
+      name = f.name
+      if block_given?
+        name = yield f.name
+      end
+      code = CodingRegion.fs(name, species.name)
+      raise Exception, "No coding region found to attach a sequence/annotation to: #{f.name}" if !code
+      TranscriptSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        f.sequence
+      )
+    end
+  end
   
   def seven_species_no_filter_orthomcl_upload
     run = OrthomclRun.find_or_create_by_name(OrthomclRun.seven_species_no_filtering_name)
@@ -4235,6 +4218,7 @@ class Script < ActiveRecord::Base
     Localisation.new.upload_known_localisations
     Localisation.new.upload_localisation_synonyms
     Localisation.new.upload_other_falciparum_list
+    TopLevelLocalisation.new.upload_localisations
   end
   
   def localisation_signalp
@@ -4740,37 +4724,47 @@ class Script < ActiveRecord::Base
     puts [
       'Top Level Localisation',
       'Falciparum PlasmoDB ID',
+      'Falciparum Common Names',
       'Falciparum Annotation',
       'Falciparum Localisations',
+      'Falciparum Localisation PubMed IDs',
       'Babesia Orthologs',
-      'Babesia Annotations'
+      'Babesia Annotations',
+      'Falciparum Paralogs'
     ].join("\t")
-    TopLevelLocalisation.all.each do |top|
+    TopLevelLocalisation.find_all_by_name('exported').each do |top|
       CodingRegion.top(top.name).uniq.each do |code|
-        results = [
-          top.name,
-          code.string_id,
-          code.annotation.annotation,
-          code.expressed_localisations.known.pick(:name).uniq.join(', ')
-        ]
-        babesias = []
-        begin
-          babesias = code.single_orthomcl(OrthomclRun.seven_species_name).orthomcl_group.orthomcl_genes.all(
-            :conditions => ['orthomcl_name like ?', 'BB%']
-          )
-        rescue UnexpectedOrthomclGeneCount => e
-          results.push 'Not included in OrthoMCL or Singlet'
-          puts results.join("\t")
-          next
-        end
-        if !babesias.empty?
-          results.push babesias.pick(:orthomcl_name).join(', ')
-          results.push babesias.collect{|b| b.single_code.annotation.annotation}.join(' || ')
-          puts results.join("\t")
-        else
-          raise Exception, "huh"
+        results = code.babesia_ortholog_anntoations
+        if results
+          puts [
+            top.name,
+            results
+          ].flatten.join("\t")
         end
       end
+    end
+  end
+  
+  # How many are conserved across the species gap for each localisation?
+  def babesia_localised_conserved_count
+    puts [
+      'Top Level Localisation',
+      'Number Orthologues',
+      'Number Known'
+    ].join("\t")
+    TopLevelLocalisation.all.each do |top|
+      count = 0
+      CodingRegion.top(top.name).uniq.each do |code|
+        begin
+          code.single_orthomcl(OrthomclRun.seven_species_name).orthomcl_group.orthomcl_genes.all(
+            :conditions => ['orthomcl_name like ?', 'BB%']
+          )
+          count += 1
+        rescue UnexpectedOrthomclGeneCount => e
+        end
+      end
+      total = CodingRegion.top(top.name).count
+      puts [top.name, count, total, count.to_f/total.to_f].join("\t")
     end
   end
   
@@ -5146,6 +5140,39 @@ class Script < ActiveRecord::Base
     ].join("\t")
     ExpressionContext.all.each do |context|
       puts context.spreadsheet_english.join("\t")
+    end
+  end
+
+  
+  # Orthologs of all exportpred-positive falciparum
+  # proteins that have better 
+  def babesia_exportpred_orthologs
+    puts [
+      'Falciparum PlasmoDB ID',
+      'Falciparum Common Names',
+      'Falciparum Annotation',
+      'Falciparum Experimental Localisations',
+      'Falciparum Experimental Localisation Reference',
+      'Babesia Orthologs',
+      'Babesia Annotations',
+      'Falciparum Paralogs'
+    ].join("\t")
+    CodingRegion.falciparum.all.each do |code|
+      next if !code.amino_acid_sequence
+      next if !code.amino_acid_sequence.exportpred.predicted
+      puts code.babesia_ortholog_anntoations.join("\t")
+    end
+  end
+  
+  
+  def export_pred_on_babesia
+    CodingRegion.species_name(Species.babesia_bovis_name).all.each do |code|
+      if code.amino_acid_sequence.exportpred.predicted
+        puts [
+          code.string_id,
+          code.annotation.annotation
+        ].join("\t")
+      end
     end
   end
 end

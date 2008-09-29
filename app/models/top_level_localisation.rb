@@ -12,10 +12,10 @@ class TopLevelLocalisation < ActiveRecord::Base
     'erythrocyte cytoplasm' => 'exported',
     'maurer\'s clefts' => 'exported',
     'erythrocyte plasma membrane' => 'exported',
-    'parasitophorous vacuole membrane' => 'parasitophorous vacuole',
-    'parasite plasma membrane' => 'cytosol',
-    'food vacuole membrane' => 'food vacuole',
-    'mitochondrial membrane' => 'mitochondria',
+    'parasitophorous vacuole membrane' => 'parasitophorous vacuole membrane',
+    'parasite plasma membrane' => 'parasite plasma membrane',
+#    'food vacuole membrane' => 'food vacuole',
+#    'mitochondrial membrane' => 'mitochondria',
     'cytoplasm' => 'cytosol',
     'vesicles' => 'cytosol',
     'rhoptry' => 'apical',
@@ -33,6 +33,8 @@ class TopLevelLocalisation < ActiveRecord::Base
   }
   
   TOP_LEVEL_LOCALISATIONS = [
+    'parasitophorous vacuole membrane',
+    'parasite plasma membrane',
     'exported',
     'mitochondria',
     'food vacuole',

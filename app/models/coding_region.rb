@@ -17,6 +17,7 @@ class CodingRegion < ActiveRecord::Base
   has_many :orthomcl_genes, :through => :orthomcl_gene_coding_regions
   has_one :annotation, :dependent => :destroy
   has_one :amino_acid_sequence, :dependent => :destroy
+  has_one :transcript_sequence, :dependent => :destroy
   has_many :microarray_measurements, :dependent => :destroy
   has_many :microarray_timepoints, :through => :microarray_measurements
   has_many :expression_contexts, :dependent => :destroy
@@ -78,6 +79,35 @@ class CodingRegion < ActiveRecord::Base
       :joins => {:expressed_localisations => :malaria_top_level_localisation},
       :conditions => ['top_level_localisations.name = ?', top_name]
     }
+  }
+  named_scope :orthomcl_three_letter, lambda {|orthomcl_three_letter|
+    {
+      :joins => {:gene => {:scaffold => :species}},
+      :conditions => ['species.orthomcl_three_letter = ?', orthomcl_three_letter]
+    }   
+  }
+  # This named scope slows down queries by a lot (in the order of a second), and
+  # I'm not sure how to fix this. In the meantime use find_by_name_or_alternate - it is much faster
+  # # explain ANALYZE SELECT "coding_regions".* FROM "coding_regions" INNER JOIN "coding_region_alternate_string_ids" ON coding_region_alternate_string_ids.coding_region_id = coding_regions.id WHERE (coding_regions.string_id = E'PF01_0013' or coding_region_alternate_string_ids.name = E'PF01_0013') LIMIT 1;
+  #  QUERY PLAN                                                                                                          
+  #  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  #  Limit  (cost=7.24..19614.11 rows=1 width=41) (actual time=1151.973..1151.973 rows=0 loops=1)
+  #  ->  Merge Join  (cost=7.24..39220.98 rows=2 width=41) (actual time=1151.971..1151.971 rows=0 loops=1)
+  #  Merge Cond: (coding_regions.id = coding_region_alternate_string_ids.coding_region_id)
+  #  Join Filter: (((coding_regions.string_id)::text = 'PF01_0013'::text) OR ((coding_region_alternate_string_ids.name)::text = 'PF01_0013'::text))
+  #  ->  Index Scan using coding_regions_pkey on coding_regions  (cost=0.00..16080.44 rows=486531 width=41) (actual time=0.043..278.063 rows=486531 loops=1)
+  #  ->  Index Scan using index_coding_region_alternate_string_ids_on_coding_region_id on coding_region_alternate_string_ids  (cost=0.00..14172.58 rows=442950 width=15) (actual time=0.058..264.951 rows=442950 loops=1)
+  #  Total runtime: 1152.022 ms
+  #  (7 rows)
+  named_scope :name_or_alternate, lambda {|name_or_alternate|
+    {
+      :joins => :coding_region_alternate_string_ids,
+      :conditions => ['coding_regions.string_id = ? or coding_region_alternate_string_ids.name = ?' , name_or_alternate, name_or_alternate]
+    }   
+  }
+  named_scope :falciparum, {
+    :joins => {:gene => {:scaffold => :species}},
+    :conditions => ['species.name = ?', Species.falciparum_name]
   }
   
   POSITIVE_ORIENTATION = '+'
@@ -212,6 +242,31 @@ class CodingRegion < ActiveRecord::Base
     end    
   end
   
+  
+  def find_by_name_or_alternate_and_orthomcl_three_letter(name, orthomcl_three_letter)
+    simple = CodingRegion.find(:first,
+      :joins => {:gene => {:scaffold => :species}},
+      :conditions => ["species.orthomcl_three_letter=? and coding_regions.string_id=?", 
+        orthomcl_three_letter, name
+      ]
+    )
+    if simple
+      return simple
+    else
+      alt = CodingRegionAlternateStringId.find(:first,
+        :joins => {:coding_region => {:gene => {:scaffold => :species}}},
+        :conditions => ["species.orthomcl_three_letter=? and coding_regions.string_id=?", 
+          orthomcl_three_letter, name
+        ]
+      )
+      if alt
+        return alt.coding_region
+      else
+        return nil
+      end
+    end  
+  end
+  
   def self.unknown_orientation_char
     UNKNOWN_ORIENTATION
   end
@@ -309,6 +364,11 @@ class CodingRegion < ActiveRecord::Base
   # return all the names (string_id and alternate string_ids) of this record
   def names
     [string_id, coding_region_alternate_string_ids.collect{|s| s.name}].flatten
+  end
+  
+  # all the names with null and repeats taken out
+  def nice_names
+    names.uniq.select{|n| n}
   end
   
   def self.negative_orientation
@@ -410,6 +470,41 @@ class CodingRegion < ActiveRecord::Base
     else
       return genes[0]
     end
+  end
+  
+  
+  # annotation of the species with babesia orthologs
+  def babesia_ortholog_anntoations
+    results = [
+      string_id,
+      nice_names.join(', '),
+      annotation.annotation,
+      expressed_localisations.known.pick(:name).uniq.join(', '),
+      expression_contexts.all.reach.publication.definition.uniq.join(', ')
+    ]
+    babesias = []
+    begin
+      group = single_orthomcl(OrthomclRun.seven_species_name).orthomcl_group
+      babesias = group.orthomcl_genes.all(
+        :conditions => ['orthomcl_name like ?', 'BB%']
+      )
+          
+      falciparums = CodingRegion.falciparum.all(
+        :joins => :orthomcl_genes,
+        :conditions => {:orthomcl_genes => {:orthomcl_group_id => group.id}}
+      )
+
+      if !babesias.empty?
+        results.push babesias.pick(:orthomcl_name).join(', ')
+        results.push babesias.collect{|b| b.single_code.annotation.annotation}.join(' || ')
+        results.push falciparums.reach.reject{|f| f.id == id}.reach.string_id.join(', ')
+      else
+        return nil
+      end
+    rescue UnexpectedOrthomclGeneCount => e
+      return nil
+    end
+    return results
   end
 end
 

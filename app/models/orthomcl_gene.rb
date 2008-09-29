@@ -8,10 +8,10 @@ class OrthomclGene < ActiveRecord::Base
       :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
     }}
   named_scope :codes, lambda { |three_letter_species_codes| 
-    pre = 'orthomcl_name like ?'
+    pre = 'orthomcl_genes.orthomcl_name like ?'
     post = ["#{three_letter_species_codes[0]}%"]
     three_letter_species_codes.each {|code|
-      pre += ' or orthomcl_name like ?'
+      pre += ' or orthomcl_genes.orthomcl_name like ?'
       post.push ["#{code}%"]
     }
     {:conditions => [pre, post].flatten}
@@ -43,7 +43,7 @@ class OrthomclGene < ActiveRecord::Base
   
   # Get the coding region that is associated with this gene, whether it is a
   # 
-  def compute_coding_region
+  def compute_coding_regions
     
     if !orthomcl_group
       raise Exception, "Bad linking in the database - no group associated with this orthomcl gene" 
@@ -68,22 +68,17 @@ class OrthomclGene < ActiveRecord::Base
         # for drosophila drop the -PA or -PB at the end of it
         matches = name.match(/^(.*)\-(.*)$/)
         if matches
-          return CodingRegion.find_by_name_or_alternate_and_organism(matches[1], Species.fly_name)
+          return CodingRegion.species_name(Species.fly_name).find_all_by_name_or_alternate(matches[1])
         else
           raise Exception, "Badly parsed dme orthomcl_name: #{inspect}"
         end
       else
         # Add the normally linked ones that don't require a workaround
-        return CodingRegion.find_by_name_or_alternate(name)
+        return CodingRegion.orthomcl_three_letter(matches[1]).find_all_by_name_or_alternate(name)
       end
       
-
-      
-      
-      
-      
     else # For non-official runs do nothing at the moment
-      return nil
+      return []
     end
   end
   
@@ -128,13 +123,18 @@ class OrthomclGene < ActiveRecord::Base
       :include => {:orthomcl_group => :orthomcl_run},
       :conditions => "orthomcl_genes.orthomcl_name like 'cel%' and orthomcl_runs.name = '#{OrthomclRun.official_run_v2_name}'"
     ).each do |og|
-      real = official_split(og.orthomcl_name)[1]
-      code = CodingRegion.find_by_name_or_alternate(real)
       
-      if !code
+      codes = og.compute_coding_regions
+      
+      
+      if codes.length == 0
         $stderr.puts "Failed to find coding region: #{real}"
         next
+      elsif codes.length > 1
+        $stderr.puts "Too many coding regions found for #{real}: #{codes.inspect}"
+        next
       end
+      codes[0]
       
       
       ogc = OrthomclGeneCodingRegion.find_or_create_by_coding_region_id_and_orthomcl_gene_id(
@@ -178,6 +178,49 @@ class OrthomclGene < ActiveRecord::Base
       'tan'
     ]
   end
+  
+  
+  
+  
+  # Basically fill out the orthomcl_gene_coding_regions table appropriately
+  # for only the official one
+  def link_orthomcl_and_coding_regions(*interesting_orgs)
+    goods = 0
+    if !interesting_orgs
+      #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
+      #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
+      #    interesting_orgs = ['ath']
+      interesting_orgs = ['cel']
+    end
+    
+    puts "linking genes for species: #{interesting_orgs.inspect}"
+    
+    # Maybe a bit heavy handed but ah well.
+    OrthomclGene.codes(interesting_orgs).official.all.each do |orthomcl_gene|
+    
+      codes = orthomcl_gene.compute_coding_regions
+      if !codes or codes.length == 0
+        #        next #ignore for the moment
+        #        raise Exception, "No coding region found for #{orthomcl_gene.inspect}"
+        #        $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"
+        next
+      elsif codes.length > 1
+        #ignore
+        next
+      else
+        code = codes[0]
+        goods += 1
+      end
+      
+      OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
+        orthomcl_gene.id,
+        code.id
+      )
+    end
+    
+    puts "Properly linked #{goods} coding regions"
+  end
+
 end
 
 
