@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080929064304) do
+ActiveRecord::Schema.define(:version => 20080930054745) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -200,12 +200,10 @@ ActiveRecord::Schema.define(:version => 20080929064304) do
 
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
-    t.string   "name",       :null => false
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
-
-  add_index "developmental_stages", ["name"], :name => "index_developmental_stages_on_name"
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false
@@ -627,7 +625,6 @@ ActiveRecord::Schema.define(:version => 20080929064304) do
     t.string   "type",             :default => "MinTransmembraneDomainLength", :null => false
   end
 
-  add_index "transmembrane_domain_measurements", ["coding_region_id", "type"], :name => "index_min_transmembrane_domain_lengths_on_coding_region_id_and_", :unique => true
   add_index "transmembrane_domain_measurements", ["coding_region_id"], :name => "index_transmembrane_domain_measurements_on_coding_region_id"
 
   create_table "transmembrane_domains", :force => true do |t|

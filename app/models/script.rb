@@ -14,6 +14,7 @@ require 'reach'
 require 'plasmo_a_p'
 require 'top_db_xml'
 require 'pdb_tm'
+require 'go'
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -55,7 +56,7 @@ class Script < ActiveRecord::Base
   end
   
   def go_to_database
-    require 'lib/simple_go'
+    require 'simple_go'
     
     GoAlternate.destroy_all
     GoTerm.destroy_all
@@ -5173,6 +5174,106 @@ class Script < ActiveRecord::Base
           code.annotation.annotation
         ].join("\t")
       end
+    end
+  end
+  
+  
+  # Download all the GO annotations for all the proteins in PDB_TM
+  # and put them in the database
+  def transmembrane_pdb_tm_go_annotations
+    gene = Gene.new.create_dummy('pdbtm_dummy')
+    go_getter = Bio::Go.new
+    
+    Bio::PdbTm::Xml.new(File.open("#{DATA_DIR}/transmembrane/pdbtm/20080923/pdbtmalpha.xml")).entries.each do |e|
+      #    Bio::PdbTm::Xml.new(File.open("lib/testFiles/pdbtmalpha.extract.xml")).entries.each do |e|
+      
+      # skip ones already done
+      next if CodingRegion.find_by_gene_id_and_string_id(
+        gene.id,
+        e.pdb_id
+      )
+      
+      # PDB entries are modelled as coding regions - it will do for now.
+      code = CodingRegion.find_or_create_by_gene_id_and_string_id(
+        gene.id,
+        e.pdb_id
+      )
+      
+      begin
+        gos = go_getter.cc_pdb_to_go(e.pdb_id)
+
+        gos.each do |g|
+          go = GoTerm.find_or_create_by_go_identifier(g)
+          CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id(
+            code.id, go.id
+          )
+        end
+      
+      rescue Exception
+        $stderr.puts "Failed to retrieve pdb id #{e.pdb_id}"
+      end
+    end
+  end
+  
+  
+  def transmembrane_er_versus_plasma_membrane
+    localisations = {
+      'endoplasmic reticulum' => 'GO:0005783',
+      'plasma membrane' => 'GO:0005886'
+    }
+    
+    # Print headings
+    (0..36).each do |me|
+      print "\t"
+      print me
+    end
+    puts
+    
+    
+    # Print the baseline counts, for all of pdb_tm
+    lengths = []
+    CodingRegion.s(Species.pdb_tm_dummy_name).all(:include => :transmembrane_domain_lengths).each do |code|
+      code.transmembrane_domain_lengths.reach.measurement.each do |length|
+        if lengths[length]
+          lengths[length] += 1
+        else
+          lengths[length] = 1
+        end
+      end        
+    end
+    puts [
+      'PDBTM',
+      lengths
+    ].flatten.join("\t")
+    
+    
+    # Collect the coding regions in each localisation
+    localisations.keys.collect do |loc|
+      # get all the descendents as an array
+      terms = Bio::Go.new.cellular_component_offspring(localisations[loc])
+
+      # retrieve all the coding regions that have one or more of these descendents
+      # annotated as such
+      lengths = []
+      CodingRegion.species_name('pdbtm_dummy').all(:include => :go_terms).each do |code|
+        goods = code.go_terms.reach.go_identifier.select{|go_id| terms.include?(go_id)}
+        if goods.length > 0
+          code.transmembrane_domain_lengths.reach.measurement.each do |length|
+            if lengths[length]
+              lengths[length] += 1
+            else
+              lengths[length] = 1
+            end
+          end
+        end
+      end
+      
+      
+      
+      puts [
+        loc,
+        lengths
+      ].flatten.join("\t")
     end
   end
 end

@@ -27,6 +27,7 @@ class CodingRegion < ActiveRecord::Base
   
   # transmembrane domain things
   has_many :transmembrane_domain_measurements, :dependent => :destroy
+  has_many :transmembrane_domain_lengths, :dependent => :destroy
   has_one :toppred_min_transmembrane_domain_length, :dependent => :destroy
   has_one :toppred_average_transmembrane_domain_length, :dependent => :destroy
   has_one :min_transmembrane_domain_length, :dependent => :destroy
@@ -69,6 +70,12 @@ class CodingRegion < ActiveRecord::Base
   has_many :drosophila_allele_genes, :through => :coding_region_drosophila_allele_genes
   
   named_scope :species_name, lambda{ |species_name|
+    {
+      :joins => {:gene => {:scaffold => :species}},
+      :conditions => ['species.name = ?', species_name]
+    }
+  }
+  named_scope :s, lambda{ |species_name|
     {
       :joins => {:gene => {:scaffold => :species}},
       :conditions => ['species.name = ?', species_name]

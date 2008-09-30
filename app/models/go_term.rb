@@ -1,6 +1,7 @@
 class GoTerm < ActiveRecord::Base
   
-  
+  has_many :coding_region_go_terms, :dependent => :destroy
+  has_many :coding_regions, :through => :coding_region_go_terms
   
   
   # I wonder will this work? Twould be cool azz yo.

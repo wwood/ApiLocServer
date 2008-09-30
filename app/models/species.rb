@@ -65,4 +65,8 @@ class Species < ActiveRecord::Base
   def self.fly_name
     'fly'
   end
+  
+  def self.pdb_tm_dummy_name
+    'pdbtm_dummy'
+  end
 end
