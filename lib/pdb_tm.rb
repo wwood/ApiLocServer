@@ -21,6 +21,8 @@ module Bio
     
     
     class Entry
+      attr_reader :xml
+      
       def initialize(xml)
         @xml = xml
       end
@@ -44,6 +46,10 @@ module Bio
         end
         
         return tmds
+      end
+      
+      def pdb_id
+        @xml.attributes['ID']
       end
     end
   end
