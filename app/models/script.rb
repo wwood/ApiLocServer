@@ -5185,6 +5185,7 @@ class Script < ActiveRecord::Base
     go_getter = Bio::Go.new
     
     Bio::PdbTm::Xml.new(File.open("#{DATA_DIR}/transmembrane/pdbtm/20080923/pdbtmalpha.xml")).entries.each do |e|
+      next if !['1su4', '1sqv'].include?(e.pdb_id) #the annoying ones
       #    Bio::PdbTm::Xml.new(File.open("lib/testFiles/pdbtmalpha.extract.xml")).entries.each do |e|
       
       # skip ones already done
@@ -5219,7 +5220,8 @@ class Script < ActiveRecord::Base
   def transmembrane_er_versus_plasma_membrane
     localisations = {
       'endoplasmic reticulum' => 'GO:0005783',
-      'plasma membrane' => 'GO:0005886'
+      'plasma membrane' => 'GO:0005886',
+      'golgi apparatus' => 'GO:0005794'
     }
     
     # Print headings
