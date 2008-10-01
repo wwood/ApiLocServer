@@ -5278,5 +5278,57 @@ class Script < ActiveRecord::Base
       ].flatten.join("\t")
     end
   end
+  
+  def transmembrane_er_versus_plasma_membrane_verbose
+    localisations = {
+#      'endoplasmic reticulum' => 'GO:0005783',
+      'plasma membrane' => 'GO:0005886',
+#      'golgi apparatus' => 'GO:0005794'
+    }
+    
+    puts [
+      'Localisation',
+#      'PDB',
+      'TMDLength'
+    ].join("\t")
+    
+    # Print the baseline counts, for all of pdb_tm
+    #    lengths = []
+    #    CodingRegion.s(Species.pdb_tm_dummy_name).all(:include => :transmembrane_domain_lengths).each do |code|
+    #      code.transmembrane_domain_lengths.reach.measurement.each do |length|
+    #        if lengths[length]
+    #          lengths[length] += 1
+    #        else
+    #          lengths[length] = 1
+    #        end
+    #      end        
+    #    end
+    #    puts [
+    #      'PDBTM',
+    #      lengths
+    #    ].flatten.join("\t")
+    
+    
+    # Collect the coding regions in each localisation
+    localisations.keys.collect do |loc|
+      # get all the descendents as an array
+      terms = Bio::Go.new.cellular_component_offspring(localisations[loc])
+
+      # retrieve all the coding regions that have one or more of these descendents
+      # annotated as such
+      CodingRegion.species_name('pdbtm_dummy').all(:include => :go_terms).each do |code|
+        goods = code.go_terms.reach.go_identifier.select{|go_id| terms.include?(go_id)}
+        if goods.length > 0
+          code.transmembrane_domain_lengths.reach.measurement.each do |length|
+            puts [
+              loc.gsub(' ','_'), 
+#              code.string_id, 
+              length.to_i
+            ].join("\t")
+          end
+        end
+      end
+    end
+  end
 end
 
