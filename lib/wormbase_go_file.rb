@@ -37,7 +37,7 @@ module Bio
     
     # WBGene00000005 aat-4 (T13A10.10)
     def parse_gene_line(line)
-      if !matches = line.match(/^WBGene\d+ \S+? \((.+)\)/)
+      if !matches = line.match(/^(WBGene\d+)/)
         raise Exception, "Could not parse gene line: #{line}"
       end
       cur_gene = PositionedGeneWithOntology.new

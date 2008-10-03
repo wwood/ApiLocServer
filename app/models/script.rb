@@ -15,6 +15,7 @@ require 'plasmo_a_p'
 require 'top_db_xml'
 require 'pdb_tm'
 require 'go'
+require 'wormbase_go_file'
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -5281,14 +5282,14 @@ class Script < ActiveRecord::Base
   
   def transmembrane_er_versus_plasma_membrane_verbose
     localisations = {
-#      'endoplasmic reticulum' => 'GO:0005783',
+      #      'endoplasmic reticulum' => 'GO:0005783',
       'plasma membrane' => 'GO:0005886',
-#      'golgi apparatus' => 'GO:0005794'
+      #      'golgi apparatus' => 'GO:0005794'
     }
     
     puts [
       'Localisation',
-#      'PDB',
+      #      'PDB',
       'TMDLength'
     ].join("\t")
     
@@ -5322,11 +5323,41 @@ class Script < ActiveRecord::Base
           code.transmembrane_domain_lengths.reach.measurement.each do |length|
             puts [
               loc.gsub(' ','_'), 
-#              code.string_id, 
+              #              code.string_id, 
               length.to_i
             ].join("\t")
           end
         end
+      end
+    end
+  end
+  
+  
+  
+  def upload_elegans_go_terms
+    genes = Bio::WormbaseGoFile.new("#{DATA_DIR}/elegans/wormbase/WS187/annotations/GO/GO.WS187.txt").genes
+    
+    #    $ grep WBGene GO.WS190.txt |wc -l
+    #31499
+    #$ grep WBGene GO.WS187.txt |wc -l
+    #31316
+    if genes.length != 31316
+      raise Exception, "Unexpected number of genes found in GO file."
+    end
+    
+    genes.each do |gene|
+      next if gene.go_identifiers.empty?
+      code = CodingRegion.fs(gene.name, Species.elegans_name)
+      if !code
+        $stderr.puts "No coding region found: #{gene.name}"
+        next
+      end
+      
+      gene.go_identifiers.each do |go_id|
+        g = GoTerm.find_or_create_by_go_identifier(go_id)
+        CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id(
+          g.id, code.id
+        )
       end
     end
   end
