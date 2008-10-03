@@ -12,7 +12,7 @@ module Bio
   class WormbaseGoFileTest < Test::Unit::TestCase
     def test_normal
       w = WormbaseGoFile.new('lib/testFiles/wormbaseGo.txt')
-      assert_equal 3, w.genes.length
+      assert_equal 5, w.genes.length
       
       assert_equal 'WBGene00000001', w.genes[0].gene_name
       assert_equal 'Y110A7A.10', w.genes[0].protein_name
@@ -29,6 +29,15 @@ module Bio
       assert_equal %w(GO:0015171 GO:0016021 GO:0016020).sort,
         w.genes[2].go_identifiers.sort
       
+      assert_equal 'WBGene00000004', w.genes[3].gene_name
+      assert_nil w.genes[3].protein_name
+      assert_equal [],
+        w.genes[3].go_identifiers.sort
+      
+      assert_equal 'WBGene00000005', w.genes[4].gene_name
+      assert_nil w.genes[4].protein_name
+      assert_equal [],
+        w.genes[4].go_identifiers.sort
     end
   end
 end

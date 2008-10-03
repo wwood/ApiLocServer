@@ -39,7 +39,7 @@ module Bio
     def parse_gene_line(line)
       cur_gene = WormbaseProteinWithOntology.new
       if !matches = line.match(/^(WBGene\d+) \S+ \((\S+)\)/)
-        if !matches = line.match(/^(WBGene\d+) (\S+)/)
+        if !matches = line.match(/^(WBGene\d+) (\S+)/) and !matches = line.match(/^(WBGene\d+)\s*/)
           raise Exception, "Could not parse gene line: #{line}"
         else
           cur_gene.gene_name = matches[1]

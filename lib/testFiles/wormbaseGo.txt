@@ -18,3 +18,5 @@ WBGene00000003 aat-2
 	Molecular_function: amino acid transmembrane transporter activity (GO:0015171)
 	Cellular_component: integral to membrane (GO:0016021)
 	Cellular_component: membrane (GO:0016020)
+WBGene00000004 
+WBGene00000005 

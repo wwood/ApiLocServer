@@ -5361,5 +5361,15 @@ class Script < ActiveRecord::Base
       end
     end
   end
+  
+  def check_elegans_go
+    genes = Bio::WormbaseGoFile.new("/home/ben/phd/data/elegans/wormbase/WS187/annotations/GO/GO.WS187.txt").genes
+
+    genes.each do |gene|
+      if gene.protein_name and !gene.go_identifiers.empty? and !CodingRegion.fs(gene.protein_name, Species.elegans_name)
+        puts gene.gene_name
+      end
+    end
+  end
 end
 
