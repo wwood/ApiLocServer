@@ -7,3 +7,10 @@ one:
 two:
   coding_region_id: 1
   orthomcl_gene_id: 2
+
+good:
+  coding_region_id: 2
+  orthomcl_gene_id: 2
+unofficial:
+  coding_region_id: 3
+  orthomcl_gene_id: 7

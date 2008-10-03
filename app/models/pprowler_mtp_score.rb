@@ -1,0 +1,2 @@
+class PprowlerMtpScore < FloatCodingRegionMeasurement
+end

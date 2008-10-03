@@ -5,6 +5,19 @@ class Species < ActiveRecord::Base
   
   has_many :scaffolds, :dependent => :destroy
   
+  ORTHOMCL_THREE_LETTERS = {
+    FALCIPARUM => 'pfa'
+  }
+  
+  def update_known_three_letters
+    ORTHOMCL_THREE_LETTERS.each do |name, three|
+      sp = Species.find_by_name(name)
+      raise Exception, "Couldn't find species #{name} to three letter name" if !sp
+      sp.orthomcl_three_letter = three
+      sp.save!
+    end
+  end
+  
   def self.vivax_name
     VIVAX
   end
@@ -51,5 +64,9 @@ class Species < ActiveRecord::Base
   
   def self.fly_name
     'fly'
+  end
+  
+  def self.pdb_tm_dummy_name
+    'pdbtm_dummy'
   end
 end

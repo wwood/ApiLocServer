@@ -62,7 +62,7 @@ class Verification < ActiveRecord::Base
     if !code
       p "should have found PFL0010c as a coding region"
     else
-      ids = code.coding_region_alternate_string_id
+      ids = code.coding_region_alternate_string_ids
       if !ids or ids.length != 2
         p "PFL0010c should have 2 alternate ids: 2277.t00002,MAL12P1.2, was #{ids}"
       end
@@ -90,6 +90,22 @@ class Verification < ActiveRecord::Base
     #      end
     #    end
     
+    
+    # ben@ben:~/phd/data/falciparum/genome/plasmodb/5.4$ grep '       gene    ' *.gff |grep 'apidb|MAL' |wc -l
+    # 5532
+    # ben@ben:~/phd/data/falciparum/genome/plasmodb/5.4$ grep '>' PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta |wc -l
+    # 5460
+    count = CodingRegion.species_name(Species.falciparum_name).count
+    if count  != 5532
+      p "Unexpected number of falciparum genes found uploaded: #{count}"
+    end
+    
+    # a troublesome one
+    raise if !CodingRegion.ff('PFC0890w')
+    
+    
+    raise if CodingRegion.ff('PF14_0043').amino_acid_sequence.sequence != 'MEENLMKLGTLMLLGFGEAGAKIISKNINEQERVNLLINGEIVYSVFSFCDIRNFTEITEVLKEKIMIFINLIAEIIHECCDFYGGTINKNIGDAFLLVWKYQKKEYSNKKMNMFKSPNNNYDEYSEKENINRICDLAFLSTVQTLIKLRKSEKIHIFLNNENMDELIKNNILELSFGLHFGWAIEGAIGSSYKIDLSYLSENVNIASRLQDISKIYKNNIVISGDFYDNMSEKFKVFDDIKKKAERKKRKKEVLNLSYNLYEEYAKNDDIKFIKIHYPKDYLEQFKIALESYLIGKWNESKNILEYLKRNNIFEDEILNQLWNFLSMNNFIAPSDWCGYRKFLQKS'
+    raise if CodingRegion.ff('MAL13P1.385').amino_acid_sequence.sequence != 'MKIGDVLHDYKLYDNTKKKSSEMVINENDNKERLLEEFEIRSKVRKVCLGIPTQDIDVKNILRLLKEPICLFGEDSYDKRKRLKNILITKYDRLIIKKKIEEEDDVEEFKNILKRYYIDFSDLYPSGLSEANKINEVHDKHKLKDVHDTKEEQNVHMKTVREEDKDILKEKCYTEGTKDLKKSRIEITIKTLPRIFLYKEMINKFQNGYSKKEYENYITSFNEHIKKESDLYVSQLGDDRPLTMGKFSPDNSVFAISSFNSYINIFNYRNDDYNLIKTLKNGHEEKINCIEWNYPNNYSYYSTMNYKDLSKHDLLLASCSSDKSFCIWKPFYDEYDDTNDNINDNINEYINENINENINENINENINDNISDNTSDTISDNINDNINDNISDSISDNISDNKNNNSHKVDKYNSNKNKLSAQNKNYLLCKVNAHDDRINKICFHPLNKYVLTCSDDETIKMFDIETQQELFYQEGHNTTVYSIAFNPYGNLYISGDSKGGLMLWDIRTGKNVEQIKMAHNNSIMNINFNPFLANMFCTCSTDNTIKIFDLRKFQISCNILAHNKIVTDALFEPTYGRYIVSSSFDTFIKIWDSVNFYCTKILCNNNNKVRNVDIAPDGSFISSTSFDRTWKLYKNKEYTQDNILSHFM'
   end
   
   def gene_lists
@@ -252,10 +268,7 @@ class Verification < ActiveRecord::Base
   end
   
   def orthomcl
-    if OrthomclGroup.count(
-        :include => :orthomcl_run,
-        :conditions => "orthomcl_runs.name='#{OrthomclRun.official_run_v2_name}'"
-      ) != 79695
+    if OrthomclGroup.official.count != 79695
       puts "Incorrect number of gene groups"
     end
     
@@ -563,5 +576,56 @@ class Verification < ActiveRecord::Base
     if cd.start != 3374 or cd.stop != 4232 or cd.coding_region.gene.scaffold.name != 'AAXT01000011.gb'
       raise Exception, "start or stop wrong for #{name}: #{cd.inspect}"
     end
+  end
+  
+  def snp_jeffares
+    raise if CodingRegion.ff('MAL13P1.12').it_synonymous_snp
+    raise if !CodingRegion.ff('MAL13P1.148').it_synonymous_snp
+    raise if ItSynonymousSnp.count != ItNonSynonymousSnp.count
+    raise if PfClinSynonymousSnp.count != PfClinNonSynonymousSnp.count
+    raise if CodingRegion.ff('MAL13P1.107').pf_clin_non_synonymous_snp.value != 2.89
+  end
+  
+  def nucleo
+    raise if NucleoNls.count != NucleoNonNls.count
+    # $ uniq ../data/falciparum/localisation/prediction\ outputs/nucleoV20080902.tab  |wc -l 
+    # 292
+    raise if NucleoNls.count != 292
+    raise if CodingRegion.ff('PFE0355c').nucleo_nls.value != 0.83
+    raise if CodingRegion.ff('PFI0105c').nucleo_non_nls.value != 0.57
+  end
+  
+  def pats
+    raise if PatsPrediction.count != PatsScore.count
+    raise if PatsPrediction.count != 269
+    raise if CodingRegion.ff('PFA0410w').pats_prediction.value != false
+    raise if CodingRegion.ff('PFA0445w').pats_score.value != 0.702
+  end
+  
+  def pprowler
+    raise if PprowlerMtpScore.count != PprowlerOtherScore.count
+    raise if PprowlerMtpScore.count != PprowlerSignalScore.count
+    raise if PprowlerMtpScore.count != 269
+    raise if CodingRegion.ff('PFA0410w').pprowler_mtp_score.value != 0.03
+    raise if CodingRegion.ff('PFA0445w').pprowler_signal_score.value != 0.96
+  end
+  
+  def top_level_localisations
+    raise Exception, "Count not right: #{TopLevelLocalisation.count}" if TopLevelLocalisation::TOP_LEVEL_LOCALISATIONS.length != TopLevelLocalisation.count
+    raise if Localisation.find_by_name('hepatocyte nucleus').malaria_top_level_localisations.pick(:name) != ['nucleus']
+  end
+  
+  def seven_species_orthomcl
+    r = OrthomclRun.find_by_name(OrthomclRun.seven_species_filtering_name)
+    raise if r.orthomcl_groups.count != 7657
+    raise if r.orthomcl_groups.count(:conditions => {:orthomcl_name => 'ORTHOMCL7653'}) != 1
+    raise if r.orthomcl_groups.first(:conditions => {:orthomcl_name => 'ORTHOMCL7653'}).orthomcl_genes.pick(:orthomcl_name).sort !=
+      ['TA05550','TA16035'].sort
+    raise if !r.orthomcl_groups.first(:conditions => {:orthomcl_name => 'ORTHOMCL42'}).orthomcl_genes.pick(:orthomcl_name).include?('Cryptosporidium_parvum|AAEE01000006|cgd1_330|Annotation|GenBank|(protein')
+  end
+  
+  def vivax
+    raise if !CodingRegion.fs('Pv085115', Species.vivax_name)
+    raise if !CodingRegion.fs('Pv085115', Species.vivax_name).amino_acid_sequence
   end
 end

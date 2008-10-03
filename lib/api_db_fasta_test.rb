@@ -10,7 +10,7 @@ require 'api_db_fasta'
 
 class ApiDbFastaTest < Test::Unit::TestCase
   def test_falciparum
-    fa = ApiDbFasta.new.load('testFiles/falciparum.fa')
+    fa = ApiDbFasta5p4.new.load('lib/testFiles/falciparum.fa')
     
     f = fa.next_entry
     assert f
@@ -38,7 +38,7 @@ class ApiDbFastaTest < Test::Unit::TestCase
   #>TA14160 |||hypothetical protein|Theileria annulata|chr 02|||Manual
   #MSCGSFVAGIVQGILTSAKFVSNHIYLNYLYSYLLEGGLNTSSRVKQHPLP
   def test_theileria
-    fa = TigrFasta.new.load('testFiles/TANN.small.pep')
+    fa = TigrFasta.new.load('lib/testFiles/TANN.small.pep')
     
     f = fa.next_entry
     assert f
@@ -67,7 +67,7 @@ class ApiDbFastaTest < Test::Unit::TestCase
   
   
   def test_cruel_cypto
-    fa = ApiDbFasta.new.load('testFiles/crypto.cruel.fa')
+    fa = ApiDbFasta5p4.new.load('lib/testFiles/crypto.cruel.fa')
     
     f = fa.next_entry
     assert f
@@ -87,7 +87,7 @@ class ApiDbFastaTest < Test::Unit::TestCase
   #CVKNLDIIHLYNISCDQIIKKLIYNHIIRNITINKICRKTCKPILIKQIILKFDMNNLNN
   #TMCNKNFKIQINKTKTSDYYIKHKI*
   def test_annulata
-        fa = TigrFasta.new.load('testFiles/TPA1.small.fa')
+    fa = TigrFasta.new.load('lib/testFiles/TPA1.small.fa')
     
     f = fa.next_entry
     assert f
@@ -127,5 +127,18 @@ class ApiDbFastaTest < Test::Unit::TestCase
       count += 1
     end
     assert_equal 4079, count
+  end
+  
+  
+  def test_apidb5p5
+    fa = ApiDbFasta5p5.new
+    p = fa.parse_name('psu|PF14_0043 | organism=Plasmodium_falciparum_3D7 | product=hypothetical protein | location=MAL14:154855-156918(-) | length=347')
+    assert_equal 'PF14_0043', p.name
+    assert_equal 'MAL14', p.scaffold
+    assert_equal 'hypothetical protein', p.annotation
+    
+    fa = ApiDbFasta5p5.new.load('lib/testFiles/falciparum5.5.extract.fa')
+    seq = 'MEENLMKLGTLMLLGFGEAGAKIISKNINEQERVNLLINGEIVYSVFSFCDIRNFTEITEVLKEKIMIFINLIAEIIHECCDFYGGTINKNIGDAFLLVWKYQKKEYSNKKMNMFKSPNNNYDEYSEKENINRICDLAFLSTVQTLIKLRKSEKIHIFLNNENMDELIKNNILELSFGLHFGWAIEGAIGSSYKIDLSYLSENVNIASRLQDISKIYKNNIVISGDFYDNMSEKFKVFDDIKKKAERKKRKKEVLNLSYNLYEEYAKNDDIKFIKIHYPKDYLEQFKIALESYLIGKWNESKNILEYLKRNNIFEDEILNQLWNFLSMNNFIAPSDWCGYRKFLQKS'
+    assert_equal seq, fa.next_entry.sequence
   end
 end

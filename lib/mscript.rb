@@ -305,5 +305,30 @@ class Mscript
     end
   end
   
+  
+  def lethal_gene_comparisons_multple_spp(orthomcl_groups, species_orthomcl_codes)
+    lethal_groups = orthomcl_groups.select do |g|
+      answer = true
+      species_orthomcl_codes.each do |species_code|
+        # only keep groups that have a lethal gene for all species specified in species_orthomcl_codes
+        g.orthomcl_genes.code(species_code).all(:select => 'distinct(id)').each do |og|
+          begin
+            if  !og.single_code.lethal?
+              answer = false
+            end
+          rescue UnexpectedCodingRegionCount => e
+            puts e
+            answer = false #ignore?
+          end
+        end
+      end
+      answer
+    end
+    p lethal_groups
+
+    return lethal_groups
+  end
+
+
 end
 

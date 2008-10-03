@@ -7,3 +7,12 @@ one:
 two:
   id: 2
   name: mitochondria
+fv:
+  id: 3
+  name: food vacuole
+fv_not:
+  id: 4
+  name: not food vacuole
+not_api:
+  id: 5
+  name: not apicoplast

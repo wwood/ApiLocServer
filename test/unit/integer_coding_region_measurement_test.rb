@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class DevelopmentalStageLocalisationTest < ActiveSupport::TestCase
+class IntegerCodingRegionMeasurementTest < ActiveSupport::TestCase
   # Replace this with your real tests.
   def test_truth
     assert true

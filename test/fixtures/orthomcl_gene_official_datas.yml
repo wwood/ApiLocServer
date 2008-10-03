@@ -6,6 +6,6 @@ one:
   annotation: MyText
 
 two:
-  orthomcl_gene_id: 1
-  sequence: MyText
-  annotation: MyText
+  orthomcl_gene_id: 2
+  sequence: MyText2
+  annotation: MyText2

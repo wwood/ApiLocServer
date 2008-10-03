@@ -4,3 +4,4 @@ log
 nbproject
 doc/*
 vendor/rails
+db.data*

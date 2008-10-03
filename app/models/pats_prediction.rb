@@ -1,0 +1,2 @@
+class PatsPrediction < BinaryCodingRegionMeasurement
+end

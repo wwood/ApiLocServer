@@ -1,7 +1,7 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
 one:
-  id: 1=
+  id: 1
   orthomcl_name: Official Group with dme and cel
   orthomcl_run_id: 1
 two:
@@ -15,4 +15,8 @@ unofficial:
 multiple_twos:
   id: 4
   orthomcl_name: Official Group with one and multiple twos
+  orthomcl_run_id: 1
+random:
+  id: 5
+  orthomcl_name: nothn
   orthomcl_run_id: 1

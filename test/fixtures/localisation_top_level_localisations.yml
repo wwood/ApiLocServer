@@ -2,8 +2,8 @@
 
 one:
   localisation_id: 1
-  developmental_stage: 1
+  top_level_localisation_id: 1
 
 two:
   localisation_id: 1
-  developmental_stage: 2
+  top_level_localisation_id: 1

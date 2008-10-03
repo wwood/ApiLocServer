@@ -28,6 +28,20 @@ CREATE TABLE annotations (
 
 
 --
+-- Name: binary_coding_region_measurements; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE binary_coding_region_measurements (
+    id integer NOT NULL,
+    coding_region_id integer NOT NULL,
+    value boolean,
+    type character varying(255),
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: brafl_upstream_distances; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -107,6 +121,19 @@ CREATE TABLE coding_region_alternate_string_ids (
 
 
 --
+-- Name: coding_region_drosophila_allele_genes; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE coding_region_drosophila_allele_genes (
+    id integer NOT NULL,
+    coding_region_id integer NOT NULL,
+    drosophila_allele_gene_id integer NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: coding_region_go_terms; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -132,6 +159,74 @@ CREATE TABLE coding_region_localisations (
 
 
 --
+-- Name: coding_region_mouse_phenotype_informations; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE coding_region_mouse_phenotype_informations (
+    id integer NOT NULL,
+    coding_region_id integer,
+    mouse_phenotype_information_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: coding_region_network_edges; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE coding_region_network_edges (
+    id integer NOT NULL,
+    network_id integer NOT NULL,
+    "integer" integer NOT NULL,
+    coding_region_id_first integer NOT NULL,
+    coding_region_id_second integer NOT NULL,
+    strength numeric,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: coding_region_phenotype_informations; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE coding_region_phenotype_informations (
+    id integer NOT NULL,
+    coding_region_id integer,
+    phenotype_information_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: coding_region_phenotype_observeds; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE coding_region_phenotype_observeds (
+    id integer NOT NULL,
+    coding_region_id integer,
+    phenotype_observed_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: coding_region_yeast_pheno_infos; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE coding_region_yeast_pheno_infos (
+    id integer NOT NULL,
+    coding_region_id integer NOT NULL,
+    yeast_pheno_info_id integer NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: coding_regions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -148,11 +243,156 @@ CREATE TABLE coding_regions (
 
 
 --
+-- Name: comments; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE comments (
+    id integer NOT NULL,
+    expression_context_id integer NOT NULL,
+    comment character varying(255) NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: derisi20063d7logmean; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE derisi20063d7logmean (
     id integer NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: developmental_stage_synonyms; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE developmental_stage_synonyms (
+    id integer NOT NULL,
+    developmental_stage_id integer,
+    name character varying(255),
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: developmental_stages; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE developmental_stages (
+    id integer NOT NULL,
+    type character varying(255) DEFAULT NULL::character varying,
+    name character varying(255) DEFAULT NULL::character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: drosophila_allele_genes; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE drosophila_allele_genes (
+    id integer NOT NULL,
+    allele character varying(255) NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: drosophila_allele_phenotype_drosophila_allele_genes; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE drosophila_allele_phenotype_drosophila_allele_genes (
+    id integer NOT NULL,
+    drosophila_allele_gene_id integer NOT NULL,
+    drosophila_allele_phenotype_id integer NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: drosophila_allele_phenotypes; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE drosophila_allele_phenotypes (
+    id integer NOT NULL,
+    phenotype character varying(255) DEFAULT NULL::character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: expression_contexts; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE expression_contexts (
+    id integer NOT NULL,
+    coding_region_id integer NOT NULL,
+    publication_id integer,
+    localisation_id integer,
+    developmental_stage_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: float_coding_region_measurements; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE float_coding_region_measurements (
+    id integer NOT NULL,
+    type character varying(255),
+    coding_region_id integer,
+    value double precision,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: gene_alternate_names; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE gene_alternate_names (
+    id integer NOT NULL,
+    gene_id integer,
+    name character varying(255) DEFAULT NULL::character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: gene_network_edges; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE gene_network_edges (
+    id integer NOT NULL,
+    gene_network_id integer NOT NULL,
+    gene_id_first integer NOT NULL,
+    gene_id_second integer NOT NULL,
+    strength numeric,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: gene_networks; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE gene_networks (
+    id integer NOT NULL,
+    name character varying(255) DEFAULT NULL::character varying,
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
@@ -274,12 +514,53 @@ CREATE TABLE gus (
 
 
 --
+-- Name: integer_coding_region_measurements; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE integer_coding_region_measurements (
+    id integer NOT NULL,
+    type character varying(255),
+    coding_region_id integer,
+    value integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: localisation_methods; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE localisation_methods (
     id integer NOT NULL,
     description character varying(255) DEFAULT NULL::character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: localisation_synonyms; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE localisation_synonyms (
+    id integer NOT NULL,
+    name character varying(255) DEFAULT NULL::character varying,
+    localisation_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: localisation_top_level_localisations; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE localisation_top_level_localisations (
+    id integer NOT NULL,
+    localisation_id integer,
+    top_level_localisation_id integer,
+    type character varying(255),
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
@@ -337,6 +618,57 @@ CREATE TABLE microarrays (
 
 
 --
+-- Name: mouse_pheno_descs; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE mouse_pheno_descs (
+    id integer NOT NULL,
+    pheno_id character varying(255) NOT NULL,
+    pheno_desc character varying(255) DEFAULT NULL::character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: mouse_phenotype_informations; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE mouse_phenotype_informations (
+    id integer NOT NULL,
+    mgi_allele character varying(255) NOT NULL,
+    allele_type character varying(255) DEFAULT NULL::character varying,
+    mgi_marker character varying(255) DEFAULT NULL::character varying,
+    mouse_pheno_desc_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: mverifications; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE mverifications (
+    id integer NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: networks; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE networks (
+    id integer NOT NULL,
+    name character varying(255) DEFAULT NULL::character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: orthomcl_gene_coding_regions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -382,7 +714,6 @@ CREATE TABLE orthomcl_genes (
 
 CREATE TABLE orthomcl_groups (
     id integer NOT NULL,
-    version integer,
     orthomcl_name character varying(255) DEFAULT NULL::character varying,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
@@ -397,6 +728,40 @@ CREATE TABLE orthomcl_groups (
 CREATE TABLE orthomcl_runs (
     id integer NOT NULL,
     name character varying(255) NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: phenotype_informations; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE phenotype_informations (
+    id integer NOT NULL,
+    dbxref character varying(255) DEFAULT NULL::character varying,
+    phenotype character varying(255) DEFAULT NULL::character varying,
+    experiments integer,
+    "primary" integer,
+    specific integer,
+    observed integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: phenotype_observeds; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE phenotype_observeds (
+    id integer NOT NULL,
+    dbxref character varying(255) DEFAULT NULL::character varying,
+    phenotype character varying(255) DEFAULT NULL::character varying,
+    experiments integer,
+    "primary" integer,
+    specific integer,
+    observed integer,
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
@@ -467,6 +832,19 @@ CREATE TABLE probe_maps (
 
 
 --
+-- Name: publications; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE publications (
+    id integer NOT NULL,
+    pubmed_id integer,
+    url character varying(255) DEFAULT NULL::character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: scaffolds; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -480,11 +858,11 @@ CREATE TABLE scaffolds (
 
 
 --
--- Name: schema_info; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE TABLE schema_info (
-    version integer
+CREATE TABLE schema_migrations (
+    version character varying(255) NOT NULL
 );
 
 
@@ -532,7 +910,8 @@ CREATE TABLE species (
     id integer NOT NULL,
     name character varying(255) DEFAULT NULL::character varying,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    orthomcl_three_letter character varying(255)
 );
 
 
@@ -559,11 +938,65 @@ CREATE TABLE taxons (
 
 
 --
+-- Name: top_level_localisations; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE top_level_localisations (
+    id integer NOT NULL,
+    name character varying(255),
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: transmembrane_domain_measurements; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE transmembrane_domain_measurements (
+    id integer NOT NULL,
+    coding_region_id integer,
+    measurement numeric NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    type character varying(255) DEFAULT 'MinTransmembraneDomainLength'::character varying NOT NULL
+);
+
+
+--
+-- Name: transmembrane_domains; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE transmembrane_domains (
+    id integer NOT NULL,
+    coding_region_id integer NOT NULL,
+    start integer NOT NULL,
+    stop integer NOT NULL,
+    type character varying(255) NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: verifications; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE verifications (
     id integer NOT NULL
+);
+
+
+--
+-- Name: yeast_pheno_infos; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE yeast_pheno_infos (
+    id integer NOT NULL,
+    experiment_type character varying(255) NOT NULL,
+    phenotype character varying(255) NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -583,6 +1016,25 @@ CREATE SEQUENCE annotations_id_seq
 --
 
 ALTER SEQUENCE annotations_id_seq OWNED BY annotations.id;
+
+
+--
+-- Name: binary_coding_region_measurements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE binary_coding_region_measurements_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: binary_coding_region_measurements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE binary_coding_region_measurements_id_seq OWNED BY binary_coding_region_measurements.id;
 
 
 --
@@ -698,6 +1150,24 @@ ALTER SEQUENCE coding_region_alternate_string_ids_id_seq OWNED BY coding_region_
 
 
 --
+-- Name: coding_region_drosophila_allele_genes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE coding_region_drosophila_allele_genes_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: coding_region_drosophila_allele_genes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE coding_region_drosophila_allele_genes_id_seq OWNED BY coding_region_drosophila_allele_genes.id;
+
+
+--
 -- Name: coding_region_go_terms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -734,6 +1204,98 @@ ALTER SEQUENCE coding_region_localisations_id_seq OWNED BY coding_region_localis
 
 
 --
+-- Name: coding_region_mouse_phenotype_informations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE coding_region_mouse_phenotype_informations_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: coding_region_mouse_phenotype_informations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE coding_region_mouse_phenotype_informations_id_seq OWNED BY coding_region_mouse_phenotype_informations.id;
+
+
+--
+-- Name: coding_region_network_edges_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE coding_region_network_edges_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: coding_region_network_edges_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE coding_region_network_edges_id_seq OWNED BY coding_region_network_edges.id;
+
+
+--
+-- Name: coding_region_phenotype_informations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE coding_region_phenotype_informations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: coding_region_phenotype_informations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE coding_region_phenotype_informations_id_seq OWNED BY coding_region_phenotype_informations.id;
+
+
+--
+-- Name: coding_region_phenotype_observeds_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE coding_region_phenotype_observeds_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: coding_region_phenotype_observeds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE coding_region_phenotype_observeds_id_seq OWNED BY coding_region_phenotype_observeds.id;
+
+
+--
+-- Name: coding_region_yeast_pheno_infos_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE coding_region_yeast_pheno_infos_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: coding_region_yeast_pheno_infos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE coding_region_yeast_pheno_infos_id_seq OWNED BY coding_region_yeast_pheno_infos.id;
+
+
+--
 -- Name: coding_regions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -749,6 +1311,25 @@ CREATE SEQUENCE coding_regions_id_seq
 --
 
 ALTER SEQUENCE coding_regions_id_seq OWNED BY coding_regions.id;
+
+
+--
+-- Name: comments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE comments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: comments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE comments_id_seq OWNED BY comments.id;
 
 
 --
@@ -768,6 +1349,187 @@ CREATE SEQUENCE derisi20063d7logmean_id_seq
 --
 
 ALTER SEQUENCE derisi20063d7logmean_id_seq OWNED BY derisi20063d7logmean.id;
+
+
+--
+-- Name: developmental_stage_synonyms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE developmental_stage_synonyms_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: developmental_stage_synonyms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE developmental_stage_synonyms_id_seq OWNED BY developmental_stage_synonyms.id;
+
+
+--
+-- Name: developmental_stages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE developmental_stages_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: developmental_stages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE developmental_stages_id_seq OWNED BY developmental_stages.id;
+
+
+--
+-- Name: drosophila_allele_genes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE drosophila_allele_genes_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: drosophila_allele_genes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE drosophila_allele_genes_id_seq OWNED BY drosophila_allele_genes.id;
+
+
+--
+-- Name: drosophila_allele_phenotype_drosophila_allele_genes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE drosophila_allele_phenotype_drosophila_allele_genes_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: drosophila_allele_phenotype_drosophila_allele_genes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE drosophila_allele_phenotype_drosophila_allele_genes_id_seq OWNED BY drosophila_allele_phenotype_drosophila_allele_genes.id;
+
+
+--
+-- Name: drosophila_allele_phenotypes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE drosophila_allele_phenotypes_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: drosophila_allele_phenotypes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE drosophila_allele_phenotypes_id_seq OWNED BY drosophila_allele_phenotypes.id;
+
+
+--
+-- Name: expression_contexts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE expression_contexts_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: expression_contexts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE expression_contexts_id_seq OWNED BY expression_contexts.id;
+
+
+--
+-- Name: float_coding_region_measurements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE float_coding_region_measurements_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: float_coding_region_measurements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE float_coding_region_measurements_id_seq OWNED BY float_coding_region_measurements.id;
+
+
+--
+-- Name: gene_alternate_names_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE gene_alternate_names_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: gene_alternate_names_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE gene_alternate_names_id_seq OWNED BY gene_alternate_names.id;
+
+
+--
+-- Name: gene_network_edges_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE gene_network_edges_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: gene_network_edges_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE gene_network_edges_id_seq OWNED BY gene_network_edges.id;
+
+
+--
+-- Name: gene_networks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE gene_networks_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: gene_networks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE gene_networks_id_seq OWNED BY gene_networks.id;
 
 
 --
@@ -939,6 +1701,25 @@ ALTER SEQUENCE gus_id_seq OWNED BY gus.id;
 
 
 --
+-- Name: integer_coding_region_measurements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE integer_coding_region_measurements_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: integer_coding_region_measurements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE integer_coding_region_measurements_id_seq OWNED BY integer_coding_region_measurements.id;
+
+
+--
 -- Name: localisation_methods_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -954,6 +1735,42 @@ CREATE SEQUENCE localisation_methods_id_seq
 --
 
 ALTER SEQUENCE localisation_methods_id_seq OWNED BY localisation_methods.id;
+
+
+--
+-- Name: localisation_synonyms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE localisation_synonyms_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: localisation_synonyms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE localisation_synonyms_id_seq OWNED BY localisation_synonyms.id;
+
+
+--
+-- Name: localisation_top_level_localisations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE localisation_top_level_localisations_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: localisation_top_level_localisations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE localisation_top_level_localisations_id_seq OWNED BY localisation_top_level_localisations.id;
 
 
 --
@@ -1026,6 +1843,98 @@ CREATE SEQUENCE microarrays_id_seq
 --
 
 ALTER SEQUENCE microarrays_id_seq OWNED BY microarrays.id;
+
+
+--
+-- Name: min_transmembrane_domain_lengths_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE min_transmembrane_domain_lengths_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: min_transmembrane_domain_lengths_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE min_transmembrane_domain_lengths_id_seq OWNED BY transmembrane_domain_measurements.id;
+
+
+--
+-- Name: mouse_pheno_descs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE mouse_pheno_descs_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: mouse_pheno_descs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE mouse_pheno_descs_id_seq OWNED BY mouse_pheno_descs.id;
+
+
+--
+-- Name: mouse_phenotype_informations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE mouse_phenotype_informations_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: mouse_phenotype_informations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE mouse_phenotype_informations_id_seq OWNED BY mouse_phenotype_informations.id;
+
+
+--
+-- Name: mverifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE mverifications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: mverifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE mverifications_id_seq OWNED BY mverifications.id;
+
+
+--
+-- Name: networks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE networks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: networks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE networks_id_seq OWNED BY networks.id;
 
 
 --
@@ -1119,6 +2028,42 @@ ALTER SEQUENCE orthomcl_runs_id_seq OWNED BY orthomcl_runs.id;
 
 
 --
+-- Name: phenotype_informations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE phenotype_informations_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: phenotype_informations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE phenotype_informations_id_seq OWNED BY phenotype_informations.id;
+
+
+--
+-- Name: phenotype_observeds_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE phenotype_observeds_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: phenotype_observeds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE phenotype_observeds_id_seq OWNED BY phenotype_observeds.id;
+
+
+--
 -- Name: plasmo_db_gene_list_entries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1209,6 +2154,24 @@ CREATE SEQUENCE probe_maps_id_seq
 --
 
 ALTER SEQUENCE probe_maps_id_seq OWNED BY probe_maps.id;
+
+
+--
+-- Name: publications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE publications_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: publications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE publications_id_seq OWNED BY publications.id;
 
 
 --
@@ -1342,6 +2305,42 @@ ALTER SEQUENCE taxons_id_seq OWNED BY taxons.id;
 
 
 --
+-- Name: top_level_localisations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE top_level_localisations_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: top_level_localisations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE top_level_localisations_id_seq OWNED BY top_level_localisations.id;
+
+
+--
+-- Name: transmembrane_domains_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE transmembrane_domains_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: transmembrane_domains_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE transmembrane_domains_id_seq OWNED BY transmembrane_domains.id;
+
+
+--
 -- Name: verifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1361,10 +2360,35 @@ ALTER SEQUENCE verifications_id_seq OWNED BY verifications.id;
 
 
 --
+-- Name: yeast_pheno_infos_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE yeast_pheno_infos_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: yeast_pheno_infos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE yeast_pheno_infos_id_seq OWNED BY yeast_pheno_infos.id;
+
+
+--
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE annotations ALTER COLUMN id SET DEFAULT nextval('annotations_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE binary_coding_region_measurements ALTER COLUMN id SET DEFAULT nextval('binary_coding_region_measurements_id_seq'::regclass);
 
 
 --
@@ -1413,6 +2437,13 @@ ALTER TABLE coding_region_alternate_string_ids ALTER COLUMN id SET DEFAULT nextv
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE coding_region_drosophila_allele_genes ALTER COLUMN id SET DEFAULT nextval('coding_region_drosophila_allele_genes_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE coding_region_go_terms ALTER COLUMN id SET DEFAULT nextval('coding_region_go_terms_id_seq'::regclass);
 
 
@@ -1427,6 +2458,41 @@ ALTER TABLE coding_region_localisations ALTER COLUMN id SET DEFAULT nextval('cod
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE coding_region_mouse_phenotype_informations ALTER COLUMN id SET DEFAULT nextval('coding_region_mouse_phenotype_informations_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE coding_region_network_edges ALTER COLUMN id SET DEFAULT nextval('coding_region_network_edges_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE coding_region_phenotype_informations ALTER COLUMN id SET DEFAULT nextval('coding_region_phenotype_informations_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE coding_region_phenotype_observeds ALTER COLUMN id SET DEFAULT nextval('coding_region_phenotype_observeds_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE coding_region_yeast_pheno_infos ALTER COLUMN id SET DEFAULT nextval('coding_region_yeast_pheno_infos_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE coding_regions ALTER COLUMN id SET DEFAULT nextval('coding_regions_id_seq'::regclass);
 
 
@@ -1434,7 +2500,84 @@ ALTER TABLE coding_regions ALTER COLUMN id SET DEFAULT nextval('coding_regions_i
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE comments ALTER COLUMN id SET DEFAULT nextval('comments_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE derisi20063d7logmean ALTER COLUMN id SET DEFAULT nextval('derisi20063d7logmean_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE developmental_stage_synonyms ALTER COLUMN id SET DEFAULT nextval('developmental_stage_synonyms_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE developmental_stages ALTER COLUMN id SET DEFAULT nextval('developmental_stages_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE drosophila_allele_genes ALTER COLUMN id SET DEFAULT nextval('drosophila_allele_genes_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE drosophila_allele_phenotype_drosophila_allele_genes ALTER COLUMN id SET DEFAULT nextval('drosophila_allele_phenotype_drosophila_allele_genes_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE drosophila_allele_phenotypes ALTER COLUMN id SET DEFAULT nextval('drosophila_allele_phenotypes_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE expression_contexts ALTER COLUMN id SET DEFAULT nextval('expression_contexts_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE float_coding_region_measurements ALTER COLUMN id SET DEFAULT nextval('float_coding_region_measurements_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE gene_alternate_names ALTER COLUMN id SET DEFAULT nextval('gene_alternate_names_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE gene_network_edges ALTER COLUMN id SET DEFAULT nextval('gene_network_edges_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE gene_networks ALTER COLUMN id SET DEFAULT nextval('gene_networks_id_seq'::regclass);
 
 
 --
@@ -1504,7 +2647,28 @@ ALTER TABLE gus ALTER COLUMN id SET DEFAULT nextval('gus_id_seq'::regclass);
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE integer_coding_region_measurements ALTER COLUMN id SET DEFAULT nextval('integer_coding_region_measurements_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE localisation_methods ALTER COLUMN id SET DEFAULT nextval('localisation_methods_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE localisation_synonyms ALTER COLUMN id SET DEFAULT nextval('localisation_synonyms_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE localisation_top_level_localisations ALTER COLUMN id SET DEFAULT nextval('localisation_top_level_localisations_id_seq'::regclass);
 
 
 --
@@ -1533,6 +2697,34 @@ ALTER TABLE microarray_timepoints ALTER COLUMN id SET DEFAULT nextval('microarra
 --
 
 ALTER TABLE microarrays ALTER COLUMN id SET DEFAULT nextval('microarrays_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE mouse_pheno_descs ALTER COLUMN id SET DEFAULT nextval('mouse_pheno_descs_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE mouse_phenotype_informations ALTER COLUMN id SET DEFAULT nextval('mouse_phenotype_informations_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE mverifications ALTER COLUMN id SET DEFAULT nextval('mverifications_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE networks ALTER COLUMN id SET DEFAULT nextval('networks_id_seq'::regclass);
 
 
 --
@@ -1574,6 +2766,20 @@ ALTER TABLE orthomcl_runs ALTER COLUMN id SET DEFAULT nextval('orthomcl_runs_id_
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE phenotype_informations ALTER COLUMN id SET DEFAULT nextval('phenotype_informations_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE phenotype_observeds ALTER COLUMN id SET DEFAULT nextval('phenotype_observeds_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE plasmo_db_gene_list_entries ALTER COLUMN id SET DEFAULT nextval('plasmo_db_gene_list_entries_id_seq'::regclass);
 
 
@@ -1603,6 +2809,13 @@ ALTER TABLE probe_map_entries ALTER COLUMN id SET DEFAULT nextval('probe_map_ent
 --
 
 ALTER TABLE probe_maps ALTER COLUMN id SET DEFAULT nextval('probe_maps_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE publications ALTER COLUMN id SET DEFAULT nextval('publications_id_seq'::regclass);
 
 
 --
@@ -1658,7 +2871,35 @@ ALTER TABLE taxons ALTER COLUMN id SET DEFAULT nextval('taxons_id_seq'::regclass
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE top_level_localisations ALTER COLUMN id SET DEFAULT nextval('top_level_localisations_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE transmembrane_domain_measurements ALTER COLUMN id SET DEFAULT nextval('min_transmembrane_domain_lengths_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE transmembrane_domains ALTER COLUMN id SET DEFAULT nextval('transmembrane_domains_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE verifications ALTER COLUMN id SET DEFAULT nextval('verifications_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE yeast_pheno_infos ALTER COLUMN id SET DEFAULT nextval('yeast_pheno_infos_id_seq'::regclass);
 
 
 --
@@ -1667,6 +2908,14 @@ ALTER TABLE verifications ALTER COLUMN id SET DEFAULT nextval('verifications_id_
 
 ALTER TABLE ONLY annotations
     ADD CONSTRAINT annotations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: binary_coding_region_measurements_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY binary_coding_region_measurements
+    ADD CONSTRAINT binary_coding_region_measurements_pkey PRIMARY KEY (id);
 
 
 --
@@ -1718,6 +2967,14 @@ ALTER TABLE ONLY coding_region_alternate_string_ids
 
 
 --
+-- Name: coding_region_drosophila_allele_genes_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY coding_region_drosophila_allele_genes
+    ADD CONSTRAINT coding_region_drosophila_allele_genes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: coding_region_go_terms_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -1734,6 +2991,46 @@ ALTER TABLE ONLY coding_region_localisations
 
 
 --
+-- Name: coding_region_mouse_phenotype_informations_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY coding_region_mouse_phenotype_informations
+    ADD CONSTRAINT coding_region_mouse_phenotype_informations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: coding_region_network_edges_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY coding_region_network_edges
+    ADD CONSTRAINT coding_region_network_edges_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: coding_region_phenotype_informations_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY coding_region_phenotype_informations
+    ADD CONSTRAINT coding_region_phenotype_informations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: coding_region_phenotype_observeds_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY coding_region_phenotype_observeds
+    ADD CONSTRAINT coding_region_phenotype_observeds_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: coding_region_yeast_pheno_infos_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY coding_region_yeast_pheno_infos
+    ADD CONSTRAINT coding_region_yeast_pheno_infos_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: coding_regions_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -1742,11 +3039,99 @@ ALTER TABLE ONLY coding_regions
 
 
 --
+-- Name: comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY comments
+    ADD CONSTRAINT comments_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: derisi20063d7logmean_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY derisi20063d7logmean
     ADD CONSTRAINT derisi20063d7logmean_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: developmental_stage_synonyms_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY developmental_stage_synonyms
+    ADD CONSTRAINT developmental_stage_synonyms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: developmental_stages_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY developmental_stages
+    ADD CONSTRAINT developmental_stages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: drosophila_allele_genes_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY drosophila_allele_genes
+    ADD CONSTRAINT drosophila_allele_genes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: drosophila_allele_phenotype_drosophila_allele_genes_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY drosophila_allele_phenotype_drosophila_allele_genes
+    ADD CONSTRAINT drosophila_allele_phenotype_drosophila_allele_genes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: drosophila_allele_phenotypes_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY drosophila_allele_phenotypes
+    ADD CONSTRAINT drosophila_allele_phenotypes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: expression_contexts_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY expression_contexts
+    ADD CONSTRAINT expression_contexts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: float_coding_region_measurements_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY float_coding_region_measurements
+    ADD CONSTRAINT float_coding_region_measurements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: gene_alternate_names_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY gene_alternate_names
+    ADD CONSTRAINT gene_alternate_names_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: gene_network_edges_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY gene_network_edges
+    ADD CONSTRAINT gene_network_edges_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: gene_networks_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY gene_networks
+    ADD CONSTRAINT gene_networks_pkey PRIMARY KEY (id);
 
 
 --
@@ -1822,11 +3207,35 @@ ALTER TABLE ONLY gus
 
 
 --
+-- Name: integer_coding_region_measurements_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY integer_coding_region_measurements
+    ADD CONSTRAINT integer_coding_region_measurements_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: localisation_methods_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY localisation_methods
     ADD CONSTRAINT localisation_methods_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: localisation_synonyms_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY localisation_synonyms
+    ADD CONSTRAINT localisation_synonyms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: localisation_top_level_localisations_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY localisation_top_level_localisations
+    ADD CONSTRAINT localisation_top_level_localisations_pkey PRIMARY KEY (id);
 
 
 --
@@ -1859,6 +3268,46 @@ ALTER TABLE ONLY microarray_timepoints
 
 ALTER TABLE ONLY microarrays
     ADD CONSTRAINT microarrays_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: min_transmembrane_domain_lengths_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY transmembrane_domain_measurements
+    ADD CONSTRAINT min_transmembrane_domain_lengths_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mouse_pheno_descs_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY mouse_pheno_descs
+    ADD CONSTRAINT mouse_pheno_descs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mouse_phenotype_informations_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY mouse_phenotype_informations
+    ADD CONSTRAINT mouse_phenotype_informations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mverifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY mverifications
+    ADD CONSTRAINT mverifications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: networks_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY networks
+    ADD CONSTRAINT networks_pkey PRIMARY KEY (id);
 
 
 --
@@ -1902,6 +3351,22 @@ ALTER TABLE ONLY orthomcl_runs
 
 
 --
+-- Name: phenotype_informations_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY phenotype_informations
+    ADD CONSTRAINT phenotype_informations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: phenotype_observeds_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY phenotype_observeds
+    ADD CONSTRAINT phenotype_observeds_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: plasmo_db_gene_list_entries_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -1939,6 +3404,14 @@ ALTER TABLE ONLY probe_map_entries
 
 ALTER TABLE ONLY probe_maps
     ADD CONSTRAINT probe_maps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: publications_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY publications
+    ADD CONSTRAINT publications_pkey PRIMARY KEY (id);
 
 
 --
@@ -1998,11 +3471,49 @@ ALTER TABLE ONLY taxons
 
 
 --
+-- Name: top_level_localisations_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY top_level_localisations
+    ADD CONSTRAINT top_level_localisations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: transmembrane_domains_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY transmembrane_domains
+    ADD CONSTRAINT transmembrane_domains_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: verifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY verifications
     ADD CONSTRAINT verifications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: yeast_pheno_infos_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY yeast_pheno_infos
+    ADD CONSTRAINT yeast_pheno_infos_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: drosophila_allele_phenotype_dag_dag; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX drosophila_allele_phenotype_dag_dag ON drosophila_allele_phenotype_drosophila_allele_genes USING btree (drosophila_allele_gene_id);
+
+
+--
+-- Name: drosophila_allele_phenotype_dag_dap; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX drosophila_allele_phenotype_dag_dap ON drosophila_allele_phenotype_drosophila_allele_genes USING btree (drosophila_allele_phenotype_id);
 
 
 --
@@ -2017,6 +3528,20 @@ CREATE UNIQUE INDEX go_term_idx_name ON go_terms USING btree (go_identifier);
 --
 
 CREATE UNIQUE INDEX index_annotations_on_coding_region_id_and_annotation ON annotations USING btree (coding_region_id, annotation);
+
+
+--
+-- Name: index_binary_coding_region_measurements_on_coding_region_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_binary_coding_region_measurements_on_coding_region_id ON binary_coding_region_measurements USING btree (coding_region_id);
+
+
+--
+-- Name: index_binary_coding_region_measurements_on_coding_region_id_and; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_binary_coding_region_measurements_on_coding_region_id_and ON binary_coding_region_measurements USING btree (coding_region_id, type);
 
 
 --
@@ -2048,6 +3573,20 @@ CREATE INDEX index_coding_region_alternate_string_ids_on_name ON coding_region_a
 
 
 --
+-- Name: index_coding_region_drosophila_allele_genes_on_coding_region_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_coding_region_drosophila_allele_genes_on_coding_region_id ON coding_region_drosophila_allele_genes USING btree (coding_region_id);
+
+
+--
+-- Name: index_coding_region_drosophila_allele_genes_on_drosophila_allel; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_coding_region_drosophila_allele_genes_on_drosophila_allel ON coding_region_drosophila_allele_genes USING btree (drosophila_allele_gene_id);
+
+
+--
 -- Name: index_coding_region_go_terms_on_coding_region_id_and_go_term_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -2069,10 +3608,164 @@ CREATE UNIQUE INDEX index_coding_region_localisations_on_localisation_id_and_cod
 
 
 --
+-- Name: index_coding_region_mouse_phenotype_informations_on_coding_regi; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_coding_region_mouse_phenotype_informations_on_coding_regi ON coding_region_mouse_phenotype_informations USING btree (coding_region_id, mouse_phenotype_information_id);
+
+
+--
+-- Name: index_coding_region_network_edges_on_network_id_and_coding_regi; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_coding_region_network_edges_on_network_id_and_coding_regi ON coding_region_network_edges USING btree (network_id, coding_region_id_first, coding_region_id_second);
+
+
+--
+-- Name: index_coding_region_phenotype_informations_on_coding_region_id_; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_coding_region_phenotype_informations_on_coding_region_id_ ON coding_region_phenotype_informations USING btree (coding_region_id, phenotype_information_id);
+
+
+--
+-- Name: index_coding_region_phenotype_observeds_on_coding_region_id_and; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_coding_region_phenotype_observeds_on_coding_region_id_and ON coding_region_phenotype_observeds USING btree (coding_region_id, phenotype_observed_id);
+
+
+--
+-- Name: index_coding_region_yeast_pheno_infos_on_coding_region_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_coding_region_yeast_pheno_infos_on_coding_region_id ON coding_region_yeast_pheno_infos USING btree (coding_region_id);
+
+
+--
+-- Name: index_coding_region_yeast_pheno_infos_on_coding_region_id_and_y; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_coding_region_yeast_pheno_infos_on_coding_region_id_and_y ON coding_region_yeast_pheno_infos USING btree (coding_region_id, yeast_pheno_info_id);
+
+
+--
+-- Name: index_coding_region_yeast_pheno_infos_on_yeast_pheno_info_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_coding_region_yeast_pheno_infos_on_yeast_pheno_info_id ON coding_region_yeast_pheno_infos USING btree (yeast_pheno_info_id);
+
+
+--
 -- Name: index_coding_regions_on_gene_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX index_coding_regions_on_gene_id ON coding_regions USING btree (gene_id);
+
+
+--
+-- Name: index_coding_regions_on_orientation; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_coding_regions_on_orientation ON coding_regions USING btree (orientation);
+
+
+--
+-- Name: index_coding_regions_on_string_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_coding_regions_on_string_id ON coding_regions USING btree (string_id);
+
+
+--
+-- Name: index_comments_on_expression_context_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_comments_on_expression_context_id ON comments USING btree (expression_context_id);
+
+
+--
+-- Name: index_developmental_stage_synonyms_on_developmental_stage_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_developmental_stage_synonyms_on_developmental_stage_id ON developmental_stage_synonyms USING btree (developmental_stage_id);
+
+
+--
+-- Name: index_developmental_stage_synonyms_on_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_developmental_stage_synonyms_on_name ON developmental_stage_synonyms USING btree (name);
+
+
+--
+-- Name: index_drosophila_allele_genes_on_allele; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_drosophila_allele_genes_on_allele ON drosophila_allele_genes USING btree (allele);
+
+
+--
+-- Name: index_drosophila_allele_phenotypes_on_phenotype; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_drosophila_allele_phenotypes_on_phenotype ON drosophila_allele_phenotypes USING btree (phenotype);
+
+
+--
+-- Name: index_expression_contexts_on_coding_region_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_expression_contexts_on_coding_region_id ON expression_contexts USING btree (coding_region_id);
+
+
+--
+-- Name: index_float_coding_region_measurements_on_type_and_coding_regio; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_float_coding_region_measurements_on_type_and_coding_regio ON float_coding_region_measurements USING btree (type, coding_region_id);
+
+
+--
+-- Name: index_gene_alternate_names_on_gene_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_gene_alternate_names_on_gene_id ON gene_alternate_names USING btree (gene_id);
+
+
+--
+-- Name: index_gene_alternate_names_on_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_gene_alternate_names_on_name ON gene_alternate_names USING btree (name);
+
+
+--
+-- Name: index_gene_network_edges_on_gene_id_first; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_gene_network_edges_on_gene_id_first ON gene_network_edges USING btree (gene_id_first);
+
+
+--
+-- Name: index_gene_network_edges_on_gene_id_second; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_gene_network_edges_on_gene_id_second ON gene_network_edges USING btree (gene_id_second);
+
+
+--
+-- Name: index_gene_network_edges_on_gene_network_id_and_gene_id_first_a; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_gene_network_edges_on_gene_network_id_and_gene_id_first_a ON gene_network_edges USING btree (gene_network_id, gene_id_first, gene_id_second);
+
+
+--
+-- Name: index_genes_on_scaffold_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_genes_on_scaffold_id ON genes USING btree (scaffold_id);
 
 
 --
@@ -2090,10 +3783,45 @@ CREATE UNIQUE INDEX index_go_map_entries_on_go_map_id_and_parent_id_and_child_id
 
 
 --
+-- Name: index_integer_coding_region_measurements_on_type_and_coding_reg; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_integer_coding_region_measurements_on_type_and_coding_reg ON integer_coding_region_measurements USING btree (type, coding_region_id);
+
+
+--
 -- Name: index_localisation_methods_on_description; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE UNIQUE INDEX index_localisation_methods_on_description ON localisation_methods USING btree (description);
+
+
+--
+-- Name: index_localisation_top_level_localisations_on_localisation_id_a; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_localisation_top_level_localisations_on_localisation_id_a ON localisation_top_level_localisations USING btree (localisation_id, type);
+
+
+--
+-- Name: index_localisation_top_level_localisations_on_top_level_localis; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_localisation_top_level_localisations_on_top_level_localis ON localisation_top_level_localisations USING btree (top_level_localisation_id, type);
+
+
+--
+-- Name: index_localisation_top_level_localisations_on_type_and_localisa; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_localisation_top_level_localisations_on_type_and_localisa ON localisation_top_level_localisations USING btree (type, localisation_id, top_level_localisation_id);
+
+
+--
+-- Name: index_microarray_measurements_on_coding_region_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_microarray_measurements_on_coding_region_id ON microarray_measurements USING btree (coding_region_id);
 
 
 --
@@ -2111,10 +3839,59 @@ CREATE UNIQUE INDEX index_microarray_timepoints_on_microarray_id_and_name ON mic
 
 
 --
+-- Name: index_min_transmembrane_domain_lengths_on_coding_region_id_and_; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_min_transmembrane_domain_lengths_on_coding_region_id_and_ ON transmembrane_domain_measurements USING btree (coding_region_id, type);
+
+
+--
+-- Name: index_mouse_pheno_descs_on_pheno_desc_and_pheno_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_mouse_pheno_descs_on_pheno_desc_and_pheno_id ON mouse_pheno_descs USING btree (pheno_desc, pheno_id);
+
+
+--
+-- Name: index_mouse_pheno_descs_on_pheno_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_mouse_pheno_descs_on_pheno_id ON mouse_pheno_descs USING btree (pheno_id);
+
+
+--
+-- Name: index_networks_on_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_networks_on_name ON networks USING btree (name);
+
+
+--
+-- Name: index_orthomcl_gene_coding_regions_on_coding_region_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_orthomcl_gene_coding_regions_on_coding_region_id ON orthomcl_gene_coding_regions USING btree (coding_region_id);
+
+
+--
 -- Name: index_orthomcl_gene_coding_regions_on_coding_region_id_and_orth; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE UNIQUE INDEX index_orthomcl_gene_coding_regions_on_coding_region_id_and_orth ON orthomcl_gene_coding_regions USING btree (coding_region_id, orthomcl_gene_id);
+
+
+--
+-- Name: index_orthomcl_gene_coding_regions_on_orthomcl_gene_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_orthomcl_gene_coding_regions_on_orthomcl_gene_id ON orthomcl_gene_coding_regions USING btree (orthomcl_gene_id);
+
+
+--
+-- Name: index_orthomcl_gene_official_datas_on_orthomcl_gene_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_orthomcl_gene_official_datas_on_orthomcl_gene_id ON orthomcl_gene_official_datas USING btree (orthomcl_gene_id);
 
 
 --
@@ -2125,10 +3902,31 @@ CREATE UNIQUE INDEX index_orthomcl_genes_on_orthomcl_group_id_and_orthomcl_name 
 
 
 --
--- Name: index_orthomcl_groups_on_version_and_orthomcl_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_orthomcl_genes_on_orthomcl_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE UNIQUE INDEX index_orthomcl_groups_on_version_and_orthomcl_name ON orthomcl_groups USING btree (version, orthomcl_name);
+CREATE INDEX index_orthomcl_genes_on_orthomcl_name ON orthomcl_genes USING btree (orthomcl_name);
+
+
+--
+-- Name: index_orthomcl_groups_on_orthomcl_run_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_orthomcl_groups_on_orthomcl_run_id ON orthomcl_groups USING btree (orthomcl_run_id);
+
+
+--
+-- Name: index_orthomcl_groups_on_orthomcl_run_id_and_orthomcl_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_orthomcl_groups_on_orthomcl_run_id_and_orthomcl_name ON orthomcl_groups USING btree (orthomcl_run_id, orthomcl_name);
+
+
+--
+-- Name: index_orthomcl_runs_on_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_orthomcl_runs_on_name ON orthomcl_runs USING btree (name);
 
 
 --
@@ -2136,6 +3934,13 @@ CREATE UNIQUE INDEX index_orthomcl_groups_on_version_and_orthomcl_name ON orthom
 --
 
 CREATE UNIQUE INDEX index_plasmodb_gene_list_entries_on_plasmodb_gene_list_id_and_c ON plasmodb_gene_list_entries USING btree (plasmodb_gene_list_id, coding_region_id);
+
+
+--
+-- Name: index_scaffolds_on_species_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_scaffolds_on_species_id ON scaffolds USING btree (species_id);
 
 
 --
@@ -2153,7 +3958,276 @@ CREATE INDEX index_sequences_on_coding_region_id_and_type ON sequences USING btr
 
 
 --
+-- Name: index_transmembrane_domain_measurements_on_coding_region_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_transmembrane_domain_measurements_on_coding_region_id ON transmembrane_domain_measurements USING btree (coding_region_id);
+
+
+--
+-- Name: index_transmembrane_domains_on_coding_region_id_and_type; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_transmembrane_domains_on_coding_region_id_and_type ON transmembrane_domains USING btree (coding_region_id, type);
+
+
+--
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (version);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO schema_info (version) VALUES (66)
+INSERT INTO schema_migrations (version) VALUES ('69');
+
+INSERT INTO schema_migrations (version) VALUES ('68');
+
+INSERT INTO schema_migrations (version) VALUES ('36');
+
+INSERT INTO schema_migrations (version) VALUES ('37');
+
+INSERT INTO schema_migrations (version) VALUES ('60');
+
+INSERT INTO schema_migrations (version) VALUES ('32');
+
+INSERT INTO schema_migrations (version) VALUES ('26');
+
+INSERT INTO schema_migrations (version) VALUES ('40');
+
+INSERT INTO schema_migrations (version) VALUES ('49');
+
+INSERT INTO schema_migrations (version) VALUES ('47');
+
+INSERT INTO schema_migrations (version) VALUES ('15');
+
+INSERT INTO schema_migrations (version) VALUES ('7');
+
+INSERT INTO schema_migrations (version) VALUES ('9');
+
+INSERT INTO schema_migrations (version) VALUES ('61');
+
+INSERT INTO schema_migrations (version) VALUES ('25');
+
+INSERT INTO schema_migrations (version) VALUES ('22');
+
+INSERT INTO schema_migrations (version) VALUES ('48');
+
+INSERT INTO schema_migrations (version) VALUES ('21');
+
+INSERT INTO schema_migrations (version) VALUES ('41');
+
+INSERT INTO schema_migrations (version) VALUES ('31');
+
+INSERT INTO schema_migrations (version) VALUES ('43');
+
+INSERT INTO schema_migrations (version) VALUES ('34');
+
+INSERT INTO schema_migrations (version) VALUES ('14');
+
+INSERT INTO schema_migrations (version) VALUES ('38');
+
+INSERT INTO schema_migrations (version) VALUES ('20');
+
+INSERT INTO schema_migrations (version) VALUES ('58');
+
+INSERT INTO schema_migrations (version) VALUES ('29');
+
+INSERT INTO schema_migrations (version) VALUES ('28');
+
+INSERT INTO schema_migrations (version) VALUES ('6');
+
+INSERT INTO schema_migrations (version) VALUES ('59');
+
+INSERT INTO schema_migrations (version) VALUES ('57');
+
+INSERT INTO schema_migrations (version) VALUES ('67');
+
+INSERT INTO schema_migrations (version) VALUES ('54');
+
+INSERT INTO schema_migrations (version) VALUES ('10');
+
+INSERT INTO schema_migrations (version) VALUES ('23');
+
+INSERT INTO schema_migrations (version) VALUES ('52');
+
+INSERT INTO schema_migrations (version) VALUES ('5');
+
+INSERT INTO schema_migrations (version) VALUES ('13');
+
+INSERT INTO schema_migrations (version) VALUES ('46');
+
+INSERT INTO schema_migrations (version) VALUES ('64');
+
+INSERT INTO schema_migrations (version) VALUES ('56');
+
+INSERT INTO schema_migrations (version) VALUES ('65');
+
+INSERT INTO schema_migrations (version) VALUES ('24');
+
+INSERT INTO schema_migrations (version) VALUES ('4');
+
+INSERT INTO schema_migrations (version) VALUES ('62');
+
+INSERT INTO schema_migrations (version) VALUES ('11');
+
+INSERT INTO schema_migrations (version) VALUES ('45');
+
+INSERT INTO schema_migrations (version) VALUES ('27');
+
+INSERT INTO schema_migrations (version) VALUES ('19');
+
+INSERT INTO schema_migrations (version) VALUES ('3');
+
+INSERT INTO schema_migrations (version) VALUES ('50');
+
+INSERT INTO schema_migrations (version) VALUES ('1');
+
+INSERT INTO schema_migrations (version) VALUES ('33');
+
+INSERT INTO schema_migrations (version) VALUES ('55');
+
+INSERT INTO schema_migrations (version) VALUES ('39');
+
+INSERT INTO schema_migrations (version) VALUES ('30');
+
+INSERT INTO schema_migrations (version) VALUES ('18');
+
+INSERT INTO schema_migrations (version) VALUES ('63');
+
+INSERT INTO schema_migrations (version) VALUES ('35');
+
+INSERT INTO schema_migrations (version) VALUES ('44');
+
+INSERT INTO schema_migrations (version) VALUES ('51');
+
+INSERT INTO schema_migrations (version) VALUES ('8');
+
+INSERT INTO schema_migrations (version) VALUES ('16');
+
+INSERT INTO schema_migrations (version) VALUES ('53');
+
+INSERT INTO schema_migrations (version) VALUES ('42');
+
+INSERT INTO schema_migrations (version) VALUES ('12');
+
+INSERT INTO schema_migrations (version) VALUES ('66');
+
+INSERT INTO schema_migrations (version) VALUES ('2');
+
+INSERT INTO schema_migrations (version) VALUES ('17');
+
+INSERT INTO schema_migrations (version) VALUES ('20080613012004');
+
+INSERT INTO schema_migrations (version) VALUES ('20080613012117');
+
+INSERT INTO schema_migrations (version) VALUES ('20080617034756');
+
+INSERT INTO schema_migrations (version) VALUES ('20080626011459');
+
+INSERT INTO schema_migrations (version) VALUES ('20080626013148');
+
+INSERT INTO schema_migrations (version) VALUES ('20080626013250');
+
+INSERT INTO schema_migrations (version) VALUES ('20080714014554');
+
+INSERT INTO schema_migrations (version) VALUES ('20080714014601');
+
+INSERT INTO schema_migrations (version) VALUES ('20080716235613');
+
+INSERT INTO schema_migrations (version) VALUES ('20080717054412');
+
+INSERT INTO schema_migrations (version) VALUES ('20080717062229');
+
+INSERT INTO schema_migrations (version) VALUES ('20080721103728');
+
+INSERT INTO schema_migrations (version) VALUES ('20080811015332');
+
+INSERT INTO schema_migrations (version) VALUES ('20080811021029');
+
+INSERT INTO schema_migrations (version) VALUES ('20080821033348');
+
+INSERT INTO schema_migrations (version) VALUES ('20080821035705');
+
+INSERT INTO schema_migrations (version) VALUES ('20080821035725');
+
+INSERT INTO schema_migrations (version) VALUES ('20080821041240');
+
+INSERT INTO schema_migrations (version) VALUES ('20080818042704');
+
+INSERT INTO schema_migrations (version) VALUES ('20080818051357');
+
+INSERT INTO schema_migrations (version) VALUES ('20080819053623');
+
+INSERT INTO schema_migrations (version) VALUES ('20080822065008');
+
+INSERT INTO schema_migrations (version) VALUES ('20080823033826');
+
+INSERT INTO schema_migrations (version) VALUES ('20080823063031');
+
+INSERT INTO schema_migrations (version) VALUES ('20080823064422');
+
+INSERT INTO schema_migrations (version) VALUES ('20080823075049');
+
+INSERT INTO schema_migrations (version) VALUES ('20080823091512');
+
+INSERT INTO schema_migrations (version) VALUES ('20080826055159');
+
+INSERT INTO schema_migrations (version) VALUES ('20080827014223');
+
+INSERT INTO schema_migrations (version) VALUES ('20080827005801');
+
+INSERT INTO schema_migrations (version) VALUES ('20080827072655');
+
+INSERT INTO schema_migrations (version) VALUES ('20080827234440');
+
+INSERT INTO schema_migrations (version) VALUES ('20080828003320');
+
+INSERT INTO schema_migrations (version) VALUES ('20080828003544');
+
+INSERT INTO schema_migrations (version) VALUES ('20080827023722');
+
+INSERT INTO schema_migrations (version) VALUES ('20080819011606');
+
+INSERT INTO schema_migrations (version) VALUES ('20080828043112');
+
+INSERT INTO schema_migrations (version) VALUES ('20080828050648');
+
+INSERT INTO schema_migrations (version) VALUES ('20080828060613');
+
+INSERT INTO schema_migrations (version) VALUES ('20080828071634');
+
+INSERT INTO schema_migrations (version) VALUES ('20080829053209');
+
+INSERT INTO schema_migrations (version) VALUES ('20080830030326');
+
+INSERT INTO schema_migrations (version) VALUES ('20080830031036');
+
+INSERT INTO schema_migrations (version) VALUES ('20080830045757');
+
+INSERT INTO schema_migrations (version) VALUES ('20080830051616');
+
+INSERT INTO schema_migrations (version) VALUES ('20080830064227');
+
+INSERT INTO schema_migrations (version) VALUES ('20080901123318');
+
+INSERT INTO schema_migrations (version) VALUES ('20080901124937');
+
+INSERT INTO schema_migrations (version) VALUES ('20080902041238');
+
+INSERT INTO schema_migrations (version) VALUES ('20080902041615');
+
+INSERT INTO schema_migrations (version) VALUES ('20080902044459');
+
+INSERT INTO schema_migrations (version) VALUES ('20080903012939');
+
+INSERT INTO schema_migrations (version) VALUES ('20080904002848');
+
+INSERT INTO schema_migrations (version) VALUES ('20080904021754');
+
+INSERT INTO schema_migrations (version) VALUES ('20080904025228');
+
+INSERT INTO schema_migrations (version) VALUES ('20080925024844');

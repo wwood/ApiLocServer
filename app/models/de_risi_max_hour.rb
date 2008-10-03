@@ -1,0 +1,2 @@
+class DeRisiMaxHour < MicroarrayTimepoint
+end

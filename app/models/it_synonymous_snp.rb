@@ -1,0 +1,2 @@
+class ItSynonymousSnp < FloatCodingRegionMeasurement
+end

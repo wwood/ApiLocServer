@@ -15,9 +15,7 @@ class Gene < ActiveRecord::Base
     :class_name => 'GeneNetworkEdge',
     :foreign_key => 'gene_id_second', 
     :dependent => :destroy
-  
-  has_many :drosophila_allele_genes, :dependent => :destroy
-  
+    
   # create a dummy gene to satisfy validation
   def create_dummy(dummy_name)
     sp = Species.find_or_create_by_name dummy_name

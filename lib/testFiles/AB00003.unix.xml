@@ -1,0 +1,665 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<TOPDB xmlns="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://topdb.enzim.hu/ TOPDB.xsd" ID="AB00003">
+  <Copyright>Copyrighted by the Institute of Enzymology, BRC, HAS, see http://topdb.enzim.hu/?m=terms</Copyright>
+  <Name>Alzheimer's disease amyloid A4 protein precursor</Name>
+  <Organism>Homo sapiens</Organism>
+  <CrossRef>
+    <UniProt ID="A4_HUMAN">
+      <AC>P05067</AC>
+      <AC>P09000</AC>
+      <AC>Q16011</AC>
+    </UniProt>
+    <PDB ID="1aap">
+      <Resolution>1.5</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="287" End="344"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>Kunitz protease inhibitor domain</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1amb">
+      <Resolution>N/A</Resolution>
+      <Method>NMR</Method>
+      <Chains>
+        <Chain ID="_">
+          <Fragment Begin="672" End="699"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>by similarity</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1amc">
+      <Resolution>N/A</Resolution>
+      <Method>NMR</Method>
+      <Chains>
+        <Chain ID="_">
+          <Fragment Begin="672" End="699"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>by similarity</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1ba4">
+      <Resolution>N/A</Resolution>
+      <Method>NMR</Method>
+      <Chains>
+        <Chain ID="_">
+          <Fragment Begin="672" End="711"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Inside">
+        <Note>according to fig 1</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1bjb">
+      <Resolution>N/A</Resolution>
+      <Method>NMR</Method>
+      <Chains>
+        <Chain ID="_">
+          <Fragment Begin="672" End="699"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>by similarity</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1bjc">
+      <Resolution>N/A</Resolution>
+      <Method>NMR</Method>
+      <Chains>
+        <Chain ID="_">
+          <Fragment Begin="672" End="699"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>by similarity</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1brc">
+      <Resolution>2.5</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="I">
+          <Fragment Begin="287" End="342"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>by similarity</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1ca0">
+      <Resolution>2.1</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="D">
+          <Fragment Begin="289" End="342"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>by similarity</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1mwp">
+      <Resolution>1.80</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="28" End="123"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>&gt;&gt;The predominant isoform in neuronal tissues is a&#13;
+695-residue protein that consists of a large N-terminal extracellular region, a transmembrane region and a small cytoplasmic tail2.&lt;&lt;&#13;
+Nat Struct Biol. 1999 Apr;6(4):327-31.</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1owt">
+      <Resolution>N/A</Resolution>
+      <Method>NMR</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="124" End="189"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>The N-terminal border was determined based on proteolysis of the whole extracellular domain</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1rw6">
+      <Resolution>2.80</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="361" End="570"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>Heparan sulfate proteoglycans, the putative ligand for the precursor present in extracellular matrix, bind to E2 at a conserved and positively charged site near the dimer interface.</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1taw">
+      <Resolution>1.8</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="B">
+          <Fragment Begin="287" End="344"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>by similarity</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1ze7">
+      <Resolution>N/A</Resolution>
+      <Method>NMR</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="672" End="687"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>The amyloid beta-peptide (Abeta), the major component of these extracellular deposits,</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1ze9">
+      <Resolution>N/A</Resolution>
+      <Method>NMR</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="672" End="687"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>The amyloid beta-peptide (Abeta), the major component of these extracellular deposits,</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="1zjd">
+      <Resolution>2.60</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="B">
+          <Fragment Begin="289" End="345"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>by similarity</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="2fjz">
+      <Resolution>1.61</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="131" End="189"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>APP can function as a metalloprotein and modulate copper (Cu) transport, presumably via its extracellular Cu-binding domain (CuBD).</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="2fk1">
+      <Resolution>1.60</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="131" End="189"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>APP can function as a metalloprotein and modulate copper (Cu) transport, presumably via its extracellular Cu-binding domain (CuBD).</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="2fk2">
+      <Resolution>1.65</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="131" End="189"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>APP can function as a metalloprotein and modulate copper (Cu) transport, presumably via its extracellular Cu-binding domain (CuBD).</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="2fk3">
+      <Resolution>2.40</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="131" End="189"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>APP can function as a metalloprotein and modulate copper (Cu) transport, presumably via its extracellular Cu-binding domain (CuBD).</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="2fkl">
+      <Resolution>2.50</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="124" End="189"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>APP can function as a metalloprotein and modulate copper (Cu) transport, presumably via its extracellular Cu-binding domain (CuBD).</Note>
+      </SideDefinition>
+    </PDB>
+    <PDB ID="2fma">
+      <Resolution>0.85</Resolution>
+      <Method>XRAY</Method>
+      <Chains>
+        <Chain ID="A">
+          <Fragment Begin="131" End="189"/>
+        </Chain>
+      </Chains>
+      <SideDefinition Side1="Outside">
+        <Note>APP can function as a metalloprotein and modulate copper (Cu) transport, presumably via its extracellular Cu-binding domain (CuBD).</Note>
+      </SideDefinition>
+    </PDB>
+  </CrossRef>
+  <Sequence Len="770" Checksum="7dd43312cd29a262acdc0517230bc5ca">
+    <Cleavable Begin="1" End="17" Type="Signal"/>
+    <Seq>
+      MLPGLALLLL AAWTARALEV PTDGNAGLLA EPQIAMFCGR LNMHMNVQNG 
+      KWDSDPSGTK TCIDTKEGIL QYCQEVYPEL QITNVVEANQ PVTIQNWCKR 
+      GRKQCKTHPH FVIPYRCLVG EFVSDALLVP DKCKFLHQER MDVCETHLHW 
+      HTVAKETCSE KSTNLHDYGM LLPCGIDKFR GVEFVCCPLA EESDNVDSAD 
+      AEEDDSDVWW GGADTDYADG SEDKVVEVAE EEEVAEVEEE EADDDEDDED 
+      GDEVEEEAEE PYEEATERTT SIATTTTTTT ESVEEVVREV CSEQAETGPC 
+      RAMISRWYFD VTEGKCAPFF YGGCGGNRNN FDTEEYCMAV CGSAMSQSLL 
+      KTTQEPLARD PVKLPTTAAS TPDAVDKYLE TPGDENEHAH FQKAKERLEA 
+      KHRERMSQVM REWEEAERQA KNLPKADKKA VIQHFQEKVE SLEQEAANER 
+      QQLVETHMAR VEAMLNDRRR LALENYITAL QAVPPRPRHV FNMLKKYVRA 
+      EQKDRQHTLK HFEHVRMVDP KKAAQIRSQV MTHLRVIYER MNQSLSLLYN 
+      VPAVAEEIQD EVDELLQKEQ NYSDDVLANM ISEPRISYGN DALMPSLTET 
+      KTTVELLPVN GEFSLDDLQP WHSFGADSVP ANTENEVEPV DARPAADRGL 
+      TTRPGSGLTN IKTEEISEVK MDAEFRHDSG YEVHHQKLVF FAEDVGSNKG 
+      AIIGLMVGGV VIATVIVITL VMLKKKQYTS IHHGVVEVDA AVTPEERHLS 
+      KMQQNGYENP TYKFFEQMQN 
+    </Seq>
+  </Sequence>
+  <Membrane>Plasma membrane;Cytoplasm;Extracellular</Membrane>
+  <Topology>
+    <Reliability>100</Reliability>
+    <Numtm Count="1"/>
+    <Regions>
+      <Region Begin="1" End="17" Loc="Signal"/>
+      <Region Begin="18" End="692" Loc="Outside"/>
+      <Region Begin="693" End="707" Loc="Membrane"/>
+      <Region Begin="708" End="770" Loc="Inside"/>
+    </Regions>
+    <hmmtop_arguments>-bias 0.001</hmmtop_arguments>
+  </Topology>
+  <Experiments>
+    <Region Begin="1" End="17" Loc="Signal" ID="00000">
+      <Exp Ref="2900137">
+        <Type>Protease</Type>
+        <Subtype>Signal Peptidase</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="28" End="123" Loc="Side1" ID="00001">
+      <Exp Ref="10201399" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1mwp">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="124" End="189" Loc="Side1" ID="00002">
+      <Exp Ref="12611883" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1owt">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="126" End="189" Loc="Side1" ID="00003">
+      <Exp Ref="17239395" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="2fkl">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="131" End="189" Loc="Side1" ID="00004">
+      <Exp Ref="17239395" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="2fjz">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="131" End="189" Loc="Side1" ID="00005">
+      <Exp Ref="17239395" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="2fk1">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="131" End="189" Loc="Side1" ID="00006">
+      <Exp Ref="17239395" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="2fk2">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="131" End="189" Loc="Side1" ID="00007">
+      <Exp Ref="17239395" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="2fk3">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="131" End="189" Loc="Side1" ID="00008">
+      <Exp Ref="17239395" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="2fma">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="287" End="342" Loc="Side1" ID="00009">
+      <Exp Ref="2125487" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1aap">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="287" End="342" Loc="Side1" ID="00010">
+      <Exp Ref="8478942" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1brc">
+          <Chains>
+            <Chain ID="I"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="289" End="342" Loc="Side1" ID="00011">
+      <Exp Ref="2125487" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1ca0">
+          <Chains>
+            <Chain ID="D"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="289" End="342" Loc="Side1" ID="00012">
+      <Exp Ref="2125487" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1taw">
+          <Chains>
+            <Chain ID="B"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="289" End="345" Loc="Side1" ID="00013">
+      <Exp Ref="16085935" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1zjd">
+          <Chains>
+            <Chain ID="B"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="374" End="565" Loc="Side1" ID="00014">
+      <Exp Ref="15304215" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1rw6">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="542" End="542" Loc="Outside" ID="00015">
+      <Exp Ref="2900137">
+        <Type>PostTransMod</Type>
+        <Subtype>NGlyc</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="571" End="571" Loc="Outside" ID="00016">
+      <Exp Ref="2900137">
+        <Type>PostTransMod</Type>
+        <Subtype>NGlyc</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="672" End="687" Loc="Side2" ID="00017">
+      <Exp Ref="9693002" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1ba4">
+          <Chains>
+            <Chain ID="_"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="672" End="699" Loc="Side1" ID="00018">
+      <Exp Ref="7516706" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1amb">
+          <Chains>
+            <Chain ID="_"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="672" End="699" Loc="Side1" ID="00019">
+      <Exp Ref="7516706" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1amc">
+          <Chains>
+            <Chain ID="_"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="672" End="699" Loc="Side1" ID="00020">
+      <Exp Ref="10940222" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1bjb">
+          <Chains>
+            <Chain ID="_"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="672" End="699" Loc="Side1" ID="00021">
+      <Exp Ref="10940222" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1bjc">
+          <Chains>
+            <Chain ID="_"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="672" End="699" Loc="Side1" ID="00028">
+      <Exp Ref="AB00834" Ref2="00000">
+        <Type>Similarity</Type>
+        <Subtype>TOPDB</Subtype>
+      </Exp>
+    </Region>
+    <Region Begin="673" End="1" Loc="Side1" ID="00022">
+      <Exp Ref="16301322" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1ze7">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="673" End="1" Loc="Side1" ID="00023">
+      <Exp Ref="16301322" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1ze9">
+          <Chains>
+            <Chain ID="A"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="688" End="707" Loc="Membrane" ID="00024">
+      <Exp Ref="9693002" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1ba4">
+          <Chains>
+            <Chain ID="_"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="708" End="711" Loc="Side1" ID="00025">
+      <Exp Ref="9693002" Ref2="15180935">
+        <Type>Structure</Type>
+        <Subtype>PDBTM</Subtype>
+        <pdbRef ID="1ba4">
+          <Chains>
+            <Chain ID="_"/>
+          </Chains>
+        </pdbRef>
+      </Exp>
+    </Region>
+    <Region Begin="731" End="770" Loc="Inside" ID="00026">
+      <Exp Ref="2900137">
+        <Type>Protease</Type>
+        <Subtype>Partial Proteolysis</Subtype>
+        <Expdata>
+          <Value>(ProtK protease)</Value>
+        </Expdata>
+      </Exp>
+    </Region>
+    <Region Begin="747" End="770" Loc="Inside" ID="00027">
+      <Exp Ref="2900137">
+        <Type>Protease</Type>
+        <Subtype>Partial Proteolysis</Subtype>
+        <Expdata>
+          <Value>(Tryp protease)</Value>
+        </Expdata>
+      </Exp>
+    </Region>
+  </Experiments>
+  <References>
+    <Reference PMID="1610809">
+      <Journal>Biochemistry. 1992 Jun 23;31(24):5621-31.</Journal>
+    </Reference>
+    <Reference PMID="1853202">
+      <Journal>Science. 1991 Jul 12;253(5016):179-82.</Journal>
+    </Reference>
+    <Reference PMID="2125487">
+      <Journal>Biochemistry. 1990 Oct 30;29(43):10018-22.</Journal>
+    </Reference>
+    <Reference PMID="2900137">
+      <Journal>EMBO J 1988 Apr;7(4):949-57</Journal>
+      <Note>Residue numbers in the article were corrected, according to the 
+      alternative splicing. In type695 (used in the article) the 290-364 
+      region is missing, therefore 75 was added to residue number if it was
+      larger than 290.
+    </Note>
+      <AuPred>
+        <Region Begin="1" End="17" Loc="Signal"/>
+        <Region Begin="18" End="699" Loc="Outside"/>
+        <Region Begin="700" End="723" Loc="Membrane" TmRun="oi"/>
+        <Region Begin="724" End="770" Loc="Inside"/>
+      </AuPred>
+    </Reference>
+    <Reference PMID="7516706">
+      <Journal>Biochemistry. 1994 Jun 28;33(25):7788-96.</Journal>
+    </Reference>
+    <Reference PMID="7683059">
+      <Journal>J Mol Biol. 1993 Apr 5;230(3):919-33.</Journal>
+    </Reference>
+    <Reference PMID="8478942">
+      <Journal>J Mol Biol. 1993 Apr 5;230(3):934-49.</Journal>
+    </Reference>
+    <Reference PMID="9693002">
+      <Journal>Biochemistry 1998 Aug 4;37(31):11064-77</Journal>
+      <AuPred>
+        <Note>NMR structure</Note>
+        <Region Begin="1" End="17" Loc="Signal"/>
+        <Region Begin="18" End="667" Loc="Outside"/>
+        <Region Begin="668" End="689" Loc="Membrane" TmRun="oi"/>
+        <Region Begin="690" End="770" Loc="Inside"/>
+      </AuPred>
+    </Reference>
+    <Reference PMID="10201399">
+      <Journal>Nat Struct Biol. 1999 Apr;6(4):327-31.</Journal>
+    </Reference>
+    <Reference PMID="10940222">
+      <Journal>J Struct Biol. 2000 Jun;130(2-3):142-52.</Journal>
+    </Reference>
+    <Reference PMID="12611883">
+      <Journal>J Biol Chem. 2003 May 9;278(19):17401-7. Epub 2003 Feb 28.</Journal>
+    </Reference>
+    <Reference PMID="15180935">
+      <Journal>Bioinformatics. 2004 Nov 22;20(17):2964-72. Epub 2004 Jun 4.</Journal>
+    </Reference>
+    <Reference PMID="15304215">
+      <Journal>Mol Cell. 2004 Aug 13;15(3):343-53.</Journal>
+    </Reference>
+    <Reference PMID="16085935">
+      <Journal>J Biol Chem. 2005 Oct 28;280(43):36165-75. Epub 2005 Aug 6.</Journal>
+    </Reference>
+    <Reference PMID="16301322">
+      <Journal>J Biol Chem. 2006 Jan 27;281(4):2151-61.</Journal>
+    </Reference>
+    <Reference PMID="17239395">
+      <Journal>J Mol Biol. 2006 Dec 21; [Epub ahead of print]</Journal>
+    </Reference>
+  </References>
+</TOPDB>

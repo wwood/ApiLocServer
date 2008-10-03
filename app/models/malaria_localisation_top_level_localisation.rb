@@ -1,0 +1,2 @@
+class MalariaLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
+end

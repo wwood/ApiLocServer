@@ -1,0 +1,9 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  developmental_stage_id: 1
+  name: MyString
+
+two:
+  developmental_stage_id: 1
+  name: MyString

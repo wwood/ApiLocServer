@@ -105,6 +105,14 @@ module SignalSequence
     def signal?(clazz=self)
       return (clazz.send(:nn_D_prediction) or clazz.send(:hmm_Sprob_prediction))
     end
+    
+    def classical_signal_sequence?
+      return @nn_D_prediction
+    end
+    
+    def signal_anchor?
+      return @hmm_Sprob_prediction
+    end
   
     # Return an array of all the results. NN then HMM, as per SignalP short format
     def all_results

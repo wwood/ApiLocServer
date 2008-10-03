@@ -1,0 +1,15 @@
+apidb|MAL11	ApiDB	gene	1925939	1933147	.	+	.	ID=apidb|MAL11_rRNA;Name=MAL11_rRNA;description=MAL11_rRNA;size=7209;web_id=MAL11_rRNA;locus_tag=MAL11_rRNA;size=7209
+apidb|MAL11	ApiDB	mRNA	1925939	1933147	.	+	.	ID=apidb|rna_MAL11_rRNA-1;Name=MAL11_rRNA-1;description=MAL11_rRNA-1;size=7209;Parent=apidb|MAL11_rRNA;Dbxref=ApiDB_PlasmoDB:MAL11_rRNA,taxon:36329
+apidb|MAL11	ApiDB	CDS	1925939	1933147	.	+	0	ID=apidb|cds_MAL11_rRNA-1;Name=cds;description=.;size=7209;Parent=apidb|rna_MAL11_rRNA-1
+apidb|MAL11	ApiDB	exon	1925939	1933147	.	+	.	ID=apidb|exon_MAL11_rRNA;Name=exon;description=exon;size=7209;Parent=apidb|rna_MAL11_rRNA-1
+apidb|M76611	ApiDB	gene	5447	5507	.	-	.	ID=apidb|malmito_rna_SSUF;Name=malmito_rna_SSUF;description=malmito_rna_SSUF;size=61;web_id=malmito_rna_SSUF;locus_tag=malmito_rna_SSUF;size=61
+apidb|M76611	ApiDB	mRNA	5447	5507	.	-	.	ID=apidb|rna_malmito_rna_SSUF-1;Name=malmito_rna_SSUF-1;description=malmito_rna_SSUF-1;size=61;Parent=apidb|malmito_rna_SSUF;Dbxref=ApiDB_PlasmoDB:malmito_rna_SSUF,taxon:36329
+apidb|M76611	ApiDB	CDS	5447	5507	.	-	0	ID=apidb|cds_malmito_rna_SSUF-1;Name=cds;description=.;size=61;Parent=apidb|rna_malmito_rna_SSUF-1
+apidb|M76611	ApiDB	exon	5447	5507	.	-	.	ID=apidb|exon_malmito_rna_SSUF;Name=exon;description=exon;size=61;Parent=apidb|rna_malmito_rna_SSUF-1
+apidb|MAL11	ApiDB	gene	1925939	1933147	.	+	.	ID=apidb|MAL11_rRNA;Name=MAL11_rRNA;description=MAL11_rRNA;size=7209;web_id=MAL11_rRNA;locus_tag=MAL11_rRNA;size=7209
+apidb|MAL11	ApiDB	mRNA	1925939	1933147	.	+	.	ID=apidb|rna_MAL11_rRNA-1;Name=MAL11_rRNA-1;description=MAL11_rRNA-1;size=7209;Parent=apidb|MAL11_rRNA;Dbxref=ApiDB_PlasmoDB:MAL11_rRNA,taxon:36329
+apidb|MAL11	ApiDB	CDS	1925939	1933147	.	+	0	ID=apidb|cds_MAL11_rRNA-1;Name=cds;description=.;size=7209;Parent=apidb|rna_MAL11_rRNA-1
+apidb|MAL11	ApiDB	exon	1925939	1933147	.	+	.	ID=apidb|exon_MAL11_rRNA;Name=exon;description=exon;size=7209;Parent=apidb|rna_MAL11_rRNA-1
+##FASTA
+>blah
+ATG

@@ -1,24 +1,33 @@
 class Publication < ActiveRecord::Base
+  has_many :expression_contexts, :dependent => :destroy
   
   # Given a pubmed id, or url (or more than one separated by commas. Create them and return an array of them
-  def self.create_from_ids_or_urls(publications_string)
+  def self.find_create_from_ids_or_urls(publications_string)
     pubs = []
     publications_string.split(',').each do |str|
       str.strip!
-      pub = Publication.new
+      pub = nil
       if str.to_i.to_s === str #if it is an integer, it's a pubmed id
-        pub.pubmed_id = str.to_i
+        pub = Publication.find_or_create_by_pubmed_id str.to_i
       else
         # make sure the parsing problem is a-ok
-        if !str.match('^http')
+        if !str.match('^http') and !str.match('unpublished')
           raise ParseException, "Couldn't parse #{pub} as a publication"
         end
-        pub.url = str
+        pub = Publication.find_or_create_by_url str
       end
-      pub.save!
       pubs.push pub
     end
     return pubs
+  end
+  
+  # A short definition - either a pubmed id or the url if no pubmed id is recorded
+  def definition
+    if pubmed_id.nil?
+      return url
+    else
+      return pubmed_id
+    end
   end
 end
 

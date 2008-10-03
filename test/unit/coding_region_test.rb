@@ -66,4 +66,26 @@ class CodingRegionTest < ActiveSupport::TestCase
     # could test mroe here with alternates, but meh
     
   end
+  
+  def test_single_gene
+    # test good
+    o = CodingRegion.find(2).single_orthomcl
+    assert_kind_of OrthomclGene, o
+    assert_equal 2, o.id
+    
+    # test fail with no orthomcl gene
+    assert_raise UnexpectedOrthomclGeneCount do
+      CodingRegion.find(7).single_orthomcl
+    end
+    
+    # test fail with multiple orthomcl genes
+    assert_raise UnexpectedOrthomclGeneCount do
+      CodingRegion.find(1).single_orthomcl
+    end
+    
+    # test fail when single one is non-official
+    assert_raise UnexpectedOrthomclGeneCount do
+      CodingRegion.find(3).single_orthomcl
+    end
+  end
 end

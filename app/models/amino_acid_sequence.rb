@@ -2,6 +2,8 @@
 #gem 'bio'
 require 'bio'
 require 'bl2seq_runner'
+require 'plasmo_a_p'
+require 'export_pred'
 
 class AminoAcidSequence < Sequence
   belongs_to :coding_region
@@ -32,5 +34,21 @@ class AminoAcidSequence < Sequence
   
   def signalp_columns
     return SignalP.calculate_signal(sequence).all_results
+  end
+  
+  alias_method :signal?, :signal_p?
+  alias_method :signalp?, :signal_p?
+  
+  
+  def targetp
+    TargetPWrapper.new.targetp(sequence)
+  end
+  
+  def plasmo_a_p
+    Bio::PlasmoAP.new.calculate_score(sequence)
+  end
+  
+  def exportpred
+    Bio::ExportPred::Wrapper.new.calculate(sequence)
   end
 end

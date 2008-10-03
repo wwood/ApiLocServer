@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080828071634) do
+ActiveRecord::Schema.define(:version => 20080930054745) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -19,6 +19,17 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
   end
 
   add_index "annotations", ["annotation", "coding_region_id"], :name => "index_annotations_on_coding_region_id_and_annotation", :unique => true
+
+  create_table "binary_coding_region_measurements", :force => true do |t|
+    t.integer  "coding_region_id", :null => false
+    t.boolean  "value"
+    t.string   "type"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "binary_coding_region_measurements", ["coding_region_id"], :name => "index_binary_coding_region_measurements_on_coding_region_id"
+  add_index "binary_coding_region_measurements", ["coding_region_id", "type"], :name => "index_binary_coding_region_measurements_on_coding_region_id_and"
 
   create_table "brafl_upstream_distances", :force => true do |t|
     t.integer  "go_term_id",        :null => false
@@ -67,6 +78,7 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
     t.datetime "updated_at"
   end
 
+  add_index "coding_region_alternate_string_ids", ["coding_region_id"], :name => "index_coding_region_alternate_string_ids_on_coding_region_id"
   add_index "coding_region_alternate_string_ids", ["coding_region_id", "name"], :name => "index_coding_region_alternate_string_ids_on_coding_region_id_an", :unique => true
   add_index "coding_region_alternate_string_ids", ["name"], :name => "index_coding_region_alternate_string_ids_on_name"
 
@@ -162,26 +174,29 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
   add_index "coding_regions", ["orientation"], :name => "index_coding_regions_on_orientation"
   add_index "coding_regions", ["string_id"], :name => "index_coding_regions_on_string_id"
 
+  create_table "comments", :force => true do |t|
+    t.integer  "expression_context_id", :null => false
+    t.string   "comment",               :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "comments", ["expression_context_id"], :name => "index_comments_on_expression_context_id"
+
   create_table "derisi20063d7logmean", :force => true do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  create_table "developmental_stage_localisation_publications", :force => true do |t|
-    t.integer  "developmental_stage_localisations_id", :null => false
-    t.integer  "publication_id",                       :null => false
+  create_table "developmental_stage_synonyms", :force => true do |t|
+    t.integer  "developmental_stage_id"
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  add_index "developmental_stage_localisation_publications", ["developmental_stage_localisations_id", "publication_id"], :name => "index_developmental_stage_localisation_publications_on_developm", :unique => true
-
-  create_table "developmental_stage_localisations", :force => true do |t|
-    t.integer  "localisation_id",        :null => false
-    t.integer  "developmental_stage_id", :null => false
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
+  add_index "developmental_stage_synonyms", ["developmental_stage_id"], :name => "index_developmental_stage_synonyms_on_developmental_stage_id"
+  add_index "developmental_stage_synonyms", ["name"], :name => "index_developmental_stage_synonyms_on_name"
 
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
@@ -216,6 +231,27 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
 
   add_index "drosophila_allele_phenotypes", ["phenotype"], :name => "index_drosophila_allele_phenotypes_on_phenotype"
 
+  create_table "expression_contexts", :force => true do |t|
+    t.integer  "coding_region_id",       :null => false
+    t.integer  "publication_id"
+    t.integer  "localisation_id"
+    t.integer  "developmental_stage_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "expression_contexts", ["coding_region_id"], :name => "index_expression_contexts_on_coding_region_id"
+
+  create_table "float_coding_region_measurements", :force => true do |t|
+    t.string   "type"
+    t.integer  "coding_region_id"
+    t.float    "value"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "float_coding_region_measurements", ["coding_region_id", "type"], :name => "index_float_coding_region_measurements_on_type_and_coding_regio"
+
   create_table "gene_alternate_names", :force => true do |t|
     t.integer  "gene_id"
     t.string   "name"
@@ -235,6 +271,8 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
     t.datetime "updated_at"
   end
 
+  add_index "gene_network_edges", ["gene_id_first"], :name => "index_gene_network_edges_on_gene_id_first"
+  add_index "gene_network_edges", ["gene_id_second"], :name => "index_gene_network_edges_on_gene_id_second"
   add_index "gene_network_edges", ["gene_id_first", "gene_id_second", "gene_network_id"], :name => "index_gene_network_edges_on_gene_network_id_and_gene_id_first_a", :unique => true
 
   create_table "gene_networks", :force => true do |t|
@@ -312,12 +350,15 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
     t.datetime "updated_at"
   end
 
-  create_table "localisation_literatures", :force => true do |t|
-    t.integer  "pmid",                   :null => false
-    t.integer  "localisation_method_id", :null => false
+  create_table "integer_coding_region_measurements", :force => true do |t|
+    t.string   "type"
+    t.integer  "coding_region_id"
+    t.integer  "value"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "integer_coding_region_measurements", ["coding_region_id", "type"], :name => "index_integer_coding_region_measurements_on_type_and_coding_reg"
 
   create_table "localisation_methods", :force => true do |t|
     t.string   "description"
@@ -333,6 +374,18 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "localisation_top_level_localisations", :force => true do |t|
+    t.integer  "localisation_id"
+    t.integer  "top_level_localisation_id"
+    t.string   "type"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "localisation_top_level_localisations", ["localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_localisation_id_a"
+  add_index "localisation_top_level_localisations", ["top_level_localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_top_level_localis"
+  add_index "localisation_top_level_localisations", ["localisation_id", "top_level_localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_type_and_localisa"
 
   create_table "localisations", :force => true do |t|
     t.string   "name",       :null => false
@@ -427,6 +480,7 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
   end
 
   add_index "orthomcl_genes", ["orthomcl_group_id", "orthomcl_name"], :name => "index_orthomcl_genes_on_orthomcl_group_id_and_orthomcl_name", :unique => true
+  add_index "orthomcl_genes", ["orthomcl_name"], :name => "index_orthomcl_genes_on_orthomcl_name"
 
   create_table "orthomcl_groups", :force => true do |t|
     t.string   "orthomcl_name"
@@ -435,11 +489,16 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
     t.integer  "orthomcl_run_id", :null => false
   end
 
+  add_index "orthomcl_groups", ["orthomcl_run_id"], :name => "index_orthomcl_groups_on_orthomcl_run_id"
+  add_index "orthomcl_groups", ["orthomcl_name", "orthomcl_run_id"], :name => "index_orthomcl_groups_on_orthomcl_run_id_and_orthomcl_name"
+
   create_table "orthomcl_runs", :force => true do |t|
     t.string   "name",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "orthomcl_runs", ["name"], :name => "index_orthomcl_runs_on_name", :unique => true
 
   create_table "phenotype_informations", :force => true do |t|
     t.string   "dbxref"
@@ -528,8 +587,7 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
     t.datetime "updated_at"
   end
 
-  add_index "sequences", ["coding_region_id"], :name => "index_sequences_on_coding_region_id", :unique => true
-  add_index "sequences", ["coding_region_id", "type"], :name => "index_sequences_on_coding_region_id_and_type"
+  add_index "sequences", ["coding_region_id", "type"], :name => "index_sequences_on_coding_region_id_and_type", :unique => true
 
   create_table "signal_ps", :force => true do |t|
     t.datetime "created_at"
@@ -540,6 +598,7 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "orthomcl_three_letter"
   end
 
   create_table "taxon_names", :force => true do |t|
@@ -552,6 +611,12 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
     t.datetime "updated_at"
   end
 
+  create_table "top_level_localisations", :force => true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "transmembrane_domain_measurements", :force => true do |t|
     t.integer  "coding_region_id"
     t.decimal  "measurement",                                                  :null => false
@@ -560,7 +625,7 @@ ActiveRecord::Schema.define(:version => 20080828071634) do
     t.string   "type",             :default => "MinTransmembraneDomainLength", :null => false
   end
 
-  add_index "transmembrane_domain_measurements", ["coding_region_id", "type"], :name => "index_min_transmembrane_domain_lengths_on_coding_region_id_and_", :unique => true
+  add_index "transmembrane_domain_measurements", ["coding_region_id"], :name => "index_transmembrane_domain_measurements_on_coding_region_id"
 
   create_table "transmembrane_domains", :force => true do |t|
     t.integer  "coding_region_id", :null => false

@@ -1,9 +1,7 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
-one:
-  name: MyString
-  localisation_id: 1
+fv:
+  id: 1
+  localisation_id: 3
+  name: fv
 
-two:
-  name: MyString
-  localisation_id: 1
