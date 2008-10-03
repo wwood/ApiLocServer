@@ -2,9 +2,9 @@ class CodingRegion < ActiveRecord::Base
   
   #  validates_presence_of :orientation
   
-  has_one :coding_region_go_term, :dependent => :destroy
+  has_many :coding_region_go_terms, :dependent => :destroy
   has_many :go_terms, 
-    {:through => :coding_region_go_term}
+    {:through => :coding_region_go_terms}
   belongs_to :gene
   has_many :cds, :dependent => :destroy
   has_many :coding_region_alternate_string_ids, :dependent => :destroy

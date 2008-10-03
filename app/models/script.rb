@@ -5333,30 +5333,39 @@ class Script < ActiveRecord::Base
   end
   
   
-  
-  def upload_elegans_go_terms
-    genes = Bio::WormbaseGoFile.new("#{DATA_DIR}/elegans/wormbase/WS187/annotations/GO/GO.WS187.txt").genes
+  # Upload Wormbase genes, proteins and go terms from scratch
+  def upload_elegans_go_terms_and_genes
+    genes = Bio::WormbaseGoFile.new("#{DATA_DIR}/elegans/wormbase/WS191/annotations/gene_ontology/c_elegans.WS191.gene_ontology.txt").genes
     
-    #    $ grep WBGene GO.WS190.txt |wc -l
-    #31499
-    #$ grep WBGene GO.WS187.txt |wc -l
-    #31316
-    if genes.length != 31316
-      raise Exception, "Unexpected number of genes found in GO file."
+    protein_names = []
+    File.open("#{DATA_DIR}/elegans/wormbase/WS191/cel_protein-coding_geneids_v191").each do |line|
+      protein_names.push line.strip
     end
     
+    #    #    $ grep WBGene GO.WS190.txt |wc -l
+    #    #31499
+    #    #$ grep WBGene GO.WS187.txt |wc -l
+    #    #31316
+    #    if genes.length != 31316
+    #      raise Exception, "Unexpected number of genes found in GO file."
+    #    end
+    
+
+    sp = Species.find_by_name(Species.elegans_name)
+    raise if sp.scaffolds.length < 2 #make sure we are still hacking this stuff
+    scaf = find_or_create_by_species_id_and_name(Species.elegans_name)
+    
     genes.each do |gene|
-      next if gene.go_identifiers.empty?
-      code = CodingRegion.fs(gene.name, Species.elegans_name)
-      if !code
-        $stderr.puts "No coding region found: #{gene.name}"
-        next
-      end
+      # ignore nothings and
+      # ignore non-protein coding genes
+      next if gene.go_identifiers.empty? or !protein_names.include?(gene.protein_name)
+      gd = Gene.find_or_create_by_name_and_scaffold_id(gene.gene_name, scaf.id)
+      cd = CodingRegion.find_or_create_by_string_id_and_gene_id(gene.protein_name, gd.id)
       
       gene.go_identifiers.each do |go_id|
         g = GoTerm.find_or_create_by_go_identifier(go_id)
         CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id(
-          g.id, code.id
+          g.id, cd.id
         )
       end
     end
@@ -5371,5 +5380,44 @@ class Script < ActiveRecord::Base
       end
     end
   end
+  
+  # Print out a list of elegans genes classed as enzymes, gpcr, etc. - stuff that is assayable
+  def elegans_enzyme_genes
+    go_getter = Bio::Go.new
+    gos = [
+      #      'GO:0005215', #transport
+      'GO:0004930', # G-Protein Coupled Receptors
+      'GO:0003824' # Enzyme
+    ]
+    good_gos = []
+    gos.each do |go|
+      good_gos = [
+        good_gos, 
+        go_getter.molecular_function_offspring(go)
+      ].uniq.flatten
+    end
+    CodingRegion.s(Species.elegans_name).all.each do |code|
+      yes = false
+      code.go_terms.reach.go_identifier.each do |go|
+        if good_gos.include?(go)
+          yes = true
+        end
+      end
+      if yes
+        puts code.string_id
+      end
+    end
+  end
+  
+  def check_elegans_protein_coding_differences
+    File.open("#{DATA_DIR}/elegans/wormbase/WS191/cel_protein-coding_geneids_v191").each do |line|
+
+      line.strip!
+      if !CodingRegion.fs(line, Species.elegans_name)
+        puts line
+      end
+    end
+  end
+  
 end
 
