@@ -34,4 +34,12 @@ class GoTest < Test::Unit::TestCase
   #    assert_equal ['GO:0005743'],
   #      @go.cc_pdb_to_go('2a06')
   #  end
+  
+  def test_go_term
+    # test MF
+   assert_equal "G-protein coupled receptor activity", @go.term('GO:0004930')
+   
+    # test CC
+    assert_equal 'endoplasmic reticulum', @go.term('GO:0005783')
+  end
 end

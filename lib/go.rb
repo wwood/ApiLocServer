@@ -38,6 +38,11 @@ module Bio
       return answers
     end
     
+    # Retrieve the string description of the given go identifier
+    def term(go_id)
+      @r.eval_R("Term(get('#{go_id}', GOTERM))")
+    end
+    
     # Retrieve the GO annotations associated with a PDB id,
     # using Bio::Fetch PDB and UniprotKB at EBI
     def cc_pdb_to_go(pdb_id)
