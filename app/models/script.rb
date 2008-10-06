@@ -5420,6 +5420,29 @@ class Script < ActiveRecord::Base
       end
     end
   end
+
+  def enzyme_go_ids_and_descriptions
+    go_getter = Bio::Go.new
+    gos = [
+      #      'GO:0005215', #transport
+      'GO:0004930', # G-Protein Coupled Receptors
+      'GO:0003824' # Enzyme
+    ]
+    good_gos = []
+    gos.each do |go|
+      good_gos = [
+        good_gos, 
+        go_getter.molecular_function_offspring(go)
+      ].flatten.sort.uniq
+    end
+    
+    good_gos.each do |go_id|
+      puts [
+        go_id,
+        go_getter.term(go_id)
+      ].join("\t")
+    end
+  end
   
 end
 
