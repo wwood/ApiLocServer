@@ -1,7 +1,7 @@
 class CreateCodingRegionNetworkEdges < ActiveRecord::Migration
   def self.up
     create_table :coding_region_network_edges do |t|
-      t.integer :network_id, :integer, :null => false
+      t.integer :network_id, :null => false
       t.integer :coding_region_id_first, :null => false
       t.integer :coding_region_id_second, :null => false
       t.decimal :strength

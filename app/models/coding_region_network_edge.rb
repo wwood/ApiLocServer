@@ -1,23 +1,35 @@
 class CodingRegionNetworkEdge < ActiveRecord::Base
   belongs_to :network
   belongs_to :coding_region_1,
-    :foreign_key => 'coding_region_id_1',
+    :foreign_key => 'coding_region_id_first',
     :class_name => 'CodingRegion'
   belongs_to :coding_region_2,
-    :foreign_key => 'coding_region_id_1',
+    :foreign_key => 'coding_region_id_second',
     :class_name => 'CodingRegion'
   
-  # There is no order to the ids, so it there is 2 possible ways to find
-  # the edge between 2 coding regions
-  def self.find_by_coding_region_ids(network_name, id1, id2)
-    CodingRegionNetworkEdge.first(
-      :include => :network,
-      :conditions => ['networks.name = ? and ((coding_region_1 = ? and coding_region_2 = ?) or (coding_region_1 = ? and coding_region_2 = ?))', 
-        network_name, 
-        id1, id2,
-        id2, id1
+  named_scope :coding_region_ids, lambda{ |coding_region_id_1, coding_region_id_2|
+    {
+      :conditions => ['(coding_region_id_first = ? and coding_region_id_second = ?) or (coding_region_id_first = ? and coding_region_id_second = ?)', 
+        coding_region_id_1, coding_region_id_2,
+        coding_region_id_2, coding_region_id_1
       ]
-    )
-  end
-    
+    }
+  }
+  named_scope :network_name, lambda {|network_name|
+    {
+      :include => :network,
+      :conditions => ['networks.name = ?', network_name]
+    }
+  }
+  named_scope :wormnet, lambda {
+    {
+      :include => :network,
+      :conditions => ['networks.name = ?', Network::WORMNET_NAME]
+    }
+  }
+  named_scope :wormnet_core, lambda {
+    {
+      :conditions => ['strength >=?', Network::WORMNET_CORE_CUTOFF_STRENGTH]
+    }
+  } 
 end

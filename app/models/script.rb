@@ -3574,16 +3574,21 @@ class Script < ActiveRecord::Base
       
       # Wormnet finds genes and not coding regions, which is kind of confusing.
       # find gene if it exists
-      g1 = Gene.find_by_name_or_alternate_and_organism(row[0], Species.elegans_name)
-      g2 = Gene.find_by_name_or_alternate_and_organism(row[1], Species.elegans_name)
+      g1 = CodingRegion.find_by_name_or_alternate_and_organism(row[0], Species.elegans_name)
+      g2 = CodingRegion.find_by_name_or_alternate_and_organism(row[1], Species.elegans_name)
 
       
-      if !g1 or !g2
-        $stderr.puts "Couldn't find gene #{row[0]} or #{row[1]}"
+      if !g1
+        puts "Couldn't find gene #{row[0]}"
         next
       end
       
-      GeneNetworkEdge.find_or_create_by_gene_network_id_and_gene_id_first_and_gene_id_second_and_strength(
+      if !g2
+        puts "Couldn't find gene #{row[1]}"
+        next
+      end
+      
+      CodingRegionNetworkEdge.find_or_create_by_network_id_and_coding_region_id_first_and_coding_region_id_second_and_strength(
         net.id,
         g1.id,
         g2.id,

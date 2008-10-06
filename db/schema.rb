@@ -121,7 +121,6 @@ ActiveRecord::Schema.define(:version => 20080930054745) do
 
   create_table "coding_region_network_edges", :force => true do |t|
     t.integer  "network_id",              :null => false
-    t.integer  "integer",                 :null => false
     t.integer  "coding_region_id_first",  :null => false
     t.integer  "coding_region_id_second", :null => false
     t.decimal  "strength"
