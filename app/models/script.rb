@@ -5335,7 +5335,7 @@ class Script < ActiveRecord::Base
   
   # Upload Wormbase genes, proteins and go terms from scratch
   def upload_elegans_go_terms_and_genes
-    genes = Bio::WormbaseGoFile.new("#{DATA_DIR}/elegans/wormbase/WS191/annotations/gene_ontology/c_elegans.WS191.gene_ontology.txt").genes
+    genes = Bio::WormbaseGoFile.new("#{DATA_DIR}/elegans/wormbase/WS194/annotations/gene_ontology/c_elegans.WS194.gene_ontology.txt").genes
     
     protein_names = []
     File.open("#{DATA_DIR}/elegans/wormbase/WS191/cel_protein-coding_geneids_v191").each do |line|
@@ -5351,14 +5351,13 @@ class Script < ActiveRecord::Base
     #    end
     
 
-    sp = Species.find_by_name(Species.elegans_name)
-    raise if sp.scaffolds.length < 2 #make sure we are still hacking this stuff
-    scaf = find_or_create_by_species_id_and_name(Species.elegans_name)
+    sp = Species.find_or_create_by_name(Species.elegans_name)
+    raise if sp.scaffolds.length > 1 #make sure we are still hacking this stuff
+    scaf = Scaffold.find_or_create_by_species_id_and_name(sp.id, Species.elegans_name)
     
     genes.each do |gene|
-      # ignore nothings and
-      # ignore non-protein coding genes
-      next if gene.go_identifiers.empty? or !protein_names.include?(gene.protein_name)
+      # Ignore genes not given to me by Maria
+      next if !protein_names.include?(gene.gene_name)
       gd = Gene.find_or_create_by_name_and_scaffold_id(gene.gene_name, scaf.id)
       cd = CodingRegion.find_or_create_by_string_id_and_gene_id(gene.protein_name, gd.id)
       
@@ -5404,7 +5403,10 @@ class Script < ActiveRecord::Base
         end
       end
       if yes
-        puts code.string_id
+        puts [
+          code.gene.name,
+          code.string_id
+        ].join("\t")
       end
     end
   end
