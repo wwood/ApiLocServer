@@ -59,7 +59,7 @@ Rails::Initializer.run do |config|
   # config.active_record.default_timezone = :utc
   
   # Gem dependencies
-  config.gem "wwood-reach", :source => "http://gems.github.com"
+  config.gem "wwood-reach", :source => "http://gems.github.com", :lib => 'reach'
   config.gem "rsruby"
   config.gem "fastercsv"
 end
