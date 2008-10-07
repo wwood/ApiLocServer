@@ -204,3 +204,8 @@ class PositionedGeneWithOntology < PositionedGene
     return @go_identifiers.sort.uniq
   end
 end
+
+
+class ToxoDbGenes < ApiDbGenes
+  
+end
