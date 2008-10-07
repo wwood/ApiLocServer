@@ -2,6 +2,7 @@ class Species < ActiveRecord::Base
   FALCIPARUM = 'falciparum'
   VIVAX = 'Plasmodium vivax'
   THEILERIA_PARVA = 'Theileria parva'
+  TOXOPLASMA_GONDII = 'Toxoplasma gondii'
   
   has_many :scaffolds, :dependent => :destroy
   

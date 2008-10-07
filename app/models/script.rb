@@ -298,6 +298,10 @@ class Script < ActiveRecord::Base
     apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
   end
   
+  def gondii_to_database
+    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/ME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
+  end
+  
   def calculate_falciparum_distances
     puts "Removing all upstream distances"
     CodingRegion.update_all "upstream_distance = NULL"
