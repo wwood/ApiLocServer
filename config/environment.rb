@@ -57,6 +57,11 @@ Rails::Initializer.run do |config|
 
   # Make Active Record use UTC-base instead of local time
   # config.active_record.default_timezone = :utc
+  
+  # Gem dependencies
+  config.gem "wwood-reach", :source => "http://gems.github.com"
+  config.gem "rsruby"
+  config.gem "fastercsv"
 end
 
 
