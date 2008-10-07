@@ -5430,7 +5430,7 @@ class Script < ActiveRecord::Base
     go_getter = Bio::Go.new
     gos = [
       #      'GO:0005215', #transport
-      'GO:0004930', # G-Protein Coupled Receptors
+      #'GO:0004930', # G-Protein Coupled Receptors
       'GO:0003824' # Enzyme
     ]
     good_gos = []
