@@ -38,6 +38,30 @@ module Bio
       return answers
     end
     
+    # Given a GO ID such as GO:0048253, return the GO term that is the 
+    # primary ID (GO:0050333), so that offspring functions can be used properly.
+    def primary_go_id(go_id_or_synonym_id)
+      # > get('GO:0048253', GOSYNONYM)
+      #GOID: GO:0050333
+      #Term: thiamin-triphosphatase activity
+      #Ontology: MF
+      #Definition: Catalysis of the reaction: thiamin triphosphate + H2O =
+      #    thiamin diphosphate + phosphate.
+      #Synonym: thiamine-triphosphatase activity
+      #Synonym: thiamine-triphosphate phosphohydrolase activity
+      #Synonym: ThTPase activity
+      #Synonym: GO:0048253
+      #Secondary: GO:0048253
+    
+      begin
+        # try to find the synonym
+        return @r.eval_R("GOID(get('#{go_id_or_synonym_id}', GOSYNONYM))")
+      rescue RException
+        # if no synonym is found, try to find the primary ID. raise RException if none is found
+        return @r.eval_R("GOID(get('#{go_id_or_synonym_id}', GOTERM))")
+      end
+    end
+    
     # Retrieve the string description of the given go identifier
     def term(go_id)
       @r.eval_R("Term(get('#{go_id}', GOTERM))")

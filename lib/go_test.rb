@@ -42,4 +42,17 @@ class GoTest < Test::Unit::TestCase
     # test CC
     assert_equal 'endoplasmic reticulum', @go.term('GO:0005783')
   end
+  
+  def test_synonym
+    # test real synonym
+    assert_equal 'GO:0050333', @go.primary_go_id('GO:0048253')
+    
+    # test primary id
+    assert_equal 'GO:0050333', @go.primary_go_id('GO:0050333')
+    
+    # test bad id
+    assert_raise RException do
+      @go.primary_go_id('GO:AWAY')
+    end
+  end
 end

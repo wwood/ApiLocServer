@@ -93,6 +93,10 @@ class CodingRegion < ActiveRecord::Base
       :conditions => ['species.orthomcl_three_letter = ?', orthomcl_three_letter]
     }   
   }
+  named_scope :apicomplexan, {
+      :joins => {:gene => {:scaffold => :species}},
+      :conditions => ['species.name in (?)', Species.apicomplexan_names]
+    }
   # This named scope slows down queries by a lot (in the order of a second), and
   # I'm not sure how to fix this. In the meantime use find_by_name_or_alternate - it is much faster
   # # explain ANALYZE SELECT "coding_regions".* FROM "coding_regions" INNER JOIN "coding_region_alternate_string_ids" ON coding_region_alternate_string_ids.coding_region_id = coding_regions.id WHERE (coding_regions.string_id = E'PF01_0013' or coding_region_alternate_string_ids.name = E'PF01_0013') LIMIT 1;
@@ -373,6 +377,10 @@ class CodingRegion < ActiveRecord::Base
     [string_id, coding_region_alternate_string_ids.collect{|s| s.name}].flatten
   end
   
+  def alternate_names
+    coding_region_alternate_string_ids.collect{|s| s.name}.uniq.select{|n| n}
+  end
+  
   # all the names with null and repeats taken out
   def nice_names
     names.uniq.select{|n| n}
@@ -512,6 +520,11 @@ class CodingRegion < ActiveRecord::Base
       return nil
     end
     return results
+  end
+  
+  # convenience method to reduce typing
+  def species
+    gene.scaffold.species
   end
 end
 

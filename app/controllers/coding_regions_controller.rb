@@ -25,12 +25,10 @@ class CodingRegionsController < ApplicationController
       render :action => :index
     else
       q2 = "%#{q}%"
-      @coding_regions = CodingRegion.all(
-        :include => [:annotation, :coding_region_alternate_string_ids,
-          {:gene => {:scaffold => :species}}
-        ],
-        :conditions => ['(coding_regions.string_id like ? or annotations.annotation like ? or coding_region_alternate_string_ids.name like ?) and species.name = ?',
-          q2, q2, q2, Species.falciparum_name
+      @coding_regions = CodingRegion.apicomplexan.all(
+        :include => [:annotation, :coding_region_alternate_string_ids],
+        :conditions => ['(coding_regions.string_id like ? or annotations.annotation like ? or coding_region_alternate_string_ids.name like ?)',
+          "%#{q2}%", "%#{q2}%", "%#{q2}%"
         ]
       )
     end
@@ -38,7 +36,7 @@ class CodingRegionsController < ApplicationController
   
   
   def orthomcl
-    q = params[:coding_region]['name']
+    q = params[:coding_region]['string_id']
     logger.debug "my q: #{q}"
     if !q
       flash[:error] = 'ERROR: No query specified'
@@ -50,8 +48,14 @@ class CodingRegionsController < ApplicationController
         @codes = CodingRegion.all(:include => :orthomcl_genes, 
           :conditions => ['orthomcl_genes.orthomcl_name like ?', q2]
         )
-      end    
+        if @codes.empty?
+          flash[:error] = "No sequences found matching: #{q}"
+          render :action => :index
+        end
+      end
     end
+    
+    
   end
 
   # GET /coding_regions/1
