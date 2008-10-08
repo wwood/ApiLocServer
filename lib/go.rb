@@ -118,7 +118,7 @@ module Bio
       return true if primaree == primarer
     
       # return if subsumee is a descendent of sumsumer
-      return self.go_offspring(primarer).include?(primaree)
+      return go_offspring(primarer).include?(primaree)
     end
   
     # Return 'MF', 'CC' or 'BP' corresponding to the
