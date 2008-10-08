@@ -10,6 +10,23 @@ module Bio
     end
     
     # Return an array of GO identifiers that are the offspring (all the descendents)
+    # of the given GO term from any ontology (cellular component, biological process
+    # or molecular function)
+    def go_offspring(go_id)
+      o = ontology_abbreviation(go_id)
+      case o
+      when 'MF'
+        return molecular_function_offspring(go_id)
+      when 'CC'
+        return cellular_component_offspring(go_id)
+      when 'BP'
+        return biological_process_offspring(go_id)
+      else
+        raise Exception, "Unknown ontology abbreviation found: #{o} for go id: #{go_id}"
+      end
+    end
+    
+    # Return an array of GO identifiers that are the offspring (all the descendents)
     # of the given GO term given that it is a cellular component
     # GO term. 
     def cellular_component_offspring(go_term)
@@ -90,6 +107,23 @@ module Bio
       end
       
       return gos.flatten.uniq
+    end
+  
+    def subsume?(subsumer_go_id, subsumee_go_id)
+      # map the subsumee to non-synonomic id
+      primaree = self.primary_go_id(subsumee_go_id)
+      primarer = self.primary_go_id(subsumer_go_id)
+    
+      # return if they are the same - the obvious case
+      return true if primaree == primarer
+    
+      # return if subsumee is a descendent of sumsumer
+      return self.go_offspring(primarer).include?(primaree)
+    end
+  
+    # Return 'MF', 'CC' or 'BP' corresponding to the
+    def ontology_abbreviation(go_id)
+      @r.eval_R("Ontology(get('#{go_id}', GOTERM))")
     end
   end
 end
