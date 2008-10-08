@@ -70,4 +70,12 @@ class Species < ActiveRecord::Base
   def self.pdb_tm_dummy_name
     'pdbtm_dummy'
   end
+  
+  def self.apicomplexan_names
+    [
+      TOXOPLASMA_GONDII,
+      FALCIPARUM,
+      VIVAX
+    ]
+  end
 end

@@ -1,3 +1,11 @@
 
-<%= link_to 'Edit', edit_coding_region_path(@coding_region) %> |
-<%= link_to 'Back', coding_regions_path %>
+<h2><%= @coding_region.string_id %></h2>
+<%=  @coding_region.annotation.nil? ? 'no annotation' : @coding_region.annotation.annotation %>
+<p>Also known as: <%= @coding_region.alternate_names.join(', ') %></p>
+<h3>Localisation(s)</h3>
+<ul>
+  <% @coding_region.expression_contexts.each do |context| %>
+    <li><%= context.english %> says <%= link_to context.publication.definition, :url => context.publication.linkout_url %></li>
+  <% end %>
+</ul>
+
