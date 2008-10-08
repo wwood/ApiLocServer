@@ -37,7 +37,7 @@ class GoTest < Test::Unit::TestCase
   
   def test_go_term
     # test MF
-   assert_equal "G-protein coupled receptor activity", @go.term('GO:0004930')
+    assert_equal "G-protein coupled receptor activity", @go.term('GO:0004930')
    
     # test CC
     assert_equal 'endoplasmic reticulum', @go.term('GO:0005783')
@@ -54,5 +54,19 @@ class GoTest < Test::Unit::TestCase
     assert_raise RException do
       @go.primary_go_id('GO:AWAY')
     end
+  end
+  
+  def test_subsume
+    # test normal truth
+    assert @go.subsume?('GO:0003824', 'GO:0050333')
+      
+    # test subsumee is synonym
+    assert @go.subsume?('GO:0003824', 'GO:0048253')
+      
+    # test equal terms
+    assert @go.subsume?('GO:0009536','GO:0009536')
+      
+    # test falsity - plastid part does not subsume plastid
+    assert_equal false, @go.subsume?('GO:0044435','GO:0009536')
   end
 end

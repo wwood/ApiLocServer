@@ -5452,6 +5452,33 @@ class Script < ActiveRecord::Base
       ].join("\t")
     end
   end
-  
+
+  def go_synonym_hypothesis
+    gos = %w(GO:0048253 GO:0046971 GO:0046913 GO:0047984 GO:0050517 GO:0047752 GO:0047477 GO:0047340 GO:0047523 GO:0047226 GO:0048059 GO:0047737 GO:0046407 GO:0046420 GO:0050222 GO:0047607 GO:0045546 GO:0050443 GO:0047767 GO:0050375 GO:0048044 GO:0048043 GO:0050475 GO:0050516 GO:0047076 GO:0047318 GO:0047314)
+    go_getter = Bio::Go.new
+    
+    puts '------Email GO Term Testing----------'
+    gos.each do |g|
+      begin
+        if go_getter.primary_go_id(g) == g
+          puts "#{g} found as a primary id!"
+        end
+      rescue RException
+        puts "#{g} raised exception - too new for GO.db R library?"
+      end
+    end
+    
+    puts '------Text File Testing----------'
+    File.open("#{PHD_DIR}/essentiality/goidsNOTin_ben_list.txt").each do |g|
+      begin
+        g.strip!
+        if go_getter.primary_go_id(g) == g
+          puts "#{g} found as a primary id!"
+        end
+      rescue RException
+        puts "#{g} raised exception - too new for GO.db R library?"
+      end      
+    end
+  end  
 end
 
