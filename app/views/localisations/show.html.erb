@@ -1,8 +1,8 @@
-<p>
-  <b>Name:</b>
-  <%=h @localisation.name %>
-</p>
+<h2><%= @localisation.name %></h2>
 
-
-<%= link_to 'Edit', edit_localisation_path(@localisation) %> |
-<%= link_to 'Back', localisations_path %>
+<h3>Genes Localised</h3>
+<ol>
+  <% @localisation.expressed_coding_regions.uniq.sort{|a,b| a.string_id <=> b.string_id}.each do |code| %>
+    <li><%= link_to code.string_id, :controller => :coding_regions, :action => :show, :id => code %> - <%= code.annotation.nil? ? 'no annotation' : code.annotation.annotation %></li>
+  <% end %>
+</ol>
