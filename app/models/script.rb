@@ -4592,6 +4592,23 @@ class Script < ActiveRecord::Base
     end
   end
   
+  # Print out proteins predicted to be type 2 transmembrane proteins and that are localised
+  # in ApiLoc
+  def type_2_localisation_fasta
+    ExpressionContext.all(:select => 'distinct(coding_region_id)').each do |context|
+      code = context.coding_region
+      
+      tmhmm_result = TmHmmWrapper.new.calculate(code.amino_acid_sequence.sequence)
+      
+      next if !tmhmm_result.transmembrane_type_2?
+      
+      raise Exception, "Coding region for context #{context.inspect} not found!" if !code
+      
+      puts ">#{code.string_id}|#{code.localisation_english}|#{code.annotation.annotation}"
+      puts code.amino_acid_sequence.sequence
+    end
+  end
+  
   def upload_nucleo_predictions
     CSV.open("#{DATA_DIR}/falciparum/localisation/prediction outputs/nucleoV20080902.tab",'r',"\t").each do |row|
       raise if !match = row[0].match(/^(.+?)\|(.+)$/)
@@ -5542,7 +5559,7 @@ class Script < ActiveRecord::Base
   end
   
   def elegans_only_and_lethal
-#    elegans_specific_by_orthomcl do ||
+    #    elegans_specific_by_orthomcl do ||
   end
 end
 
