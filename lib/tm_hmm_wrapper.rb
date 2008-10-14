@@ -43,7 +43,7 @@ class TmHmmResult
   # eg. 
   #PFF0290w	len=293	ExpAA=145.77	First60=20.51	PredHel=7	Topology=o39-61i101-120o140-162i169-186o196-218i230-252o262-284i
   def self.create_from_short_line(line)
-    protein = TransmembraneProtein.new
+    protein = OrientedTransmembraneDomainProtein.new
     
     splits = line.strip.split("\t")
     if splits.length != 6
@@ -64,25 +64,38 @@ class TmHmmResult
     prev = matches[1]
     substrate.gsub!(/^(\d+?)-/,'')
     # match all the middle bits
-    reg = /^(\d+?)[io](\d+?)\-/
+    reg = /^(\d+?)([io])(\d+?)\-/
     while matches =substrate.match(reg)
-      tmd = TransmembraneDomain.new
+      tmd = OrientedTransmembraneDomain.new
       tmd.start = prev.to_i
       tmd.stop = matches[1].to_i
+      tmd.orientation = parse_orientation_from_last_location(matches[2])
       protein.push tmd
       
-      prev = matches[2]
+      prev = matches[3]
       substrate.gsub!(reg, '')
     end
     #match the last bit
-    if !(matches = substrate.match('(\d+?)[io]$'))
+    if !(matches = substrate.match('(\d+?)([io])$'))
       raise Exception, "Failed to parse the last bit of: #{substrate}"
     end
-    tmd = TransmembraneDomain.new
+    tmd = OrientedTransmembraneDomain.new
     tmd.start = prev.to_i
     tmd.stop = matches[1].to_i
+    tmd.orientation = parse_orientation_from_last_location(matches[2])
     protein.push tmd
     
     return protein
+  end
+  
+  def self.parse_orientation_from_last_location(last_location)
+    case last_location
+    when 'i'  
+      return OrientedTransmembraneDomain::OUTSIDE_IN
+    when 'o'
+      return OrientedTransmembraneDomain::INSIDE_OUT
+    else
+      raise Exception, "Badly parsed topology hit due to orientation character: #{substrate}"
+    end
   end
 end
