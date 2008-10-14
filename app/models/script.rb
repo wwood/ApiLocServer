@@ -5480,5 +5480,18 @@ class Script < ActiveRecord::Base
       end      
     end
   end  
+  
+  def elegans_specific_by_orthomcl
+    OrthomclGene.code('cel').all({:include => :orthomcl_group}).reach.orthomcl_group.reject {|g|
+      # Reject if the count of cel genes is different to the count of all genes in the group
+      g.orthomcl_genes.code('cel').count != g.orthomcl_genes.count
+    }.uniq{|a,b| a.id == b.id}.collect do |uniq_gene|
+      yield uniq_gene
+    end
+  end
+  
+  def elegans_only_and_lethal
+#    elegans_specific_by_orthomcl do ||
+  end
 end
 
