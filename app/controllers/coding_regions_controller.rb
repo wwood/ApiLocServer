@@ -57,6 +57,14 @@ class CodingRegionsController < ApplicationController
     
     
   end
+  
+  def annotate
+    parse_string_ids params[:ids]
+  end
+  
+  def export
+    parse_string_ids params[:string_ids]
+  end
 
   # GET /coding_regions/1
   # GET /coding_regions/1.xml
@@ -128,6 +136,26 @@ class CodingRegionsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to(coding_regions_url) }
       format.xml  { head :ok }
+    end
+  end
+  
+  private
+  
+  # to remove duplication in export and annotate
+  def parse_string_ids(string)
+    @coding_regions = []
+    @coding_regions_not_found = []
+    string.split(/[\s\,]/).each do |string_id|
+      code = CodingRegion.f(string_id)
+      if code
+        @coding_regions.push code
+      else
+        @coding_regions_not_found.push string_id
+      end
+    end
+    
+    if !@coding_regions_not_found.empty?
+      flash[:error] = "Could not find coding regions: #{@coding_regions_not_found.join(', ')}"
     end
   end
 end

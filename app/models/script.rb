@@ -1179,42 +1179,6 @@ class Script < ActiveRecord::Base
     end
   end
   
-  # A generic method for uploading a bunch of genes using stdin
-  # description - the name of the list
-  # organism - the common name for the organism the gene is for. nil means organism isn't considered when uploading the data
-  def create_gene_list(description, organism=nil)
-    if !description or description ===''
-      raise Exception, "Bad gene list description: '#{description}'"
-    end
-    
-    list = PlasmodbGeneList.create(
-      :description => description
-    )
-    
-    $stdin.each do |line|
-      line.strip!
-      
-      if organism
-        code = CodingRegion.find_by_name_or_alternate_and_organism(line, organism)
-      else
-        code = CodingRegion.find_by_name_or_alternate(line)
-      end
-      
-      if !code
-        $stderr.puts "Warning no coding region found for #{line}"
-      else
-        PlasmodbGeneListEntry.find_or_create_by_plasmodb_gene_list_id_and_coding_region_id(
-          list.id,
-          code.id
-        )
-      end
-    end
-    
-    hits = PlasmodbGeneListEntry.count(:conditions => "plasmodb_gene_list_id=#{list.id}")
-    
-    puts "Uploaded #{hits} different coding regions"
-  end
-  
   
   # See if the arabidopsis gene locations help if I put them through orthomcl
   def florian_arabidopsis
@@ -5531,5 +5495,78 @@ class Script < ActiveRecord::Base
       end      
     end
   end  
+  
+  # Upload all the data from Winzeler 2005 experiments downloaded from
+  # http://carrier.gnf.org/publications/CellCycle/index.html
+  def winzeler_2003_measurements_to_database
+    base_dir = "#{DATA_DIR}/falciparum/microarray/Winzeler2003"
+    microarray = Microarray.find_or_create_by_description(Microarray::WINZELER_2003_NAME)
+    sporozoite_replicate = 1
+    
+    # the original Description&Normalization.txt was originally created using a mixture of tabs and spaces
+    # I converted them all to tabs so it now makes sense.
+    FasterCSV.foreach("#{base_dir}/Description&Normalization.tabbed.txt", :col_sep => "\t", :headers => true) do |description_row|
+      description = description_row[4]
+      if description.match(/Sporozoite/)
+        description = "#{description} #{sporozoite_replicate}"
+        sporozoite_replicate += 1
+      else
+        next #just uploading sporozoite replicates right now as a fix
+      end
+      
+      timepoint = MicroarrayTimepoint.find_or_create_by_name_and_microarray_id(description, microarray.id)
+      
+      FasterCSV.foreach("#{base_dir}/#{description_row[0]}.tsv", :col_sep => "\t") do |entry|
+        code = CodingRegion.ff(entry[0])
+        
+        if !code
+          $stderr.puts "Couldn't find coding region '#{entry[0]}'"
+          next
+        end
+        
+        levels = entry[6].split(',')
+        raise Exception, "Mismatch on the number of levels and apparent number of levels for #{entry[0]}" if entry[5].to_i != levels.length
+        
+        # Cannot do find_or_create here because you might get the same measurement twice in the same go.
+        levels.each do |level|
+          MicroarrayMeasurement.create!(
+            :coding_region_id => code.id,
+            :measurement => level,
+            :microarray_timepoint_id => timepoint.id
+          )
+        end
+      end
+    end
+  end
+  
+  # for each of the nuclear proteins in the proteomics list, print out the average and list of winzeler 2003 cell
+  # cycle absolute counts
+  def nuclear_proteome_winzeler_data
+    # Headers
+    puts [
+      'PlasmoDB ID',
+      'Average Ring',
+      'Average Trophozoite',
+      'Average Schizont'
+    ].join("\t")
+    
+    array_constants = [
+      #      [MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL], # to check the measurements are coming out correctly
+      MicroarrayTimepoint::WINZELER_RING_TIMEPOINT_NAMES,
+      MicroarrayTimepoint::WINZELER_TROPHOZOITE_TIMEPOINT_NAMES,
+      MicroarrayTimepoint::WINZELER_SCHIZONT_TIMEPOINT_NAMES
+    ]
+    
+    # For each gene in the proteome list
+    PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.falciparum.each do |code|
+      results = [code.string_id]
+      
+      array_constants.each do |timepoints|
+        results.push code.microarray_measurements.timepoint_names(timepoints).all.reach.measurement.to_f.average
+      end
+      
+      puts results.join("\t")
+    end
+  end
 end
 

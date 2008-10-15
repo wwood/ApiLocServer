@@ -628,4 +628,14 @@ class Verification < ActiveRecord::Base
     raise if !CodingRegion.fs('Pv085115', Species.vivax_name)
     raise if !CodingRegion.fs('Pv085115', Species.vivax_name).amino_acid_sequence
   end
+  
+  def winzeler_2003_microarray
+    # test first normal one
+    raise if CodingRegion.ff('MAL13P1.100').microarray_measurements.timepoint_name('Cell Cycle 1 (Sorbitol), Early Ring').count != 20
+    
+    # test random temperature one
+    raise if CodingRegion.ff('MAL13P1.106').microarray_measurements.timepoint_name('Cell Cycle 2 (Temperature), Early Ring').count != 11
+    
+    raise if Microarray.find_by_description(Microarray::WINZELER_2003_NAME).microarray_timepoints.count != 17
+  end
 end
