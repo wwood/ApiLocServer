@@ -4556,6 +4556,23 @@ class Script < ActiveRecord::Base
     end
   end
   
+  # Print out proteins predicted to be type 2 transmembrane proteins and that are localised
+  # in ApiLoc
+  def type_2_localisation_fasta
+    ExpressionContext.all(:select => 'distinct(coding_region_id)').each do |context|
+      code = context.coding_region
+      
+      tmhmm_result = TmHmmWrapper.new.calculate(code.amino_acid_sequence.sequence)
+      
+      next if !tmhmm_result.transmembrane_type_2?
+      
+      raise Exception, "Coding region for context #{context.inspect} not found!" if !code
+      
+      puts ">#{code.string_id}|#{code.localisation_english}|#{code.annotation.annotation}"
+      puts code.amino_acid_sequence.sequence
+    end
+  end
+  
   def upload_nucleo_predictions
     CSV.open("#{DATA_DIR}/falciparum/localisation/prediction outputs/nucleoV20080902.tab",'r',"\t").each do |row|
       raise if !match = row[0].match(/^(.+?)\|(.+)$/)
@@ -5538,7 +5555,17 @@ class Script < ActiveRecord::Base
       end
     end
   end
+      
+  def elegans_specific_by_orthomcl
+    OrthomclGene.code('cel').all({:include => :orthomcl_group}).reach.orthomcl_group.reject {|g|
+      # Reject if the count of cel genes is different to the count of all genes in the group
+      g.orthomcl_genes.code('cel').count != g.orthomcl_genes.count
+    }.uniq{|a,b| a.id == b.id}.collect do |uniq_gene|
+      yield uniq_gene
+    end
+  end
   
+
   # for each of the nuclear proteins in the proteomics list, print out the average and list of winzeler 2003 cell
   # cycle absolute counts
   def nuclear_proteome_winzeler_data
@@ -5568,5 +5595,8 @@ class Script < ActiveRecord::Base
       puts results.join("\t")
     end
   end
-end
 
+  def elegans_only_and_lethal
+    #    elegans_specific_by_orthomcl do ||
+  end
+end
