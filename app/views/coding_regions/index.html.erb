@@ -5,8 +5,13 @@
 
 <% @coding_region = CodingRegion.new %>
 <% form_for :coding_region, @coding_region, :url => {:action => :find} do |f| %>
-    <%= f.label 'Coding Region Name or OrthoMCL name' %>
-    <%= f.text_field :string_id %>
-    <%= submit_tag 'Search' %>
+      <%= f.label 'Coding Region Name or OrthoMCL name' %>
+      <%= f.text_field :string_id %>
+      <%= submit_tag 'Search' %>
   <% end %>
+  
+<% form_tag 'coding_regions/annotate'  do -%>
+  <textarea name="ids"></textarea>
+<%= submit_tag 'Annotate' %>
+  <% end -%>
 

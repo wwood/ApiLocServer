@@ -1,0 +1,29 @@
+<table>
+  <tr>
+    <th>Number</th>
+    <th>PlasmoDB ID</th>
+    <th>Alternate Names</th>
+    <th>Annotation</th>
+    <th>Localisations</th>
+    <th>References</th>
+  </tr>
+  
+  <% @coding_regions.each_with_index do |coding_region, index| %>
+    <tr>
+      <td><%= index+1 %></td>
+      <td><%= link_to coding_region.string_id, :action => :show, :id => coding_region %></td>
+      <td><%= coding_region.alternate_names.join(', ') %></td>
+      <td><%= coding_region.annotation.nil? ? 'no annotation' : coding_region.annotation.annotation %>
+      <td>
+        <% coding_region.expression_contexts.each do |context|%>
+          <%= link_to context.english, :controller => :expression_contexts, :action => :show, :id => context %>,
+       <% end %>
+      </td>
+      <td>
+        <% coding_region.expression_contexts.reach.publication.uniq.each do |pub|%>
+              <%= link_to pub.definition, pub.linkout_url %>,
+        <% end %>
+      </td>
+    </tr>
+  <% end %>
+</table>

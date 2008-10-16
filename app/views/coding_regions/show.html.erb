@@ -5,7 +5,9 @@
 <h3>Localisation(s)</h3>
 <ul>
   <% @coding_region.expression_contexts.each do |context| %>
-    <li><%= context.english %> says <%= link_to context.publication.definition, :url => context.publication.linkout_url %></li>
+    <li><%= link_to context.english, :controller => :localisations, :action => :show, :id => context.localisation_id %> says <%= link_to context.publication.definition, :url => context.publication.linkout_url %></li>
   <% end %>
 </ul>
 
+<h3>Links</h3>
+<%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@coding_region.string_id}"%>

@@ -1,0 +1,5 @@
+<h2>Top Level Localisation <%= @top_level_localisation.name %></h2>
+<p>Includes the <%= @top_level_localisation.malaria_localisations.reach.name.join(', ') %> localisation(s).
+<h3>Genes Localised</h3>
+<%= coding_region_list @coding_regions %>
+

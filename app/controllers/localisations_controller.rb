@@ -2,7 +2,7 @@ class LocalisationsController < ApplicationController
   # GET /localisations
   # GET /localisations.xml
   def index
-    @localisations = Localisation.find(:all)
+    @localisations = Localisation.all(:joins => :expression_contexts).uniq.sort{|a,b| a.name <=> b.name}
 
     respond_to do |format|
       format.html # index.html.erb

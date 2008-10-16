@@ -49,6 +49,9 @@ ActionController::Routing::Routes.draw do |map|
 
   map.resources :go_terms
 
+  map.connect 'coding_regions/export/:strings', :controller => 'coding_regions', :action => 'export'
+  map.connect 'coding_regions/export', :controller => 'coding_regions', :action => 'export'
+  map.connect 'coding_regions/annotate', :controller => 'coding_regions', :action => 'annotate'
   map.resources :coding_regions
 
   map.resources :genes
