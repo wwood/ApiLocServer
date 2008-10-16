@@ -299,7 +299,7 @@ class Script < ActiveRecord::Base
   end
   
   def gondii_to_database
-    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/ME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
+    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
   end
   
   def gondii_fasta_to_database

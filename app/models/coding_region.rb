@@ -536,8 +536,14 @@ class CodingRegion < ActiveRecord::Base
   end
   
   def cache_wolf_psort_predictions
+    if !amino_acid_sequence
+      $stderr.puts "Unable to run WoLF_PSORT because there is no amino acid sequence for #{inspect}"
+      return
+    end
+    
     Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
       result = Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, organism_type)
+      next if !result #skip sequences that are too short
       
       result.score_hash.each do |loc, score|
         WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
