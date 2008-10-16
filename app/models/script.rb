@@ -302,6 +302,10 @@ class Script < ActiveRecord::Base
     apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/ME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
   end
   
+  def gondii_fasta_to_database
+    
+  end
+  
   def calculate_falciparum_distances
     puts "Removing all upstream distances"
     CodingRegion.update_all "upstream_distance = NULL"
@@ -2418,22 +2422,31 @@ class Script < ActiveRecord::Base
       if splits_space.length < 3
         raise Exception, "Badly handled line because of spaces: #{line}"
       end
-      orthomcl_id = splits_space[0] 
+      orthomcl_id = splits_space[0]
       
-      ogenes = OrthomclGene.find(:all,
-        :include => :orthomcl_group,
-        :conditions => "orthomcl_groups.orthomcl_run_id=#{run.id} and "+
-          "orthomcl_genes.orthomcl_name='#{orthomcl_id}'"
-      )
+      orthomcl_group_name = splits_space[2]
+      ogene = nil
+      
+      if orthomcl_group_name == 'no_group'
+        # Upload the gene as well now
+        ogene = OrthomclGene.find_or_create_by_orthomcl_name(orthomcl_id)
+      else
+        ogenes = OrthomclGene.find(:all,
+          :include => :orthomcl_group,
+          :conditions => "orthomcl_groups.orthomcl_run_id=#{run.id} and "+
+            "orthomcl_genes.orthomcl_name='#{orthomcl_id}'"
+        )
         
-      if ogenes.length != 1
-        if ogenes.length == 0
-          #          raise Exception, "No gene found for #{line}"
-          next
-          # bleh - I didn't upload singlets to my database, so this is expected
-        else
-          raise Exception, "Too many genes found for #{orthomcl_id}"
+        if ogenes.length != 1
+          if ogenes.length == 0
+            # Raise exceptions now because singlets are uploaded now - this gene apparently has a group
+            raise Exception, "No gene found for #{line} when there should be"
+          else
+            raise Exception, "Too many genes found for #{orthomcl_id}"
+          end
         end
+        
+        ogene = ogenes[0]
       end
       
       # find the annotation
@@ -2449,7 +2462,7 @@ class Script < ActiveRecord::Base
       end
   
       OrthomclGeneOfficialData.find_or_create_by_orthomcl_gene_id_and_sequence_and_annotation(
-        ogenes[0].id,
+        ogene.id,
         seq.aaseq,
         annot
       )
@@ -4261,7 +4274,13 @@ class Script < ActiveRecord::Base
     headings = [
       'PlasmoDB ID',
       'Annotation',
+      'Top Level Localisations',
       'Amino Acid Sequence',
+      'SignalP Prediction',
+      'PlasmoAP Score',
+      'WoLF_PSORT prediction Plant',
+      'WoLF_PSORT prediction Animal',
+      'WoLF_PSORT prediction Fungi',
       'Number of P. falciparum Genes in Official Orthomcl Group', #orthomcl
       'Number of P. vivax Genes in Official Orthomcl Group',
       'Number of C. parvum Genes in Official Orthomcl Group',
@@ -4278,14 +4297,11 @@ class Script < ActiveRecord::Base
       'Number of Non-Synonymous IT SNPs according to Jeffares et al',
       'Number of Synonymous Clinical SNPs according to Jeffares et al',
       'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
-      'SignalP Prediction',
-      'PlasmoAP Score'
     ]
     derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
     headings.push derisi_timepoints.collect{|t| 
       'DeRisi 2006 3D7 '+t.name
     }
-    headings.push 'Top Level Localisations'
     
     headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
     puts headings.join(sep)
@@ -4305,8 +4321,22 @@ class Script < ActiveRecord::Base
       results = [
         code.string_id,
         code.annotation.annotation,
+        code.tops.pick(:name).uniq.sort.join(', '),  # Top level localisations
         code.amino_acid_sequence.sequence,
       ]
+      
+      #      SignalP
+      results.push(
+        code.amino_acid_sequence.signal?
+      )
+      
+      # PlasmoAP
+      results.push code.amino_acid_sequence.plasmo_a_p.points
+      
+      #WoLF_PSORT
+      results.push code.wolf_psort_localisation('plant')
+      results.push code.wolf_psort_localisation('animal')
+      results.push code.wolf_psort_localisation('fungi')
       
       # official orthomcl
       interestings = ['pfa','pvi','cpa','cho','tpa','tan','ath','sce','mmu']
@@ -4366,13 +4396,7 @@ class Script < ActiveRecord::Base
       end
       
       
-      #      SignalP
-      results.push(
-        code.amino_acid_sequence.signal?
-      )
-      
-      # PlasmoAP
-      results.push code.amino_acid_sequence.plasmo_a_p.points
+
 
       # Microarray DeRisi
       derisi_timepoints.each do |timepoint|
@@ -4387,8 +4411,7 @@ class Script < ActiveRecord::Base
         end
       end
       
-      # Top level localisations
-      results.push(code.tops.pick(:name).uniq.sort.join(', '))
+
       
       # Check to make sure that all the rows have the same number of entries as a debug thing
       if results.length != headings.length
@@ -5599,4 +5622,7 @@ class Script < ActiveRecord::Base
   def elegans_only_and_lethal
     #    elegans_specific_by_orthomcl do ||
   end
+  
+  
+  
 end

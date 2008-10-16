@@ -1,0 +1,13 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  coding_region_id: 1
+  organism_type: MyString
+  localisation: MyString
+  score: 9.99
+
+two:
+  coding_region_id: 1
+  organism_type: MyString
+  localisation: MyString
+  score: 9.99
