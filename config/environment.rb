@@ -67,3 +67,4 @@ end
 
 # Requires so I can run kawaii with all the methods I want.
 require 'array_pair' #random added methods for array
+require 'reach'

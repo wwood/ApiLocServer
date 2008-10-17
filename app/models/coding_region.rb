@@ -551,6 +551,12 @@ class CodingRegion < ActiveRecord::Base
       
     end
   end
+  
+  # The sum of the linkages emanating from this coding region in
+  # wormnet core
+  def wormnet_core_total_linkage_scores
+    coding_region_network_edges.wormnet_core.all.reach.strength.sum
+  end
 end
 
 
