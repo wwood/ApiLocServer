@@ -47,6 +47,8 @@ class CodingRegion < ActiveRecord::Base
   has_one :pprowler_other_score
   has_one :pprowler_signal_score
   
+  has_many :wolf_psort_predictions
+  
   #snp
   has_one :it_synonymous_snp
   has_one :it_non_synonymous_snp
@@ -525,6 +527,29 @@ class CodingRegion < ActiveRecord::Base
   # convenience method to reduce typing
   def species
     gene.scaffold.species
+  end
+  
+  # Calculate the winning WoLF_PSORT localisation for this coding
+  # region, given the sequence is already associated with this coding region
+  def wolf_psort_localisation(psort_organism_type='plant')
+    Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
+  end
+  
+  def cache_wolf_psort_predictions
+    if !amino_acid_sequence
+      $stderr.puts "Unable to run WoLF_PSORT because there is no amino acid sequence for #{inspect}"
+      return
+    end
+    
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      result = Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, organism_type)
+      next if !result #skip sequences that are too short
+      
+      result.score_hash.each do |loc, score|
+        WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
+      end
+      
+    end
   end
 end
 
