@@ -9,5 +9,10 @@
   <% end %>
 </ul>
 
+<h3>Predictions</h3>
+<% Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type| %>
+  <p><b><%= organism_type %>:</b> <%= @coding_region.wolf_psort_localisations_line(organism_type) %></p>
+<% end %>
+
 <h3>Links</h3>
 <%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@coding_region.string_id}"%>
