@@ -24,12 +24,18 @@ class CodingRegionNetworkEdge < ActiveRecord::Base
   named_scope :wormnet, lambda {
     {
       :include => :network,
-      :conditions => ['networks.name = ?', Network::WORMNET_NAME]
+      :conditions => ['networks.name = ?', 
+        Network::WORMNET_NAME
+      ]
     }
-  }
+  } 
   named_scope :wormnet_core, lambda {
     {
-      :conditions => ['strength >=?', Network::WORMNET_CORE_CUTOFF_STRENGTH]
+      :include => :network,
+      :conditions => ['strength >=? and networks.name = ?', 
+        Network::WORMNET_CORE_CUTOFF_STRENGTH,
+        Network::WORMNET_NAME
+      ]
     }
   } 
 end

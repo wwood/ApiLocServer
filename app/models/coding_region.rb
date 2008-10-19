@@ -96,9 +96,9 @@ class CodingRegion < ActiveRecord::Base
     }   
   }
   named_scope :apicomplexan, {
-      :joins => {:gene => {:scaffold => :species}},
-      :conditions => ['species.name in (?)', Species.apicomplexan_names]
-    }
+    :joins => {:gene => {:scaffold => :species}},
+    :conditions => ['species.name in (?)', Species.apicomplexan_names]
+  }
   # This named scope slows down queries by a lot (in the order of a second), and
   # I'm not sure how to fix this. In the meantime use find_by_name_or_alternate - it is much faster
   # # explain ANALYZE SELECT "coding_regions".* FROM "coding_regions" INNER JOIN "coding_region_alternate_string_ids" ON coding_region_alternate_string_ids.coding_region_id = coding_regions.id WHERE (coding_regions.string_id = E'PF01_0013' or coding_region_alternate_string_ids.name = E'PF01_0013') LIMIT 1;
@@ -529,10 +529,17 @@ class CodingRegion < ActiveRecord::Base
     gene.scaffold.species
   end
   
-  # Calculate the winning WoLF_PSORT localisation for this coding
+  # Calculate/retrieve the winning WoLF_PSORT localisation for this coding
   # region, given the sequence is already associated with this coding region
-  def wolf_psort_localisation(psort_organism_type='plant')
-    Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
+  def wolf_psort_localisation(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    if preds.length > 0
+      # cached
+      return preds[0].localisation
+    else # not cached, run from scratch
+      Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
+    end    
   end
   
   def cache_wolf_psort_predictions
@@ -550,6 +557,18 @@ class CodingRegion < ActiveRecord::Base
       end
       
     end
+  end
+  
+  def wolf_psort_localisations_line(organism_type)
+    wolf_psort_predictions.all(:conditions => {:organism_type => organism_type}, :order => 'score desc').collect{ |pred|
+      "#{pred.localisation} #{pred.score}"
+    }.join(", ")
+  end
+  
+  # The sum of the linkages emanating from this coding region in
+  # wormnet core
+  def wormnet_core_total_linkage_scores
+    coding_region_network_edges.wormnet_core.all.reach.strength.sum
   end
 end
 

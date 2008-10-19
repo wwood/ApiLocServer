@@ -5623,6 +5623,39 @@ class Script < ActiveRecord::Base
     #    elegans_specific_by_orthomcl do ||
   end
   
-  
+  def nuclear_wolf_psort_accuracy
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      tp = fp = tn = fn = 0
+      
+      CodingRegion.falciparum.all(:joins => :expression_contexts, :order => 'id').each do |code|
+        # if nuclear prediction
+        tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
+        p code
+        p code.wolf_psort_localisation(organism_type)
+        return
+        
+        if tops.reach.name.include?('nucleus')
+          if code.wolf_psort_localisation(organism_type) == 'nucl'
+            tp += 1
+          else
+            fn += 1
+          end
+          
+        else # not nuclear at all
+          if code.wolf_psort_localisation(organism_type) == 'nucl'
+            fp += 1
+          else
+            tn += 1
+          end
+        end
+      end
+      
+      p = PredictionAccuracy.new(tp, fp, tn, fn)
+      puts "#{organism_type}:"
+      puts p.to_s
+      p p
+      puts
+    end
+  end
   
 end
