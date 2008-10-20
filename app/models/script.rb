@@ -3542,8 +3542,8 @@ class Script < ActiveRecord::Base
   
   def upload_wormnet
     
-    net = GeneNetwork.find_or_create_by_name(
-      GeneNetwork.wormnet_name
+    net = Network.find_or_create_by_name(
+      Network::WORMNET_NAME
     )
     first = true
     CSV.open("#{DATA_DIR}/elegans/lee/ng.2007.70-S3.txt", 'r', "\t") do |row|
