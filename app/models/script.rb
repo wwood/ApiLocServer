@@ -3560,12 +3560,12 @@ class Script < ActiveRecord::Base
 
       
       if !g1
-        puts "Couldn't find gene #{row[0]}"
+        puts "Couldn't find gene1 #{row}"
         next
       end
       
       if !g2
-        puts "Couldn't find gene #{row[1]}"
+        puts "Couldn't find gene2 #{row}"
         next
       end
       
@@ -5407,7 +5407,7 @@ class Script < ActiveRecord::Base
     end
     
     #    #    $ grep WBGene GO.WS190.txt |wc -l
-    #    #31499
+    #  #31499
     #    #$ grep WBGene GO.WS187.txt |wc -l
     #    #31316
     #    if genes.length != 31316
@@ -5424,7 +5424,7 @@ class Script < ActiveRecord::Base
       next if !protein_names.include?(gene.gene_name)
       gd = Gene.find_or_create_by_name_and_scaffold_id(gene.gene_name, scaf.id)
       cd = CodingRegion.find_or_create_by_string_id_and_gene_id(gene.protein_name, gd.id)
-      
+      CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(cd.id, gene.gene_name)
       gene.go_identifiers.each do |go_id|
         g = GoTerm.find_or_create_by_go_identifier(go_id)
         CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id(
