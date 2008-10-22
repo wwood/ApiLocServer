@@ -3560,12 +3560,12 @@ class Script < ActiveRecord::Base
 
       
       if !g1
-        puts "Couldn't find gene1 #{row}"
+        puts "Couldn't find gene1 #{[row[0],row[1],row[11]].join("\t")}"
         next
       end
       
       if !g2
-        puts "Couldn't find gene2 #{row}"
+        puts "Couldn't find gene2 #{[row[0],row[1],row[11]].join("\t")}"
         next
       end
       
@@ -5449,7 +5449,7 @@ class Script < ActiveRecord::Base
     go_getter = Bio::Go.new
     gos = [
       #      'GO:0005215', #transport
-      'GO:0004930', # G-Protein Coupled Receptors
+      # 'GO:0004930', # G-Protein Coupled Receptors
       'GO:0003824' # Enzyme
     ]
     good_gos = []
