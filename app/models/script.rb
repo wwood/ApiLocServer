@@ -5656,19 +5656,7 @@ class Script < ActiveRecord::Base
   
   
   def are_enzymes?(coding_regions=CodingRegion.s(Species::ELEGANS_NAME).all(:joins => :go_terms, :limit => 10))
-    go = Bio::Go.new
-    
-    enzymes = coding_regions.collect do |code|
-      if code.go_terms.reach.go_identifier.select{|go_id|
-          go.subsume?(GoTerm::ENZYME_GO_TERM, go_id)
-        }.length > 0
-        true
-      else
-        false
-      end
-    end
-    
-    return enzymes
+    coding_regions.reach.is_enzyme?.retract
   end
   
 end

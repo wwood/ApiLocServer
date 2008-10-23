@@ -583,6 +583,13 @@ class CodingRegion < ActiveRecord::Base
     coding_region_network_edges.wormnet_core.all.reach.strength.sum
   end
 
+  def is_enzyme?
+    @go_object ||= Bio::Go.new
+    
+    go_terms.reach.go_identifier.select{|go_id|
+      @go_object.subsume?(GoTerm::ENZYME_GO_TERM, go_id)
+    }.length > 0
+  end
 end
 
 
