@@ -542,6 +542,18 @@ class CodingRegion < ActiveRecord::Base
     end    
   end
   
+  # Read only from the cache, don't run it if no cache exists
+  def cached_wold_psort_localisation(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    if preds.length > 0
+      # cached
+      return preds[0].localisation
+    else # not cached, run from scratch
+      return nil
+    end    
+  end
+  
   def cache_wolf_psort_predictions
     if !amino_acid_sequence
       $stderr.puts "Unable to run WoLF_PSORT because there is no amino acid sequence for #{inspect}"
@@ -570,6 +582,7 @@ class CodingRegion < ActiveRecord::Base
   def wormnet_core_total_linkage_scores
     coding_region_network_edges.wormnet_core.all.reach.strength.sum
   end
+
 end
 
 

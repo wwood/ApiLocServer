@@ -3,6 +3,7 @@ class Species < ActiveRecord::Base
   VIVAX = 'Plasmodium vivax'
   THEILERIA_PARVA = 'Theileria parva'
   TOXOPLASMA_GONDII = 'Toxoplasma gondii'
+  ELEGANS_NAME = 'elegans'
   
   has_many :scaffolds, :dependent => :destroy
   
@@ -56,7 +57,7 @@ class Species < ActiveRecord::Base
   end
   
   def self.elegans_name
-    'elegans'
+    ELEGANS_NAME
   end
   
   def self.mouse_name

@@ -5630,19 +5630,16 @@ class Script < ActiveRecord::Base
       CodingRegion.falciparum.all(:joins => :expression_contexts, :order => 'id').each do |code|
         # if nuclear prediction
         tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
-        p code
-        p code.wolf_psort_localisation(organism_type)
-        return
         
         if tops.reach.name.include?('nucleus')
-          if code.wolf_psort_localisation(organism_type) == 'nucl'
+          if code.cached_wold_psort_localisation(organism_type) == 'nucl'
             tp += 1
           else
             fn += 1
           end
           
         else # not nuclear at all
-          if code.wolf_psort_localisation(organism_type) == 'nucl'
+          if code.cached_wold_psort_localisation(organism_type) == 'nucl'
             fp += 1
           else
             tn += 1
@@ -5653,9 +5650,25 @@ class Script < ActiveRecord::Base
       p = PredictionAccuracy.new(tp, fp, tn, fn)
       puts "#{organism_type}:"
       puts p.to_s
-      p p
       puts
     end
+  end
+  
+  
+  def are_enzymes?(coding_regions=CodingRegion.s(Species::ELEGANS_NAME).all(:joins => :go_terms, :limit => 10))
+    go = Bio::Go.new
+    
+    enzymes = coding_regions.collect do |code|
+      if code.go_terms.reach.go_identifier.select{|go_id|
+          go.subsume?(GoTerm::ENZYME_GO_TERM, go_id)
+        }.length > 0
+        true
+      else
+        false
+      end
+    end
+    
+    return enzymes
   end
   
 end
