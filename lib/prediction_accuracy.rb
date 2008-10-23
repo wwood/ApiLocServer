@@ -14,8 +14,8 @@ class PredictionAccuracy
     @fn = fn
   end
   
-  def accuracy
-    tp.to_f / fp.to_f
+  def precision
+    tp.to_f / (tp.to_f+fp.to_f)
   end
   
   def specificity
@@ -26,9 +26,15 @@ class PredictionAccuracy
     tp.to_f / (tp.to_f + fn.to_f)
   end
   
+  alias_method :positive_predictive_value, :precision
+  def negative_predictive_value
+    tn.to_f / (tn.to_f + fn.to_f)
+  end
+  
   def to_s
     [
-      "Accuracy: #{accuracy.round(2)}",
+      "Precision: #{precision.round(2)}",
+      "Negative predictive value: #{negative_predictive_value.round(2)}",
       "Specificity: #{specificity.round(2)}",
       "Sensitivity: #{sensitivity.round(2)}"
     ].join("\n")
