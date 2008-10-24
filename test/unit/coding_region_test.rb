@@ -88,4 +88,12 @@ class CodingRegionTest < ActiveSupport::TestCase
       CodingRegion.find(3).single_orthomcl
     end
   end
+  
+  def test_wormnet_core_total_linkage_scores
+    # test normal, that includes non wormnet and wormnet non core decoys
+    assert_equal 3.2, CodingRegion.find(4).wormnet_core_total_linkage_scores
+    
+    # test nothing
+    assert_equal 0.0, CodingRegion.find(3).wormnet_core_total_linkage_scores
+  end
 end

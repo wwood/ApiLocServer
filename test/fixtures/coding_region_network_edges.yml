@@ -1,3 +1,22 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
-
+core:
+ network_id: 1
+ coding_region_id_first: 4
+ coding_region_id_second: 5
+ strength: 1.7
+core2:
+ network_id: 1
+ coding_region_id_first: 5
+ coding_region_id_second: 4
+ strength: 1.5
+non_core:
+ network_id: 1
+ coding_region_id_first: 4
+ coding_region_id_second: 6
+ strength: 0.6
+non_wormnet:
+ network_id: 2
+ coding_region_id_first: 3
+ coding_region_id_second: 5
+ strength: 1.8
 
