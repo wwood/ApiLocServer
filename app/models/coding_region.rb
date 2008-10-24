@@ -483,7 +483,7 @@ class CodingRegion < ActiveRecord::Base
   def single_orthomcl(run_name = OrthomclRun.official_run_v2_name, options = {})
     genes = orthomcl_genes.run(run_name).all(options)
     if genes.length != 1
-      raise UnexpectedOrthomclGeneCount, "Unexpected number of orthomcl genes found for #{inspect}: #{genes.inspect}"
+      raise CodingRegion::UnexpectedOrthomclGeneCount, "Unexpected number of orthomcl genes found for #{inspect}: #{genes.inspect}"
     else
       return genes[0]
     end
