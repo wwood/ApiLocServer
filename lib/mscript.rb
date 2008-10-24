@@ -335,9 +335,11 @@ class Mscript
       
   def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids")
     puts [
-    "gene",
-    "lethal?",
-    "enzyme?"
+    "gene id",
+    "is lethal",
+    "is enzyme",
+    "wormnet_core_total_score",
+    "has mammalian orthologue"
         ].join("\t")
     
     CSV.open(filename, 'r') do |gene|
@@ -347,9 +349,12 @@ class Mscript
         puts [
           code.gene.name,
           code.lethal?,
-          code.is_enzyme?
+          code.is_enzyme?,
+          code.wormnet_core_total_linkage_scores,
+          code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
+          true : false
         ].join("\t")
-      rescue UnexpectedCodingRegionCount => e
+      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
         $stderr
       end
     end

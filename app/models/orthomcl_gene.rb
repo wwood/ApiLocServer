@@ -4,9 +4,12 @@ class OrthomclGene < ActiveRecord::Base
   has_many :coding_regions, :through => :orthomcl_gene_coding_regions
   has_one :orthomcl_gene_official_data
   
+  MAMMALIAN_THREE_LETTER_CODES = ['hsa', 'mmu', 'rno']
+  
   named_scope :code, lambda { |three_letter_species_code| {
       :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
     }}
+#  alias_method(:three_letter_code, :code)
   named_scope :codes, lambda { |three_letter_species_codes| 
     pre = 'orthomcl_genes.orthomcl_name like ?'
     post = ["#{three_letter_species_codes[0]}%"]
@@ -16,6 +19,7 @@ class OrthomclGene < ActiveRecord::Base
     }
     {:conditions => [pre, post].flatten}
   }
+  #alias_method(:three_letter_codes, :codes)
   named_scope :official, {
     :include => {:orthomcl_group => :orthomcl_run},
     :conditions => ['orthomcl_runs.name = ?', OrthomclRun.official_run_v2_name]

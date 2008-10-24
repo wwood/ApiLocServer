@@ -590,6 +590,8 @@ class CodingRegion < ActiveRecord::Base
       @go_object.subsume?(GoTerm::ENZYME_GO_TERM, go_id)
     }.length > 0
   end
+  
+  class UnexpectedOrthomclGeneCount < Exception; end
 end
 
 
