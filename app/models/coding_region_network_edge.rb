@@ -15,6 +15,14 @@ class CodingRegionNetworkEdge < ActiveRecord::Base
       ]
     }
   }
+  named_scope :coding_region_id, lambda{ |coding_region_id_1|
+    {
+      :conditions => ['(coding_region_id_first = ?) or (coding_region_id_second = ?)', 
+        coding_region_id_1,
+        coding_region_id_1
+      ]
+    }
+  }
   named_scope :network_name, lambda {|network_name|
     {
       :include => :network,
