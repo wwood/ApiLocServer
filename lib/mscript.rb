@@ -2,6 +2,9 @@ require 'rio'
 require 'rubygems'
 require 'csv'
 require 'bio'
+require 'go'
+require 'wormbase_go_file'
+require 'reach'
 
 
 
@@ -329,6 +332,29 @@ class Mscript
     return lethal_groups
   end
 
-
+      
+  def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids")
+    puts [
+    "gene",
+    "lethal?",
+    "enzyme?"
+        ].join("\t")
+    
+    CSV.open(filename, 'r') do |gene|
+      begin
+        code = OrthomclGene.find_by_orthomcl_name(gene).single_code
+        
+        puts [
+          code.gene.name,
+          code.lethal?,
+          code.is_enzyme?
+        ].join("\t")
+      rescue UnexpectedCodingRegionCount => e
+        $stderr
+      end
+    end
+  end
+  
+  
 end
 

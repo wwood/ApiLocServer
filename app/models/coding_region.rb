@@ -219,7 +219,7 @@ class CodingRegion < ActiveRecord::Base
   # can be either a real id, or an alternate id.
   def self.find_all_by_name_or_alternate(string_id)
     simple = CodingRegion.find_all_by_string_id string_id
-    if simple
+    if !simple.empty?
       return simple
     else
       alts = CodingRegionAlternateStringId.find_all_by_name string_id

@@ -5654,9 +5654,8 @@ class Script < ActiveRecord::Base
     end
   end
   
+
+
   
-  def are_enzymes?(coding_regions=CodingRegion.s(Species::ELEGANS_NAME).all(:joins => :go_terms, :limit => 10))
-    coding_regions.reach.is_enzyme?.retract
-  end
   
 end

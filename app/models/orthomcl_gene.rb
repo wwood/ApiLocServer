@@ -184,9 +184,9 @@ class OrthomclGene < ActiveRecord::Base
   
   # Basically fill out the orthomcl_gene_coding_regions table appropriately
   # for only the official one
-  def link_orthomcl_and_coding_regions(*interesting_orgs)
+  def link_orthomcl_and_coding_regions(interesting_orgs=['cel'])
     goods = 0
-    if !interesting_orgs
+    if !interesting_orgs or interesting_orgs.empty?
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
       #    interesting_orgs = ['ath']

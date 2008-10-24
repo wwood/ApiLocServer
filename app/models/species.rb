@@ -8,7 +8,8 @@ class Species < ActiveRecord::Base
   has_many :scaffolds, :dependent => :destroy
   
   ORTHOMCL_THREE_LETTERS = {
-    FALCIPARUM => 'pfa'
+    FALCIPARUM => 'pfa',
+    ELEGANS_NAME => 'cel'
   }
   
   def update_known_three_letters
