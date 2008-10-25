@@ -5656,6 +5656,11 @@ class Script < ActiveRecord::Base
   
 
 
-  
+  # Find groups where there is a falciparum and toxo, but no
+  # blargh - just realised toxo is not in the 7 species, making this harder.
+  # Will need to rerun the the blast with toxo included
+  def babesia_loss
+    
+  end  
   
 end
