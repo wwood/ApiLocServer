@@ -597,5 +597,5 @@ end
 
 
 
-class CodingRegionNotFoundException < Exception; end
+#class CodingRegionNotFoundException < Exception; end
 class UnexpectedOrthomclGeneCount < Exception; end

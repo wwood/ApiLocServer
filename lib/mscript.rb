@@ -354,7 +354,7 @@ class Mscript
           code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
           true : false
         ].join("\t")
-      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
+      rescue CodingRegion::UnexpectedOrthomclGeneCount
         $stderr
       end
     end
