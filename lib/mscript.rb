@@ -342,6 +342,8 @@ class Mscript
     "has mammalian orthologue"
         ].join("\t")
     
+    badness_count = 0
+    
     CSV.open(filename, 'r') do |gene|
       begin
         code = OrthomclGene.find_by_orthomcl_name(gene).single_code
@@ -354,10 +356,12 @@ class Mscript
           code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
           true : false
         ].join("\t")
-      rescue CodingRegion::UnexpectedOrthomclGeneCount
-        $stderr
+      rescue OrthomclGene::UnexpectedCodingRegionCount
+        badness_count += 1
       end
     end
+    
+    $stderr.puts "Didn't manage to link #{badness_count} orthomcl genes to coding regions."
   end
   
   
