@@ -5663,4 +5663,10 @@ class Script < ActiveRecord::Base
     
   end  
   
+  def falciparum_simple_fasta
+    CodingRegion.s(Species::FALCIPARUM_NAME).all(:joins => :amino_acid_sequence).each do |code|
+      puts ">pfa|#{code.string_id}"
+      puts code.amino_acid_sequence.sequence
+    end
+  end
 end
