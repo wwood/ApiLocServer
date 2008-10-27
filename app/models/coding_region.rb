@@ -591,11 +591,11 @@ class CodingRegion < ActiveRecord::Base
     }.length > 0
   end
   
-  class UnexpectedOrthomclGeneCount < Exception; end
+  class UnexpectedOrthomclGeneCount < StandardError; end
 end
 
 
 
 
 class CodingRegionNotFoundException < Exception; end
-class UnexpectedOrthomclGeneCount < Exception; end
+#class UnexpectedOrthomclGeneCount < Exception; end
