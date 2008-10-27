@@ -4,13 +4,15 @@ class Species < ActiveRecord::Base
   VIVAX = 'Plasmodium vivax'
   THEILERIA_PARVA = 'Theileria parva'
   TOXOPLASMA_GONDII = 'Toxoplasma gondii'
+  TOXOPLASMA_GONDII_NAME = TOXOPLASMA_GONDII
   ELEGANS_NAME = 'elegans'
   
   has_many :scaffolds, :dependent => :destroy
   
   ORTHOMCL_THREE_LETTERS = {
     FALCIPARUM => 'pfa',
-    ELEGANS_NAME => 'cel'
+    ELEGANS_NAME => 'cel',
+    TOXOPLASMA_GONDII_NAME => 'tgo'
   }
   
   def update_known_three_letters

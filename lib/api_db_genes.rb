@@ -120,7 +120,7 @@ class ApiDbGenes < JgiGenesGff
   def ignore_record?(record)
     if !record or !record.seqname or
         @features_to_ignore.include?(record.feature) or 
-        !record.seqname.match(/^apidb\|MAL\d+/)
+        record.seqname.match(/^apidb\|NC\_/)
       return true
     else
       return false

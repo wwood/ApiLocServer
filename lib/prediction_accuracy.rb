@@ -5,13 +5,14 @@
 
 class PredictionAccuracy
   # Counts for each of the
-  attr_accessor :tp, :fp, :tn, :fn
+  attr_accessor :tp, :fp, :tn, :fn, :not_predicted
   
-  def initialize(tp = nil, fp = nil, tn = nil, fn = nil)
+  def initialize(tp = nil, fp = nil, tn = nil, fn = nil, not_predicted=nil)
     @tp = tp
     @fp = fp
     @tn = tn
     @fn = fn
+    @not_predicted = not_predicted
   end
   
   def precision
@@ -31,12 +32,18 @@ class PredictionAccuracy
     tn.to_f / (tn.to_f + fn.to_f)
   end
   
+  def coverage
+    goods = tp+fp+tn+tp
+    goods.to_f / (goods+not_predicted).to_f
+  end
+  
   def to_s
     [
       "Precision: #{precision.round(2)}",
       "Negative predictive value: #{negative_predictive_value.round(2)}",
       "Specificity: #{specificity.round(2)}",
-      "Sensitivity: #{sensitivity.round(2)}"
+      "Sensitivity: #{sensitivity.round(2)}",
+      "Coverage: #{coverage.round(2)}"
     ].join("\n")
   end
 end

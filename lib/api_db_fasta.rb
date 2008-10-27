@@ -100,7 +100,7 @@ end
 
 class ToxoDbFasta4p3 < FastaParser
   #>Toxoplasma_gondii|TGG_994843|190.m00008|Annotation|Toxoplasma_gondii_TIGR|(protein coding) hypothetical protein
-  def parse_name
+  def parse_name(definition)
     s = FastaAnnotation.new
     
     matches = definition.match(/^Toxoplasma_gondii\|(.+)\|(.+)\|Annotation\|Toxoplasma_gondii_TIGR\|(.+)$/)
@@ -111,5 +111,6 @@ class ToxoDbFasta4p3 < FastaParser
     s.name = matches[2]
     s.annotation = matches[3]
     s.gene_id = matches[1]
+    return s
   end
 end

@@ -203,14 +203,15 @@ class Script < ActiveRecord::Base
     }
   end
   
-  def apidb_species_to_database(species_name, gff_file_path)
+  def apidb_species_to_database(species_name, gff_file_path=nil, iter=nil)
     
     sp = Species.find_or_create_by_name species_name
     #        sp.scaffolds.each do |scaff|
     #          scaff.destroy
     #        end
     
-    iter = ApiDbGenes.new(gff_file_path)
+    # recreate iter if it does not already exist
+    iter ||= ApiDbGenes.new(gff_file_path)
 
     puts "Inserting..."
     
@@ -303,7 +304,9 @@ class Script < ActiveRecord::Base
   end
   
   def gondii_fasta_to_database
-    
+    fa = ToxoDbFasta4p3.new.load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta")
+    sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
+    upload_fasta_general!(fa, sp)
   end
   
   def calculate_falciparum_distances
@@ -5667,6 +5670,47 @@ class Script < ActiveRecord::Base
     CodingRegion.s(Species::FALCIPARUM_NAME).all(:joins => :amino_acid_sequence).each do |code|
       puts ">pfa|#{code.string_id}"
       puts code.amino_acid_sequence.sequence
+    end
+  end
+  
+  # How good is the predictor that predicts uses the toxo ortholog's psort prediction as the predictor?
+  def toxo_to_falciparum_nuclear_prediction
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      tp = fp = tn = fn = 0
+      no_orthologue_count = 0
+      
+      CodingRegion.falciparum.all(:joins => :expressed_localisation, :order => 'id').each do |code|
+        # if nuclear prediction
+        tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
+        
+        # Reject from all prediction where there is not exactly 1 toxo orthologue
+        toxos = CodingRegion.single_orthomcl.orthomcl_group.orthomcl_genes.code('tgo').all
+        if toxos.length != 1
+          no_orthologue_count += 1
+          next 
+        end
+        toxo = toxos[0]
+        
+        if tops.reach.name.include?('nucleus')
+          if toxo.cached_wold_psort_localisation(organism_type) == 'nucl'
+            tp += 1
+          else
+            fn += 1
+          end
+          
+        else # not nuclear at all
+          if toxo.cached_wold_psort_localisation(organism_type) == 'nucl'
+            fp += 1
+          else
+            tn += 1
+          end
+        end
+      end
+      
+      p = PredictionAccuracy.new(tp, fp, tn, fn, no_orthologue_count)
+      puts "#{organism_type}:"
+      puts p.to_s
+      puts
     end
   end
 end
