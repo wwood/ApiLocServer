@@ -9,7 +9,7 @@ class OrthomclGene < ActiveRecord::Base
   named_scope :code, lambda { |three_letter_species_code| {
       :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
     }}
-#  alias_method(:three_letter_code, :code)
+  #  alias_method(:three_letter_code, :code)
   named_scope :codes, lambda { |three_letter_species_codes| 
     pre = 'orthomcl_genes.orthomcl_name like ?'
     post = ["#{three_letter_species_codes[0]}%"]
@@ -223,6 +223,45 @@ class OrthomclGene < ActiveRecord::Base
     end
     
     puts "Properly linked #{goods} coding regions"
+  end
+  
+  # same as link_orthomcl_and_coding_regions, except don't
+  # require the orthomcl genes to be linked to the official one. This
+  # makes it include, then, all genes that have not been put into an
+  # orthomcl group
+  def link_orthomcl_and_coding_regions_loose(interesting_orgs=['cel'])
+    goods = 0
+    if !interesting_orgs or interesting_orgs.empty?
+      #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
+      #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
+      #    interesting_orgs = ['ath']
+      interesting_orgs = ['cel']
+    end
+    
+    puts "linking genes for species: #{interesting_orgs.inspect}"
+    
+    # Maybe a bit heavy handed but ah well.
+    OrthomclGene.codes(interesting_orgs).all.each do |orthomcl_gene|
+    
+      codes = orthomcl_gene.compute_coding_regions
+      if !codes or codes.length == 0
+        #        next #ignore for the moment
+        #        raise Exception, "No coding region found for #{orthomcl_gene.inspect}"
+        #        $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"
+        next
+      elsif codes.length > 1
+        #ignore
+        next
+      else
+        code = codes[0]
+        goods += 1
+      end
+      
+      OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
+        orthomcl_gene.id,
+        code.id
+      )
+    end
   end
 
   class UnexpectedCodingRegionCount < StandardError; end
