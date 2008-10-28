@@ -9,7 +9,9 @@ class GoTerm < ActiveRecord::Base
   
   has_many :go_alternates, :dependent => :destroy
 
-  ENZYME_GO_TERM = 'GO:0003824'  
+  ENZYME_GO_TERM = 'GO:0003824'
+  GPCR_GO_TERM = 'GO:0004930'
+  
   
   # Find a GO term by searching the go_term, or failing that
   # using the alternate as a proxy and returning the go_term that corresponds

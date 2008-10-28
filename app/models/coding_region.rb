@@ -609,6 +609,14 @@ class CodingRegion < ActiveRecord::Base
     }.length > 0
   end
   
+   def is_gpcr?
+    @go_object ||= Bio::Go.new
+    
+    go_terms.reach.go_identifier.select{|go_id|
+      @go_object.subsume?(GoTerm::GPCR_GO_TERM, go_id)
+    }.length > 0
+  end
+  
   def aaseq
     amino_acid_sequence ? amino_acid_sequence.sequence : nil
   end
