@@ -270,7 +270,8 @@ class OrthomclGene < ActiveRecord::Base
         orthomcl_gene.id,
         code.id
       )
-    end
+    end  
+      puts "Properly linked #{goods} coding regions"
   end
 
   class UnexpectedCodingRegionCount < StandardError; end

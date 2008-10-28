@@ -67,6 +67,7 @@ class Mscript
   
   # Upload the elegans phenotype observations to the database. Assumes all the genes already exist in the database
   def celegans_phenotype_observed_to_database(filename="#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv")
+    phenocount = 0
     first = true
 
     CSV.open(filename,
@@ -104,14 +105,14 @@ class Mscript
             matches[6]
 
           )
-          
+            phenocount +=1
           if !pheno.coding_region_ids.include?(code.id)
             pheno.coding_regions << code
           end
         end
       end
-  
     end
+    puts "Phenotypes added to #{phenocount} genes"
   end
 
 
@@ -334,15 +335,17 @@ class Mscript
   
   
   
-def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/hcon_cel_hits_no_group.gene_ids")
- # def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids")
-    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids_test")
+def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Method_used_seqclean_repeatmasker_WITHOUT_CAP3/hcon_cel_hits_no_group.gene_ids")
+#def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids")
+  #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids_test")
     puts [
       "gene id",
       "is lethal",
       "is enzyme",
+      "is gpcr",
       "wormnet_core_total_score",
-      "has mammalian orthologue"
+      #"has mammalian orthologue",
+      #"no. of elegans genes in group"
     ].join("\t")
     
     badness_count1 = 0
@@ -357,9 +360,12 @@ def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nem
           code.gene.name,
           code.lethal?,
           code.is_enzyme?,
+          code.is_gpcr?,
           code.wormnet_core_total_linkage_scores,
-          code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
-          true : false
+        # for genes not in orthomcl groups need to comment out the next couple of lines  
+        #code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
+          #true : false,
+          #code.single_orthomcl.orthomcl_group.orthomcl_genes.codes('cel').count
         ].join("\t")
       rescue OrthomclGene::UnexpectedCodingRegionCount
         badness_count1 += 1
