@@ -229,7 +229,7 @@ class OrthomclGene < ActiveRecord::Base
   # require the orthomcl genes to be linked to the official one. This
   # makes it include, then, all genes that have not been put into an
   # orthomcl group
-  def link_orthomcl_and_coding_regions_loose(interesting_orgs=['cel'])
+  def link_orthomcl_and_coding_regions_loose(interesting_orgs=['cel'], warn=false)
     goods = 0
     if !interesting_orgs or interesting_orgs.empty?
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
@@ -243,14 +243,23 @@ class OrthomclGene < ActiveRecord::Base
     # Maybe a bit heavy handed but ah well.
     OrthomclGene.codes(interesting_orgs).all.each do |orthomcl_gene|
     
-      codes = orthomcl_gene.compute_coding_regions
+      org, name = official_split(orthomcl_gene.orthomcl_name)
+      if org.nil? #error check
+        raise Exception, "Couldn't parse orthomcl name: #{orthomcl_gene.orthomcl_name}"
+      end
+      
+      species = Species.find_by_orthomcl_three_letter(org)
+      raise if !species
+      codes = CodingRegion.fs(name, species.name)
       if !codes or codes.length == 0
-        #        next #ignore for the moment
-        #        raise Exception, "No coding region found for #{orthomcl_gene.inspect}"
-        #        $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"
+        if warn
+          $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"
+        end
         next
       elsif codes.length > 1
-        #ignore
+        if warn
+          $stderr.puts "Multiple coding regions found for #{orthomcl_gene.inspect}"
+        end
         next
       else
         code = codes[0]
