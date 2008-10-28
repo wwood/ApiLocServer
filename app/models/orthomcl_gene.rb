@@ -250,7 +250,7 @@ class OrthomclGene < ActiveRecord::Base
       
       species = Species.find_by_orthomcl_three_letter(org)
       raise if !species
-      codes = CodingRegion.fs(name, species.name)
+      codes = CodingRegion.find_all_by_name_or_alternate_and_species(name, species.name)
       if !codes or codes.length == 0
         if warn
           $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"

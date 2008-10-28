@@ -6,6 +6,7 @@ class Species < ActiveRecord::Base
   TOXOPLASMA_GONDII = 'Toxoplasma gondii'
   TOXOPLASMA_GONDII_NAME = TOXOPLASMA_GONDII
   ELEGANS_NAME = 'elegans'
+  BABESIA_BOVIS_NAME = 'Babesia bovis'
   
   has_many :scaffolds, :dependent => :destroy
   
@@ -41,7 +42,7 @@ class Species < ActiveRecord::Base
   end
   
   def self.babesia_bovis_name
-    'Babesia bovis'
+    BABESIA_BOVIS_NAME
   end
   
   def self.cryptosporidium_parvum_name

@@ -50,6 +50,7 @@ class PredictionAccuracy
     [
       "Number predicted: #{total}",
       "Coverage: #{coverage.round(2)}",
+      "Actual positives: #{fn+tp}/#{total}",
       "Accuracy: #{accuracy.round(2)}",
       "Precision: #{precision.round(2)}",
       "Negative predictive value: #{negative_predictive_value.round(2)}",
