@@ -1,0 +1,6 @@
+[submodule "vendor/plugins/acts_as_orf_finder"]
+	path = vendor/plugins/acts_as_orf_finder
+	url = ben@reefedge.sols.uq.edu.au:/data/git/acts_as_orf_finder
+[submodule "vendor/plugins/acts_as_signalp"]
+	path = vendor/plugins/acts_as_signalp
+	url = ben@reefedge.sols.uq.edu.au:/data/git/acts_as_signalp
