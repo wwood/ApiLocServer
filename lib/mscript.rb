@@ -331,18 +331,23 @@ class Mscript
 
     return lethal_groups
   end
-
-    def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids")
-  #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids_test")
+  
+  
+  
+def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/hcon_cel_hits_no_group.gene_ids")
+ # def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids")
+    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Testing_of_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids_test")
     puts [
-    "gene id",
-    "is lethal",
-    "is enzyme",
-    "wormnet_core_total_score",
-    "has mammalian orthologue"
-        ].join("\t")
+      "gene id",
+      "is lethal",
+      "is enzyme",
+      "wormnet_core_total_score",
+      "has mammalian orthologue"
+    ].join("\t")
     
-    badness_count = 0
+    badness_count1 = 0
+    badness_count2 = 0
+    
     
     CSV.open(filename, 'r') do |gene|
       begin
@@ -357,11 +362,16 @@ class Mscript
           true : false
         ].join("\t")
       rescue OrthomclGene::UnexpectedCodingRegionCount
-        badness_count += 1
+        badness_count1 += 1
+      rescue RException 
+        badness_count2 += 1
+          
       end
     end
     
-    $stderr.puts "Didn't manage to link #{badness_count} orthomcl genes to coding regions."
+    $stderr.puts "Didn't manage to link #{badness_count1} orthomcl genes to coding regions."
+    $stderr.puts "Didn't manage to find #{badness_count2} GO ids"
+    
   end
   
   
