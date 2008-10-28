@@ -71,6 +71,8 @@ class CodingRegion < ActiveRecord::Base
   has_many :coding_region_drosophila_allele_genes, :dependent => :destroy
   has_many :drosophila_allele_genes, :through => :coding_region_drosophila_allele_genes
   
+  acts_as_signalp
+  
   named_scope :species_name, lambda{ |species_name|
     {
       :joins => {:gene => {:scaffold => :species}},
