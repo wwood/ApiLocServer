@@ -2,6 +2,7 @@ class Species < ActiveRecord::Base
   FALCIPARUM = 'falciparum'
   FALCIPARUM_NAME = FALCIPARUM
   VIVAX = 'Plasmodium vivax'
+  VIVAX_NAME = VIVAX
   THEILERIA_PARVA = 'Theileria parva'
   TOXOPLASMA_GONDII = 'Toxoplasma gondii'
   TOXOPLASMA_GONDII_NAME = TOXOPLASMA_GONDII

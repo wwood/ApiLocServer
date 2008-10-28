@@ -1254,7 +1254,8 @@ class Script < ActiveRecord::Base
   
   
   def vivax_to_database
-    apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.4/Pvivax_Salvador1_plasmoDB-5.4.gff")
+    #apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.4/Pvivax_Salvador1_plasmoDB-5.4.gff")
+    apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.5/Pvivax_PlasmoDB-5.5.gff")
   end
   
   
@@ -1813,7 +1814,7 @@ class Script < ActiveRecord::Base
   
   # upload the fasta sequences from falciparum file to the database
   def vivax_fasta_to_database
-    fa = ApiDbFasta.new.load("#{DATA_DIR}/vivax/genome/plasmodb/5.4/PvivaxAnnotatedProteins_plasmoDB-5.4.fasta")
+    fa = ApiDbVivaxFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/5.5/PvivaxAnnotatedProteins_PlasmoDB-5.5.fasta")
     sp = Species.find_by_name(Species.vivax_name)
     upload_fasta_general!(fa, sp)
   end
@@ -5796,5 +5797,9 @@ class Script < ActiveRecord::Base
       puts p.to_s
       puts
     end
+  end
+  
+  def elegans_annotations_to_database
+    
   end
 end

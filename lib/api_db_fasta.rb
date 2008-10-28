@@ -114,3 +114,19 @@ class ToxoDbFasta4p3 < FastaParser
     return s
   end
 end
+
+class ApiDbVivaxFasta5p5 < FastaParser
+  # gb|PVX_086995 | organism=Plasmodium_vivax_SaI-1 | product=uncharacterised trophozoite protein, putative | location=CM000448:1306916-1307575(+) | length=219
+  def parse_name(definition)
+    s = FastaAnnotation.new
+    
+    matches = definition.match(/^gb\|(.*?) \| organism=Plasmodium_vivax_SaI-1 \| product=(.*?) \| location=.* \| length=\d+$/)
+    if !matches
+      raise Exception, "Definition line has unexpected format: #{definition}"
+    end
+    
+    s.name = matches[1]
+    s.annotation = matches[2]
+    return s
+  end
+end

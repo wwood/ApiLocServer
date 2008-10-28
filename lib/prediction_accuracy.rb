@@ -15,6 +15,10 @@ class PredictionAccuracy
     @not_predicted = not_predicted
   end
   
+  def not_predicted_parsed
+    not_predicted.nil? ? 0 : not_predicted
+  end
+  
   def precision
     tp.to_f / (tp.to_f+fp.to_f)
   end
@@ -33,9 +37,7 @@ class PredictionAccuracy
   end
   
   def coverage
-    return 1.0 if not_predicted.nil?
-    goods = tp+fp+tn+tp
-    goods.to_f / (goods+not_predicted).to_f
+    total.to_f / (total+not_predicted_parsed).to_f
   end
   
   def total
@@ -49,7 +51,7 @@ class PredictionAccuracy
   def to_s
     [
       "Number predicted: #{total}",
-      "Coverage: #{coverage.round(2)}",
+      "Coverage: #{coverage.round(2)} #{total}/#{total+not_predicted_parsed}",
       "Actual positives: #{fn+tp}/#{total}",
       "Accuracy: #{accuracy.round(2)}",
       "Precision: #{precision.round(2)}",
