@@ -5630,9 +5630,41 @@ class Script < ActiveRecord::Base
     Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
       tp = fp = tn = fn = 0
       
-      CodingRegion.falciparum.all(:joins => :expression_contexts, :order => 'id').each do |code|
+      CodingRegion.falciparum.all(:joins => :expression_contexts).uniq.each do |code|
         # if nuclear prediction
         tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
+        
+        if tops.reach.name.include?('nucleus')
+          if code.cached_wold_psort_localisation(organism_type) == 'nucl'
+            tp += 1
+          else
+            fn += 1
+          end
+          
+        else # not nuclear at all
+          if code.cached_wold_psort_localisation(organism_type) == 'nucl'
+            fp += 1
+          else
+            tn += 1
+          end
+        end
+      end
+      
+      p = PredictionAccuracy.new(tp, fp, tn, fn)
+      puts "#{organism_type}:"
+      puts p.to_s
+      puts
+    end
+  end
+  
+  def nuclear_wolf_psort_accuracy_no_signal
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      tp = fp = tn = fn = 0
+      
+      CodingRegion.falciparum.all(:joins => :expression_contexts).uniq.each do |code|
+        # if nuclear prediction
+        tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
+        next if code.signalp?
         
         if tops.reach.name.include?('nucleus')
           if code.cached_wold_psort_localisation(organism_type) == 'nucl'
@@ -5679,17 +5711,69 @@ class Script < ActiveRecord::Base
       tp = fp = tn = fn = 0
       no_orthologue_count = 0
       
-      CodingRegion.falciparum.all(:joins => :expressed_localisation, :order => 'id').each do |code|
-        # if nuclear prediction
-        tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
-        
+      CodingRegion.falciparum.all(:joins => {:expressed_localisations => :malaria_top_level_localisation}).uniq.each do |code|
         # Reject from all prediction where there is not exactly 1 toxo orthologue
-        toxos = CodingRegion.single_orthomcl.orthomcl_group.orthomcl_genes.code('tgo').all
+        toxos = []
+        begin
+          toxos = code.single_orthomcl.orthomcl_group.orthomcl_genes.code('tgo').all
+        rescue CodingRegion::UnexpectedOrthomclGeneCount
+        end
+        
         if toxos.length != 1
           no_orthologue_count += 1
           next 
         end
-        toxo = toxos[0]
+        toxo = toxos[0].single_code
+        
+        # if nuclear prediction
+        tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
+        
+        if tops.reach.name.include?('nucleus')
+          if toxo.cached_wold_psort_localisation(organism_type) == 'nucl'
+            tp += 1
+          else
+            fn += 1
+          end
+          
+        else # not nuclear at all
+          if toxo.cached_wold_psort_localisation(organism_type) == 'nucl'
+            fp += 1
+          else
+            tn += 1
+          end
+        end
+      end
+      
+      p = PredictionAccuracy.new(tp, fp, tn, fn, no_orthologue_count)
+      puts "#{organism_type}:"
+      puts p.to_s
+      puts
+    end
+  end
+  
+  # How good is the predictor that predicts uses the toxo ortholog's psort prediction as the predictor?
+  def toxo_to_falciparum_nuclear_prediction_no_signal
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      tp = fp = tn = fn = 0
+      no_orthologue_count = 0
+      
+      CodingRegion.falciparum.all(:joins => {:expressed_localisations => :malaria_top_level_localisation}).uniq.each do |code|
+        # Reject from all prediction where there is not exactly 1 toxo orthologue
+        toxos = []
+        begin
+          toxos = code.single_orthomcl.orthomcl_group.orthomcl_genes.code('tgo').all
+        rescue CodingRegion::UnexpectedOrthomclGeneCount
+        end
+        
+        if toxos.length != 1
+          no_orthologue_count += 1
+          next 
+        end
+        toxo = toxos[0].single_code
+        
+        # if nuclear prediction
+        tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
+        next if code.signalp?
         
         if tops.reach.name.include?('nucleus')
           if toxo.cached_wold_psort_localisation(organism_type) == 'nucl'

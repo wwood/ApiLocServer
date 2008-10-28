@@ -71,6 +71,8 @@ class CodingRegion < ActiveRecord::Base
   has_many :coding_region_drosophila_allele_genes, :dependent => :destroy
   has_many :drosophila_allele_genes, :through => :coding_region_drosophila_allele_genes
   
+  acts_as_signalp :sequence_method => :aaseq
+  
   named_scope :species_name, lambda{ |species_name|
     {
       :joins => {:gene => {:scaffold => :species}},
@@ -223,6 +225,22 @@ class CodingRegion < ActiveRecord::Base
       return simple
     else
       alts = CodingRegionAlternateStringId.find_all_by_name string_id
+      if alts
+        return alts.pick(:coding_region)
+      else
+        return []
+      end
+    end
+  end
+  
+  # Return the coding region associated with the string id. The string_id
+  # can be either a real id, or an alternate id.
+  def self.find_all_by_name_or_alternate_and_species(string_id, species_common_name)
+    simple = CodingRegion.s(species_common_name).find_all_by_string_id string_id
+    if !simple.empty?
+      return simple
+    else
+      alts = CodingRegionAlternateStringId.s(species_common_name).find_all_by_name string_id
       if alts
         return alts.pick(:coding_region)
       else
@@ -589,6 +607,10 @@ class CodingRegion < ActiveRecord::Base
     go_terms.reach.go_identifier.select{|go_id|
       @go_object.subsume?(GoTerm::ENZYME_GO_TERM, go_id)
     }.length > 0
+  end
+  
+  def aaseq
+    amino_acid_sequence ? amino_acid_sequence.sequence : nil
   end
   
   class UnexpectedOrthomclGeneCount < StandardError; end
