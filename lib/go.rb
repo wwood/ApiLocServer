@@ -120,10 +120,31 @@ module Bio
       # return if subsumee is a descendent of sumsumer
       return go_offspring(primarer).include?(primaree)
     end
+    
+    def subsume_tester(subsumer_go_id)
+      Go::SubsumeTester.new(self, subsumer_go_id)
+    end
   
     # Return 'MF', 'CC' or 'BP' corresponding to the
     def ontology_abbreviation(go_id)
       @r.eval_R("Ontology(get('#{go_id}', GOTERM))")
+    end
+
+    class SubsumeTester
+      attr_reader :subsumer_offspring, :master_go_id
+    
+      def initialize(go_object, subsumer_go_id)
+        @go = go_object
+      
+        @master_go_id = @go.primary_go_id(subsumer_go_id)
+        @subsumer_offspring = @go.go_offspring(@master_go_id)
+      end
+    
+      def subsume?(subsumer_go_id)
+        primaree = @go.primary_go_id(subsumer_go_id)
+        return true if @master_go_id == primaree
+        @subsumer_offspring.include?(primaree)
+      end
     end
   end
 end

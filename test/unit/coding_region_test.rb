@@ -74,17 +74,17 @@ class CodingRegionTest < ActiveSupport::TestCase
     assert_equal 2, o.id
     
     # test fail with no orthomcl gene
-    assert_raise UnexpectedOrthomclGeneCount do
+    assert_raise CodingRegion::UnexpectedOrthomclGeneCount do
       CodingRegion.find(7).single_orthomcl
     end
     
     # test fail with multiple orthomcl genes
-    assert_raise UnexpectedOrthomclGeneCount do
+    assert_raise CodingRegion::UnexpectedOrthomclGeneCount do
       CodingRegion.find(1).single_orthomcl
     end
     
     # test fail when single one is non-official
-    assert_raise UnexpectedOrthomclGeneCount do
+    assert_raise CodingRegion::UnexpectedOrthomclGeneCount do
       CodingRegion.find(3).single_orthomcl
     end
   end
@@ -95,5 +95,10 @@ class CodingRegionTest < ActiveSupport::TestCase
     
     # test nothing
     assert_equal 0.0, CodingRegion.find(3).wormnet_core_total_linkage_scores
+  end
+  
+  def test_is_enzyme?
+    assert CodingRegion.find(2).is_enzyme?
+    assert_equal false, CodingRegion.find(1).is_enzyme?
   end
 end

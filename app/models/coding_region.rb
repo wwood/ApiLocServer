@@ -609,17 +609,19 @@ class CodingRegion < ActiveRecord::Base
 
   def is_enzyme?
     @go_object ||= Bio::Go.new
+    @go_subsumer ||= @go_object.subsume_tester(GoTerm::ENZYME_GO_TERM)
     
     go_terms.reach.go_identifier.select{|go_id|
-      @go_object.subsume?(GoTerm::ENZYME_GO_TERM, go_id)
+      @go_subsumer.subsume?(go_id)
     }.length > 0
   end
   
    def is_gpcr?
     @go_object ||= Bio::Go.new
+    @go_subsumer ||= @go_object.subsume_tester(GoTerm::GPCR_GO_TERM)
     
     go_terms.reach.go_identifier.select{|go_id|
-      @go_object.subsume?(GoTerm::GPCR_GO_TERM, go_id)
+      @go_subsumer.subsume?(go_id)
     }.length > 0
   end
   
