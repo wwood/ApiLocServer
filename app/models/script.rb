@@ -2413,8 +2413,8 @@ class Script < ActiveRecord::Base
     end
   end
   
-  def upload_orthomcl_official_sequences
-    flat = Bio::FlatFile.open(Bio::FastaFormat, "#{WORK_DIR}/Orthomcl/seqs_orthomcl-2.fasta")
+  def upload_orthomcl_official_sequences(fasta_filename="#{WORK_DIR}/Orthomcl/seqs_orthomcl-2.fasta")
+    flat = Bio::FlatFile.open(Bio::FastaFormat, fasta_filename)
     
     run = OrthomclRun.official_run_v2
     
