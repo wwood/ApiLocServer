@@ -69,4 +69,17 @@ class GoTest < Test::Unit::TestCase
     # test falsity - plastid part does not subsume plastid
     assert_equal false, @go.subsume?('GO:0044435','GO:0009536')
   end
+  
+  def test_subsume_tester
+    tester = @go.subsume_tester('GO:0003824')
+    assert_kind_of Bio::Go::SubsumeTester, tester
+    assert tester.subsume?('GO:0050333')
+    
+    tester = @go.subsume_tester('GO:0044435')
+    assert_equal false, tester.subsume?('GO:0009536')
+    
+    #equality
+    tester = @go.subsume_tester('GO:0044435')
+    assert tester.subsume?('GO:0044435')
+  end
 end
