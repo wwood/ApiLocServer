@@ -41,7 +41,7 @@ module Transmembrane
     end
   end
 
-  class TransmembraneDomain
+  class TransmembraneDomainDefinition
     attr_accessor :start, :stop
   
     def length
@@ -58,7 +58,7 @@ module Transmembrane
     end
   end
   
-  class ConfidencedTransmembraneDomain<TransmembraneDomain
+  class ConfidencedTransmembraneDomain<TransmembraneDomainDefinition
     attr_accessor :confidence
     
     def <=>(other)
@@ -74,7 +74,7 @@ module Transmembrane
     end
   end
   
-  class OrientedTransmembraneDomain<TransmembraneDomain
+  class OrientedTransmembraneDomain<TransmembraneDomainDefinition
     # The orientation can either be inside out (like a type II transmembrane domain protein)
     INSIDE_OUT = 'inside_out'
     # Or outside in, like a type I transmembrane domain protein)

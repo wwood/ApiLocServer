@@ -22,7 +22,7 @@ class PdbTmTest < Test::Unit::TestCase
     assert_kind_of Array, tmds
     assert_equal 23, tmds.length
     
-    t = Transmembrane::TransmembraneDomain.new
+    t = Transmembrane::TransmembraneDomainDefinition.new
     t.start = 30
     t.stop = 53
     assert_equal t, tmds[0]

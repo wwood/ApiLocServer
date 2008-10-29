@@ -20,7 +20,7 @@ class MemsatParser
         
         matches = line.match('^1: \S+? (\d+)-(\d+)')
         if matches
-          tmd = TransmembraneDomain.new
+          tmd = TransmembraneDomainDefinition.new
           tmd.start = matches[1].to_i
           tmd.stop = matches[2].to_i
           protein.push tmd
@@ -29,7 +29,7 @@ class MemsatParser
           if !matches
             raise Exception, "Badly parsed line: #{line}"
           else
-            tmd = TransmembraneDomain.new
+            tmd = TransmembraneDomainDefinition.new
             tmd.start = matches[1].to_i
             tmd.stop = matches[2].to_i
             protein.push tmd           
