@@ -606,6 +606,15 @@ class CodingRegion < ActiveRecord::Base
   def wormnet_core_number_interactions
     CodingRegionNetworkEdge.coding_region_id(id).wormnet_core.count
   end
+  
+  def wormnet_full_total_linkage_scores
+    CodingRegionNetworkEdge.coding_region_id(id).wormnet.all.reach.strength.sum
+  end
+ 
+
+def wormnet_full_number_interactions
+    CodingRegionNetworkEdge.coding_region_id(id).wormnet.count
+end
 
   def is_enzyme?
     @go_object ||= Bio::Go.new
