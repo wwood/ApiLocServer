@@ -78,7 +78,7 @@ class PhobiusResult
     # match all the middle bits
     reg = /^(\d+?)[io](\d+?)\-/
     while matches =substrate.match(reg)
-      tmd = TransmembraneDomain.new
+      tmd = TransmembraneDomainDefinition.new
       tmd.start = prev.to_i
       tmd.stop = matches[1].to_i
       protein.push tmd
@@ -90,7 +90,7 @@ class PhobiusResult
     if !(matches = substrate.match('(\d+?)[io]$'))
       raise Exception, "Failed to parse the last bit of: #{substrate}"
     end
-    tmd = TransmembraneDomain.new
+    tmd = TransmembraneDomainDefinition.new
     tmd.start = prev.to_i
     tmd.stop = matches[1].to_i
     protein.push tmd

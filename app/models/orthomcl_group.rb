@@ -37,4 +37,13 @@ class OrthomclGroup < ActiveRecord::Base
     
     return self.find_by_sql(sql)
   end
+  
+  # return true iff this group contains 1 orthomcl_gene of each from
+  # each species in this group.
+  def single_members_by_codes(orthomcl_three_letter_codes)
+    orthomcl_three_letter_codes.each do |three|
+      return false if orthomcl_genes.code(three).count != 1
+    end
+    return true
+  end
 end

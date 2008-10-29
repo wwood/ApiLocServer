@@ -37,7 +37,7 @@ module Bio
           rel.elements.each('REGION') do |region|
             if region.attributes['type'] == 'H'
 #              p "found region: #{region}"
-              t = Transmembrane::TransmembraneDomain.new
+              t = Transmembrane::TransmembraneDomainDefinition.new
               t.start = region.attributes['seq_beg'].to_i
               t.stop = region.attributes['seq_end'].to_i
               tmds.push t

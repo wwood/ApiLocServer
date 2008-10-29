@@ -49,7 +49,7 @@ class ToppredParser
     while !line.match('^//')
       if line.match('^TRANSMEM')
         splits = line.split
-        tmd = TransmembraneDomain.new
+        tmd = TransmembraneDomainDefinition.new
         tmd.start = splits[1].to_i
         tmd.stop = splits[2].to_i
         protein.transmembrane_domains.push tmd
