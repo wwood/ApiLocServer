@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20081016042041) do
+ActiveRecord::Schema.define(:version => 20081030070520) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -449,6 +449,16 @@ ActiveRecord::Schema.define(:version => 20081016042041) do
   end
 
   add_index "networks", ["name"], :name => "index_networks_on_name", :unique => true
+
+  create_table "nls_db_consensus_sequences", :force => true do |t|
+    t.integer  "nls_db_id",  :null => false
+    t.string   "type",       :null => false
+    t.string   "signal",     :null => false
+    t.string   "annotation", :null => false
+    t.integer  "pubmed_id",  :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "orthomcl_gene_coding_regions", :force => true do |t|
     t.integer  "coding_region_id"
