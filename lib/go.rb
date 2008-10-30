@@ -7,6 +7,7 @@ module Bio
     def initialize
       @r = RSRuby.instance
       @r.library('GO.db')
+      #      @r.print('initing') #debug to test if this is being loaded twice
     end
     
     # Return an array of GO identifiers that are the offspring (all the descendents)

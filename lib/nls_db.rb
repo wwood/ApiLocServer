@@ -32,20 +32,33 @@ module Bio
       # To cover for all the rest of the attributes to make things easier
       # for me, the programmer
       def method_missing(method, *args, &block)
-        if @xml.get_elements("NLS_LOADER:#{method}").length == 1
-          return gimme(method)
+        if ['annotation', 'medlineID','signal','origin'].include?(method.to_s)
+          els = @xml.get_elements("NLS_LOADER:#{method.to_s}")
+          if els.length == 1 and !els[0].nil? #normal
+            return gimme(method)
+          elsif els.length > 1
+            raise Exception, "Bad Parsing!"
+          else
+            return nil #that's ok
+          end
         else
           super
         end
       end
       
       def origin
-        gimme('origin').downcase
+        gimme('origin').capitalize!
+      end
+      
+      def medlineID
+        m = gimme('medlineID')
+        m.nil? ? nil : m.to_i
       end
       
       private
       def gimme(attribute_xpath)
-        @xml.get_elements("NLS_LOADER:#{attribute_xpath}")[0].get_text.to_s
+        el = @xml.get_elements("NLS_LOADER:#{attribute_xpath}")[0]
+        el ? el.get_text.to_s : nil
       end
     end
   end

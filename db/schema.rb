@@ -454,8 +454,8 @@ ActiveRecord::Schema.define(:version => 20081030070520) do
     t.integer  "nls_db_id",  :null => false
     t.string   "type",       :null => false
     t.string   "signal",     :null => false
-    t.string   "annotation", :null => false
-    t.integer  "pubmed_id",  :null => false
+    t.string   "annotation"
+    t.integer  "pubmed_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

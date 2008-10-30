@@ -23,10 +23,12 @@ YEAST = 'yeast'
 
 WORK_DIR = "#{ENV['HOME']}/Workspace"
 
-PHD_DIR = "#{ENV['HOME']}/phd"
-DATA_DIR = "#{ENV['HOME']}/phd/data"
 
-class Script < ActiveRecord::Base
+
+class Script < ActiveRecord::Base  
+  PHD_DIR = "#{ENV['HOME']}/phd"
+  DATA_DIR = "#{ENV['HOME']}/phd/data"
+
   def brafl_to_database
     puts "Deleting all records..."
     

@@ -112,4 +112,9 @@ class CodingRegionTest < ActiveSupport::TestCase
     # false
     assert_equal false, CodingRegion.find(2).is_gpcr?
   end
+  
+  def test_enzyme_then_gpcr_bug
+    assert CodingRegion.find(3).is_gpcr?
+    assert_equal false, CodingRegion.find(3).is_enzyme?
+  end
 end

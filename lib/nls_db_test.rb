@@ -20,13 +20,15 @@ module Bio
       assert_equal 1, e.nls_db_id
       assert_equal "APKRKSGVSKC", e.signal
       assert_equal 'polyomaVP1', e.annotation
-      assert_equal 'experimental', e.origin
+      assert_equal 'Experimental', e.origin
+      assert_equal 1322607, e.medlineID
 
       e = entries[1]
-      assert_equal 2, e.nls_db_id
-      assert_equal "APTKRKGS", e.signal
-      assert_equal 'SV40()VP1', e.annotation
-      assert_equal 'experimental', e.origin
+      assert_equal 249, e.nls_db_id
+      assert_equal "[DE]R{2,4}xRK[PL]", e.signal
+      assert_nil e.annotation #for some nls's don't have annotation
+      assert_equal 'Potential', e.origin
+      assert_nil e.medlineID
     end
   end
 end

@@ -612,25 +612,33 @@ class CodingRegion < ActiveRecord::Base
   end
  
 
-def wormnet_full_number_interactions
+  def wormnet_full_number_interactions
     CodingRegionNetworkEdge.coding_region_id(id).wormnet.count
-end
+  end
 
+  # determine whether this coding region is classified as an enzyme
+  # according to the associated GO terms.
+  # WARNING: This method is not thread-safe due
+  # to the static variables
   def is_enzyme?
-    @go_object ||= Bio::Go.new
-    @go_enzyme_subsumer ||= @go_object.subsume_tester(GoTerm::ENZYME_GO_TERM)
+    @@go_object ||= Bio::Go.new
+    @@go_enzyme_subsumer ||= @@go_object.subsume_tester(GoTerm::ENZYME_GO_TERM)
     
-     go_terms.all.reach.go_identifier.select{|go_id| 
-      @go_enzyme_subsumer.subsume?(go_id)
+    go_terms.all.reach.go_identifier.select{|go_id| 
+      @@go_enzyme_subsumer.subsume?(go_id)
     }.length > 0
   end
   
-   def is_gpcr?
-    @go_object ||= Bio::Go.new
-    @go_gpcr_subsumer ||= @go_object.subsume_tester(GoTerm::GPCR_GO_TERM)
+  # determine whether this coding region is classified as gpcr 
+  # according to the associated GO terms.
+  # WARNING: This method is not thread-safe due
+  # to the static variables
+  def is_gpcr?
+    @@go_object ||= Bio::Go.new
+    @@go_gpcr_subsumer ||= @@go_object.subsume_tester(GoTerm::GPCR_GO_TERM)
     
     go_terms.all.reach.go_identifier.select{|go_id|
-    @go_gpcr_subsumer.subsume?(go_id)
+      @@go_gpcr_subsumer.subsume?(go_id)
     }.length > 0
   end
   
