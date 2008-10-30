@@ -359,7 +359,7 @@ class Mscript
     CSV.open(filename, 'r') do |gene|
       begin
         code = OrthomclGene.find_by_orthomcl_name(gene).single_code
-        
+        $stderr.print "#{gene.string_id}.."
         puts [
           code.gene.name,
           code.lethal?,
@@ -380,6 +380,7 @@ class Mscript
         badness_count2 += 1
           
       end
+      $stderr.puts "tick"
     end
     
     $stderr.puts "Didn't manage to link #{badness_count1} orthomcl genes to coding regions."
