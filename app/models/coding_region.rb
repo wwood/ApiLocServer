@@ -618,19 +618,19 @@ end
 
   def is_enzyme?
     @go_object ||= Bio::Go.new
-    @go_subsumer ||= @go_object.subsume_tester(GoTerm::ENZYME_GO_TERM)
+    @go_enzyme_subsumer ||= @go_object.subsume_tester(GoTerm::ENZYME_GO_TERM)
     
-    go_terms.reach.go_identifier.select{|go_id|
-      @go_subsumer.subsume?(go_id)
+     go_terms.all.reach.go_identifier.select{|go_id| 
+      @go_enzyme_subsumer.subsume?(go_id)
     }.length > 0
   end
   
    def is_gpcr?
     @go_object ||= Bio::Go.new
-    @go_subsumer ||= @go_object.subsume_tester(GoTerm::GPCR_GO_TERM)
+    @go_gpcr_subsumer ||= @go_object.subsume_tester(GoTerm::GPCR_GO_TERM)
     
-    go_terms.reach.go_identifier.select{|go_id|
-      @go_subsumer.subsume?(go_id)
+    go_terms.all.reach.go_identifier.select{|go_id|
+    @go_gpcr_subsumer.subsume?(go_id)
     }.length > 0
   end
   
