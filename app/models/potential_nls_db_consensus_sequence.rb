@@ -1,0 +1,2 @@
+class PotentialNlsDbConsensusSequence < NlsDbConsensusSequence
+end
