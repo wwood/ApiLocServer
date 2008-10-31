@@ -16,6 +16,7 @@ require 'top_db_xml'
 require 'pdb_tm'
 require 'go'
 require 'wormbase_go_file'
+require 'libsvm_array'
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -5797,11 +5798,19 @@ class Script < ActiveRecord::Base
       p = PredictionAccuracy.new(tp, fp, tn, fn, no_orthologue_count)
       puts "#{organism_type}:"
       puts p.to_s
-      puts
+      putsg
     end
   end
   
-  def elegans_annotations_to_database
-    
+  def gmars_exported
+    CodingRegion.s(Species::FALCIPARUM).all(:joins => :expressed_localisations).each do |code|
+      next if !code.uniq_top? #skip dual localised for the moment
+      
+      if code.tops[0].name == 'exported'
+        puts code.gmars_vector.libsvm_format(1)
+      else
+        puts code.gmars_vector.libsvm_format(-1)
+      end
+    end
   end
 end

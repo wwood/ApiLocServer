@@ -1,3 +1,5 @@
+require 'gmars'
+
 class CodingRegion < ActiveRecord::Base
   
   #  validates_presence_of :orientation
@@ -647,6 +649,10 @@ class CodingRegion < ActiveRecord::Base
   end
   
   class UnexpectedOrthomclGeneCount < StandardError; end
+  
+  def gmars_vector(gmars = GMARS.new, max_gap=11)
+    aaseq ? gmars.gmars_gapped_vector(aaseq, max_gap) : nil
+  end
 end
 
 
