@@ -5803,13 +5803,18 @@ class Script < ActiveRecord::Base
   end
   
   def gmars_exported
+    exported_count = other_count = 0
+    
     CodingRegion.s(Species::FALCIPARUM).all(:joins => :expressed_localisations).each do |code|
       next if !code.uniq_top? #skip dual localised for the moment
       
       if code.tops[0].name == 'exported'
         puts code.gmars_vector.libsvm_format(1)
+        exported_count += 1
       else
+        next if 
         puts code.gmars_vector.libsvm_format(-1)
+        other_count += 1
       end
     end
   end
