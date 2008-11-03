@@ -5818,4 +5818,34 @@ class Script < ActiveRecord::Base
       end
     end
   end
+  
+  def golgi_consensus_falciparum
+    signals = [GolgiNTerminalSignal.all, GolgiCTerminalSignal.all].flatten.reach.regex
+    
+    puts [
+      'PlasmoDB ID',
+      'Annotation',
+      'Confirmed Localisations',
+      signals.collect{|s| s.inspect}
+    ].flatten.join("\t")
+    
+    CodingRegion.s(Species::FALCIPARUM_NAME).all.each do |code|
+      consensi = code.golgi_consensi
+      if !consensi.empty?
+        m = [
+          code.string_id,
+          code.annotation.annotation,
+          code.expressed_localisations.reach.name.join(', '),
+        ]
+        signals.each do |signal|
+          if code.aaseq and matches = code.aaseq.match(/(#{signal})/)
+            m.push matches[1]
+          else
+            m.push nil
+          end
+        end
+        puts m.join("\t")
+      end
+    end
+  end
 end

@@ -1,8 +1,8 @@
-<h1>Coding Region Search</h1>
+<h1>Gene Annotator</h1>
 
 <% if flash[:error] %><div class="error"><%= flash[:notice] %></div><% end %>
 
-
+<h3>Search for a Single Gene</h3>
 <% @coding_region = CodingRegion.new %>
 <% form_for :coding_region, @coding_region, :url => {:action => :find} do |f| %>
       <%= f.label 'Coding Region Name or OrthoMCL name' %>
@@ -10,8 +10,9 @@
       <%= submit_tag 'Search' %>
   <% end %>
   
+<h3>Annotate Multiple Genes</h3>
 <% form_tag 'coding_regions/annotate'  do -%>
-  <textarea name="ids"></textarea>
+  <%= text_area_tag"ids", nil, :size => '40x10' %><br />
 <%= submit_tag 'Annotate' %>
   <% end -%>
 
