@@ -117,4 +117,16 @@ class CodingRegionTest < ActiveSupport::TestCase
     assert CodingRegion.find(3).is_gpcr?
     assert_equal false, CodingRegion.find(3).is_enzyme?
   end
+  
+  def test_golgi_consensi
+    n = GolgiNTerminalSignal.create!(:signal => '^A')
+    c = GolgiCTerminalSignal.create!(:signal => 'BB$')
+    
+    code = CodingRegion.first
+    code.amino_acid_sequence = AminoAcidSequence.create(
+      :coding_region_id => code.id,
+      :sequence => 'AGGGGGGGDBB'
+    )
+    assert_equal [n, c], code.golgi_consensi
+  end
 end

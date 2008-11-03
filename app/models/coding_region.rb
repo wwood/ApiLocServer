@@ -653,6 +653,22 @@ class CodingRegion < ActiveRecord::Base
   def gmars_vector(gmars = GMARS.new, max_gap=11)
     aaseq ? gmars.gmars_gapped_vector(aaseq, max_gap) : nil
   end
+  
+  # Return the golgi consensus sequences that the amino acid
+  # sequence of this coding region is attached to. Return [] if none
+  # are found or if there is no amino acid sequence attached
+  def golgi_consensi
+    return [] if !aaseq
+    
+    consensi = []
+    
+    [GolgiNTerminalSignal, GolgiCTerminalSignal].each do |model|
+      model.all.each do |s|
+        consensi.push s if aaseq.match(s.regex)
+      end
+    end
+    consensi
+  end
 end
 
 
