@@ -1,4 +1,6 @@
-class NlsDbConsensusSequence < ActiveRecord::Base
+class NlsDbConsensusSequence < ConsensusSequence
+  validates_presence_of :nls_db_id
+  
   def upload_from_xml(filename="#{Script::DATA_DIR}/databases/NLSdb/nlsdb.generic.xml")
     require 'nls_db'
     
@@ -12,9 +14,5 @@ class NlsDbConsensusSequence < ActiveRecord::Base
         e.medlineID
       )
     end
-  end
-  
-  def regexp
-    /#{signal}/
   end
 end
