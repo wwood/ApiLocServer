@@ -1,7 +1,6 @@
-# 
-# To change this template, choose Tools | Templates
-# and open the template in the editor.
- 
+# Author: Ben J Woodcroft <b.woodcroft somewhere near pgrad.unimelb.edu.au>
+# Date Created: 31 Oct 2008
+# Last Modified: 4 Nov 2008 
 
 $:.unshift File.join(File.dirname(__FILE__),'..','lib')
 

@@ -1,5 +1,13 @@
+# Author: Ben J Woodcroft <b.woodcroft somewhere near pgrad.unimelb.edu.au>
+# Date Created: 31 Oct 2008
+# Last Modified: 4 Nov 2008
+# Adapted from Xiaonan Ji's Java code, provided by James Bailey.
 
+# A class for generating Gapped Markov Chain statistics from a (String) sequence
+# of characters which often represent an amino acid sequence of a protein. 
 class GMARS
+  # Create a new GMARS using an alphabet of characters to include and an
+  # alphabet of character to exclude from analysis
   def initialize(alphabet = 'ACDEFGHIKLMNPQRSTVWY', ignoring_alphabet = 'X')
     @protein_ids = alphabet.split('')
     @protein_id_hash = {}
@@ -10,7 +18,8 @@ class GMARS
     @ignoring_alphabet = ignoring_alphabet
   end
   
-  # Given a protein sequence, return an array of compositions
+  # Given a protein sequence, return an array of compositions derived from that sequence.
+  # max_gap.
   def gmars_gapped_vector(sequence, max_gap)
     
     # a multidimensional array of gaps/alphabet_first/alphabet_second
