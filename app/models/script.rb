@@ -5802,19 +5802,57 @@ class Script < ActiveRecord::Base
     end
   end
   
+  # generate the files necessary to run a prediction run
+  # in LIBSVM format
   def gmars_exported
-    exported_count = other_count = 0
+    gmars = GMARS.new
     
-    CodingRegion.s(Species::FALCIPARUM).all(:joins => :expressed_localisations).each do |code|
-      next if !code.uniq_top? #skip dual localised for the moment
+    (0..6).each do |max_gap|
+      puts "Gap #{max_gap}"
       
-      if code.tops[0].name == 'exported'
-        puts code.gmars_vector.libsvm_format(1)
-        exported_count += 1
-      else
-        next if 
-        puts code.gmars_vector.libsvm_format(-1)
-        other_count += 1
+      exported_count = other_count = 0
+      f = File.open("../svm/gmars/apiloc.exportedVothers.gap#{max_gap}.txt", 'w')
+    
+      CodingRegion.s(Species::FALCIPARUM).all(
+        :joins => :expressed_localisations
+      ).each do |code|
+        next if !code.uniq_top? #skip dual localised for the moment
+      
+        if code.tops[0].name == 'exported'
+          f.puts code.gmars_vector(gmars, max_gap).libsvm_format(1)
+          exported_count += 1
+        else
+          next if 
+          f.puts code.gmars_vector(gmars, max_gap).libsvm_format(-1)
+          other_count += 1
+        end
+      end
+    end
+  end
+  
+  # generate the files necessary to run a prediction run
+  # in LIBSVM format
+  def gmars_all_localisations
+    gmars = GMARS.new
+    
+    top_hash = {}
+    TopLevelLocalisation.all.each_with_index do |top, index|
+      i = index+1
+      top_hash[top] = i
+      puts [top.name, i].join(' - ')
+    end
+    
+    (0..6).each do |max_gap|
+      puts "Gap #{max_gap}"
+      
+      f = File.open("../svm/gmars/apiloc.all_localisationss.gap#{max_gap}.txt", 'w')
+    
+      CodingRegion.s(Species::FALCIPARUM).all(
+        :joins => :expressed_localisations
+      ).each do |code|
+        next if !code.uniq_top? #skip dual localised for the moment
+      
+        f.puts code.gmars_vector(gmars, max_gap).libsvm_format(top_hash[code.tops[0]])
       end
     end
   end
