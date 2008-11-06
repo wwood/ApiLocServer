@@ -5886,4 +5886,13 @@ class Script < ActiveRecord::Base
       end
     end
   end
+  
+  # Collect results for candidates for sequencing
+  def babesia_apicoplast_candidate_selection
+    #   1. Get all the genes that blast against the falciparum high and low confidence orthologs using 7 species orthomcl
+    babesias = OrthomclGene.orthomcl_run(OrthomclRun.seven_species_filtering_name).all()
+    
+    #   2. discard if the babesia gene has a signal peptide
+    #   3. bl2seq the babesia gene against the falciparum gene. Discard if there is no overhang
+  end
 end
