@@ -39,6 +39,16 @@ module Transmembrane
     def transmembrane_type_2?
       @transmembrane_domains and @transmembrane_domains.length == 1 and @transmembrane_domains[0].orientation == OrientedTransmembraneDomain::INSIDE_OUT
     end
+    
+    def transmembrane_type
+      if transmembrane_type_1?
+        return 'I'
+      elsif transmembrane_type_2?
+        return 'II'
+      else
+        return 'Unknown'
+      end
+    end
   end
 
   class TransmembraneDomainDefinition

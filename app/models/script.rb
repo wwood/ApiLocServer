@@ -290,7 +290,13 @@ class Script < ActiveRecord::Base
         end
       end
       
-      gene = iter.next_gene
+      old_gene = gene
+      begin
+        gene = iter.next_gene
+      rescue Exception => e
+        $stderr.puts "Failed on the gene after #{old_gene}"
+        raise e
+      end
     end
 
     puts "finished."
@@ -5856,36 +5862,115 @@ class Script < ActiveRecord::Base
       end
     end
   end
+    
   
   def golgi_consensus_falciparum
-    signals = [GolgiNTerminalSignal.all, GolgiCTerminalSignal.all].flatten.reach.regex
+    # May as well run the upload of the signals because it is fast and easy
+    GolgiNTerminalSignal.new.florian_fill
+    GolgiCTerminalSignal.new.florian_fill
     
+    signals = [GolgiNTerminalSignal.all, GolgiCTerminalSignal.all].flatten.reach.regex
+     
     puts [
       'PlasmoDB ID',
       'Annotation',
       'Confirmed Localisations',
+      'GPI Anchor (Predicted by Gilson et al 2006)',
+      'TMHMM2 Type I/II',
+      'TMHMM2 TMD Length',
+      'TMHMM2 TMD Start',
+      'TMHMM2 TMD End',
+      'Protein Length',
+      'Signal Peptide by SignalP 3.0?',
       signals.collect{|s| s.inspect}
     ].flatten.join("\t")
+     
+    gpi_list = PlasmodbGeneList.find_by_description "Gilson Published GPI 2006"
     
-    CodingRegion.s(Species::FALCIPARUM_NAME).all.each do |code|
-      consensi = code.golgi_consensi
-      if !consensi.empty?
-        m = [
-          code.string_id,
-          code.annotation.annotation,
-          code.expressed_localisations.reach.name.join(', '),
-        ]
-        signals.each do |signal|
-          if code.aaseq and matches = code.aaseq.match(/(#{signal})/)
-            m.push matches[1]
-          else
-            m.push nil
-          end
+    CodingRegion.s(Species::FALCIPARUM_NAME).all(
+      :include => [:amino_acid_sequence, :annotation]
+    ).each do |code|
+      
+      # I only care about the protein minus the signal peptide
+      next unless code.aaseq
+      sp = code.signalp
+      seq = code.aaseq
+      seq = sp.cleave(seq) if sp.signal?
+      
+      # only count those that are predicted to have 1 TMD by TMHMM2
+      tmhmm_result = TmHmmWrapper.new.calculate(seq)
+      next unless tmhmm_result.transmembrane_domains.length == 1
+      
+      # fill in columns as possible
+      m = [
+        code.string_id,
+        code.annotation.annotation,
+        code.expressed_localisations.reach.name.join(', '),
+        gpi_list.coding_regions.include?(code) ? 'GPI' : 'no GPI',
+        tmhmm_result.transmembrane_type,
+        tmhmm_result.transmembrane_domains[0].length,
+        tmhmm_result.transmembrane_domains[0].start,
+        tmhmm_result.transmembrane_domains[0].stop,
+        code.aaseq.length,
+        sp.signal?
+      ]
+      
+      # fill in the golgi signal peptides
+      #      consensi = code.golgi_consensi
+      #      unless consensi.empty?
+      signals.each do |signal|
+        if code.aaseq and matches = code.aaseq.match(/(#{signal})/)
+          m.push matches[1]
+        else
+          m.push nil
         end
-        puts m.join("\t")
       end
+      puts m.join("\t")
     end
   end
+  
+  
+  def upload_gilson_gpi_list
+    l = PlasmodbGeneList.find_or_create_by_description("Gilson Published GPI 2006")
+    File.open("#{DATA_DIR}/falciparum/localisation/Gilson2006Apr7.GPI.list.csv").each do |line|
+      p line
+      code = CodingRegion.ff(line.strip)
+      raise if !code
+      PlasmodbGeneListEntry.find_or_create_by_plasmodb_gene_list_id_and_coding_region_id(
+        l.id, code.id
+      )
+    end
+  end
+  
+  #  def golgi_consensus_falciparum
+  #    signals = [GolgiNTerminalSignal.all, GolgiCTerminalSignal.all].flatten.reach.regex
+  #    
+  #    puts [
+  #      'PlasmoDB ID',
+  #      'Annotation',
+  #      'Confirmed Localisations',
+  #      signals.collect{|s| s.inspect}
+  #    ].flatten.join("\t")
+  #    
+  #    CodingRegion.s(Species::FALCIPARUM_NAME).all.each do |code|
+  #      consensi = code.golgi_consensi
+  #      if !consensi.empty?
+  #        m = [
+  #          code.string_id,
+  #          code.annotation.annotation,
+  #          code.expressed_localisations.reach.name.join(', '),
+  #        ]
+  #        signals.each do |signal|
+  #          if code.aaseq and matches = code.aaseq.match(/(#{signal})/)
+  #            m.push matches[1]
+  #          else
+  #            m.push nil
+  #          end
+  #        end
+  #        puts m.join("\t")
+  #      end
+  #    end
+  #  end
   
   # Collect results for candidates for sequencing
   def babesia_apicoplast_candidate_selection
@@ -5894,5 +5979,21 @@ class Script < ActiveRecord::Base
     
     #   2. discard if the babesia gene has a signal peptide
     #   3. bl2seq the babesia gene against the falciparum gene. Discard if there is no overhang
+  end
+  
+  # WARNING: Run once only!
+  def update_falciparum_to_5p5
+    raise if Species.find_by_name('falciparum v5.4')
+    four = Species.find_by_name(Species::FALCIPARUM_NAME)
+    four.name = 'falciparum v5.4'
+    four.orthomcl_three_letter = nil
+    four.save
+    
+    five = Species.find_or_create_by_name(
+      Species::FALCIPARUM
+    )
+    
+    falciparum_to_database
+    falciparum_fasta_to_database
   end
 end
