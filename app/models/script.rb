@@ -5882,6 +5882,7 @@ class Script < ActiveRecord::Base
       'TMHMM2 TMD End',
       'Protein Length',
       'Signal Peptide by SignalP 3.0?',
+      'ExportPred Prediction',
       signals.collect{|s| s.inspect}
     ].flatten.join("\t")
      
@@ -5912,12 +5913,11 @@ class Script < ActiveRecord::Base
         tmhmm_result.transmembrane_domains[0].start,
         tmhmm_result.transmembrane_domains[0].stop,
         code.aaseq.length,
-        sp.signal?
+        sp.signal?,
+        code.amino_acid_sequence.exportpred.predicted?
       ]
       
       # fill in the golgi signal peptides
-      #      consensi = code.golgi_consensi
-      #      unless consensi.empty?
       signals.each do |signal|
         if code.aaseq and matches = code.aaseq.match(/(#{signal})/)
           m.push matches[1]
