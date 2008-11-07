@@ -5945,10 +5945,47 @@ class Script < ActiveRecord::Base
   # Collect results for candidates for sequencing
   def babesia_apicoplast_candidate_selection
     #   1. Get all the genes that blast against the falciparum high and low confidence orthologs using 7 species orthomcl
-    babesias = OrthomclGene.orthomcl_run(OrthomclRun.seven_species_filtering_name).all()
+    groups = OrthomclGroup.run(OrthomclRun.seven_species_filtering_name).all(
+      :joins => {:orthomcl_genes => {:coding_regions => :plasmodb_gene_lists}},
+      :conditions => ['(plasmodb_gene_lists.description = ?'+
+          ' or plasmodb_gene_lists.description = ?)'+
+          ' and orthomcl_runs.name = ?', 
+        'Pvi_Pfa_Tpa_HIGH_confid_set3', 'Pvi_Pfa_Tpa_LOWER_confid_set',
+        OrthomclRun.seven_species_filtering_name
+      ]
+    )
     
-    #   2. discard if the babesia gene has a signal peptide
-    #   3. bl2seq the babesia gene against the falciparum gene. Discard if there is no overhang
+    babesias = groups.select{|g| 
+      g.orthomcl_genes.count(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])>0
+    }.collect{|group|
+      group.orthomcl_genes.first(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])
+    }
+    
+    
+    babesias.each do |og|
+      code = og.single_code #raises exception if something is askew
+      
+      #   2. discard if the babesia gene has a signal peptide
+      next if code.signalp.signal?
+      
+      #   3. bl2seq the babesia gene against the falciparum gene. Discard if there is no overhang
+      falciparums = og.orthomcl_group.orthomcl_genes.all(
+        :joins => {:coding_regions => {:gene => {:scaffold => :species}}},
+        :conditions => ['species.name = ?', Species::FALCIPARUM_NAME]
+      )
+      next unless falciparums.length == 1 #hmm, maybe
+      
+      fal = falciparums[0].single_code
+      
+      fal_aa = fal.amino_acid_sequence
+      bbo_aa = code.amino_acid_sequence
+      
+      blast_result = fal_aa.blastp(bbo_aa)
+      return blast_result
+      return
+    end
+    
+    
   end
   
   # WARNING: Run once only!
