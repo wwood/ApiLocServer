@@ -469,7 +469,9 @@ class Script < ActiveRecord::Base
       "#{DATA_DIR}/falciparum/localisation/exportpred/exportPred10.txt",
       "#{DATA_DIR}/falciparum/exportpred/exportome.csv",
       "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_HIGH_confid_set3",
-      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_LOWER_confid_set"
+      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_LOWER_confid_set",
+      "#{DATA_DIR}/falciparum/localisation/pexelPlasmoDB5.5.txt",
+      "#{DATA_DIR}/falciparum/localisation/htPlasmoDB5.5.txt"
     ]
     
     filenames.each do |f|
