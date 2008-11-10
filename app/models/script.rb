@@ -17,6 +17,7 @@ require 'pdb_tm'
 require 'go'
 require 'wormbase_go_file'
 require 'libsvm_array'
+require 'bl2seq_report_shuffling'
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -5952,6 +5953,12 @@ class Script < ActiveRecord::Base
     
   # Collect results for candidates for sequencing
   def babesia_apicoplast_candidate_selection
+    auto_babesia_candidates.each do |c|
+      puts [c.query_id, c.hit_id, c.difference].join("\t")
+    end
+  end
+  
+  def auto_babesia_candidates
     #   1. Get all the genes that blast against the falciparum high and low confidence orthologs using 7 species orthomcl
     groups = OrthomclGroup.run(OrthomclRun.seven_species_filtering_name).all(
       :joins => {:orthomcl_genes => {:coding_regions => :plasmodb_gene_lists}},
@@ -5968,9 +5975,11 @@ class Script < ActiveRecord::Base
     }.collect{|group|
       group.orthomcl_genes.first(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])
     }
+    m = []
     
+
     
-    babesias.each do |og|
+    babesias.uniq.each do |og|
       code = og.single_code #raises exception if something is askew
       
       #   2. discard if the babesia gene has a signal peptide
@@ -5985,15 +5994,14 @@ class Script < ActiveRecord::Base
       
       fal = falciparums[0].single_code
       
-      fal_aa = fal.amino_acid_sequence
-      bbo_aa = code.amino_acid_sequence
-      
-      blast_result = fal_aa.blastp(bbo_aa)
-      return blast_result
-      return
+      m.push [
+        fal.string_id,
+        code.string_id,
+        fal.amino_acid_sequence.blastp(code.amino_acid_sequence).query_overhang
+      ].join("\t")
     end
     
-    
+    return m
   end
   
   # WARNING: Run once only!
@@ -6031,4 +6039,24 @@ class Script < ActiveRecord::Base
       end
     }.join("\n")
   end
+  
+  def testa
+    c1 = CodingRegion.f('BBOV_III011730')
+    c2 = CodingRegion.f('MAL7P1.92')
+
+    hit = c2.amino_acid_sequence.blastp(c1.amino_acid_sequence).most_upstream_query_hit
+    p hit.evalue
+    p [hit.query_from, hit.hit_from]
+  end
+  
+  def babesia_candidate_sidekick
+    auto_babesia_candidates.each do |candidate|
+      
+    end
+  end
+end
+
+
+class Candidate
+      
 end
