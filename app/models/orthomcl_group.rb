@@ -17,7 +17,7 @@ class OrthomclGroup < ActiveRecord::Base
     }
   }
   
-  named_scope :official, {:joins => :orthomcl_run, :conditions => {:orthomcl_runs => {:name => OrthomclRun.official_run_v2_name}}}
+  named_scope :official, {:joins => :orthomcl_run, :conditions => ['orthomcl_runs.name = ?', OrthomclRun.official_run_v2_name]}
   
   # Find all the groups that have one or more genes from each of multiple species. 
   # For instance OrthomclGroup.all_overlapping_groups(['dme','cel') will find all the

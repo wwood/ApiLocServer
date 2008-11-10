@@ -126,6 +126,12 @@ class CodingRegion < ActiveRecord::Base
     :joins => {:gene => {:scaffold => :species}},
     :conditions => ['species.name = ?', Species.falciparum_name]
   }
+  named_scope :list, lambda {|gene_list_name|
+    {
+      :joins => :plasmodb_gene_lists,
+      :conditions => ['plasmodb_gene_lists.description = ?', gene_list_name]
+    }
+  }
   
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'
@@ -668,6 +674,24 @@ class CodingRegion < ActiveRecord::Base
       end
     end
     consensi
+  end
+  
+  # Return true iff this coding region is either a pseudogene
+  # or rifin, stevor, surfin, PfEMP1, etc.
+  # This method is probably not perfect because it only calculates
+  # the returned value based on the annotation.
+  # Manually checked the results for PlasmoDB v5.5 and there was no
+  # false positives at least, though.
+  def falciparum_cruft?
+    return false unless annotation # ignore unannotated sequences
+    
+    a = annotation.annotation
+    [/var /i,/pfemp1/i, /pseudogene/i, /rifin/i, /stevor/i, /surfin/i, /RESA/].each do |crap|
+      if annotation.annotation.match(crap)
+        return true
+      end
+    end
+    return false
   end
 end
 

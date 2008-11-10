@@ -5885,6 +5885,8 @@ class Script < ActiveRecord::Base
       'Protein Length',
       'Signal Peptide by SignalP 3.0?',
       'ExportPred Prediction',
+      'Published in PEXEL List',
+      'Published in HT List',
       signals.collect{|s| s.inspect}
     ].flatten.join("\t")
      
@@ -5893,6 +5895,8 @@ class Script < ActiveRecord::Base
     CodingRegion.s(Species::FALCIPARUM_NAME).all(
       :include => [:amino_acid_sequence, :annotation]
     ).each do |code|
+      # ignore surface crap and pseudogenes
+      next if code.falciparum_cruft?
       
       # I only care about the protein minus the signal peptide
       next unless code.aaseq
@@ -5916,7 +5920,9 @@ class Script < ActiveRecord::Base
         tmhmm_result.transmembrane_domains[0].stop,
         code.aaseq.length,
         sp.signal?,
-        code.amino_acid_sequence.exportpred.predicted?
+        code.amino_acid_sequence.exportpred.predicted?,
+        !CodingRegion.list('pexelPlasmoDB5.5').find_by_id(code.id).nil?,
+        !CodingRegion.list('htPlasmoDB5.5').find_by_id(code.id).nil?
       ]
       
       # fill in the golgi signal peptides
@@ -6004,5 +6010,21 @@ class Script < ActiveRecord::Base
     
     falciparum_to_database
     falciparum_fasta_to_database
+  end
+  
+  def florian_thanks_in_advance
+    puts PlasmodbGeneList.find_by_description('florian temp').coding_regions.collect {|code|
+      if code.orthomcl_genes.official.count == 0
+        "#{code.string_id}\tno orthomcl group"
+      else
+        group = code.single_orthomcl.orthomcl_group
+        [
+          code.string_id,
+          group.orthomcl_genes.code('sce').all.reach.orthomcl_name.join(', '), 
+          group.orthomcl_genes.code('ath').all.reach.orthomcl_name.join(', '), 
+          group.orthomcl_genes.code('hsa').all.reach.orthomcl_name.join(', ')
+        ].join("\t")
+      end
+    }.join("\n")
   end
 end
