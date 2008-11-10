@@ -182,8 +182,7 @@ class OrthomclGene < ActiveRecord::Base
       'tan'
     ]
   end
-  
-  
+    
   
   
   # Basically fill out the orthomcl_gene_coding_regions table appropriately

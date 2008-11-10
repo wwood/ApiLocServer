@@ -6022,7 +6022,11 @@ class Script < ActiveRecord::Base
           code.string_id,
           group.orthomcl_genes.code('sce').all.reach.orthomcl_name.join(', '), 
           group.orthomcl_genes.code('ath').all.reach.orthomcl_name.join(', '), 
-          group.orthomcl_genes.code('hsa').all.reach.orthomcl_name.join(', ')
+          group.orthomcl_genes.code('hsa').all.reach.orthomcl_name.join(', '),
+          group.orthomcl_genes.codes(OrthomclGene.official_orthomcl_apicomplexa_codes).all.reach.orthomcl_name.join(', '),
+          group.orthomcl_genes.all.reach.orthomcl_name.reject{|name| 
+            ['sce','ath','hsa',OrthomclGene.official_orthomcl_apicomplexa_codes].flatten.include?(name[0..2])
+          }.join(', ')
         ].join("\t")
       end
     }.join("\n")
