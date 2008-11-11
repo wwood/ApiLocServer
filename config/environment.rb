@@ -59,7 +59,7 @@ Rails::Initializer.run do |config|
   
   # Gem dependencies
   config.gem "wwood-reach", :source => "http://gems.github.com", :lib => 'reach'
-  config.gem "rsruby"
+  config.gem "wwood-rsruby", :source => "http://gems.github.com", :lib => 'rsruby'
   config.gem "fastercsv"
 end
 

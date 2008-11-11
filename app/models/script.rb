@@ -5954,7 +5954,16 @@ class Script < ActiveRecord::Base
   # Collect results for candidates for sequencing
   def babesia_apicoplast_candidate_selection
     auto_babesia_candidates.each do |c|
-      puts [c.query_id, c.hit_id, c.difference].join("\t")
+      puts [
+        c.query_def, 
+        c.hit_def, 
+        c.nterminal_query_start, 
+        c.nterminal_hit_start, 
+        c.difference,
+        c.bl2seq_result.hits.length,
+        c.bl2seq_result.hits[0].hsps.length,
+        c.bl2seq_result.shuffled_start?
+      ].join("\t")
     end
   end
   
@@ -5990,15 +5999,26 @@ class Script < ActiveRecord::Base
         :joins => {:coding_regions => {:gene => {:scaffold => :species}}},
         :conditions => ['species.name = ?', Species::FALCIPARUM_NAME]
       )
-      next unless falciparums.length == 1 #hmm, maybe
+      # skip where there is no orthologs
+      next if falciparums.length == 0
       
-      fal = falciparums[0].single_code
+      # if there are multiple orthologs choose the best one by blasting them
+      fal = nil
+      if falciparums.length > 1
+        fal = code.amino_acid_sequence.best_bl2seq(falciparums.reach.single_code.amino_acid_sequence.retract)[0].coding_region
+      else
+        fal = falciparums[0].single_code
+      end
       
-      m.push [
-        fal.string_id,
-        code.string_id,
-        fal.amino_acid_sequence.blastp(code.amino_acid_sequence).query_overhang
-      ].join("\t")
+      bl2seq = fal.amino_acid_sequence.blastp(code.amino_acid_sequence, :evalue => 1e-5)
+      unless bl2seq.hits.empty?
+        m.push Bio::Blast::Bl2seq::BabesiaCandidateWrapper.new(
+          bl2seq,
+          fal.amino_acid_sequence.fasta,
+          code.amino_acid_sequence.fasta
+        )
+      end
+      #      return m
     end
     
     return m
@@ -6043,20 +6063,15 @@ class Script < ActiveRecord::Base
   def testa
     c1 = CodingRegion.f('BBOV_III011730')
     c2 = CodingRegion.f('MAL7P1.92')
+    code = c2
+    fal = c1
 
-    hit = c2.amino_acid_sequence.blastp(c1.amino_acid_sequence).most_upstream_query_hit
-    p hit.evalue
-    p [hit.query_from, hit.hit_from]
+    puts code.amino_acid_sequence.blastp(fal.amino_acid_sequence, {:evalue => 1e-5}).shuffled_start?
   end
   
   def babesia_candidate_sidekick
     auto_babesia_candidates.each do |candidate|
-      
+      puts candcandidate
     end
   end
-end
-
-
-class Candidate
-      
 end
