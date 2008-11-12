@@ -5986,13 +5986,20 @@ class Script < ActiveRecord::Base
     }
     m = []
     
-
     
-    babesias.uniq.each do |og|
+    babesia_with_signal_peptides_count = 0
+    babesia_without_falciparum_hit_count = 0
+      
+    babesias.uniq!
+    $stderr.puts "Number of babesia orthologs in total: #{babesias.length}"
+    
+    babesias.each do |og|
       code = og.single_code #raises exception if something is askew
       
       #   2. discard if the babesia gene has a signal peptide
-      next if code.signalp.signal?
+      if code.signalp.signal?
+        babesia_with_signal_peptides_count += 1
+      end
       
       #   3. bl2seq the babesia gene against the falciparum gene. Discard if there is no overhang
       falciparums = og.orthomcl_group.orthomcl_genes.all(
@@ -6011,7 +6018,9 @@ class Script < ActiveRecord::Base
       end
       
       bl2seq = fal.amino_acid_sequence.blastp(code.amino_acid_sequence, :evalue => 1e-5)
-      unless bl2seq.hits.empty?
+      if bl2seq.hits.empty?
+        babesia_without_falciparum_hit_count += 1
+      else
         m.push Bio::Blast::Bl2seq::BabesiaCandidateWrapper.new(
           bl2seq,
           fal.amino_acid_sequence.fasta,
@@ -6020,6 +6029,9 @@ class Script < ActiveRecord::Base
       end
       #      return m
     end
+    
+    $stderr.puts "Babesias with signal peptides: #{babesia_with_signal_peptides_count}"
+    $stderr.puts "Babesia without decent falciparum hit: #{babesia_without_falciparum_hit_count}"
     
     return m
   end
@@ -6069,9 +6081,32 @@ class Script < ActiveRecord::Base
     puts code.amino_acid_sequence.blastp(fal.amino_acid_sequence, {:evalue => 1e-5}).shuffled_start?
   end
   
-  def babesia_candidate_sidekick
-    auto_babesia_candidates.each do |candidate|
-      puts candcandidate
+  def babesia_apicoplast_signal_peptide_plasmo_ap_scores
+     #   1. Get all the genes that blast against the falciparum high and low confidence orthologs using 7 species orthomcl
+    groups = OrthomclGroup.run(OrthomclRun.seven_species_filtering_name).all(
+      :joins => {:orthomcl_genes => {:coding_regions => :plasmodb_gene_lists}},
+      :conditions => ['(plasmodb_gene_lists.description = ?'+
+          ' or plasmodb_gene_lists.description = ?)'+
+          ' and orthomcl_runs.name = ?', 
+        'Pvi_Pfa_Tpa_HIGH_confid_set3', 'Pvi_Pfa_Tpa_LOWER_confid_set',
+        OrthomclRun.seven_species_filtering_name
+      ]
+    )
+    
+    babesias = groups.select{|g| 
+      g.orthomcl_genes.count(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])>0
+    }.collect{|group|
+      group.orthomcl_genes.first(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])
+    }
+    
+    babesias.uniq!
+    
+    babesias.each do |bab|
+      code = bab.single_code
+      puts [
+        code.signalp.signal?,
+        code.amino_acid_sequence.plasmo_a_p.points
+      ].join("\t")
     end
   end
 end
