@@ -75,6 +75,10 @@ class CodingRegion < ActiveRecord::Base
   
   acts_as_signalp :sequence_method => :aaseq
   
+  # cached results
+  has_one :export_pred_cache, :dependent => :destroy
+  has_one :signal_p_cache, :dependent => :destroy
+  
   named_scope :species_name, lambda{ |species_name|
     {
       :joins => {:gene => {:scaffold => :species}},
@@ -692,6 +696,29 @@ class CodingRegion < ActiveRecord::Base
       end
     end
     return false
+  end
+  
+  # Return the saved exportpred result, or calculate
+  # it if this does not exist
+  def export_pred_however
+    return nil if aaseq.nil?
+    
+    return export_pred_cache unless export_pred_cache.nil? #returned cached if possible
+    
+    # otherwise just calculate the bastard
+    result = Bio::ExportPred::Wrapper.new.calculate(aaseq)
+    ExportPredCache.create_from_result(id, result)
+  end
+  
+  # Return the saved signalp result, or calculate
+  # it if this does not exist
+  def signalp_however
+    return nil if aaseq.nil?
+    return signal_p_cache unless signal_p_cache.nil? #returned cached if possible
+    
+    # otherwise just calculate the bastard
+    result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
+    SignalPCache.create_from_result(id, result)
   end
 end
 

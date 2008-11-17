@@ -26,8 +26,13 @@ module Bio
     end
     
     class Result
-      attr_accessor :predicted
-      attr_accessor :score
+      @@all_result_names = [
+        :predicted,
+        :score
+      ]
+      @@all_result_names.each do |rn|
+        attr_accessor rn
+      end
      
       # Line may be
       def self.create_from_line(line)
@@ -48,6 +53,10 @@ module Bio
       
       def predicted?
         @predicted
+      end
+      
+      def self.all_result_names
+        @@all_result_names
       end
     end
   end
