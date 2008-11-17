@@ -2786,7 +2786,7 @@ class Script < ActiveRecord::Base
       
       # find the coding regions
       orf_name = row[orf_name_col]
-      code = CodingRegion.find_by_name_or_alternate(orf_name)
+      code = CodingRegion.falciparum.find_by_name_or_alternate(orf_name)
       if !code
         $stderr.puts "No coding region #{orf_name} found"
         next
@@ -4281,6 +4281,7 @@ class Script < ActiveRecord::Base
     link_orthomcl_and_coding_regions(['pfa'])
     seven_species_orthomcl_upload
     upload_snp_data_jeffares
+    derisi_microarray_to_database2
   end
   
   def localisation_spreadsheet
@@ -6082,7 +6083,7 @@ class Script < ActiveRecord::Base
   end
   
   def babesia_apicoplast_signal_peptide_plasmo_ap_scores
-     #   1. Get all the genes that blast against the falciparum high and low confidence orthologs using 7 species orthomcl
+    #   1. Get all the genes that blast against the falciparum high and low confidence orthologs using 7 species orthomcl
     groups = OrthomclGroup.run(OrthomclRun.seven_species_filtering_name).all(
       :joins => {:orthomcl_genes => {:coding_regions => :plasmodb_gene_lists}},
       :conditions => ['(plasmodb_gene_lists.description = ?'+
@@ -6109,4 +6110,187 @@ class Script < ActiveRecord::Base
       ].join("\t")
     end
   end
+  
+  def localisation_libsvm_normalised
+    
+    # headings
+    headings = [
+#      'PlasmoDB ID',
+#      'Annotation',
+#      'Top Level Localisations',
+#      'Amino Acid Sequence',
+      'Class',
+      'SignalP Prediction',
+      'PlasmoAP Score'
+    ]
+    #    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism|
+    #      Bio::PSORT::WoLF_PSORT::LOCALISATIONS.each do |loc|
+    #        headings.push "WoLF PSORT Prediction #{organism}: #{loc}"
+    #      end
+    #    end
+    headings.push [
+      'Number of P. falciparum Genes in Official Orthomcl Group', #orthomcl
+      'Number of P. vivax Genes in Official Orthomcl Group',
+      'Number of C. parvum Genes in Official Orthomcl Group',
+      'Number of C. homonis Genes in Official Orthomcl Group',
+      'Number of T. parva Genes in Official Orthomcl Group',
+      'Number of T. annulata Genes in Official Orthomcl Group',
+      'Number of Arabidopsis Genes in Official Orthomcl Group',
+      'Number of Yeast Genes in Official Orthomcl Group',
+      'Number of Mouse Genes in Official Orthomcl Group',
+      'Number of P. falciparum Genes in 7species Orthomcl Group', #7species orthomcl
+      'Number of P. vivax Genes in 7species Orthomcl Group',
+      'Number of Babesia Genes in 7species Orthomcl Group',
+      'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
+      'Number of Non-Synonymous IT SNPs according to Jeffares et al',
+      'Number of Synonymous Clinical SNPs according to Jeffares et al',
+      'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+    ]
+    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
+    headings.push derisi_timepoints.collect{|t| 
+      'DeRisi 2006 3D7 '+t.name
+    }
+    
+    headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
+    #puts headings.join(sep)
+    all_results = []
+    
+    # genes that are understandably not in the orthomcl databases, because
+    # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
+    # if any of them has any old names that were included, but meh for the moment.
+    fivepfour = ['PFL0040c', 'PF14_0078', 'PF14_0744','PF10_0344','PFD1150c','PFD1145c','PFD0110w','PFI1780w','PFI1740c','PFI0105c','PFI0100c','MAL7P1.231']
+    # Genes that have 2 orthomcl entries but only 1 plasmoDB entry
+    merged_genes = ['PFD0100c']
+    
+    # For all genes that only have 1 localisation
+    CodingRegion.species_name(Species.falciparum_name).all(
+      :select => 'distinct(coding_regions.*)',
+      :joins => {:expressed_localisations => :malaria_top_level_localisation}
+    ).each do |code|
+      results = [
+#        code.string_id,
+#        code.annotation.annotation,
+#        code.tops.pick(:name).uniq.sort.join(', '),  # Top level localisations
+#        code.amino_acid_sequence.sequence,
+      ]
+      
+      #      SignalP
+      results.push(
+        code.signalp_however.signal? ? 1 : 0
+      )
+      
+      # PlasmoAP
+      results.push code.amino_acid_sequence.plasmo_a_p.points
+      
+      #WoLF_PSORT
+      #      Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism|
+      #        Bio::PSORT::WoLF_PSORT::LOCALISATIONS.each do |loc|
+      #          if code.wolf_psort_localisations(organism).include?(loc)
+      #            headings.push 1
+      #          else
+      #            headings.push 0
+      #          end
+      #        end
+      #      end
+      #      results.push code.wolf_psort_localisation('plant')
+      #      results.push code.wolf_psort_localisation('animal')
+      #      results.push code.wolf_psort_localisation('fungi')
+      
+      # official orthomcl
+      interestings = ['pfa','pvi','cpa','cho','tpa','tan','ath','sce','mmu']
+      
+      # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
+      if merged_genes.include?(code.string_id)
+        # Fill with non-empty cells
+        group = code.orthomcl_genes[0].orthomcl_group
+        interestings.each do |three|
+          if group.orthomcl_genes.code(three).length>0
+            results.push 1
+          else
+            results.push 0
+          end
+        end        
+      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
+        # Fill with non-empty cells
+        group = single.orthomcl_group
+        interestings.each do |three|
+          if group.orthomcl_genes.code(three).length>0
+            results.push 1
+          else
+            results.push 0
+          end
+        end
+      else
+        # fill with empty cells
+        1..interestings.length.times do
+          results.push nil #is this correct? Can the machine learning technique deal with this? 
+        end
+      end
+      
+      # 7species orthomcl
+      seven_name_hash = {}
+      begin
+        if !fivepfour.include?(code.string_id) #Used 5.2 for 7species too, so ignore new genes
+          og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
+          raise Exception, "7species falciparum not found for #{code.inspect}" if !og
+          og.orthomcl_group.orthomcl_genes.all.each do |gene|
+            species_name = gene.single_code.gene.scaffold.species.name
+            if seven_name_hash[species_name]
+              seven_name_hash[species_name] += 1
+            else
+              seven_name_hash[species_name] = 1
+            end
+          end
+        end
+      rescue UnexpectedOrthomclGeneCount => e
+        # This happens for singlet genes
+      end
+      [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
+        results.push seven_name_hash[name] ? 1 : 0
+      end
+      
+      #            'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
+      #      'Number of Non-Synonymous IT SNPs according to Jeffares et al',
+      #      'Number of Synonymous Clinical SNPs according to Jeffares et al',
+      #      'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+      [:it_synonymous_snp, :it_non_synonymous_snp, :pf_clin_synonymous_snp, :pf_clin_non_synonymous_snp].each do |method|
+        if s = code.send(method)
+          results.push s.value
+        else
+          results.push nil
+        end
+      end
+      
+      
+
+
+      # Microarray DeRisi
+      derisi_timepoints.each do |timepoint|
+        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+          code.id,
+          timepoint.id
+        )
+        if !measures.nil?
+          results.push measures.measurement
+        else
+          results.push nil
+        end
+      end
+      
+
+      
+      # Check to make sure that all the rows have the same number of entries as a debug thing
+      if results.length != headings.length
+        raise Exception, "Bad number of entries in the row for code #{code.inspect}: #{results.inspect}"
+      end
+      all_results.push results
+      puts results.join("\t")
+      return
+    end
+    
+    all_results.normalise_columns.each do |row|
+      puts row.lib
+    end
+  end
+
 end

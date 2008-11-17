@@ -572,6 +572,21 @@ class CodingRegion < ActiveRecord::Base
     end    
   end
   
+  # All the highest localisations, including those that came second that really
+  # have the same score as the top one. If a dual localisation is there, then both are returned
+  def wolf_psort_localisations(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    locs = nil
+    if preds.length > 0
+      newpreds = wolf_psort_predictions.all(:conditions => ['organism_type =? and score = ?', psort_organism_type, preds[0].score])
+      # cached
+      locs = newpreds.reach.localisation
+    else # not cached, run from scratch
+      Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
+    end    
+  end
+  
   # Read only from the cache, don't run it if no cache exists
   def cached_wold_psort_localisation(psort_organism_type)
     # Check if they have already been cached

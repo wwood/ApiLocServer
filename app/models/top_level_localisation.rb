@@ -14,8 +14,8 @@ class TopLevelLocalisation < ActiveRecord::Base
     'erythrocyte plasma membrane' => 'exported',
     'parasitophorous vacuole membrane' => 'parasitophorous vacuole membrane',
     'parasite plasma membrane' => 'parasite plasma membrane',
-#    'food vacuole membrane' => 'food vacuole',
-#    'mitochondrial membrane' => 'mitochondria',
+    #    'food vacuole membrane' => 'food vacuole',
+    #    'mitochondrial membrane' => 'mitochondria',
     'cytoplasm' => 'cytosol',
     'vesicles' => 'cytosol',
     'rhoptry' => 'apical',
@@ -47,7 +47,7 @@ class TopLevelLocalisation < ActiveRecord::Base
     'merozoite surface',
     'inner membrane complex',
     'gametocyte surface',
-    'sporozoite surface',
+    #    'sporozoite surface',
     'apical'
   ]
   
