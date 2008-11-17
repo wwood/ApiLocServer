@@ -4356,7 +4356,7 @@ class Script < ActiveRecord::Base
       results.push code.wolf_psort_localisation('fungi')
       
       # official orthomcl
-      interestings = ['pfa','pvi','cpa','cho','tpa','tan','ath','sce','mmu']
+      interestings = ['pfa','pvi','cpa','cho','the','tan','ath','sce','mmu']
       
       # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
       if merged_genes.include?(code.string_id)
@@ -5829,11 +5829,11 @@ class Script < ActiveRecord::Base
         next if !code.uniq_top? #skip dual localised for the moment
       
         if code.tops[0].name == 'exported'
-          f.puts code.gmars_vector(gmars, max_gap).libsvm_format(1)
+          f.puts code.gmars_vector(max_gap, gmars).libsvm_format(1)
           exported_count += 1
         else
           next if 
-          f.puts code.gmars_vector(gmars, max_gap).libsvm_format(-1)
+          f.puts code.gmars_vector(max_gap, gmars).libsvm_format(-1)
           other_count += 1
         end
       end
@@ -5862,7 +5862,7 @@ class Script < ActiveRecord::Base
       ).each do |code|
         next if !code.uniq_top? #skip dual localised for the moment
       
-        f.puts code.gmars_vector(gmars, max_gap).libsvm_format(top_hash[code.tops[0]])
+        f.puts code.gmars_vector(max_gap, gmars).libsvm_format(top_hash[code.tops[0]])
       end
     end
   end
@@ -6115,11 +6115,11 @@ class Script < ActiveRecord::Base
     
     # headings
     headings = [
-#      'PlasmoDB ID',
-#      'Annotation',
-#      'Top Level Localisations',
-#      'Amino Acid Sequence',
-      'Class',
+      #      'PlasmoDB ID',
+      #      'Annotation',
+      #      'Top Level Localisations',
+      #      'Amino Acid Sequence',
+      #      'Class',
       'SignalP Prediction',
       'PlasmoAP Score'
     ]
@@ -6154,6 +6154,7 @@ class Script < ActiveRecord::Base
     headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
     #puts headings.join(sep)
     all_results = []
+    all_result_classes = []
     
     # genes that are understandably not in the orthomcl databases, because
     # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
@@ -6162,17 +6163,22 @@ class Script < ActiveRecord::Base
     # Genes that have 2 orthomcl entries but only 1 plasmoDB entry
     merged_genes = ['PFD0100c']
     
+    localisation_to_index_hash = TopLevelLocalisation::TOP_LEVEL_LOCALISATIONS.to_hash
+    
     # For all genes that only have 1 localisation
     CodingRegion.species_name(Species.falciparum_name).all(
       :select => 'distinct(coding_regions.*)',
       :joins => {:expressed_localisations => :malaria_top_level_localisation}
     ).each do |code|
       results = [
-#        code.string_id,
-#        code.annotation.annotation,
-#        code.tops.pick(:name).uniq.sort.join(', '),  # Top level localisations
-#        code.amino_acid_sequence.sequence,
+        #        code.string_id,
+        #        code.annotation.annotation,
+        #        code.tops.pick(:name).uniq.sort.join(', '),  # Top level localisations
+        #        code.amino_acid_sequence.sequence,
       ]
+      
+      # ignore little loved locs and multiple localisations
+      next unless code.uniq_top?
       
       #      SignalP
       results.push(
@@ -6197,7 +6203,7 @@ class Script < ActiveRecord::Base
       #      results.push code.wolf_psort_localisation('fungi')
       
       # official orthomcl
-      interestings = ['pfa','pvi','cpa','cho','tpa','tan','ath','sce','mmu']
+      interestings = ['pfa','pvi','cpa','cho','the','tan','ath','sce','mmu']
       
       # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
       if merged_genes.include?(code.string_id)
@@ -6242,7 +6248,7 @@ class Script < ActiveRecord::Base
             end
           end
         end
-      rescue UnexpectedOrthomclGeneCount => e
+      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
         # This happens for singlet genes
       end
       [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
@@ -6277,19 +6283,29 @@ class Script < ActiveRecord::Base
         end
       end
       
-
+      # push all the gMARS data
+      results.push code.gmars_vector(3)
       
       # Check to make sure that all the rows have the same number of entries as a debug thing
-      if results.length != headings.length
-        raise Exception, "Bad number of entries in the row for code #{code.inspect}: #{results.inspect}"
-      end
-      all_results.push results
-      puts results.join("\t")
-      return
+      #      if results.length != headings.length
+      #        raise Exception, "Bad number of entries in the row (#{headings.length} headings vs. #{results.length} results) for code #{code.inspect}: #{results.inspect}"
+      #      end
+      all_results.push results.flatten
+      all_result_classes.push localisation_to_index_hash[code.tops[0].name]
+      #      puts code.string_id
+      #      puts code.tops.reach.name.join(", ")
+      #      puts localisation_to_index_hash
+      #      puts localisation_to_index_hash['nucleus']
+      #      puts headings.join("\t")
+      #      puts results.join("\t")
+      #      return
+#      @i ||= 0
+#      @i += 1
+#      break if @i>1
     end
     
-    all_results.normalise_columns.each do |row|
-      puts row.lib
+    all_results.normalise_columns.each_with_index do |row, index|
+      puts row.libsvm_format(all_result_classes[index])
     end
   end
 

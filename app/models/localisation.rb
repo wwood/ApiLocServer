@@ -9,6 +9,8 @@ class Localisation < ActiveRecord::Base
     :through => :malaria_localisation_top_level_localisation,
     :source => :top_level_localisation
   
+  has_many :localisation_synonyms, :dependent => :destroy
+  
   named_scope :recent, lambda { { :conditions => ['created_at > ?', 1.week.ago] } }
   named_scope :known, lambda { { :conditions => ['name in (?)', KNOWN_FALCIPARUM_LOCALISATIONS] } }
   
@@ -54,7 +56,8 @@ class Localisation < ActiveRecord::Base
     'hepatocyte nucleus',
     'hepatocyte parasitophorous vacuole membrane',
     'intracellular vacuole membrane',
-    'moving junction'
+    'moving junction',
+    'apicoplast membrane'
   ]
   
   # Return a list of ORFs that have this and only this localisation

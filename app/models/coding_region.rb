@@ -584,7 +584,7 @@ class CodingRegion < ActiveRecord::Base
       locs = newpreds.reach.localisation
     else # not cached, run from scratch
       Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
-    end    
+    end
   end
   
   # Read only from the cache, don't run it if no cache exists
@@ -675,7 +675,7 @@ class CodingRegion < ActiveRecord::Base
   
   class UnexpectedOrthomclGeneCount < StandardError; end
   
-  def gmars_vector(gmars = GMARS.new, max_gap=11)
+  def gmars_vector(max_gap=3, gmars = GMARS.new)
     aaseq ? gmars.gmars_gapped_vector(aaseq, max_gap) : nil
   end
   
