@@ -128,6 +128,8 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.datetime "updated_at"
   end
 
+  add_index "coding_region_network_edges", ["coding_region_id_first", "coding_region_id_second", "network_id"], :name => "index_coding_region_network_edges_on_network_id_and_coding_regi", :unique => true
+
   create_table "coding_region_phenotype_informations", :force => true do |t|
     t.integer  "coding_region_id"
     t.integer  "phenotype_information_id"
@@ -207,12 +209,10 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
 
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
-    t.string   "name",       :null => false
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
-
-  add_index "developmental_stages", ["name"], :name => "index_developmental_stages_on_name"
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false

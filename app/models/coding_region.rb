@@ -735,6 +735,10 @@ class CodingRegion < ActiveRecord::Base
     result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
     SignalPCache.create_from_result(id, result)
   end
+  
+  def signal?
+    signalp_however.signal?
+  end
 end
 
 
