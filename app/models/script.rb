@@ -18,6 +18,7 @@ require 'go'
 require 'wormbase_go_file'
 require 'libsvm_array'
 require 'bl2seq_report_shuffling'
+require 'rarff'
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -6200,9 +6201,8 @@ class Script < ActiveRecord::Base
     
     # For all genes that only have 1 localisation
     CodingRegion.species_name(Species.falciparum_name).all(
-      :select => 'distinct(coding_regions.id)',
       :joins => {:expressed_localisations => :malaria_top_level_localisation}
-    ).each do |code|
+    ).uniq.each do |code|
       results = [
         #        code.string_id,
         #        code.annotation.annotation,
@@ -6236,86 +6236,86 @@ class Script < ActiveRecord::Base
       #      results.push code.wolf_psort_localisation('fungi')
       
       # official orthomcl
-      #      interestings = ['pfa','pvi','cpa','cho','the','tan','ath','sce','mmu']
-      #      
-      #      # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
-      #      if merged_genes.include?(code.string_id)
-      #        # Fill with non-empty cells
-      #        group = code.orthomcl_genes[0].orthomcl_group
-      #        interestings.each do |three|
-      #          if group.orthomcl_genes.code(three).length>0
-      #            results.push 1
-      #          else
-      #            results.push 0
-      #          end
-      #        end        
-      #      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
-      #        # Fill with non-empty cells
-      #        group = single.orthomcl_group
-      #        interestings.each do |three|
-      #          if group.orthomcl_genes.code(three).length>0
-      #            results.push 1
-      #          else
-      #            results.push 0
-      #          end
-      #        end
-      #      else
-      #        # fill with empty cells
-      #        1..interestings.length.times do
-      #          results.push nil #is this correct? Can the machine learning technique deal with this? 
-      #        end
-      #      end
-      #      
-      # 7species orthomcl
-      #      seven_name_hash = {}
-      #      begin
-      #        if !fivepfour.include?(code.string_id) #Used 5.2 for 7species too, so ignore new genes
-      #          og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
-      #          raise Exception, "7species falciparum not found for #{code.inspect}" if !og
-      #          og.orthomcl_group.orthomcl_genes.all.each do |gene|
-      #            next if gene.orthomcl_name.match(/Plasmodium_vivax_SaI/) #skip vivax because of linking problems for the moment
-      #            species_name = gene.single_code.gene.scaffold.species.name
-      #            if seven_name_hash[species_name]
-      #              seven_name_hash[species_name] += 1
-      #            else
-      #              seven_name_hash[species_name] = 1
-      #            end
-      #          end
-      #        end
-      #      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
-      #        # This happens for singlet genes
-      #      end
-      #      [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
-      #        results.push seven_name_hash[name] ? 1 : 0
-      #      end
+      interestings = ['pfa','pvi','cpa','cho','the','tan','ath','sce','mmu']
       
-      #            'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
-      #      'Number of Non-Synonymous IT SNPs according to Jeffares et al',
-      #      'Number of Synonymous Clinical SNPs according to Jeffares et al',
-      #      'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
-      #      [:it_synonymous_snp, :it_non_synonymous_snp, :pf_clin_synonymous_snp, :pf_clin_non_synonymous_snp].each do |method|
-      #        if s = code.send(method)
-      #          results.push s.value
-      #        else
-      #          results.push nil
-      #        end
-      #      end
+      # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
+      if merged_genes.include?(code.string_id)
+        # Fill with non-empty cells
+        group = code.orthomcl_genes[0].orthomcl_group
+        interestings.each do |three|
+          if group.orthomcl_genes.code(three).length>0
+            results.push 1
+          else
+            results.push 0
+          end
+        end        
+      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
+        # Fill with non-empty cells
+        group = single.orthomcl_group
+        interestings.each do |three|
+          if group.orthomcl_genes.code(three).length>0
+            results.push 1
+          else
+            results.push 0
+          end
+        end
+      else
+        # fill with empty cells
+        1..interestings.length.times do
+          results.push nil #is this correct? Can the machine learning technique deal with this? 
+        end
+      end
+      
+      # 7species orthomcl
+      seven_name_hash = {}
+      begin
+        if !fivepfour.include?(code.string_id) #Used 5.2 for 7species too, so ignore new genes
+          og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
+          raise Exception, "7species falciparum not found for #{code.inspect}" if !og
+          og.orthomcl_group.orthomcl_genes.all.each do |gene|
+            next if gene.orthomcl_name.match(/Plasmodium_vivax_SaI/) #skip vivax because of linking problems for the moment
+            species_name = gene.single_code.gene.scaffold.species.name
+            if seven_name_hash[species_name]
+              seven_name_hash[species_name] += 1
+            else
+              seven_name_hash[species_name] = 1
+            end
+          end
+        end
+      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
+        # This happens for singlet genes
+      end
+      [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
+        results.push seven_name_hash[name] ? 1 : 0
+      end
+      
+      #                  'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
+      #            'Number of Non-Synonymous IT SNPs according to Jeffares et al',
+      #            'Number of Synonymous Clinical SNPs according to Jeffares et al',
+      #            'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+      [:it_synonymous_snp, :it_non_synonymous_snp, :pf_clin_synonymous_snp, :pf_clin_non_synonymous_snp].each do |method|
+        if s = code.send(method)
+          results.push s.value
+        else
+          results.push nil
+        end
+      end
       
       
   
 
       # Microarray DeRisi
-      #      derisi_timepoints.each do |timepoint|
-      #        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
-      #          code.id,
-      #          timepoint.id
-      #        )
-      #        if !measures.nil?
-      #          results.push measures.measurement
-      #        else
-      #          results.push nil
-      #        end
-      #      end
+      derisi_timepoints.each do |timepoint|
+        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+          code.id,
+          timepoint.id
+        )
+        if !measures.nil?
+          results.push measures.measurement
+        else
+          results.push nil
+        end
+      end
       
       # push all the gMARS data
       results.push code.gmars_vector(3)
@@ -6383,6 +6383,32 @@ class Script < ActiveRecord::Base
       
     all_results.normalise_columns.each_with_index do |row, index|
       puts row.libsvm_format(all_result_classes[index])
+    end
+  end
+  
+  def falciparum_localistion_fasta
+    hash = {}
+    CodingRegion.falciparum.all(
+      :include => {:expressed_localisations => :malaria_top_level_localisation}
+    ).uniq.each do |code|
+      next unless code.uniq_top?
+      
+      loc = code.tops[0].name
+      hash[loc] ||= []
+      hash[loc].push code
+    end
+    
+    hash.each do |loc, codes|
+      f = File.open("../falciparum_localisation_meme/#{loc}.fa", 'w')
+      f.puts codes.reach.amino_acid_sequence.fasta.join("\n")
+      f.close
+      
+      f = File.open("../falciparum_localisation_meme/#{loc}.nosignalp.fa", 'w')
+      codes.each do |code|
+        f.puts ">#{code.string_id} #{loc}"
+        f.puts code.sequence_without_signal_peptide
+      end
+      f.close
     end
   end
 end
