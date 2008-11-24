@@ -321,7 +321,7 @@ class CodingRegion < ActiveRecord::Base
       raise CodingRegionNotFoundException, "No amino acid sequence found for coding region #{string_id}"
     end
     seq = amino_acid_sequence.sequence
-    sp_result = SignalP.calculate_signal(seq)
+    sp_result = signalp_however
     return sp_result.cleave(seq)
   end
   

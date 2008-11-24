@@ -39,7 +39,7 @@ class SignalPCache < ActiveRecord::Base
   
   # defer to SignalSequence::SignalPResult maybe?
   def method_missing(method, *args, &block)
-    if [:signal?].include?(method)
+    if [:signal?, :cleave].include?(method)
       to_signalp_result.send(method, *args, &block)
     else
       super
