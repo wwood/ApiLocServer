@@ -52,13 +52,14 @@ class Array
   #
   # Doesn't modify the underlying array of arrays in any way, but returns
   # the normalised array
-  def normalise_columns
+  def normalise_columns(columns_to_normalise=nil)
     column_maxima = []
     column_minima = []
     
     # work out how to normalise the array
     each do |row|
       row.each_with_index do |col, index|
+        next unless columns_to_normalise.nil? or columns_to_normalise.include?(index)
         raise Exception, "Unexpected entry class found in array to normalise - expected numeric or nil: #{col}" unless col.nil? or col.kind_of?(Numeric)
         
         # maxima
@@ -88,15 +89,19 @@ class Array
     each do |row|
       new_row = []
       row.each_with_index do |col, index|
-        minima = column_minima[index]
-        maxima = column_maxima[index]
-      
-        if col.nil?
-          new_row.push nil
-        elsif minima == maxima
-          new_row.push 0.0
+        if columns_to_normalise.nil? and columns_to_normalise.include?(index)
+          new_row.push(col)
         else
-          new_row.push((col.to_f-minima.to_f)/((maxima-minima).to_f))
+          minima = column_minima[index]
+          maxima = column_maxima[index]
+      
+          if col.nil?
+            new_row.push nil
+          elsif minima == maxima
+            new_row.push 0.0
+          else
+            new_row.push((col.to_f-minima.to_f)/((maxima-minima).to_f))
+          end
         end
       end
       to_return.push new_row

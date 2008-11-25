@@ -141,6 +141,8 @@ class CodingRegion < ActiveRecord::Base
   NEGATIVE_ORIENTATION = '-'
   UNKNOWN_ORIENTATION = 'U'
   
+  concerned_with :machine_learning
+  
   def calculate_upstream_region
     
     scaffold_id = gene.scaffold_id
@@ -738,6 +740,14 @@ class CodingRegion < ActiveRecord::Base
   
   def signal?
     signalp_however.signal?
+  end
+  
+  def hypothetical_by_annotation?
+    annotation.annotation.match(/hypothetical/i)
+  end
+  
+  def plasmo_a_p
+    amino_acid_sequence.plasmo_a_p
   end
 end
 
