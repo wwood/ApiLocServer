@@ -25,6 +25,8 @@ class ArrayPairTest < Test::Unit::TestCase
     assert_equal [[0,1,0],[0,0,1]], me.normalise_columns
     
     assert_equal [[0,nil],[nil,nil]], [[10,nil],[nil,nil]].normalise_columns
+    
+    assert_equal [[0,0,'meh']], [[1,2,'meh']].normalise_columns((0..1))
   end
   
   def test_to_hash

@@ -21,4 +21,8 @@ class ExportPredCache < ActiveRecord::Base
     end
     return res
   end
+  
+  def predicted?
+    to_exportpred_result.predicted?
+  end
 end

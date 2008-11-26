@@ -61,10 +61,9 @@ Rails::Initializer.run do |config|
   config.gem "wwood-reach", :source => "http://gems.github.com", :lib => 'reach'
   config.gem "wwood-rsruby", :source => "http://gems.github.com", :lib => 'rsruby'
   config.gem "fastercsv"
-  config.gem 'wwood-rarff', :source => "http://gems.github.com", :lib => 'rarff'
+  #config.gem 'wwood-rarff', :source => "http://gems.github.com", :lib => 'rarff'
 end
 
 
 # Requires so I can run kawaii with all the methods I want.
 require 'array_pair' #random added methods for array
-require 'reach'

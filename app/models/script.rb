@@ -6797,12 +6797,13 @@ PFL2395c
     # Genes that have 2 orthomcl entries but only 1 plasmoDB entry
     merged_genes = ['PFD0100c']
     
-    localisation_to_index_hash = TopLevelLocalisation::TOP_LEVEL_LOCALISATIONS.to_hash
+    first_code = true
+    attribute_names = []
     
     # For all genes that only have 1 localisation
     CodingRegion.species_name(Species.falciparum_name).all(
-      :joins => {:expressed_localisations => :malaria_top_level_localisation},
-      :limit => 15
+      :joins => {:expressed_localisations => :malaria_top_level_localisation}
+#      :limit => 15
     ).uniq.each do |code|
       
       results = [
@@ -6816,39 +6817,34 @@ PFL2395c
       next unless code.uniq_top?
       
       # SignalP
-      p code
+      attribute_names.push 'SignalP' if first_code
       h = code.signalp_however
-      p h
-      results.push(
-        h.signal? ? 1 : 0
-      )
+      results.push h.signal?
       
       # PlasmoAP
+      attribute_names.push 'PlasmoAP' if first_code
       results.push code.amino_acid_sequence.plasmo_a_p.points
       
+      # ExportPred
+      attribute_names.push 'ExportPred' if first_code
+      results.push code.export_pred_however.predicted?
+      
       # Final result
+      attribute_names.push 'Localisation' if first_code
       results.push code.tops[0].name
       
+      first_code = false
       all_results.push results.flatten
-      #      puts code.string_id
-      #      puts code.tops.reach.name.join(", ")
-      #      puts localisation_to_index_hash
-      #      puts localisation_to_index_hash['nucleus']
-      #      puts headings.join("\t")
-      #      puts results.join("\t")
-      #      return
-      #      @i ||= 0
-      #      @i += 1
-      #      break if @i>1
     end
     
     
-    rel = Rarff::Relation.new('MyCoolRelation')
-    rel.instances = all_results.normalise_columns([0,1])
-    p rel.instances
-    rel.attributes[0].name = 'SignalP'
-    rel.attributes[1].name = 'PlasmoAP'
-    rel.attributes[2].name = 'class'
+    rel = Rarff::Relation.new('PfalciparumLocalisation')
+    eyes = all_results.normalise_columns([0..(all_results.length-2)])
+    rel.instances = eyes
+    attribute_names.each_with_index do |name, index|
+      rel.attributes[index].name = name
+    end
+    rel.attributes[all_results.length-1] = "{#{TopLevelLocalisation.all.reach.name.join(', ')}}"
     puts rel.to_s
   end
 end

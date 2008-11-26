@@ -209,6 +209,7 @@ class CodingRegionTest < ActiveSupport::TestCase
       
       assert sp
       assert_equal false, sp.predicted?
+      assert_equal nil, sp.score #annoyingly exportpred doesn't seem to give negative scores - this is a bug in the code
     end  
   end
 end

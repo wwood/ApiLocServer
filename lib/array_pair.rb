@@ -89,9 +89,10 @@ class Array
     each do |row|
       new_row = []
       row.each_with_index do |col, index|
-        if columns_to_normalise.nil? and columns_to_normalise.include?(index)
-          new_row.push(col)
-        else
+        # if nil, normalise everything
+        # if not nil and include, normalise
+        # if not nil and not include, don't normalise
+        if columns_to_normalise.nil? or columns_to_normalise.include?(index)
           minima = column_minima[index]
           maxima = column_maxima[index]
       
@@ -102,6 +103,8 @@ class Array
           else
             new_row.push((col.to_f-minima.to_f)/((maxima-minima).to_f))
           end
+        else
+          new_row.push(col)
         end
       end
       to_return.push new_row
