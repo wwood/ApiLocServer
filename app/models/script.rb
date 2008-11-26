@@ -6781,8 +6781,8 @@ PFL2395c
         # make sure we are only dealing with type 1 or 2 here
         raise Exception, "Unexepected number of TMDs found" unless tm.transmembrane_domains.length == 1
         
-        tmseq = tm.transmembrane_domains[0].sequence(code.aaseq)
-        puts ">#{code.string_id}\n#{tmseq}"
+#        tmseq = tm.transmembrane_domains[0].sequence(code.aaseq)
+        puts ">#{code.string_id} #{code.annotation ? code.annotation.annotation : nil}\n#{code.aaseq}"
       end
     end
   end
@@ -6816,8 +6816,11 @@ PFL2395c
       next unless code.uniq_top?
       
       # SignalP
+      p code
+      h = code.signalp_however
+      p h
       results.push(
-        code.signalp_however.signal? ? 1 : 0
+        h.signal? ? 1 : 0
       )
       
       # PlasmoAP

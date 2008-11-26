@@ -149,6 +149,7 @@ class CodingRegionTest < ActiveSupport::TestCase
     end
     
     assert_differences([AminoAcidSequence, SignalPCache, CodingRegion], nil, [0,0,0]) do
+      code = CodingRegion.find_by_string_id('whatever12131')
       sp = code.signalp_however
       assert sp.signal?
     end

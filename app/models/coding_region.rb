@@ -732,7 +732,7 @@ class CodingRegion < ActiveRecord::Base
   def signalp_however
     return nil if aaseq.nil?
     return signal_p_cache unless signal_p_cache.nil? #returned cached if possible
-    
+
     # otherwise just calculate the bastard
     result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
     SignalPCache.create_from_result(id, result)
