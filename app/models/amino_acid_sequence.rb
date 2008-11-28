@@ -5,16 +5,17 @@ require 'bl2seq_runner'
 require 'plasmo_a_p'
 require 'export_pred'
 require 'bl2seq_report_shuffling'
+require 'signalp'
 
 class AminoAcidSequence < Sequence
   belongs_to :coding_region
   
   def signal_p?
-    return SignalP.calculate_signal?(sequence)
+    return SignalSequence::SignalPWrapper.new.calculate(sequence).signal?
   end
   
   def signal_p
-    return SignalP.calculate_signal(sequence)
+    return SignalSequence::SignalPWrapper.new.calculate(sequence)
   end
   
   # Blast this sequence against another amino acid sequence
@@ -76,5 +77,15 @@ class AminoAcidSequence < Sequence
     end
     
     return other_amino_acid_sequences[max_index], bl2seqs[max_index]
+  end
+  
+  def tmhmm(seq=nil)
+    seq ||= sequence
+    TmHmmWrapper.new.calculate(seq)
+  end
+  
+  def tmhmm_minus_signal_peptide
+    sp = signal_p.cleave(sequence)
+    tmhmm(sp)
   end
 end

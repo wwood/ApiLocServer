@@ -34,6 +34,7 @@ class DevelopmentalStage < ActiveRecord::Base
       'troph' => 'trophozoite',
       'schizonts' => 'schizont',
       'late troph' => 'trophozoite',
+      'late trophozoite' => 'trophozoite',
       'rings' => 'ring',
       'late schizont' => 'schizont'
     }.each do |key, value|

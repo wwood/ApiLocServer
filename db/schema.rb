@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20081103094441) do
+ActiveRecord::Schema.define(:version => 20081117040856) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -128,6 +128,8 @@ ActiveRecord::Schema.define(:version => 20081103094441) do
     t.datetime "updated_at"
   end
 
+  add_index "coding_region_network_edges", ["coding_region_id_first", "coding_region_id_second", "network_id"], :name => "index_coding_region_network_edges_on_network_id_and_coding_regi", :unique => true
+
   create_table "coding_region_phenotype_informations", :force => true do |t|
     t.integer  "coding_region_id"
     t.integer  "phenotype_information_id"
@@ -207,12 +209,10 @@ ActiveRecord::Schema.define(:version => 20081103094441) do
 
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
-    t.string   "name",       :null => false
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
-
-  add_index "developmental_stages", ["name"], :name => "index_developmental_stages_on_name"
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false
@@ -239,6 +239,14 @@ ActiveRecord::Schema.define(:version => 20081103094441) do
   end
 
   add_index "drosophila_allele_phenotypes", ["phenotype"], :name => "index_drosophila_allele_phenotypes_on_phenotype"
+
+  create_table "export_preds", :force => true do |t|
+    t.integer  "coding_region_id", :null => false
+    t.boolean  "predicted"
+    t.decimal  "score"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "expression_contexts", :force => true do |t|
     t.integer  "coding_region_id",       :null => false
@@ -601,7 +609,29 @@ ActiveRecord::Schema.define(:version => 20081103094441) do
   create_table "signal_ps", :force => true do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "coding_region_id",     :null => false
+    t.decimal  "nn_Cmax",              :null => false
+    t.integer  "nn_Cmax_position",     :null => false
+    t.boolean  "nn_Cmax_prediction",   :null => false
+    t.decimal  "nn_Ymax",              :null => false
+    t.integer  "nn_Ymax_position",     :null => false
+    t.boolean  "nn_Ymax_prediction",   :null => false
+    t.decimal  "nn_Smax",              :null => false
+    t.integer  "nn_Smax_position",     :null => false
+    t.boolean  "nn_Smax_prediction",   :null => false
+    t.decimal  "nn_Smean",             :null => false
+    t.boolean  "nn_Smean_prediction",  :null => false
+    t.decimal  "nn_D",                 :null => false
+    t.boolean  "nn_D_prediction",      :null => false
+    t.decimal  "hmm_result",           :null => false
+    t.decimal  "hmm_Cmax",             :null => false
+    t.integer  "hmm_Cmax_position",    :null => false
+    t.boolean  "hmm_Cmax_prediction",  :null => false
+    t.decimal  "hmm_Sprob",            :null => false
+    t.boolean  "hmm_Sprob_prediction", :null => false
   end
+
+  add_index "signal_ps", ["coding_region_id"], :name => "index_signal_ps_on_coding_region_id", :unique => true
 
   create_table "species", :force => true do |t|
     t.string   "name"

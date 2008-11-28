@@ -75,6 +75,10 @@ class CodingRegion < ActiveRecord::Base
   
   acts_as_signalp :sequence_method => :aaseq
   
+  # cached results
+  has_one :export_pred_cache, :dependent => :destroy
+  has_one :signal_p_cache, :dependent => :destroy
+  
   named_scope :species_name, lambda{ |species_name|
     {
       :joins => {:gene => {:scaffold => :species}},
@@ -136,6 +140,8 @@ class CodingRegion < ActiveRecord::Base
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'
   UNKNOWN_ORIENTATION = 'U'
+  
+  concerned_with :machine_learning
   
   def calculate_upstream_region
     
@@ -317,7 +323,7 @@ class CodingRegion < ActiveRecord::Base
       raise CodingRegionNotFoundException, "No amino acid sequence found for coding region #{string_id}"
     end
     seq = amino_acid_sequence.sequence
-    sp_result = SignalP.calculate_signal(seq)
+    sp_result = signalp_however
     return sp_result.cleave(seq)
   end
   
@@ -568,6 +574,21 @@ class CodingRegion < ActiveRecord::Base
     end    
   end
   
+  # All the highest localisations, including those that came second that really
+  # have the same score as the top one. If a dual localisation is there, then both are returned
+  def wolf_psort_localisations(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    locs = nil
+    if preds.length > 0
+      newpreds = wolf_psort_predictions.all(:conditions => ['organism_type =? and score = ?', psort_organism_type, preds[0].score])
+      # cached
+      locs = newpreds.reach.localisation
+    else # not cached, run from scratch
+      Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
+    end
+  end
+  
   # Read only from the cache, don't run it if no cache exists
   def cached_wold_psort_localisation(psort_organism_type)
     # Check if they have already been cached
@@ -656,7 +677,7 @@ class CodingRegion < ActiveRecord::Base
   
   class UnexpectedOrthomclGeneCount < StandardError; end
   
-  def gmars_vector(gmars = GMARS.new, max_gap=11)
+  def gmars_vector(max_gap=3, gmars = GMARS.new)
     aaseq ? gmars.gmars_gapped_vector(aaseq, max_gap) : nil
   end
   
@@ -692,6 +713,41 @@ class CodingRegion < ActiveRecord::Base
       end
     end
     return false
+  end
+  
+  # Return the saved exportpred result, or calculate
+  # it if this does not exist
+  def export_pred_however
+    return nil if aaseq.nil?
+    
+    return export_pred_cache unless export_pred_cache.nil? #returned cached if possible
+    
+    # otherwise just calculate the bastard
+    result = Bio::ExportPred::Wrapper.new.calculate(aaseq)
+    ExportPredCache.create_from_result(id, result)
+  end
+  
+  # Return the saved signalp result, or calculate
+  # it if this does not exist
+  def signalp_however
+    return nil if aaseq.nil?
+    return signal_p_cache unless signal_p_cache.nil? #returned cached if possible
+
+    # otherwise just calculate the bastard
+    result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
+    SignalPCache.create_from_result(id, result)
+  end
+  
+  def signal?
+    signalp_however.signal?
+  end
+  
+  def hypothetical_by_annotation?
+    annotation.annotation.match(/hypothetical/i)
+  end
+  
+  def plasmo_a_p
+    amino_acid_sequence.plasmo_a_p
   end
 end
 

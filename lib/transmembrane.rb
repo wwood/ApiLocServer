@@ -66,6 +66,10 @@ module Transmembrane
       start == other.start and
         stop == other.stop
     end
+    
+    def sequence(protein_sequence_string)
+      protein_sequence_string[(start-1)..(stop-1)]
+    end
   end
   
   class ConfidencedTransmembraneDomain<TransmembraneDomainDefinition

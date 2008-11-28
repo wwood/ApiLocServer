@@ -129,4 +129,87 @@ class CodingRegionTest < ActiveSupport::TestCase
     )
     assert_equal [n, c], code.golgi_consensi
   end
+  
+  def test_signalp
+    @seq_with_signal = "MKKIITLKNLFLIILVYIFSEKKDLRCNVIKGNNIK"
+    @seq_without_signal = "MRRRRRRRRRRRRRRRRRRRRRRRRR" #ie lotsa charge
+    code = nil
+    
+    assert_differences([AminoAcidSequence, SignalPCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever12131')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        @seq_with_signal
+      )
+      code.save!
+      sp = code.signalp_however
+      
+      assert sp
+      assert sp.signal?
+    end
+    
+    assert_differences([AminoAcidSequence, SignalPCache, CodingRegion], nil, [0,0,0]) do
+      code = CodingRegion.find_by_string_id('whatever12131')
+      sp = code.signalp_however
+      assert sp.signal?
+    end
+    
+    assert_differences([AminoAcidSequence, SignalPCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever121311321')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        @seq_without_signal
+      )
+      code.save!
+      sp = code.signalp_however
+      
+      assert sp
+      assert_equal false, sp.signal?
+    end
+  end
+  
+  def test_export_pred
+    code = nil
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever12fd1311321')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        'MAVSTYNNTRRNGLRYVLKRRTILSVFAVICMLSLNLSIFENNNNNYGFHCNKRHFKSLAEASPEEHNNLRSHSTSDPKKNEEKSLSDEINKCDMKKYTAEEINEMINSSNEFINRNDMNIIFSYVHESEREKFKKVEENIFKFIQSIVETYKIPDEYKMRKFKFAHFEMQGYALKQEKFLLEYAFLSLNGKLCERKKFKEVLEYVKREWIEFRKSMFDVWKEKLASEFREHGEMLNQKRKLKQHELDRRAQREKMLEEHSRGIFAKGYLGEVESETIKKKTEHHENVNEDNVEKPKLQQHKVQ'
+      )
+      sp = code.export_pred_however
+      
+      assert sp
+      assert sp.predicted?
+    end   
+    
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [0,0,0]) do
+      code.export_pred_cache(:reload => true) #how come this doesn't reload by itself?
+      sp = code.export_pred_however
+      
+      assert sp
+      assert sp.predicted?
+    end
+    
+    # not predicted sequence
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever12fd13fdsa11321')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        'MDVQDFLNCNKLKISKEKISNLNKSKIGILITNLGSPEKLTYWSLYKYLSEFLTDPRVVKLNRFLWLPILYTFVLPFRSGKVLSKYKSIWIKDGSPLCVNTHNQ'
+      )
+      sp = code.export_pred_however
+      
+      assert sp
+      assert_equal false, sp.predicted?
+    end 
+    
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [0,0,0]) do
+      code.export_pred_cache(:reload => true) #how come this doesn't reload by itself?
+      sp = code.export_pred_however
+      
+      assert sp
+      assert_equal false, sp.predicted?
+      assert_equal nil, sp.score #annoyingly exportpred doesn't seem to give negative scores - this is a bug in the code
+    end  
+  end
 end

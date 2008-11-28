@@ -5,7 +5,7 @@
 # ENV['RAILS_ENV'] ||= 'production'
 
 # Specifies gem version of Rails to use when vendor/rails is not present
-RAILS_GEM_VERSION = '2.1.2' unless defined? RAILS_GEM_VERSION
+RAILS_GEM_VERSION = '2.2.2' unless defined? RAILS_GEM_VERSION
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')
@@ -61,9 +61,9 @@ Rails::Initializer.run do |config|
   config.gem "wwood-reach", :source => "http://gems.github.com", :lib => 'reach'
   config.gem "wwood-rsruby", :source => "http://gems.github.com", :lib => 'rsruby'
   config.gem "fastercsv"
+  #config.gem 'wwood-rarff', :source => "http://gems.github.com", :lib => 'rarff'
 end
 
 
 # Requires so I can run kawaii with all the methods I want.
 require 'array_pair' #random added methods for array
-require 'reach'
