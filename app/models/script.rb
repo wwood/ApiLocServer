@@ -6782,8 +6782,8 @@ PFL2395c
         raise Exception, "Unexepected number of TMDs found" unless tm.transmembrane_domains.length == 1
         
         seq = code.sequence_without_signal_peptide
-        tmseq = tm.transmembrane_domains[0].sequence(seq)
-#        tmseq = tm.transmembrane_domains[0].sequence(seq, -10, 10)
+        #        tmseq = tm.transmembrane_domains[0].sequence(seq)
+        tmseq = tm.transmembrane_domains[0].sequence(seq, -10, 10)
         puts ">#{code.string_id} #{code.annotation ? code.annotation.annotation : nil}\n#{tmseq}"
       end
     end
@@ -6848,5 +6848,15 @@ PFL2395c
     end
     rel.attributes[all_results.length-1] = "{#{TopLevelLocalisation.all.reach.name.join(', ')}}"
     puts rel.to_s
+  end
+  
+  def orthomcl_blast_result_fasta(m8='/home/ben/phd/cbm48/4/humanB1fragmentVorthomcl.blast.tab')
+    oes = []
+    FasterCSV.foreach(m8, :col_sep => "\t") do |row|
+      o = OrthomclGene.find_by_orthomcl_name(row[1])
+      return "Failed #{row[1]}" if o.nil?
+      oes.push o
+    end
+    puts oes.reach.orthomcl_gene_official_data.fasta.join("\n")
   end
 end
