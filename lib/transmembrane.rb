@@ -67,8 +67,8 @@ module Transmembrane
         stop == other.stop
     end
     
-    def sequence(protein_sequence_string)
-      protein_sequence_string[(start-1)..(stop-1)]
+    def sequence(protein_sequence_string, nterm_offset=0, cterm_offset=0)
+      protein_sequence_string[(start+nterm_offset-1)..(stop+cterm_offset-1)]
     end
   end
   

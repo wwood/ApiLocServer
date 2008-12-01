@@ -15,5 +15,17 @@ module Transmembrane
       two = ConfidencedTransmembraneDomain.new
       assert_equal one, two
     end
+    
+    def test_sequence_offsets
+      aaseq = 'AAAAAANG' #8 aa long
+      d = TransmembraneDomainDefinition.new
+      d.start = 6
+      d.stop = 8
+      assert_equal 'ANG', d.sequence(aaseq)
+      
+      assert_equal 'AANG', d.sequence('AAAAAANG', -1, 0)
+      assert_equal 'AANG', d.sequence('AAAAAANG', -1, 1) #overhang
+      assert_equal 'AAN', d.sequence('AAAAAANG', -1, -1) #overhang
+    end
   end
 end

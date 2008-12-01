@@ -6781,8 +6781,10 @@ PFL2395c
         # make sure we are only dealing with type 1 or 2 here
         raise Exception, "Unexepected number of TMDs found" unless tm.transmembrane_domains.length == 1
         
-#        tmseq = tm.transmembrane_domains[0].sequence(code.aaseq)
-        puts ">#{code.string_id} #{code.annotation ? code.annotation.annotation : nil}\n#{code.aaseq}"
+        seq = code.sequence_without_signal_peptide
+        tmseq = tm.transmembrane_domains[0].sequence(seq)
+#        tmseq = tm.transmembrane_domains[0].sequence(seq, -10, 10)
+        puts ">#{code.string_id} #{code.annotation ? code.annotation.annotation : nil}\n#{tmseq}"
       end
     end
   end
@@ -6803,7 +6805,7 @@ PFL2395c
     # For all genes that only have 1 localisation
     CodingRegion.species_name(Species.falciparum_name).all(
       :joins => {:expressed_localisations => :malaria_top_level_localisation}
-#      :limit => 15
+      #      :limit => 15
     ).uniq.each do |code|
       
       results = [
