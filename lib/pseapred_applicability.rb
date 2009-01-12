@@ -21,7 +21,7 @@ targets = Bio::FlatFile.open(ARGV[0]).to_a
 # compare each of the targets to each of the trainings
 # using the BLOSUM62 DistanceMatrix as an example
 matrix = DistanceMatrix.blosum62
-amino_acids = Bio::AminoAcid::Data::NAMES.keys
+amino_acids = %w(A R N D C Q E G H I L K M F P S T W Y V B J Z X *)
 target_scores = []
 
 #targets.peach(4) do |target|
