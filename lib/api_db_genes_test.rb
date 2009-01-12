@@ -130,9 +130,9 @@ class ApiDbGenesTest < Test::Unit::TestCase
     gff = Bio::GFF::Record.new('')
     api = ApiDbGenes.new('lib/testFiles/apiDbTestBug2.gff')
     
-    [nil, 'MAL2', 'apidb|API_IRAB','apidb|M76611'].each do |bad|
+    [nil, 'apidb|API_IRAB','apidb|M76611'].each do |bad|
       gff.seqname = bad
-      assert api.ignore_record?(gff)
+      assert api.ignore_record?(gff), "Failed to ignore #{bad}"
     end
     
     gff.seqname = 'apidb|MAL3'
@@ -140,7 +140,6 @@ class ApiDbGenesTest < Test::Unit::TestCase
   end
   
   def test_ignore_mito
-    gff = Bio::GFF::Record.new('')
     api = ApiDbGenes.new('lib/testFiles/mito.gff')
     
     g = api.next_gene
@@ -153,4 +152,16 @@ class ApiDbGenesTest < Test::Unit::TestCase
     
   end
 
+  # got errors about this when upgrading to plasmodb 5.5
+  def test_irab
+    api = ApiDbGenes.new('lib/testFiles/falciparum_irab_extract.gff')
+    
+    g = api.next_gene
+    assert g
+    assert_equal 'PFC1095w', g.name
+    g = api.next_gene #this should ignore all the API_IRAB bits
+    assert g
+    assert_equal 'PFC1100w', g.name
+    assert_nil api.next_gene
+  end
 end

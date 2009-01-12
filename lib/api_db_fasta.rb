@@ -23,7 +23,7 @@ end
 
 
 class FastaAnnotation
-  attr_accessor :name, :sequence, :annotation, :scaffold
+  attr_accessor :name, :sequence, :annotation, :scaffold, :gene_id
 end
 
 
@@ -94,6 +94,39 @@ class ApiDbFasta5p5 < FastaParser
     end
     s.scaffold = matches2[1]
     
+    return s
+  end
+end
+
+class ToxoDbFasta4p3 < FastaParser
+  #>Toxoplasma_gondii|TGG_994843|190.m00008|Annotation|Toxoplasma_gondii_TIGR|(protein coding) hypothetical protein
+  def parse_name(definition)
+    s = FastaAnnotation.new
+    
+    matches = definition.match(/^Toxoplasma_gondii\|(.+)\|(.+)\|Annotation\|Toxoplasma_gondii_TIGR\|(.+)$/)
+    if !matches
+      raise Exception, "Definition line has unexpected format: #{definition}"
+    end
+    
+    s.name = matches[2]
+    s.annotation = matches[3]
+    s.gene_id = matches[1]
+    return s
+  end
+end
+
+class ApiDbVivaxFasta5p5 < FastaParser
+  # gb|PVX_086995 | organism=Plasmodium_vivax_SaI-1 | product=uncharacterised trophozoite protein, putative | location=CM000448:1306916-1307575(+) | length=219
+  def parse_name(definition)
+    s = FastaAnnotation.new
+    
+    matches = definition.match(/^gb\|(.*?) \| organism=Plasmodium_vivax_SaI-1 \| product=(.*?) \| location=.* \| length=\d+$/)
+    if !matches
+      raise Exception, "Definition line has unexpected format: #{definition}"
+    end
+    
+    s.name = matches[1]
+    s.annotation = matches[2]
     return s
   end
 end

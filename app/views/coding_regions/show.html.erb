@@ -1,3 +1,18 @@
 
-<%= link_to 'Edit', edit_coding_region_path(@coding_region) %> |
-<%= link_to 'Back', coding_regions_path %>
+<h2><%= @coding_region.string_id %></h2>
+<%=  @coding_region.annotation.nil? ? 'no annotation' : @coding_region.annotation.annotation %>
+<p>Also known as: <%= @coding_region.alternate_names.join(', ') %></p>
+<h3>Localisation(s)</h3>
+<ul>
+  <% @coding_region.expression_contexts.each do |context| %>
+    <li><%= link_to context.english, :controller => :localisations, :action => :show, :id => context.localisation_id %> says <%= link_to context.publication.definition, context.publication.linkout_url %></li>
+  <% end %>
+</ul>
+
+<h3>Predictions</h3>
+<% Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type| %>
+  <p><b><%= organism_type %>:</b> <%= @coding_region.wolf_psort_localisations_line(organism_type) %></p>
+<% end %>
+
+<h3>Links</h3>
+<%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@coding_region.string_id}"%>

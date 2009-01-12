@@ -1037,7 +1037,7 @@ class WScript
    
       overlaps = [
      [['cel','sce'],['sce'],['cel']],
-     [['cel','dme'],['dme'],['cel']]
+     #[['cel','dme'],['dme'],['cel']]
     ]
     nopara = nil
       #find the groups with genes from all species

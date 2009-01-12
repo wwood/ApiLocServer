@@ -1,12 +1,20 @@
 class Species < ActiveRecord::Base
   FALCIPARUM = 'falciparum'
+  FALCIPARUM_NAME = FALCIPARUM
   VIVAX = 'Plasmodium vivax'
+  VIVAX_NAME = VIVAX
   THEILERIA_PARVA = 'Theileria parva'
+  TOXOPLASMA_GONDII = 'Toxoplasma gondii'
+  TOXOPLASMA_GONDII_NAME = TOXOPLASMA_GONDII
+  ELEGANS_NAME = 'elegans'
+  BABESIA_BOVIS_NAME = 'Babesia bovis'
   
   has_many :scaffolds, :dependent => :destroy
   
   ORTHOMCL_THREE_LETTERS = {
-    FALCIPARUM => 'pfa'
+    FALCIPARUM => 'pfa',
+    ELEGANS_NAME => 'cel',
+    TOXOPLASMA_GONDII_NAME => 'tgo'
   }
   
   def update_known_three_letters
@@ -35,7 +43,7 @@ class Species < ActiveRecord::Base
   end
   
   def self.babesia_bovis_name
-    'Babesia bovis'
+    BABESIA_BOVIS_NAME
   end
   
   def self.cryptosporidium_parvum_name
@@ -55,7 +63,7 @@ class Species < ActiveRecord::Base
   end
   
   def self.elegans_name
-    'elegans'
+    ELEGANS_NAME
   end
   
   def self.mouse_name
@@ -68,5 +76,13 @@ class Species < ActiveRecord::Base
   
   def self.pdb_tm_dummy_name
     'pdbtm_dummy'
+  end
+  
+  def self.apicomplexan_names
+    [
+      TOXOPLASMA_GONDII,
+      FALCIPARUM,
+      VIVAX
+    ]
   end
 end

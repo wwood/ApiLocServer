@@ -34,4 +34,52 @@ class GoTest < Test::Unit::TestCase
   #    assert_equal ['GO:0005743'],
   #      @go.cc_pdb_to_go('2a06')
   #  end
+  
+  def test_go_term
+    # test MF
+    assert_equal "G-protein coupled receptor activity", @go.term('GO:0004930')
+   
+    # test CC
+    assert_equal 'endoplasmic reticulum', @go.term('GO:0005783')
+  end
+  
+  def test_synonym
+    # test real synonym
+    assert_equal 'GO:0050333', @go.primary_go_id('GO:0048253')
+    
+    # test primary id
+    assert_equal 'GO:0050333', @go.primary_go_id('GO:0050333')
+    
+    # test bad id
+    assert_raise RException do
+      @go.primary_go_id('GO:AWAY')
+    end
+  end
+  
+  def test_subsume
+    # test normal truth
+    assert @go.subsume?('GO:0003824', 'GO:0050333')
+      
+    # test subsumee is synonym
+    assert @go.subsume?('GO:0003824', 'GO:0048253')
+      
+    # test equal terms
+    assert @go.subsume?('GO:0009536','GO:0009536')
+      
+    # test falsity - plastid part does not subsume plastid
+    assert_equal false, @go.subsume?('GO:0044435','GO:0009536')
+  end
+  
+  def test_subsume_tester
+    tester = @go.subsume_tester('GO:0003824')
+    assert_kind_of Bio::Go::SubsumeTester, tester
+    assert tester.subsume?('GO:0050333')
+    
+    tester = @go.subsume_tester('GO:0044435')
+    assert_equal false, tester.subsume?('GO:0009536')
+    
+    #equality
+    tester = @go.subsume_tester('GO:0044435')
+    assert tester.subsume?('GO:0044435')
+  end
 end

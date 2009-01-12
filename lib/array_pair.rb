@@ -42,4 +42,86 @@ class Array
   
   # so intuitively the opposite of Array.reject
   alias_method(:accept, :select)
+  
+  # Assuming this array is an array of array of numeric/nil values,
+  # return the array with each of the columns normalised
+  #
+  # This is simple linear scaling to [0,1], so each value v is transformed by
+  # transformed = (v-minima)/(maxima_minima)
+  # nil values are ignored.
+  #
+  # Doesn't modify the underlying array of arrays in any way, but returns
+  # the normalised array
+  def normalise_columns(columns_to_normalise=nil)
+    column_maxima = []
+    column_minima = []
+    
+    # work out how to normalise the array
+    each do |row|
+      row.each_with_index do |col, index|
+        next unless columns_to_normalise.nil? or columns_to_normalise.include?(index)
+        raise Exception, "Unexpected entry class found in array to normalise - expected numeric or nil: #{col}" unless col.nil? or col.kind_of?(Numeric)
+        
+        # maxima
+        if column_maxima[index]
+          if !col.nil? and col > column_maxima[index]
+            column_maxima[index] = col
+          end
+        else
+          # set it - doesn't matter if it is nil in the end
+          column_maxima[index] = col
+        end
+        
+        #minima
+        if column_minima[index]
+          if !col.nil? and col < column_minima[index]
+            column_minima[index] = col
+          end
+        else
+          # set it - doesn't matter if it is nil in the end
+          column_minima[index] = col
+        end
+      end
+    end
+    
+    # now do the actual normalisation
+    to_return = []
+    each do |row|
+      new_row = []
+      row.each_with_index do |col, index|
+        # if nil, normalise everything
+        # if not nil and include, normalise
+        # if not nil and not include, don't normalise
+        if columns_to_normalise.nil? or columns_to_normalise.include?(index)
+          minima = column_minima[index]
+          maxima = column_maxima[index]
+      
+          if col.nil?
+            new_row.push nil
+          elsif minima == maxima
+            new_row.push 0.0
+          else
+            new_row.push((col.to_f-minima.to_f)/((maxima-minima).to_f))
+          end
+        else
+          new_row.push(col)
+        end
+      end
+      to_return.push new_row
+    end
+    return to_return
+  end
+  
+  # make a hash out the array by mapping [element0, element1] to
+  # {element0 => 0, element1 => 1}. Raises an Exception if 2 elements
+  # are the same. nil elements are ignored.
+  def to_hash
+    hash = {}
+    each_with_index do |element, index|
+      next if element.nil?
+      raise Exception, "Multiple elements for #{element}" if hash[element]
+      hash[element] = index
+    end
+    hash
+  end
 end

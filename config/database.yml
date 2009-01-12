@@ -4,12 +4,10 @@ development:
   adapter: postgresql
   database: data
   timeout: 5000
-  username: ben
 production:
   adapter: postgresql
   database: data
   timeout: 5000
-  username: ben
 
 # Warning: The database defined as 'test' will be erased and
 # re-generated from your development database when you run 'rake'.
@@ -18,7 +16,6 @@ test:
   adapter: postgresql
   database: data_test
   timeout: 5000
-  username: ben
 
 #test:
 #  adapter: sqlite3

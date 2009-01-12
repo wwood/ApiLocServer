@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+<!DOCTYPE LoadedSet [
+<!ELEMENT LoadedSet (NLS_LOADER:NLS_LOADER*)>
+<!ELEMENT NLS_LOADER:NLS_LOADER (NLS_LOADER:Id, NLS_LOADER:id?, NLS_LOADER:signal?, NLS_LOADER:annotation?, NLS_LOADER:origin?, NLS_LOADER:swissProteins*, NLS_LOADER:swissBool?, NLS_LOADER:pepProteins*, NLS_LOADER:pepBool?, NLS_LOADER:pdbProteins*, NLS_LOADER:tremblProteins*, NLS_LOADER:dnabinding?, NLS_LOADER:confidenceTotal?, NLS_LOADER:confidenceNuclear?, NLS_LOADER:reference?, NLS_LOADER:medlineID?)>
+<!ATTLIST NLS_LOADER:NLS_LOADER
+          xmlns:NLS_LOADER CDATA #FIXED "http://www.lionbioscience.com/srs/NLS_LOADER"
+>
+<!ELEMENT NLS_LOADER:Id (#PCDATA)>
+<!ELEMENT NLS_LOADER:id (#PCDATA)>
+<!ELEMENT NLS_LOADER:signal (#PCDATA)>
+<!ELEMENT NLS_LOADER:annotation (#PCDATA)>
+<!ELEMENT NLS_LOADER:origin (#PCDATA)>
+<!ELEMENT NLS_LOADER:swissProteins (SwissProtein:SwissProtein)>
+<!ELEMENT SwissProtein:SwissProtein (SwissProtein:Id, SwissProtein:swissID?, SwissProtein:swissLocalization?)>
+<!ATTLIST SwissProtein:SwissProtein
+          xmlns:SwissProtein CDATA #FIXED "http://www.lionbioscience.com/srs/SwissProtein"
+>
+<!ELEMENT SwissProtein:Id (#PCDATA)>
+<!ELEMENT SwissProtein:swissID (#PCDATA)>
+<!ELEMENT SwissProtein:swissLocalization (#PCDATA)>
+<!ELEMENT NLS_LOADER:swissBool (#PCDATA)>
+<!ELEMENT NLS_LOADER:pepProteins (PepProtein:PepProtein)>
+<!ELEMENT PepProtein:PepProtein (PepProtein:Id, PepProtein:pepID?, PepProtein:pepOrganism*)>
+<!ATTLIST PepProtein:PepProtein
+          xmlns:PepProtein CDATA #FIXED "http://www.lionbioscience.com/srs/PepProtein"
+>
+<!ELEMENT PepProtein:Id (#PCDATA)>
+<!ELEMENT PepProtein:pepID (#PCDATA)>
+<!ELEMENT PepProtein:pepOrganism (#PCDATA)>
+<!ELEMENT NLS_LOADER:pepBool (#PCDATA)>
+<!ELEMENT NLS_LOADER:pdbProteins (#PCDATA)>
+<!ELEMENT NLS_LOADER:tremblProteins (#PCDATA)>
+<!ELEMENT NLS_LOADER:dnabinding (#PCDATA)>
+<!ELEMENT NLS_LOADER:confidenceTotal (#PCDATA)>
+<!ELEMENT NLS_LOADER:confidenceNuclear (#PCDATA)>
+<!ELEMENT NLS_LOADER:reference (#PCDATA)>
+<!ELEMENT NLS_LOADER:medlineID (#PCDATA)>
+
+]>
+-->
+<LoadedSet> 
+  <NLS_LOADER:NLS_LOADER xmlns:NLS_LOADER="http://www.lionbioscience.com/srs/NLS_LOADER"> 
+    <NLS_LOADER:Id>NLS:1</NLS_LOADER:Id>  
+    <NLS_LOADER:id>1</NLS_LOADER:id>  
+    <NLS_LOADER:signal>APKRKSGVSKC</NLS_LOADER:signal>  
+    <NLS_LOADER:annotation>polyomaVP1</NLS_LOADER:annotation>  
+    <NLS_LOADER:origin>EXPERIMENTAL</NLS_LOADER:origin>  
+    <NLS_LOADER:swissProteins> 
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:1</SwissProtein:Id>  
+        <SwissProtein:swissID>coa1_povm3</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:1</SwissProtein:Id>  
+        <SwissProtein:swissID>coa1_povma</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:1</SwissProtein:Id>  
+        <SwissProtein:swissID>coa1_povmc</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:1</SwissProtein:Id>  
+        <SwissProtein:swissID>coa1_povmp</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+    </NLS_LOADER:swissProteins>  
+    <NLS_LOADER:swissBool>Y</NLS_LOADER:swissBool>  
+    <NLS_LOADER:pepProteins> 
+      <PepProtein:PepProtein xmlns:PepProtein="http://www.lionbioscience.com/srs/PepProtein"> 
+        <PepProtein:Id>NLS:1</PepProtein:Id> 
+      </PepProtein:PepProtein> 
+    </NLS_LOADER:pepProteins>  
+    <NLS_LOADER:pepBool>N</NLS_LOADER:pepBool>  
+    <NLS_LOADER:dnabinding>NO</NLS_LOADER:dnabinding>  
+    <NLS_LOADER:reference>
+      Chang D,Virology,1992,189,821-27
+
+    </NLS_LOADER:reference>  
+    <NLS_LOADER:medlineID>1322607</NLS_LOADER:medlineID> 
+  </NLS_LOADER:NLS_LOADER> 
+     <NLS_LOADER:NLS_LOADER xmlns:NLS_LOADER="http://www.lionbioscience.com/srs/NLS_LOADER"> 
+    <NLS_LOADER:Id>NLS:249</NLS_LOADER:Id>  
+    <NLS_LOADER:id>249</NLS_LOADER:id>  
+    <NLS_LOADER:signal>[DE]R{2,4}xRK[PL]</NLS_LOADER:signal>  
+    <NLS_LOADER:origin>POTENTIAL</NLS_LOADER:origin>  
+    <NLS_LOADER:swissProteins> 
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>tp2a_crigr</SwissProtein:swissID>  
+        <SwissProtein:swissLocalization>Nuclear</SwissProtein:swissLocalization> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>tp2a_human</SwissProtein:swissID>  
+        <SwissProtein:swissLocalization>Nuclear</SwissProtein:swissLocalization> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>tp2a_mouse</SwissProtein:swissID>  
+        <SwissProtein:swissLocalization>Nuclear</SwissProtein:swissLocalization> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>tp2a_rat</SwissProtein:swissID>  
+        <SwissProtein:swissLocalization>Nuclear</SwissProtein:swissLocalization> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>ssrp_chlpn</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>ssrp_chltr</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>ssrp_chlmu</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>ssrp_helpj</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>ssrp_helpy</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>urk1_mouse</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>uck1_mouse</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>tp2a_pig</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>y4pa_rhisn</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>y4rc_rhisn</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+       
+      <SwissProtein:SwissProtein xmlns:SwissProtein="http://www.lionbioscience.com/srs/SwissProtein"> 
+        <SwissProtein:Id>NLS:249</SwissProtein:Id>  
+        <SwissProtein:swissID>yfh3_yeast</SwissProtein:swissID> 
+      </SwissProtein:SwissProtein> 
+    </NLS_LOADER:swissProteins>  
+    <NLS_LOADER:swissBool>Y</NLS_LOADER:swissBool>  
+    <NLS_LOADER:pepProteins> 
+      <PepProtein:PepProtein xmlns:PepProtein="http://www.lionbioscience.com/srs/PepProtein"> 
+        <PepProtein:Id>NLS:249</PepProtein:Id> 
+      </PepProtein:PepProtein> 
+    </NLS_LOADER:pepProteins>  
+    <NLS_LOADER:pepBool>Y</NLS_LOADER:pepBool>  
+    <NLS_LOADER:pdbProteins>1lwz_A</NLS_LOADER:pdbProteins>  
+    <NLS_LOADER:dnabinding>NO</NLS_LOADER:dnabinding>  
+    <NLS_LOADER:confidenceTotal>4</NLS_LOADER:confidenceTotal>  
+    <NLS_LOADER:confidenceNuclear>100</NLS_LOADER:confidenceNuclear>  
+    <NLS_LOADER:reference>
+</NLS_LOADER:reference> 
+  </NLS_LOADER:NLS_LOADER> 
+
+
+  </LoadedSet>

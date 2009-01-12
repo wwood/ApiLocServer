@@ -9,7 +9,15 @@ module Bio
     class Bl2seq
       class Runner
         # Run a Bio::Seq object against another. Assumes bl2seq is working correctly
-        def bl2seq(seq1, seq2)
+        def bl2seq(seq1, seq2, options = {})
+          optional_arguments = ''
+          
+          unless options.nil?
+            if e = options[:evalue]
+              optional_arguments += "-e #{e}"
+            end
+          end
+          
           Tempfile.open('rubybl2seq') { |t1|  
             t1.puts seq1.output(:fasta)
             t1.close
@@ -21,7 +29,9 @@ module Bio
               Tempfile.open('rubybl2seqout') { |t3|  
 
                 # Run the bl2seq. Assume protein blast for the moment
-                ret = system "bl2seq -i #{t1.path} -j #{t2.path} -p blastp -o #{t3.path}"
+                cmd = "bl2seq #{optional_arguments} -i #{t1.path} -j #{t2.path} -p blastp -o #{t3.path}"
+                ret = system cmd
+                
               
                 if !ret #Something went wrong
                   raise Exception, "Failed to run bl2seq: #{$?}"

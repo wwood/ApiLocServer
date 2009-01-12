@@ -1,9 +1,12 @@
 one:
   id: 1
   go_identifier: GO:0005275
-two:
+GPCR:
   id: 2
-  term: GO:2
-three:
+  go_identifier: GO:0004930
+enzyme:
   id: 3
-  term: GO:3
+  go_identifier: GO:0003824
+GPCR_sub:
+  id: 4
+  go_identifier: GO:0001619

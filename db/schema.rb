@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080930054745) do
+ActiveRecord::Schema.define(:version => 20081117040856) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -121,7 +121,6 @@ ActiveRecord::Schema.define(:version => 20080930054745) do
 
   create_table "coding_region_network_edges", :force => true do |t|
     t.integer  "network_id",              :null => false
-    t.integer  "integer",                 :null => false
     t.integer  "coding_region_id_first",  :null => false
     t.integer  "coding_region_id_second", :null => false
     t.decimal  "strength"
@@ -183,6 +182,16 @@ ActiveRecord::Schema.define(:version => 20080930054745) do
 
   add_index "comments", ["expression_context_id"], :name => "index_comments_on_expression_context_id"
 
+  create_table "consensus_sequences", :force => true do |t|
+    t.integer  "nls_db_id"
+    t.string   "type",       :null => false
+    t.string   "signal",     :null => false
+    t.string   "annotation"
+    t.integer  "pubmed_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "derisi20063d7logmean", :force => true do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -230,6 +239,14 @@ ActiveRecord::Schema.define(:version => 20080930054745) do
   end
 
   add_index "drosophila_allele_phenotypes", ["phenotype"], :name => "index_drosophila_allele_phenotypes_on_phenotype"
+
+  create_table "export_preds", :force => true do |t|
+    t.integer  "coding_region_id", :null => false
+    t.boolean  "predicted"
+    t.decimal  "score"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "expression_contexts", :force => true do |t|
     t.integer  "coding_region_id",       :null => false
@@ -592,7 +609,29 @@ ActiveRecord::Schema.define(:version => 20080930054745) do
   create_table "signal_ps", :force => true do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "coding_region_id",     :null => false
+    t.decimal  "nn_Cmax",              :null => false
+    t.integer  "nn_Cmax_position",     :null => false
+    t.boolean  "nn_Cmax_prediction",   :null => false
+    t.decimal  "nn_Ymax",              :null => false
+    t.integer  "nn_Ymax_position",     :null => false
+    t.boolean  "nn_Ymax_prediction",   :null => false
+    t.decimal  "nn_Smax",              :null => false
+    t.integer  "nn_Smax_position",     :null => false
+    t.boolean  "nn_Smax_prediction",   :null => false
+    t.decimal  "nn_Smean",             :null => false
+    t.boolean  "nn_Smean_prediction",  :null => false
+    t.decimal  "nn_D",                 :null => false
+    t.boolean  "nn_D_prediction",      :null => false
+    t.decimal  "hmm_result",           :null => false
+    t.decimal  "hmm_Cmax",             :null => false
+    t.integer  "hmm_Cmax_position",    :null => false
+    t.boolean  "hmm_Cmax_prediction",  :null => false
+    t.decimal  "hmm_Sprob",            :null => false
+    t.boolean  "hmm_Sprob_prediction", :null => false
   end
+
+  add_index "signal_ps", ["coding_region_id"], :name => "index_signal_ps_on_coding_region_id", :unique => true
 
   create_table "species", :force => true do |t|
     t.string   "name"
@@ -640,6 +679,17 @@ ActiveRecord::Schema.define(:version => 20080930054745) do
 
   create_table "verifications", :force => true do |t|
   end
+
+  create_table "wolf_psort_predictions", :force => true do |t|
+    t.integer  "coding_region_id"
+    t.string   "organism_type"
+    t.string   "localisation"
+    t.decimal  "score"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "wolf_psort_predictions", ["coding_region_id"], :name => "index_wolf_psort_predictions_on_coding_region_id"
 
   create_table "yeast_pheno_infos", :force => true do |t|
     t.string   "experiment_type", :null => false

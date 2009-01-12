@@ -120,7 +120,11 @@ class ApiDbGenes < JgiGenesGff
   def ignore_record?(record)
     if !record or !record.seqname or
         @features_to_ignore.include?(record.feature) or 
-        !record.seqname.match(/^apidb\|MAL\d+/)
+        record.seqname.match(/^apidb\|NC\_/) or
+        record.seqname.match(/^apidb\|API_IRAB/) or
+        record.seqname.match(/^apidb\|M76611/) or
+        record.seqname.match(/^apidb\|X95276/) or
+        record.seqname.match(/^apidb\|Pf/)
       return true
     else
       return false
@@ -203,4 +207,9 @@ class PositionedGeneWithOntology < PositionedGene
     return nil if !@go_identifiers
     return @go_identifiers.sort.uniq
   end
+end
+
+
+class ToxoDbGenes < ApiDbGenes
+  
 end

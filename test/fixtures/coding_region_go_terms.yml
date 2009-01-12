@@ -6,3 +6,15 @@ one:
 two:
   go_term_id: 2
   coding_region_id: 1
+three:
+  go_term_id: 3
+  coding_region_id: 2
+gpcr_only:
+  go_term_id: 2
+  coding_region_id: 3
+gpcr_and_enzyme_gpcr:
+  go_term_id: 4
+  coding_region_id: 4
+gpcr_and_enzyme_enzyme:
+  go_term_id: 3
+  coding_region_id: 4

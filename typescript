@@ -1,0 +1,58 @@
+Script started on Thu 16 Oct 2008 16:46:47 EST
+]0;maria@maria-laptop: ~/Workspace/Rails,2008.07.25/gnrmaria@maria-laptop:~/Workspace/Rails,2008.07.25/gnr$ l
+[00m[01;34mapp[00m/     [01;34mdb[00m/   [01;34mlib[00m/  [01;34mnbproject[00m/  [00mRakefile[00m  [01;34mscript[00m/  [01;34mtmp[00m/        [01;34mvendor[00m/
+[01;34mconfig[00m/  [01;34mdoc[00m/  [01;34mlog[00m/  [01;34mpublic[00m/     [00mREADME[00m    [01;34mtest[00m/    [00mtypescript[00m
+[m]0;maria@maria-laptop: ~/Workspace/Rails,2008.07.25/gnrmaria@maria-laptop:~/Workspace/Rails,2008.07.25/gnr$ cd script/
+]0;maria@maria-laptop: ~/Workspace/Rails,2008.07.25/gnr/scriptmaria@maria-laptop:~/Workspace/Rails,2008.07.25/gnr/script$ l
+[00m[01;32mabout[00m*    [01;32mdbconsole[00m*  [01;32mgenerate[00m*     [01;32mplugin[00m*   [01;32mrunner[00m*
+[01;32mconsole[00m*  [01;32mdestroy[00m*    [01;34mperformance[00m/  [01;34mprocess[00m/  [01;32mserver[00m*
+[m]0;maria@maria-laptop: ~/Workspace/Rails,2008.07.25/gnr/scriptmaria@maria-laptop:~/Workspace/Rails,2008.07.25/gnr/script$ dbconsole
+bash: dbconsole: command not found
+]0;maria@maria-laptop: ~/Workspace/Rails,2008.07.25/gnr/scriptmaria@maria-laptop:~/Workspace/Rails,2008.07.25/gnr/script$ cd ..
+]0;maria@maria-laptop: ~/Workspace/Rails,2008.07.25/gnrmaria@maria-laptop:~/Workspace/Rails,2008.07.25/gnr$ script/dbconsole
+Welcome to psql 8.3.3, the PostgreSQL interactive terminal.
+
+Type:  \copyright for distribution terms
+       \h for help with SQL commands
+       \? for help with psql commands
+       \g or terminate with semicolon to execute query
+       \q to quit
+
+data=> sel[K[K[Kcoutn[K[Knt(*) from orthomcl)gen[K[K[K[K_genes where[K[K[K[K[K[K;[C[C[C[C[C[C[C[1@s[1@e[1@l[1@e[C[1@c[1@t[1@ [1P[1P[1P[1P[1P[1P[C[1P
+[?1049h[?1h=   id   |                                orthomcl_name                                | orthomcl_group_id |         created_at         |         updated_at         
+--------+-----------------------------------------------------------------------------+-------------------+----------------------------+----------------------------
+      1 | Plasmodium_falciparum_3D7|MAL10|PF10_0002|Pf                                |                 1 | 2008-05-06 16:06:28.677301 | 2008-05-06 16:06:28.677301
+      2 | Plasmodium_falciparum_3D7|MAL10|PF10_0003|Pf                                |                 1 | 2008-05-06 16:06:28.693626 | 2008-05-06 16:06:28.693626
+      3 | Plasmodium_falciparum_3D7|MAL10|PF10_0004|Pf                                |                 1 | 2008-05-06 16:06:28.698595 | 2008-05-06 16:06:28.698595
+      4 | Plasmodium_falciparum_3D7|MAL10|PF10_0005|Pf                                |                 1 | 2008-05-06 16:06:28.703317 | 2008-05-06 16:06:28.703317
+      5 | Plasmodium_falciparum_3D7|MAL10|PF10_0006|Pf                                |                 1 | 2008-05-06 16:06:28.708205 | 2008-05-06 16:06:28.708205
+      6 | Plasmodium_falciparum_3D7|MAL10|PF10_0393|Pf                                |                 1 | 2008-05-06 16:06:28.712977 | 2008-05-06 16:06:28.712:[K[K[?1l>[?1049l
+data=> 
+data=> select * from orthomcl_genes; ;w;h;e;r;e; ;o;r;t;h;o;m;c;l;_;n;a;m;e; ;l;i;j;e;[1P;[1P;k;e; ;';c;e;l;|;%;';
+[?1049h[?1h=   id   |   orthomcl_name    | orthomcl_group_id |         created_at         |         updated_at         
+--------+--------------------+-------------------+----------------------------+----------------------------
+  30367 | cel|WBGene00013989 |              8299 | 2008-05-06 16:12:52.235636 | 2008-05-06 16:12:52.235636
+  30371 | cel|WBGene00014161 |              8300 | 2008-05-06 16:12:52.24759  | 2008-05-06 16:12:52.24759
+  30379 | cel|WBGene00014048 |              8302 | 2008-05-06 16:12:52.271362 | 2008-05-06 16:12:52.271362
+  30384 | cel|WBGene00014040 |              8303 | 2008-05-06 16:12:52.285274 | 2008-05-06 16:12:52.285274
+  30385 | cel|WBGene00023497 |              8303 | 2008-05-06 16:12:52.287184 | 2008-05-06 16:12:52.287184
+  30387 | cel|WBGene00006956 |              8304 | 2008-05-06 16:12:52.295271 | 2008-05-06 16:12:52.295271
+  30391 | cel|WBGene00014036 |              8305 | 2008-05-06 16:12:52.307181 | 2008-05-06 16:12:52.307181
+  30395 | cel|WBGene00000650 |              8306 | 2008-05-06 16:12:52.319184 | 2008-05-06 16:12:52.319184
+  30403 | cel|WBGene00044667 |              8308 | 2008-05-06 16:12:52.34298  | 2008-05-06 16:12:52.34298
+  30404 | cel|WBGene00022782 |              8308 | 2008-05-06 16:12:52.344882 | :[K[K[?1l>[?1049ldata=> select * from orthomcl_genes where orthomcl_name like 'cel|%';[C[C[C[C[C[C[C[1@c[1@o[1@u[1@n[1@t[1P[1P[1P[1P[1P[1P[1@([1P[C[1@)
+ERROR:  syntax error at or near "count"
+LINE 1: count(*) from orthomcl_genes where orthomcl_name like 'cel|%...
+        ^
+data=> count(*) from orthomcl_genes where orthomcl_name like 'cel|%';[C[C[C[C[C[C[C[1@s[1@e[1@l[1@e[C[1@c[1@t[1@ 
+ count 
+-------
+ 17411
+(1 row)
+
+data=> exit
+data-> 
+data=> \q
+]0;maria@maria-laptop: ~/Workspace/Rails,2008.07.25/gnrmaria@maria-laptop:~/Workspace/Rails,2008.07.25/gnr$ exit
+
+Script done on Thu 16 Oct 2008 16:59:47 EST

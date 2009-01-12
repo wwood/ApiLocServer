@@ -1,0 +1,9 @@
+/****** FLASH NOTCES **********/
+div.errormsg
+{ 
+  color: red;
+}
+div.notice
+{ 
+  color: green;
+}

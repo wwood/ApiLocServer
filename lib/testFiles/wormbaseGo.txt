@@ -14,7 +14,9 @@ WBGene00000002 aat-1 (F27C8.1)
 	Cellular_component: plasma membrane (GO:0005886)
 	Biological_process: amino acid transport (GO:0006865)
 	Biological_process: transport (GO:0006810)
-WBGene00000003 aat-2 (F07C3.7)
+WBGene00000003 aat-2
 	Molecular_function: amino acid transmembrane transporter activity (GO:0015171)
 	Cellular_component: integral to membrane (GO:0016021)
 	Cellular_component: membrane (GO:0016020)
+WBGene00000004 
+WBGene00000005 

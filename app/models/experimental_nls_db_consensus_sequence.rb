@@ -1,0 +1,2 @@
+class ExperimentalNlsDbConsensusSequence < NlsDbConsensusSequence
+end

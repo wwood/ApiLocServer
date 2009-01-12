@@ -16,6 +16,9 @@ require 'top_db_xml'
 require 'pdb_tm'
 require 'go'
 require 'wormbase_go_file'
+require 'libsvm_array'
+require 'bl2seq_report_shuffling'
+require 'rarff'
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -23,10 +26,12 @@ YEAST = 'yeast'
 
 WORK_DIR = "#{ENV['HOME']}/Workspace"
 
-PHD_DIR = "#{ENV['HOME']}/phd"
-DATA_DIR = "#{ENV['HOME']}/phd/data"
 
-class Script < ActiveRecord::Base
+
+class Script < ActiveRecord::Base  
+  PHD_DIR = "#{ENV['HOME']}/phd"
+  DATA_DIR = "#{ENV['HOME']}/phd/data"
+
   def brafl_to_database
     puts "Deleting all records..."
     
@@ -203,14 +208,15 @@ class Script < ActiveRecord::Base
     }
   end
   
-  def apidb_species_to_database(species_name, gff_file_path)
+  def apidb_species_to_database(species_name, gff_file_path=nil, iter=nil)
     
     sp = Species.find_or_create_by_name species_name
     #        sp.scaffolds.each do |scaff|
     #          scaff.destroy
     #        end
     
-    iter = ApiDbGenes.new(gff_file_path)
+    # recreate iter if it does not already exist
+    iter ||= ApiDbGenes.new(gff_file_path)
 
     puts "Inserting..."
     
@@ -286,7 +292,13 @@ class Script < ActiveRecord::Base
         end
       end
       
-      gene = iter.next_gene
+      old_gene = gene
+      begin
+        gene = iter.next_gene
+      rescue Exception => e
+        $stderr.puts "Failed on the gene after #{old_gene}"
+        raise e
+      end
     end
 
     puts "finished."
@@ -296,6 +308,16 @@ class Script < ActiveRecord::Base
     # abstraction!
     #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
     apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
+  end
+  
+  def gondii_to_database
+    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
+  end
+  
+  def gondii_fasta_to_database
+    fa = ToxoDbFasta4p3.new.load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta")
+    sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
+    upload_fasta_general!(fa, sp)
   end
   
   def calculate_falciparum_distances
@@ -449,7 +471,9 @@ class Script < ActiveRecord::Base
       "#{DATA_DIR}/falciparum/localisation/exportpred/exportPred10.txt",
       "#{DATA_DIR}/falciparum/exportpred/exportome.csv",
       "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_HIGH_confid_set3",
-      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_LOWER_confid_set"
+      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_LOWER_confid_set",
+      "#{DATA_DIR}/falciparum/localisation/pexelPlasmoDB5.5.txt",
+      "#{DATA_DIR}/falciparum/localisation/htPlasmoDB5.5.txt"
     ]
     
     filenames.each do |f|
@@ -795,7 +819,7 @@ class Script < ActiveRecord::Base
   end
   
   # Count each group 
-  def localisation_counts
+  def localisation_counts_inspect
     # Total counts
     Localisation.count(:group => :name, 
       :joins => :coding_regions,
@@ -809,6 +833,35 @@ class Script < ActiveRecord::Base
     locs.each do |loc|
       orfs = loc.get_individual_localisations
       puts "#{orfs.length}\t#{loc.name}"
+    end
+    
+    puts
+    puts "Unique tops"
+    topings = {}
+    CodingRegion.falciparum.all(
+      :select => 'distinct(coding_regions.*)',
+      :joins => {:expressed_localisations => :malaria_top_level_localisation}
+    ).each do |code|
+      next unless code.uniq_top?
+      topings[code.tops[0].name] ||= 0
+      topings[code.tops[0].name] += 1
+    end
+    topings.each do |loc, count|
+      puts "#{loc}\t#{count}"
+    end
+    
+    puts
+    puts "Possibly not unique tops"
+    topings = {}
+    CodingRegion.falciparum.all(
+      :select => 'distinct(coding_regions.*)',
+      :joins => {:expressed_localisations => :malaria_top_level_localisation}
+    ).each do |code|
+      topings[code.tops[0].name] ||= 0
+      topings[code.tops[0].name] += 1
+    end
+    topings.each do |loc, count|
+      puts "#{loc}\t#{count}"
     end
   end  
   
@@ -1083,10 +1136,7 @@ class Script < ActiveRecord::Base
       
       puts
     end
-  end
-  
-  
-  def map_plasmodb_ids
+    enddef map_plasmodb_ids
     $stdin.each do |line|
       p = CodingRegion.find_by_name_or_alternate(line.strip)
       if !p
@@ -1175,42 +1225,6 @@ class Script < ActiveRecord::Base
     end
   end
   
-  # A generic method for uploading a bunch of genes using stdin
-  # description - the name of the list
-  # organism - the common name for the organism the gene is for. nil means organism isn't considered when uploading the data
-  def create_gene_list(description, organism=nil)
-    if !description or description ===''
-      raise Exception, "Bad gene list description: '#{description}'"
-    end
-    
-    list = PlasmodbGeneList.create(
-      :description => description
-    )
-    
-    $stdin.each do |line|
-      line.strip!
-      
-      if organism
-        code = CodingRegion.find_by_name_or_alternate_and_organism(line, organism)
-      else
-        code = CodingRegion.find_by_name_or_alternate(line)
-      end
-      
-      if !code
-        $stderr.puts "Warning no coding region found for #{line}"
-      else
-        PlasmodbGeneListEntry.find_or_create_by_plasmodb_gene_list_id_and_coding_region_id(
-          list.id,
-          code.id
-        )
-      end
-    end
-    
-    hits = PlasmodbGeneListEntry.count(:conditions => "plasmodb_gene_list_id=#{list.id}")
-    
-    puts "Uploaded #{hits} different coding regions"
-  end
-  
   
   # See if the arabidopsis gene locations help if I put them through orthomcl
   def florian_arabidopsis
@@ -1279,7 +1293,8 @@ class Script < ActiveRecord::Base
   
   
   def vivax_to_database
-    apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.4/Pvivax_Salvador1_plasmoDB-5.4.gff")
+    #apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.4/Pvivax_Salvador1_plasmoDB-5.4.gff")
+    apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.5/Pvivax_PlasmoDB-5.5.gff")
   end
   
   
@@ -1838,7 +1853,7 @@ class Script < ActiveRecord::Base
   
   # upload the fasta sequences from falciparum file to the database
   def vivax_fasta_to_database
-    fa = ApiDbFasta.new.load("#{DATA_DIR}/vivax/genome/plasmodb/5.4/PvivaxAnnotatedProteins_plasmoDB-5.4.fasta")
+    fa = ApiDbVivaxFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/5.5/PvivaxAnnotatedProteins_PlasmoDB-5.5.fasta")
     sp = Species.find_by_name(Species.vivax_name)
     upload_fasta_general!(fa, sp)
   end
@@ -2437,8 +2452,8 @@ class Script < ActiveRecord::Base
     end
   end
   
-  def upload_orthomcl_official_sequences
-    flat = Bio::FlatFile.open(Bio::FastaFormat, "#{WORK_DIR}/Orthomcl/seqs_orthomcl-2.fasta")
+  def upload_orthomcl_official_sequences(fasta_filename="#{WORK_DIR}/Orthomcl/seqs_orthomcl-2.fasta")
+    flat = Bio::FlatFile.open(Bio::FastaFormat, fasta_filename)
     
     run = OrthomclRun.official_run_v2
     
@@ -2450,22 +2465,31 @@ class Script < ActiveRecord::Base
       if splits_space.length < 3
         raise Exception, "Badly handled line because of spaces: #{line}"
       end
-      orthomcl_id = splits_space[0] 
+      orthomcl_id = splits_space[0]
       
-      ogenes = OrthomclGene.find(:all,
-        :include => :orthomcl_group,
-        :conditions => "orthomcl_groups.orthomcl_run_id=#{run.id} and "+
-          "orthomcl_genes.orthomcl_name='#{orthomcl_id}'"
-      )
+      orthomcl_group_name = splits_space[2]
+      ogene = nil
+      
+      if orthomcl_group_name == 'no_group'
+        # Upload the gene as well now
+        ogene = OrthomclGene.find_or_create_by_orthomcl_name(orthomcl_id)
+      else
+        ogenes = OrthomclGene.find(:all,
+          :include => :orthomcl_group,
+          :conditions => "orthomcl_groups.orthomcl_run_id=#{run.id} and "+
+            "orthomcl_genes.orthomcl_name='#{orthomcl_id}'"
+        )
         
-      if ogenes.length != 1
-        if ogenes.length == 0
-          #          raise Exception, "No gene found for #{line}"
-          next
-          # bleh - I didn't upload singlets to my database, so this is expected
-        else
-          raise Exception, "Too many genes found for #{orthomcl_id}"
+        if ogenes.length != 1
+          if ogenes.length == 0
+            # Raise exceptions now because singlets are uploaded now - this gene apparently has a group
+            raise Exception, "No gene found for #{line} when there should be"
+          else
+            raise Exception, "Too many genes found for #{orthomcl_id}"
+          end
         end
+        
+        ogene = ogenes[0]
       end
       
       # find the annotation
@@ -2481,7 +2505,7 @@ class Script < ActiveRecord::Base
       end
   
       OrthomclGeneOfficialData.find_or_create_by_orthomcl_gene_id_and_sequence_and_annotation(
-        ogenes[0].id,
+        ogene.id,
         seq.aaseq,
         annot
       )
@@ -2789,7 +2813,7 @@ class Script < ActiveRecord::Base
       
       # find the coding regions
       orf_name = row[orf_name_col]
-      code = CodingRegion.find_by_name_or_alternate(orf_name)
+      code = CodingRegion.falciparum.find_by_name_or_alternate(orf_name)
       if !code
         $stderr.puts "No coding region #{orf_name} found"
         next
@@ -3561,8 +3585,8 @@ class Script < ActiveRecord::Base
   
   def upload_wormnet
     
-    net = GeneNetwork.find_or_create_by_name(
-      GeneNetwork.wormnet_name
+    net = Network.find_or_create_by_name(
+      Network::WORMNET_NAME
     )
     first = true
     CSV.open("#{DATA_DIR}/elegans/lee/ng.2007.70-S3.txt", 'r', "\t") do |row|
@@ -3574,16 +3598,21 @@ class Script < ActiveRecord::Base
       
       # Wormnet finds genes and not coding regions, which is kind of confusing.
       # find gene if it exists
-      g1 = Gene.find_by_name_or_alternate_and_organism(row[0], Species.elegans_name)
-      g2 = Gene.find_by_name_or_alternate_and_organism(row[1], Species.elegans_name)
+      g1 = CodingRegion.find_by_name_or_alternate_and_organism(row[0], Species.elegans_name)
+      g2 = CodingRegion.find_by_name_or_alternate_and_organism(row[1], Species.elegans_name)
 
       
-      if !g1 or !g2
-        $stderr.puts "Couldn't find gene #{row[0]} or #{row[1]}"
+      if !g1
+        puts "Couldn't find gene1 #{[row[0],row[1],row[11]].join("\t")}"
         next
       end
       
-      GeneNetworkEdge.find_or_create_by_gene_network_id_and_gene_id_first_and_gene_id_second_and_strength(
+      if !g2
+        puts "Couldn't find gene2 #{[row[0],row[1],row[11]].join("\t")}"
+        next
+      end
+      
+      CodingRegionNetworkEdge.find_or_create_by_network_id_and_coding_region_id_first_and_coding_region_id_second_and_strength(
         net.id,
         g1.id,
         g2.id,
@@ -4276,9 +4305,10 @@ class Script < ActiveRecord::Base
   # Some methods to help upload the data before the localisation spreadsheet can
   # be created
   def localisation_spreadsheet_preparation
-    link_orthomcl_and_coding_regions(['pfa'])
+    OrthomclGene.new.link_orthomcl_and_coding_regions(['pfa'])
     seven_species_orthomcl_upload
     upload_snp_data_jeffares
+    derisi_microarray_to_database2
   end
   
   def localisation_spreadsheet
@@ -4288,7 +4318,13 @@ class Script < ActiveRecord::Base
     headings = [
       'PlasmoDB ID',
       'Annotation',
+      'Top Level Localisations',
       'Amino Acid Sequence',
+      'SignalP Prediction',
+      'PlasmoAP Score',
+      'WoLF_PSORT prediction Plant',
+      'WoLF_PSORT prediction Animal',
+      'WoLF_PSORT prediction Fungi',
       'Number of P. falciparum Genes in Official Orthomcl Group', #orthomcl
       'Number of P. vivax Genes in Official Orthomcl Group',
       'Number of C. parvum Genes in Official Orthomcl Group',
@@ -4305,14 +4341,11 @@ class Script < ActiveRecord::Base
       'Number of Non-Synonymous IT SNPs according to Jeffares et al',
       'Number of Synonymous Clinical SNPs according to Jeffares et al',
       'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
-      'SignalP Prediction',
-      'PlasmoAP Score'
     ]
     derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
     headings.push derisi_timepoints.collect{|t| 
       'DeRisi 2006 3D7 '+t.name
     }
-    headings.push 'Top Level Localisations'
     
     headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
     puts headings.join(sep)
@@ -4332,11 +4365,25 @@ class Script < ActiveRecord::Base
       results = [
         code.string_id,
         code.annotation.annotation,
+        code.tops.pick(:name).uniq.sort.join(', '),  # Top level localisations
         code.amino_acid_sequence.sequence,
       ]
       
+      #      SignalP
+      results.push(
+        code.amino_acid_sequence.signal?
+      )
+      
+      # PlasmoAP
+      results.push code.amino_acid_sequence.plasmo_a_p.points
+      
+      #WoLF_PSORT
+      results.push code.wolf_psort_localisation('plant')
+      results.push code.wolf_psort_localisation('animal')
+      results.push code.wolf_psort_localisation('fungi')
+      
       # official orthomcl
-      interestings = ['pfa','pvi','cpa','cho','tpa','tan','ath','sce','mmu']
+      interestings = ['pfa','pvi','cpa','cho','the','tan','ath','sce','mmu']
       
       # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
       if merged_genes.include?(code.string_id)
@@ -4393,13 +4440,7 @@ class Script < ActiveRecord::Base
       end
       
       
-      #      SignalP
-      results.push(
-        code.amino_acid_sequence.signal?
-      )
-      
-      # PlasmoAP
-      results.push code.amino_acid_sequence.plasmo_a_p.points
+
 
       # Microarray DeRisi
       derisi_timepoints.each do |timepoint|
@@ -4414,8 +4455,7 @@ class Script < ActiveRecord::Base
         end
       end
       
-      # Top level localisations
-      results.push(code.tops.pick(:name).uniq.sort.join(', '))
+
       
       # Check to make sure that all the rows have the same number of entries as a debug thing
       if results.length != headings.length
@@ -4576,6 +4616,23 @@ class Script < ActiveRecord::Base
   def localisation_fasta
     ExpressionContext.all(:select => 'distinct(coding_region_id)').each do |context|
       code = context.coding_region
+      raise Exception, "Coding region for context #{context.inspect} not found!" if !code
+      
+      puts ">#{code.string_id}|#{code.localisation_english}|#{code.annotation.annotation}"
+      puts code.amino_acid_sequence.sequence
+    end
+  end
+  
+  # Print out proteins predicted to be type 2 transmembrane proteins and that are localised
+  # in ApiLoc
+  def type_2_localisation_fasta
+    ExpressionContext.all(:select => 'distinct(coding_region_id)').each do |context|
+      code = context.coding_region
+      
+      tmhmm_result = TmHmmWrapper.new.calculate(code.amino_acid_sequence.sequence)
+      
+      next if !tmhmm_result.transmembrane_type_2?
+      
       raise Exception, "Coding region for context #{context.inspect} not found!" if !code
       
       puts ">#{code.string_id}|#{code.localisation_english}|#{code.annotation.annotation}"
@@ -5331,35 +5388,1475 @@ class Script < ActiveRecord::Base
       end
     end
   end
-  
-  
-  
-  def upload_elegans_go_terms
-    genes = Bio::WormbaseGoFile.new("#{DATA_DIR}/elegans/wormbase/WS187/annotations/GO/GO.WS187.txt").genes
     
-    #    $ grep WBGene GO.WS190.txt |wc -l
-    #31499
-    #$ grep WBGene GO.WS187.txt |wc -l
-    #31316
-    if genes.length != 31316
-      raise Exception, "Unexpected number of genes found in GO file."
+  def transmembrane_er_versus_plasma_membrane_first
+    localisations = {
+      'endoplasmic reticulum' => 'GO:0005783',
+      'plasma membrane' => 'GO:0005886',
+      'golgi apparatus' => 'GO:0005794'
+    }
+    
+    puts [
+      'Localisation',
+      #      'PDB',
+      'First TMD Length'
+    ].join("\t")
+    
+    # Print the baseline counts, for all of pdb_tm
+    #    lengths = []
+    #    CodingRegion.s(Species.pdb_tm_dummy_name).all(:include => :transmembrane_domain_lengths).each do |code|
+    #      code.transmembrane_domain_lengths.reach.measurement.each do |length|
+    #        if lengths[length]
+    #          lengths[length] += 1
+    #        else
+    #          lengths[length] = 1
+    #        end
+    #      end        
+    #    end
+    #    puts [
+    #      'PDBTM',
+    #      lengths
+    #    ].flatten.join("\t")
+    
+    
+    # Collect the coding regions in each localisation
+    localisations.keys.collect do |loc|
+      # get all the descendents as an array
+      terms = Bio::Go.new.cellular_component_offspring(localisations[loc])
+
+      # retrieve all the coding regions that have one or more of these descendents
+      # annotated as such
+      CodingRegion.species_name('pdbtm_dummy').all(:include => :go_terms).each do |code|
+        goods = code.go_terms.reach.go_identifier.select{|go_id| terms.include?(go_id)}
+        if goods.length > 0
+          tmd = code.transmembrane_domain_lengths.first(:order => 'id')
+          puts [
+            loc.gsub(' ','_'), 
+            #              code.string_id, 
+            tmd.measurement.to_i
+          ].join("\t")
+        end
+      end
+    end
+  end
+  
+  
+  # Upload Wormbase genes, proteins and go terms from scratch
+  def upload_elegans_go_terms_and_genes
+    genes = Bio::WormbaseGoFile.new("#{DATA_DIR}/elegans/wormbase/WS194/annotations/gene_ontology/c_elegans.WS194.gene_ontology.txt").genes
+    
+    protein_names = []
+    File.open("#{DATA_DIR}/elegans/wormbase/WS191/cel_protein-coding_geneids_v191").each do |line|
+      protein_names.push line.strip
     end
     
+    #    #    $ grep WBGene GO.WS190.txt |wc -l
+    #  #31499
+    #    #$ grep WBGene GO.WS187.txt |wc -l
+    #    #31316
+    #    if genes.length != 31316
+    #      raise Exception, "Unexpected number of genes found in GO file."
+    #    end
+    
+
+    sp = Species.find_or_create_by_name(Species.elegans_name)
+    raise if sp.scaffolds.length > 1 #make sure we are still hacking this stuff
+    scaf = Scaffold.find_or_create_by_species_id_and_name(sp.id, Species.elegans_name)
+    
     genes.each do |gene|
-      next if gene.go_identifiers.empty?
-      code = CodingRegion.fs(gene.name, Species.elegans_name)
-      if !code
-        $stderr.puts "No coding region found: #{gene.name}"
-        next
-      end
-      
+      # Ignore genes not given to me by Maria
+      next if !protein_names.include?(gene.gene_name)
+      gd = Gene.find_or_create_by_name_and_scaffold_id(gene.gene_name, scaf.id)
+      cd = CodingRegion.find_or_create_by_string_id_and_gene_id(gene.protein_name, gd.id)
+      CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(cd.id, gene.gene_name)
       gene.go_identifiers.each do |go_id|
         g = GoTerm.find_or_create_by_go_identifier(go_id)
         CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id(
-          g.id, code.id
+          g.id, cd.id
         )
       end
     end
   end
-end
+  
+  def check_elegans_go
+    genes = Bio::WormbaseGoFile.new("/home/ben/phd/data/elegans/wormbase/WS187/annotations/GO/GO.WS187.txt").genes
 
+    genes.each do |gene|
+      if gene.protein_name and !gene.go_identifiers.empty? and !CodingRegion.fs(gene.protein_name, Species.elegans_name)
+        puts gene.gene_name
+      end
+    end
+  end
+  
+  # Print out a list of elegans genes classed as enzymes, gpcr, etc. - stuff that is assayable
+  def elegans_enzyme_genes
+    go_getter = Bio::Go.new
+    gos = [
+      #      'GO:0005215', #transport
+      # 'GO:0004930', # G-Protein Coupled Receptors
+      'GO:0003824' # Enzyme
+    ]
+    good_gos = []
+    gos.each do |go|
+      good_gos = [
+        good_gos, 
+        go_getter.molecular_function_offspring(go)
+      ].uniq.flatten
+    end
+    CodingRegion.s(Species.elegans_name).all.each do |code|
+      yes = false
+      code.go_terms.reach.go_identifier.each do |go|
+        if good_gos.include?(go)
+          yes = true
+        end
+      end
+      if yes
+        puts [
+          code.gene.name,
+          code.string_id
+        ].join("\t")
+      end
+    end
+  end
+  
+  def check_elegans_protein_coding_differences
+    File.open("#{DATA_DIR}/elegans/wormbase/WS191/cel_protein-coding_geneids_v191").each do |line|
+
+      line.strip!
+      if !CodingRegion.fs(line, Species.elegans_name)
+        puts line
+      end
+    end
+  end
+
+  def enzyme_go_ids_and_descriptions
+    go_getter = Bio::Go.new
+    gos = [
+      #      'GO:0005215', #transport
+      #'GO:0004930', # G-Protein Coupled Receptors
+      'GO:0003824' # Enzyme
+    ]
+    good_gos = []
+    gos.each do |go|
+      good_gos = [
+        good_gos, 
+        go_getter.molecular_function_offspring(go)
+      ].flatten.sort.uniq
+    end
+    
+    good_gos.each do |go_id|
+      puts [
+        go_id,
+        go_getter.term(go_id)
+      ].join("\t")
+    end
+  end
+
+  def go_synonym_hypothesis
+    gos = %w(GO:0048253 GO:0046971 GO:0046913 GO:0047984 GO:0050517 GO:0047752 GO:0047477 GO:0047340 GO:0047523 GO:0047226 GO:0048059 GO:0047737 GO:0046407 GO:0046420 GO:0050222 GO:0047607 GO:0045546 GO:0050443 GO:0047767 GO:0050375 GO:0048044 GO:0048043 GO:0050475 GO:0050516 GO:0047076 GO:0047318 GO:0047314)
+    go_getter = Bio::Go.new
+    
+    puts '------Email GO Term Testing----------'
+    gos.each do |g|
+      begin
+        if go_getter.primary_go_id(g) == g
+          puts "#{g} found as a primary id!"
+        end
+      rescue RException
+        puts "#{g} raised exception - too new for GO.db R library?"
+      end
+    end
+    
+    puts '------Text File Testing----------'
+    File.open("#{PHD_DIR}/essentiality/goidsNOTin_ben_list.txt").each do |g|
+      begin
+        g.strip!
+        if go_getter.primary_go_id(g) == g
+          puts "#{g} found as a primary id!"
+        end
+      rescue RException
+        puts "#{g} raised exception - too new for GO.db R library?"
+      end      
+    end
+  end  
+  
+  # Upload all the data from Winzeler 2005 experiments downloaded from
+  # http://carrier.gnf.org/publications/CellCycle/index.html
+  def winzeler_2003_measurements_to_database
+    base_dir = "#{DATA_DIR}/falciparum/microarray/Winzeler2003"
+    microarray = Microarray.find_or_create_by_description(Microarray::WINZELER_2003_NAME)
+    sporozoite_replicate = 1
+    
+    # the original Description&Normalization.txt was originally created using a mixture of tabs and spaces
+    # I converted them all to tabs so it now makes sense.
+    FasterCSV.foreach("#{base_dir}/Description&Normalization.tabbed.txt", :col_sep => "\t", :headers => true) do |description_row|
+      description = description_row[4]
+      if description.match(/Sporozoite/)
+        description = "#{description} #{sporozoite_replicate}"
+        sporozoite_replicate += 1
+      else
+        next #just uploading sporozoite replicates right now as a fix
+      end
+      
+      timepoint = MicroarrayTimepoint.find_or_create_by_name_and_microarray_id(description, microarray.id)
+      
+      FasterCSV.foreach("#{base_dir}/#{description_row[0]}.tsv", :col_sep => "\t") do |entry|
+        code = CodingRegion.ff(entry[0])
+        
+        if !code
+          $stderr.puts "Couldn't find coding region '#{entry[0]}'"
+          next
+        end
+        
+        levels = entry[6].split(',')
+        raise Exception, "Mismatch on the number of levels and apparent number of levels for #{entry[0]}" if entry[5].to_i != levels.length
+        
+        # Cannot do find_or_create here because you might get the same measurement twice in the same go.
+        levels.each do |level|
+          MicroarrayMeasurement.create!(
+            :coding_region_id => code.id,
+            :measurement => level,
+            :microarray_timepoint_id => timepoint.id
+          )
+        end
+      end
+    end
+  end
+      
+  def elegans_specific_by_orthomcl
+    OrthomclGene.code('cel').all({:include => :orthomcl_group}).reach.orthomcl_group.reject {|g|
+      # Reject if the count of cel genes is different to the count of all genes in the group
+      g.orthomcl_genes.code('cel').count != g.orthomcl_genes.count
+    }.uniq{|a,b| a.id == b.id}.collect do |uniq_gene|
+      yield uniq_gene
+    end
+  end
+  
+
+  # for each of the nuclear proteins in the proteomics list, print out the average and list of winzeler 2003 cell
+  # cycle absolute counts
+  def nuclear_proteome_winzeler_data
+    # Headers
+    puts [
+      'PlasmoDB ID',
+      'Average Ring',
+      'Average Trophozoite',
+      'Average Schizont'
+    ].join("\t")
+    
+    array_constants = [
+      #      [MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL], # to check the measurements are coming out correctly
+      MicroarrayTimepoint::WINZELER_RING_TIMEPOINT_NAMES,
+      MicroarrayTimepoint::WINZELER_TROPHOZOITE_TIMEPOINT_NAMES,
+      MicroarrayTimepoint::WINZELER_SCHIZONT_TIMEPOINT_NAMES
+    ]
+    
+    # For each gene in the proteome list
+    PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.falciparum.each do |code|
+      results = [code.string_id]
+      
+      array_constants.each do |timepoints|
+        results.push code.microarray_measurements.timepoint_names(timepoints).all.reach.measurement.to_f.average
+      end
+      
+      puts results.join("\t")
+    end
+  end
+
+  def elegans_only_and_lethal
+    #    elegans_specific_by_orthomcl do ||
+  end
+  
+  def nuclear_wolf_psort_accuracy
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      tp = fp = tn = fn = 0
+      
+      CodingRegion.falciparum.all(:joins => :expression_contexts).uniq.each do |code|
+        # if nuclear prediction
+        tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
+        
+        if tops.reach.name.include?('nucleus')
+          if code.cached_wold_psort_localisation(organism_type) == 'nucl'
+            tp += 1
+          else
+            fn += 1
+          end
+          
+        else # not nuclear at all
+          if code.cached_wold_psort_localisation(organism_type) == 'nucl'
+            fp += 1
+          else
+            tn += 1
+          end
+        end
+      end
+      
+      p = PredictionAccuracy.new(tp, fp, tn, fn)
+      puts "#{organism_type}:"
+      puts p.to_s
+      puts
+    end
+  end
+  
+  def nuclear_wolf_psort_accuracy_no_signal
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      tp = fp = tn = fn = 0
+      
+      CodingRegion.falciparum.all(:joins => :expression_contexts).uniq.each do |code|
+        # if nuclear prediction
+        tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
+        next if code.signalp?
+        
+        if tops.reach.name.include?('nucleus')
+          if code.cached_wold_psort_localisation(organism_type) == 'nucl'
+            tp += 1
+          else
+            fn += 1
+          end
+          
+        else # not nuclear at all
+          if code.cached_wold_psort_localisation(organism_type) == 'nucl'
+            fp += 1
+          else
+            tn += 1
+          end
+        end
+      end
+      
+      p = PredictionAccuracy.new(tp, fp, tn, fn)
+      puts "#{organism_type}:"
+      puts p.to_s
+      puts
+    end
+  end
+  
+
+
+  # Find groups where there is a falciparum and toxo, but no
+  # blargh - just realised toxo is not in the 7 species, making this harder.
+  # Will need to rerun the the blast with toxo included
+  def babesia_loss
+    
+  end  
+  
+  def falciparum_simple_fasta
+    CodingRegion.s(Species::FALCIPARUM_NAME).all(:joins => :amino_acid_sequence).each do |code|
+      puts ">pfa|#{code.string_id}"
+      puts code.amino_acid_sequence.sequence
+    end
+  end
+  
+  # How good is the predictor that predicts uses the toxo ortholog's psort prediction as the predictor?
+  def toxo_to_falciparum_nuclear_prediction
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      tp = fp = tn = fn = 0
+      no_orthologue_count = 0
+      
+      CodingRegion.falciparum.all(:joins => {:expressed_localisations => :malaria_top_level_localisation}).uniq.each do |code|
+        # Reject from all prediction where there is not exactly 1 toxo orthologue
+        toxos = []
+        begin
+          toxos = code.single_orthomcl.orthomcl_group.orthomcl_genes.code('tgo').all
+        rescue CodingRegion::UnexpectedOrthomclGeneCount
+        end
+        
+        if toxos.length != 1
+          no_orthologue_count += 1
+          next 
+        end
+        toxo = toxos[0].single_code
+        
+        # if nuclear prediction
+        tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
+        
+        if tops.reach.name.include?('nucleus')
+          if toxo.cached_wold_psort_localisation(organism_type) == 'nucl'
+            tp += 1
+          else
+            fn += 1
+          end
+          
+        else # not nuclear at all
+          if toxo.cached_wold_psort_localisation(organism_type) == 'nucl'
+            fp += 1
+          else
+            tn += 1
+          end
+        end
+      end
+      
+      p = PredictionAccuracy.new(tp, fp, tn, fn, no_orthologue_count)
+      puts "#{organism_type}:"
+      puts p.to_s
+      puts
+    end
+  end
+  
+  # How good is the predictor that predicts uses the toxo ortholog's psort prediction as the predictor?
+  def toxo_to_falciparum_nuclear_prediction_no_signal
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      tp = fp = tn = fn = 0
+      no_orthologue_count = 0
+      
+      CodingRegion.falciparum.all(:joins => {:expressed_localisations => :malaria_top_level_localisation}).uniq.each do |code|
+        # Reject from all prediction where there is not exactly 1 toxo orthologue
+        toxos = []
+        begin
+          toxos = code.single_orthomcl.orthomcl_group.orthomcl_genes.code('tgo').all
+        rescue CodingRegion::UnexpectedOrthomclGeneCount
+        end
+        
+        if toxos.length != 1
+          no_orthologue_count += 1
+          next 
+        end
+        toxo = toxos[0].single_code
+        
+        # if nuclear prediction
+        tops = code.expressed_localisations.reach.malaria_top_level_localisation.retract.reject{|t| t.nil?} #reject those that don't have top level locs
+        next if code.signalp?
+        
+        if tops.reach.name.include?('nucleus')
+          if toxo.cached_wold_psort_localisation(organism_type) == 'nucl'
+            tp += 1
+          else
+            fn += 1
+          end
+          
+        else # not nuclear at all
+          if toxo.cached_wold_psort_localisation(organism_type) == 'nucl'
+            fp += 1
+          else
+            tn += 1
+          end
+        end
+      end
+      
+      p = PredictionAccuracy.new(tp, fp, tn, fn, no_orthologue_count)
+      puts "#{organism_type}:"
+      puts p.to_s
+      putsg
+    end
+  end
+  
+  # generate the files necessary to run a prediction run
+  # in LIBSVM format
+  def gmars_exported
+    gmars = GMARS.new
+    
+    (0..6).each do |max_gap|
+      puts "Gap #{max_gap}"
+      
+      exported_count = other_count = 0
+      f = File.open("../svm/gmars/apiloc.exportedVothers.gap#{max_gap}.txt", 'w')
+    
+      CodingRegion.s(Species::FALCIPARUM).all(
+        :joins => :expressed_localisations
+      ).each do |code|
+        next if !code.uniq_top? #skip dual localised for the moment
+      
+        if code.tops[0].name == 'exported'
+          f.puts code.gmars_vector(max_gap, gmars).libsvm_format(1)
+          exported_count += 1
+        else
+          next if 
+          f.puts code.gmars_vector(max_gap, gmars).libsvm_format(-1)
+          other_count += 1
+        end
+      end
+    end
+  end
+  
+  # generate the files necessary to run a prediction run
+  # in LIBSVM format
+  def gmars_all_localisations
+    gmars = GMARS.new
+    raise Exception, "too many lines output from each I think - doubtful this routine is bug free"
+    
+    top_hash = {}
+    TopLevelLocalisation.all.each_with_index do |top, index|
+      i = index+1
+      top_hash[top] = i
+      puts [top.name, i].join(' - ')
+    end
+    
+    (0..6).each do |max_gap|
+      puts "Gap #{max_gap}"
+      
+      f = File.open("../svm/gmars/apiloc.all_localisationss.gap#{max_gap}.txt", 'w')
+    
+      CodingRegion.s(Species::FALCIPARUM).all(
+        :joins => :expressed_localisations
+      ).each do |code|
+        next if !code.uniq_top? #skip dual localised for the moment
+      
+        f.puts code.gmars_vector(max_gap, gmars).libsvm_format(top_hash[code.tops[0]])
+      end
+    end
+  end
+    
+  
+  def golgi_consensus_falciparum
+    # May as well run the upload of the signals because it is fast and easy
+    GolgiNTerminalSignal.new.florian_fill
+    GolgiCTerminalSignal.new.florian_fill
+    
+    signals = [GolgiNTerminalSignal.all, GolgiCTerminalSignal.all].flatten.reach.regex
+     
+    puts [
+      'PlasmoDB ID',
+      'Annotation',
+      'Confirmed Localisations',
+      'GPI Anchor (Predicted by Gilson et al 2006)',
+      'TMHMM2 Type I/II',
+      'TMHMM2 TMD Length',
+      'TMHMM2 TMD Start',
+      'TMHMM2 TMD End',
+      'Protein Length',
+      'Signal Peptide by SignalP 3.0?',
+      'ExportPred Prediction',
+      'Published in PEXEL List',
+      'Published in HT List',
+      signals.collect{|s| s.inspect}
+    ].flatten.join("\t")
+     
+    gpi_list = PlasmodbGeneList.find_by_description "Gilson Published GPI 2006"
+    
+    CodingRegion.s(Species::FALCIPARUM_NAME).all(
+      :include => [:amino_acid_sequence, :annotation]
+    ).each do |code|
+      # ignore surface crap and pseudogenes
+      next if code.falciparum_cruft?
+      
+      # I only care about the protein minus the signal peptide
+      next unless code.aaseq
+      sp = code.signalp
+      seq = code.aaseq
+      seq = sp.cleave(seq) if sp.signal?
+      
+      # only count those that are predicted to have 1 TMD by TMHMM2
+      tmhmm_result = TmHmmWrapper.new.calculate(seq)
+      next unless tmhmm_result.transmembrane_domains.length == 1
+      
+      # fill in columns as possible
+      m = [
+        code.string_id,
+        code.annotation.annotation,
+        code.expressed_localisations.reach.name.join(', '),
+        gpi_list.coding_regions.include?(code) ? 'GPI' : 'no GPI',
+        tmhmm_result.transmembrane_type,
+        tmhmm_result.transmembrane_domains[0].length,
+        tmhmm_result.transmembrane_domains[0].start,
+        tmhmm_result.transmembrane_domains[0].stop,
+        code.aaseq.length,
+        sp.signal?,
+        code.amino_acid_sequence.exportpred.predicted?,
+        !CodingRegion.list('pexelPlasmoDB5.5').find_by_id(code.id).nil?,
+        !CodingRegion.list('htPlasmoDB5.5').find_by_id(code.id).nil?
+      ]
+      
+      # fill in the golgi signal peptides
+      signals.each do |signal|
+        if code.aaseq and matches = code.aaseq.match(/(#{signal})/)
+          m.push matches[1]
+        else
+          m.push nil
+        end
+      end
+      puts m.join("\t")
+    end
+  end
+  
+  
+  def upload_gilson_gpi_list
+    l = PlasmodbGeneList.find_or_create_by_description("Gilson Published GPI 2006")
+    File.open("#{DATA_DIR}/falciparum/localisation/Gilson2006Apr7.GPI.list.csv").each do |line|
+      p line
+      code = CodingRegion.ff(line.strip)
+      raise if !code
+      PlasmodbGeneListEntry.find_or_create_by_plasmodb_gene_list_id_and_coding_region_id(
+        l.id, code.id
+      )
+    end
+  end
+    
+  # Collect results for candidates for sequencing
+  def babesia_apicoplast_candidate_selection
+    auto_babesia_candidates.each do |c|
+      puts [
+        c.query_def, 
+        c.hit_def, 
+        c.nterminal_query_start, 
+        c.nterminal_hit_start, 
+        c.difference,
+        c.bl2seq_result.hits.length,
+        c.bl2seq_result.hits[0].hsps.length,
+        c.bl2seq_result.shuffled_start?
+      ].join("\t")
+    end
+  end
+  
+  def auto_babesia_candidates
+    #   1. Get all the genes that blast against the falciparum high and low confidence orthologs using 7 species orthomcl
+    groups = OrthomclGroup.run(OrthomclRun.seven_species_filtering_name).all(
+      :joins => {:orthomcl_genes => {:coding_regions => :plasmodb_gene_lists}},
+      :conditions => ['(plasmodb_gene_lists.description = ?'+
+          ' or plasmodb_gene_lists.description = ?)'+
+          ' and orthomcl_runs.name = ?', 
+        'Pvi_Pfa_Tpa_HIGH_confid_set3', 'Pvi_Pfa_Tpa_LOWER_confid_set',
+        OrthomclRun.seven_species_filtering_name
+      ]
+    )
+    
+    babesias = groups.select{|g| 
+      g.orthomcl_genes.count(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])>0
+    }.collect{|group|
+      group.orthomcl_genes.first(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])
+    }
+    m = []
+    
+    
+    babesia_with_signal_peptides_count = 0
+    babesia_without_falciparum_hit_count = 0
+      
+    babesias.uniq!
+    $stderr.puts "Number of babesia orthologs in total: #{babesias.length}"
+    
+    babesias.each do |og|
+      code = og.single_code #raises exception if something is askew
+      
+      #   2. discard if the babesia gene has a signal peptide
+      if code.signalp.signal?
+        babesia_with_signal_peptides_count += 1
+      end
+      
+      #   3. bl2seq the babesia gene against the falciparum gene. Discard if there is no overhang
+      falciparums = og.orthomcl_group.orthomcl_genes.all(
+        :joins => {:coding_regions => {:gene => {:scaffold => :species}}},
+        :conditions => ['species.name = ?', Species::FALCIPARUM_NAME]
+      )
+      # skip where there is no orthologs
+      next if falciparums.length == 0
+      
+      # if there are multiple orthologs choose the best one by blasting them
+      fal = nil
+      if falciparums.length > 1
+        fal = code.amino_acid_sequence.best_bl2seq(falciparums.reach.single_code.amino_acid_sequence.retract)[0].coding_region
+      else
+        fal = falciparums[0].single_code
+      end
+      
+      bl2seq = fal.amino_acid_sequence.blastp(code.amino_acid_sequence, :evalue => 1e-5)
+      if bl2seq.hits.empty?
+        babesia_without_falciparum_hit_count += 1
+      else
+        m.push Bio::Blast::Bl2seq::BabesiaCandidateWrapper.new(
+          bl2seq,
+          fal.amino_acid_sequence.fasta,
+          code.amino_acid_sequence.fasta
+        )
+      end
+      #      return m
+    end
+    
+    $stderr.puts "Babesias with signal peptides: #{babesia_with_signal_peptides_count}"
+    $stderr.puts "Babesia without decent falciparum hit: #{babesia_without_falciparum_hit_count}"
+    
+    return m
+  end
+  
+  # WARNING: Run once only!
+  def update_falciparum_to_5p5
+    raise if Species.find_by_name('falciparum v5.4')
+    four = Species.find_by_name(Species::FALCIPARUM_NAME)
+    four.name = 'falciparum v5.4'
+    four.orthomcl_three_letter = nil
+    four.save
+    
+    five = Species.find_or_create_by_name(
+      Species::FALCIPARUM
+    )
+    
+    falciparum_to_database
+    falciparum_fasta_to_database
+  end
+  
+  def florian_thanks_in_advance
+    puts PlasmodbGeneList.find_by_description('florian temp').coding_regions.collect {|code|
+      if code.orthomcl_genes.official.count == 0
+        "#{code.string_id}\tno orthomcl group"
+      else
+        group = code.single_orthomcl.orthomcl_group
+        [
+          code.string_id,
+          group.orthomcl_genes.code('sce').all.reach.orthomcl_name.join(', '), 
+          group.orthomcl_genes.code('ath').all.reach.orthomcl_name.join(', '), 
+          group.orthomcl_genes.code('hsa').all.reach.orthomcl_name.join(', '),
+          group.orthomcl_genes.codes(OrthomclGene.official_orthomcl_apicomplexa_codes).all.reach.orthomcl_name.join(', '),
+          group.orthomcl_genes.all.reach.orthomcl_name.reject{|name| 
+            ['sce','ath','hsa',OrthomclGene.official_orthomcl_apicomplexa_codes].flatten.include?(name[0..2])
+          }.join(', ')
+        ].join("\t")
+      end
+    }.join("\n")
+  end
+  
+  def testa
+    c1 = CodingRegion.f('BBOV_III011730')
+    c2 = CodingRegion.f('MAL7P1.92')
+    code = c2
+    fal = c1
+
+    puts code.amino_acid_sequence.blastp(fal.amino_acid_sequence, {:evalue => 1e-5}).shuffled_start?
+  end
+  
+  def babesia_apicoplast_signal_peptide_plasmo_ap_scores
+    #   1. Get all the genes that blast against the falciparum high and low confidence orthologs using 7 species orthomcl
+    groups = OrthomclGroup.run(OrthomclRun.seven_species_filtering_name).all(
+      :joins => {:orthomcl_genes => {:coding_regions => :plasmodb_gene_lists}},
+      :conditions => ['(plasmodb_gene_lists.description = ?'+
+          ' or plasmodb_gene_lists.description = ?)'+
+          ' and orthomcl_runs.name = ?', 
+        'Pvi_Pfa_Tpa_HIGH_confid_set3', 'Pvi_Pfa_Tpa_LOWER_confid_set',
+        OrthomclRun.seven_species_filtering_name
+      ]
+    )
+    
+    babesias = groups.select{|g| 
+      g.orthomcl_genes.count(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])>0
+    }.collect{|group|
+      group.orthomcl_genes.first(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])
+    }
+    
+    babesias.uniq!
+    
+    babesias.each do |bab|
+      code = bab.single_code
+      puts [
+        code.signalp.signal?,
+        code.amino_acid_sequence.plasmo_a_p.points
+      ].join("\t")
+    end
+  end
+  
+  def localisation_libsvm_normalised
+    
+    # headings
+    headings = [
+      #      'PlasmoDB ID',
+      #      'Annotation',
+      #      'Top Level Localisations',
+      #      'Amino Acid Sequence',
+      #      'Class',
+      'SignalP Prediction',
+      'PlasmoAP Score'
+    ]
+    #    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism|
+    #      Bio::PSORT::WoLF_PSORT::LOCALISATIONS.each do |loc|
+    #        headings.push "WoLF PSORT Prediction #{organism}: #{loc}"
+    #      end
+    #    end
+    headings.push [
+      'Number of P. falciparum Genes in Official Orthomcl Group', #orthomcl
+      'Number of P. vivax Genes in Official Orthomcl Group',
+      'Number of C. parvum Genes in Official Orthomcl Group',
+      'Number of C. homonis Genes in Official Orthomcl Group',
+      'Number of T. parva Genes in Official Orthomcl Group',
+      'Number of T. annulata Genes in Official Orthomcl Group',
+      'Number of Arabidopsis Genes in Official Orthomcl Group',
+      'Number of Yeast Genes in Official Orthomcl Group',
+      'Number of Mouse Genes in Official Orthomcl Group',
+      'Number of P. falciparum Genes in 7species Orthomcl Group', #7species orthomcl
+      'Number of P. vivax Genes in 7species Orthomcl Group',
+      'Number of Babesia Genes in 7species Orthomcl Group',
+      'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
+      'Number of Non-Synonymous IT SNPs according to Jeffares et al',
+      'Number of Synonymous Clinical SNPs according to Jeffares et al',
+      'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+    ]
+    #    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
+    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)', 
+      :conditions => ['microarray_timepoints.name = ?', 'Phase']
+    )
+    headings.push derisi_timepoints.collect{|t| 
+      'DeRisi 2006 3D7 '+t.name
+    }
+    
+    headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
+    #puts headings.join(sep)
+    all_results = []
+    all_result_classes = []
+    
+    # genes that are understandably not in the orthomcl databases, because
+    # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
+    # if any of them has any old names that were included, but meh for the moment.
+    fivepfour = ['PFL0040c', 'PF14_0078', 'PF14_0744','PF10_0344','PFD1150c','PFD1145c','PFD0110w','PFI1780w','PFI1740c','PFI0105c','PFI0100c','MAL7P1.231']
+    # Genes that have 2 orthomcl entries but only 1 plasmoDB entry
+    merged_genes = ['PFD0100c']
+    
+    localisation_to_index_hash = TopLevelLocalisation::TOP_LEVEL_LOCALISATIONS.to_hash
+    
+    # For all genes that only have 1 localisation
+    CodingRegion.species_name(Species.falciparum_name).all(
+      :joins => {:expressed_localisations => :malaria_top_level_localisation}
+    ).uniq.each do |code|
+      
+      results = [
+        #        code.string_id,
+        #        code.annotation.annotation,
+        #        code.tops.pick(:name).uniq.sort.join(', '),  # Top level localisations
+        #        code.amino_acid_sequence.sequence,
+      ]
+      
+      # ignore little loved locs and multiple localisations
+      next unless code.uniq_top?
+      
+      # SignalP
+      results.push(
+        code.signalp_however.signal? ? 1 : 0
+      )
+      
+      # PlasmoAP
+      results.push code.amino_acid_sequence.plasmo_a_p.points
+      
+      #WoLF_PSORT
+      #      Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism|
+      #        Bio::PSORT::WoLF_PSORT::LOCALISATIONS.each do |loc|
+      #          if code.wolf_psort_localisations(organism).include?(loc)
+      #            headings.push 1
+      #          else
+      #            headings.push 0
+      #          end
+      #        end
+      #      end
+      #      results.push code.wolf_psort_localisation('plant')
+      #      results.push code.wolf_psort_localisation('animal')
+      #      results.push code.wolf_psort_localisation('fungi')
+      
+      # official orthomcl
+      interestings = ['pfa','pvi','cpa','cho','the','tan','ath','sce','mmu']
+      
+      # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
+      if merged_genes.include?(code.string_id)
+        # Fill with non-empty cells
+        group = code.orthomcl_genes[0].orthomcl_group
+        interestings.each do |three|
+          if group.orthomcl_genes.code(three).length>0
+            results.push 1
+          else
+            results.push 0
+          end
+        end        
+      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
+        # Fill with non-empty cells
+        group = single.orthomcl_group
+        interestings.each do |three|
+          if group.orthomcl_genes.code(three).length>0
+            results.push 1
+          else
+            results.push 0
+          end
+        end
+      else
+        # fill with empty cells
+        1..interestings.length.times do
+          results.push nil #is this correct? Can the machine learning technique deal with this? 
+        end
+      end
+      
+      # 7species orthomcl
+      seven_name_hash = {}
+      begin
+        if !fivepfour.include?(code.string_id) #Used 5.2 for 7species too, so ignore new genes
+          og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
+          raise Exception, "7species falciparum not found for #{code.inspect}" if !og
+          og.orthomcl_group.orthomcl_genes.all.each do |gene|
+            next if gene.orthomcl_name.match(/Plasmodium_vivax_SaI/) #skip vivax because of linking problems for the moment
+            species_name = gene.single_code.gene.scaffold.species.name
+            if seven_name_hash[species_name]
+              seven_name_hash[species_name] += 1
+            else
+              seven_name_hash[species_name] = 1
+            end
+          end
+        end
+      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
+        # This happens for singlet genes
+      end
+      [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
+        results.push seven_name_hash[name] ? 1 : 0
+      end
+      
+      #                  'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
+      #            'Number of Non-Synonymous IT SNPs according to Jeffares et al',
+      #            'Number of Synonymous Clinical SNPs according to Jeffares et al',
+      #            'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+      [:it_synonymous_snp, :it_non_synonymous_snp, :pf_clin_synonymous_snp, :pf_clin_non_synonymous_snp].each do |method|
+        if s = code.send(method)
+          results.push s.value
+        else
+          results.push nil
+        end
+      end
+      
+      
+  
+
+      # Microarray DeRisi
+      derisi_timepoints.each do |timepoint|
+        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+          code.id,
+          timepoint.id
+        )
+        if !measures.nil?
+          results.push measures.measurement
+        else
+          results.push nil
+        end
+      end
+      
+      # push all the gMARS data
+      results.push code.gmars_vector(3)
+      
+      # Check to make sure that all the rows have the same number of entries as a debug thing
+      #      if results.length != headings.length
+      #        raise Exception, "Bad number of entries in the row (#{headings.length} headings vs. #{results.length} results) for code #{code.inspect}: #{results.inspect}"
+      #      end
+      all_results.push results.flatten
+      all_result_classes.push localisation_to_index_hash[code.tops[0].name]
+      #      puts code.string_id
+      #      puts code.tops.reach.name.join(", ")
+      #      puts localisation_to_index_hash
+      #      puts localisation_to_index_hash['nucleus']
+      #      puts headings.join("\t")
+      #      puts results.join("\t")
+      #      return
+      #      @i ||= 0
+      #      @i += 1
+      #      break if @i>1
+    end
+    
+    all_results.normalise_columns.each_with_index do |row, index|
+      puts row.libsvm_format(all_result_classes[index])
+    end
+  end
+
+  def amino_acid_composition_libsvm
+    all_results = []
+    all_result_classes = []
+    
+    localisation_to_index_hash = TopLevelLocalisation::TOP_LEVEL_LOCALISATIONS.to_hash
+      
+    amino_acid_hash = Bio::AminoAcid::Data::NAMES.keys.select{|k| k.length == 1}.reach.downcase.to_hash
+    
+    # For all genes that only have 1 localisation
+    CodingRegion.species_name(Species.falciparum_name).all(
+      :select => 'distinct(coding_regions.*)',
+      :joins => {:expressed_localisations => :malaria_top_level_localisation}
+    ).each do |code|
+      next unless code.uniq_top?
+      all_result_classes.push localisation_to_index_hash[code.tops[0].name]
+        
+      mine = []
+      code.amino_acid_sequence.to_bioruby_sequence.composition.each do |aa, count|
+        a = aa.downcase
+        if amino_acid_hash[a]
+          mine[amino_acid_hash[a]] = count.to_f
+        end
+      end
+      # make all the rows the same
+      amino_acid_hash.keys.each_with_index do |e, i|
+        mine[i] ||=0.0
+      end
+     
+      # add a signal peptide to see what difference that makes
+      if code.signal?
+        mine.push 1
+      else
+        mine.push 0
+      end
+      
+      all_results.push mine
+    end
+      
+    all_results.normalise_columns.each_with_index do |row, index|
+      puts row.libsvm_format(all_result_classes[index])
+    end
+  end
+  
+  def falciparum_localistion_fasta
+    hash = {}
+    CodingRegion.falciparum.all(
+      :include => {:expressed_localisations => :malaria_top_level_localisation}
+    ).uniq.each do |code|
+      next unless code.uniq_top?
+      
+      loc = code.tops[0].name
+      hash[loc] ||= []
+      hash[loc].push code
+    end
+    
+    hash.each do |loc, codes|
+      f = File.open("../falciparum_localisation_meme/#{loc}.fa", 'w')
+      f.puts codes.reach.amino_acid_sequence.fasta.join("\n")
+      f.close
+      
+      f = File.open("../falciparum_localisation_meme/#{loc}.nosignalp.fa", 'w')
+      codes.each do |code|
+        f.puts ">#{code.string_id} #{loc}"
+        f.puts code.sequence_without_signal_peptide
+      end
+      f.close
+    end
+  end
+  
+  def localisation_libsvm_normalised_apicoplast_test
+    
+    # headings
+    headings = [
+      #      'PlasmoDB ID',
+      #      'Annotation',
+      #      'Top Level Localisations',
+      #      'Amino Acid Sequence',
+      #      'Class',
+      'SignalP Prediction',
+      'PlasmoAP Score'
+    ]
+    #    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism|
+    #      Bio::PSORT::WoLF_PSORT::LOCALISATIONS.each do |loc|
+    #        headings.push "WoLF PSORT Prediction #{organism}: #{loc}"
+    #      end
+    #    end
+    headings.push [
+      'Number of P. falciparum Genes in Official Orthomcl Group', #orthomcl
+      'Number of P. vivax Genes in Official Orthomcl Group',
+      'Number of C. parvum Genes in Official Orthomcl Group',
+      'Number of C. homonis Genes in Official Orthomcl Group',
+      'Number of T. parva Genes in Official Orthomcl Group',
+      'Number of T. annulata Genes in Official Orthomcl Group',
+      'Number of Arabidopsis Genes in Official Orthomcl Group',
+      'Number of Yeast Genes in Official Orthomcl Group',
+      'Number of Mouse Genes in Official Orthomcl Group',
+      'Number of P. falciparum Genes in 7species Orthomcl Group', #7species orthomcl
+      'Number of P. vivax Genes in 7species Orthomcl Group',
+      'Number of Babesia Genes in 7species Orthomcl Group',
+      'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
+      'Number of Non-Synonymous IT SNPs according to Jeffares et al',
+      'Number of Synonymous Clinical SNPs according to Jeffares et al',
+      'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+    ]
+    #    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
+    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)', 
+      :conditions => ['microarray_timepoints.name = ?', 'Phase']
+    )
+    headings.push derisi_timepoints.collect{|t| 
+      'DeRisi 2006 3D7 '+t.name
+    }
+    
+    headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
+    #puts headings.join(sep)
+    all_results = []
+    all_result_classes = []
+    
+    # genes that are understandably not in the orthomcl databases, because
+    # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
+    # if any of them has any old names that were included, but meh for the moment.
+    fivepfour = ['PFL0040c', 'PF14_0078', 'PF14_0744','PF10_0344','PFD1150c','PFD1145c','PFD0110w','PFI1780w','PFI1740c','PFI0105c','PFI0100c','MAL7P1.231']
+    # Genes that have 2 orthomcl entries but only 1 plasmoDB entry
+    merged_genes = ['PFD0100c']
+    
+    localisation_to_index_hash = TopLevelLocalisation::TOP_LEVEL_LOCALISATIONS.to_hash
+    
+    # To match the spreadsheet exactly so can compare with PlasmoAP
+    %w(MAL13P1.186
+MAL13P1.196
+MAL13P1.220
+MAL13P1.281
+MAL13P1.324
+MAL13P1.56
+MAL13P1.67
+MAL13P1.95
+MAL7P1.12
+MAL7P1.150
+MAL7P1.151
+MAL7P1.159
+MAL7P1.20
+MAL8P1.110
+MAL8P1.140
+MAL8P1.37
+PF07_0068
+PF07_0073
+PF07_0115
+PF08_0011
+PF08_0014
+PF08_0018
+PF08_0063
+PF08_0066
+PF10_0053
+PF10_0057
+PF10_0149
+PF10_0221
+PF10_0332
+PF10_0363
+PF10_0407
+PF11_0157
+PF11_0175
+PF11_0181
+PF11_0256
+PF11_0270
+PF11_0386
+PF13_0040
+PF13_0066
+PF13_0077
+PF13_0109
+PF13_0128
+PF13_0180
+PF13_0205
+PF13_0354
+PF14_0063
+PF14_0112
+PF14_0114
+PF14_0132
+PF14_0133
+PF14_0155
+PF14_0156
+PF14_0164
+PF14_0166
+PF14_0192
+PF14_0198
+PF14_0270
+PF14_0276
+PF14_0286
+PF14_0348
+PF14_0381
+PF14_0382
+PF14_0401
+PF14_0415
+PF14_0428
+PF14_0439
+PF14_0441
+PF14_0518
+PF14_0581
+PF14_0641
+PF14_0658
+PF14_0664
+PF14_0695
+PFA0225w
+PFA0340w
+PFA0485w
+PFA0580c
+PFB0180w
+PFB0205c
+PFB0385w
+PFB0390w
+PFB0420w
+PFB0505c
+PFB0525w
+PFB0545c
+PFB0890c
+PFC0225c
+PFC0250c
+PFC0310c
+PFC0470w
+PFC0831w
+PFC1005c
+PFD0675w
+PFD0710w
+PFD0980w
+PFE0150c
+PFE0205w
+PFE0215w
+PFE0410w
+PFE0435c
+PFE0475w
+PFE0715w
+PFE1125w
+PFE1225w
+PFE1510c
+PFF0115c
+PFF0230c
+PFF0360w
+PFF0650w
+PFF0730c
+PFF0940c
+PFF1115w
+PFF1130c
+PFF1275c
+PFF1395c
+PFI0230c
+PFI0380c
+PFI0525w
+PFI0570w
+PFI0685w
+PFI0700c
+PFI0890c
+PFI0920c
+PFI1050c
+PFI1125c
+PFI1170c
+PFI1240c
+PFI1485c
+PFI1580c
+PFI1585c
+PFL0400w
+PFL0480w
+PFL0500w
+PFL0595c
+PFL0770w
+PFL0780w
+PFL0835w
+PFL1120c
+PFL1540c
+PFL1545c
+PFL1590c
+PFL1915w
+PFL2115c
+PFL2180w
+PFL2395c
+    ).collect{|i| CodingRegion.falciparum.find_by_string_id(i)}.each do |code|
+      #    CodingRegion.species_name(Species.falciparum_name).all(
+      #      :joins => {:expressed_localisations => :malaria_top_level_localisation}
+      #    ).uniq.each do |code|
+      
+      results = [
+        #        code.string_id,
+        #        code.annotation.annotation,
+        #        code.tops.pick(:name).uniq.sort.join(', '),  # Top level localisations
+        #        code.amino_acid_sequence.sequence,
+      ]
+      
+      # ignore little loved locs and multiple localisations
+      #      next unless code.uniq_top?
+      
+      # SignalP
+      results.push(
+        code.signalp_however.signal? ? 1 : 0
+      )
+      
+      # PlasmoAP
+      results.push code.amino_acid_sequence.plasmo_a_p.points
+      
+      #WoLF_PSORT
+      #      Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism|
+      #        Bio::PSORT::WoLF_PSORT::LOCALISATIONS.each do |loc|
+      #          if code.wolf_psort_localisations(organism).include?(loc)
+      #            headings.push 1
+      #          else
+      #            headings.push 0
+      #          end
+      #        end
+      #      end
+      #      results.push code.wolf_psort_localisation('plant')
+      #      results.push code.wolf_psort_localisation('animal')
+      #      results.push code.wolf_psort_localisation('fungi')
+      
+      # official orthomcl
+      interestings = ['pfa','pvi','cpa','cho','the','tan','ath','sce','mmu']
+      
+      # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
+      if merged_genes.include?(code.string_id)
+        # Fill with non-empty cells
+        group = code.orthomcl_genes[0].orthomcl_group
+        interestings.each do |three|
+          if group.orthomcl_genes.code(three).length>0
+            results.push 1
+          else
+            results.push 0
+          end
+        end        
+      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
+        # Fill with non-empty cells
+        group = single.orthomcl_group
+        interestings.each do |three|
+          if group.orthomcl_genes.code(three).length>0
+            results.push 1
+          else
+            results.push 0
+          end
+        end
+      else
+        # fill with empty cells
+        1..interestings.length.times do
+          results.push nil #is this correct? Can the machine learning technique deal with this? 
+        end
+      end
+      
+      # 7species orthomcl
+      seven_name_hash = {}
+      begin
+        if !fivepfour.include?(code.string_id) #Used 5.2 for 7species too, so ignore new genes
+          og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
+          raise Exception, "7species falciparum not found for #{code.inspect}" if !og
+          og.orthomcl_group.orthomcl_genes.all.each do |gene|
+            next if gene.orthomcl_name.match(/Plasmodium_vivax_SaI/) #skip vivax because of linking problems for the moment
+            species_name = gene.single_code.gene.scaffold.species.name
+            if seven_name_hash[species_name]
+              seven_name_hash[species_name] += 1
+            else
+              seven_name_hash[species_name] = 1
+            end
+          end
+        end
+      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
+        # This happens for singlet genes
+      end
+      [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
+        results.push seven_name_hash[name] ? 1 : 0
+      end
+      
+      #                  'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
+      #            'Number of Non-Synonymous IT SNPs according to Jeffares et al',
+      #            'Number of Synonymous Clinical SNPs according to Jeffares et al',
+      #            'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+      [:it_synonymous_snp, :it_non_synonymous_snp, :pf_clin_synonymous_snp, :pf_clin_non_synonymous_snp].each do |method|
+        if s = code.send(method)
+          results.push s.value
+        else
+          results.push nil
+        end
+      end
+      
+      
+  
+
+      # Microarray DeRisi
+      derisi_timepoints.each do |timepoint|
+        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+          code.id,
+          timepoint.id
+        )
+        if !measures.nil?
+          results.push measures.measurement
+        else
+          results.push nil
+        end
+      end
+      
+      # push all the gMARS data
+      results.push code.gmars_vector(3)
+      
+      # Check to make sure that all the rows have the same number of entries as a debug thing
+      #      if results.length != headings.length
+      #        raise Exception, "Bad number of entries in the row (#{headings.length} headings vs. #{results.length} results) for code #{code.inspect}: #{results.inspect}"
+      #      end
+      all_results.push results.flatten
+      all_result_classes.push localisation_to_index_hash['apicoplast']
+      #      puts code.string_id
+      #      puts code.tops.reach.name.join(", ")
+      #      puts localisation_to_index_hash
+      #      puts localisation_to_index_hash['nucleus']
+      #      puts headings.join("\t")
+      #      puts results.join("\t")
+      #      return
+      #      @i ||= 0
+      #      @i += 1
+      #      break if @i>1
+    end
+    
+    all_results.normalise_columns.each_with_index do |row, index|
+      puts row.libsvm_format(all_result_classes[index])
+    end
+  end
+
+  def apicoplast_list_test
+    PlasmodbGeneList.find_by_description('apicoplast.Stuart.20080215').coding_regions.uniq.reject{
+      |code| code.hypothetical_by_annotation?
+    }.each do |code|
+      puts [
+        code.string_id,
+        code.annotation.annotation,
+        code.amino_acid_sequence.plasmo_a_p.points,
+        code.tops.reach.name.join(", ")
+      ].join("\t")
+    end
+  end
+
+  def florian_transmembrane_composition
+    ['florian type1 composition foray', 'florian type2 composition foray'].each do |list_name|
+      puts
+      puts list_name
+      PlasmodbGeneList.find_by_description(list_name).coding_regions.each do |code|
+        tm = code.amino_acid_sequence.tmhmm_minus_signal_peptide
+        
+        # make sure we are only dealing with type 1 or 2 here
+        raise Exception, "Unexepected number of TMDs found" unless tm.transmembrane_domains.length == 1
+        
+        seq = code.sequence_without_signal_peptide
+        #        tmseq = tm.transmembrane_domains[0].sequence(seq)
+        tmseq = tm.transmembrane_domains[0].sequence(seq, -10, 10)
+        puts ">#{code.string_id} #{code.annotation ? code.annotation.annotation : nil}\n#{tmseq}"
+      end
+    end
+  end
+  
+  def arff_test
+    all_results = []
+    
+    # genes that are understandably not in the orthomcl databases, because
+    # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
+    # if any of them has any old names that were included, but meh for the moment.
+    fivepfour = ['PFL0040c', 'PF14_0078', 'PF14_0744','PF10_0344','PFD1150c','PFD1145c','PFD0110w','PFI1780w','PFI1740c','PFI0105c','PFI0100c','MAL7P1.231']
+    # Genes that have 2 orthomcl entries but only 1 plasmoDB entry
+    merged_genes = ['PFD0100c']
+    
+    first_code = true
+    attribute_names = []
+    
+    # For all genes that only have 1 localisation
+    CodingRegion.species_name(Species.falciparum_name).all(
+      :joins => {:expressed_localisations => :malaria_top_level_localisation}
+      #      :limit => 15
+    ).uniq.each do |code|
+      
+      results = [
+        #        code.string_id,
+        #        code.annotation.annotation,
+        #        code.tops.pick(:name).uniq.sort.join(', '),  # Top level localisations
+        #        code.amino_acid_sequence.sequence,
+      ]
+      
+      # ignore little loved locs and multiple localisations
+      next unless code.uniq_top?
+      
+      # SignalP
+      attribute_names.push 'SignalP' if first_code
+      h = code.signalp_however
+      results.push h.signal?
+      
+      # PlasmoAP
+      attribute_names.push 'PlasmoAP' if first_code
+      results.push code.amino_acid_sequence.plasmo_a_p.points
+      
+      # ExportPred
+      attribute_names.push 'ExportPred' if first_code
+      results.push code.export_pred_however.predicted?
+      
+      # Final result
+      attribute_names.push 'Localisation' if first_code
+      results.push code.tops[0].name
+      
+      first_code = false
+      all_results.push results.flatten
+    end
+    
+    
+    rel = Rarff::Relation.new('PfalciparumLocalisation')
+    eyes = all_results.normalise_columns([0..(all_results.length-2)])
+    rel.instances = eyes
+    attribute_names.each_with_index do |name, index|
+      rel.attributes[index].name = name
+    end
+    rel.attributes[all_results.length-1] = "{#{TopLevelLocalisation.all.reach.name.join(', ')}}"
+    puts rel.to_s
+  end
+  
+  def orthomcl_blast_result_fasta(m8='/home/ben/phd/cbm48/4/humanB1fragmentVorthomcl.blast.tab')
+    oes = []
+    FasterCSV.foreach(m8, :col_sep => "\t") do |row|
+      o = OrthomclGene.find_by_orthomcl_name(row[1])
+      return "Failed #{row[1]}" if o.nil?
+      oes.push o
+    end
+    puts oes.reach.orthomcl_gene_official_data.fasta.join("\n")
+  end
+end

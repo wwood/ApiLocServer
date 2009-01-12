@@ -31,4 +31,13 @@ class OrthomclGroupTest < ActiveSupport::TestCase
     assert_equal 1, groups.length, groups
     assert_equal 4, groups[0].id, groups
   end
+  
+  def test_single_members_by_codes
+    assert OrthomclGroup.find(4).single_members_by_codes(['one'])
+    assert_equal false, OrthomclGroup.find(4).single_members_by_codes(['two'])
+    assert_equal false, OrthomclGroup.find(4).single_members_by_codes(['nup'])
+    
+    assert OrthomclGroup.find(1).single_members_by_codes(['pfa','ath'])
+    assert_equal false,  OrthomclGroup.find(1).single_members_by_codes(['pfa','ath','nup'])
+  end
 end

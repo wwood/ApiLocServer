@@ -1,0 +1,15 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  nls_db_id: 1
+  type: MyString
+  signal: MyString
+  annotation: MyString
+  pubmed_id: 1
+
+two:
+  nls_db_id: 1
+  type: MyString
+  signal: MyString
+  annotation: MyString
+  pubmed_id: 1

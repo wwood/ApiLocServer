@@ -35,4 +35,54 @@ class Test::Unit::TestCase
   fixtures :all
 
   # Add more helper methods to be used by all tests here...
+    # I wrote this method myself, when I wanted to observe more than a single variable
+  # at a time.
+  #
+  # Works like assert_difference, except arrays of objects and methods are passed instead
+  def assert_differences(objects, methods=nil, differences = 1)
+    
+    # Initialising
+    initial_values = []
+    if methods
+      assert_equal objects.length, methods.length #some people are idiots.
+    end
+    
+    i = 0
+    if methods
+      for m in methods
+        initial_values[i] = objects[i].send(m)
+        i += 1
+      end
+    else
+      for o in objects
+        initial_values[i] = objects[i].send(:count)
+        i += 1
+      end
+    end
+    
+    yield
+    
+    # Checking at the end
+    if differences == 1
+      # everything is incremented by one
+      i = 0
+      for initial in initial_values
+        assert_equal initial_values[i]+differences, objects[i].send(methods[i]), "#{objects[i]}##{methods[i]}"
+        i += 1
+      end
+    else
+      # It is an array
+      assert_equal initial_values.length, differences.length
+      i = 0
+      for initial in initial_values
+        if methods
+          assert_equal initial_values[i]+differences[i], objects[i].send(methods[i]), "#{objects[i]}##{methods[i]}"
+        else
+          assert_equal initial_values[i]+differences[i], objects[i].send(:count), "#{objects[i]}##{:count}"
+        end
+        i += 1
+      end      
+    end
+  end
+
 end

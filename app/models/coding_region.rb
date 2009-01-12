@@ -1,10 +1,12 @@
+require 'gmars'
+
 class CodingRegion < ActiveRecord::Base
   
   #  validates_presence_of :orientation
   
-  has_one :coding_region_go_term, :dependent => :destroy
+  has_many :coding_region_go_terms, :dependent => :destroy
   has_many :go_terms, 
-    {:through => :coding_region_go_term}
+    {:through => :coding_region_go_terms}
   belongs_to :gene
   has_many :cds, :dependent => :destroy
   has_many :coding_region_alternate_string_ids, :dependent => :destroy
@@ -47,6 +49,8 @@ class CodingRegion < ActiveRecord::Base
   has_one :pprowler_other_score
   has_one :pprowler_signal_score
   
+  has_many :wolf_psort_predictions
+  
   #snp
   has_one :it_synonymous_snp
   has_one :it_non_synonymous_snp
@@ -68,6 +72,12 @@ class CodingRegion < ActiveRecord::Base
   #drosophila
   has_many :coding_region_drosophila_allele_genes, :dependent => :destroy
   has_many :drosophila_allele_genes, :through => :coding_region_drosophila_allele_genes
+  
+  acts_as_signalp :sequence_method => :aaseq
+  
+  # cached results
+  has_one :export_pred_cache, :dependent => :destroy
+  has_one :signal_p_cache, :dependent => :destroy
   
   named_scope :species_name, lambda{ |species_name|
     {
@@ -93,6 +103,10 @@ class CodingRegion < ActiveRecord::Base
       :conditions => ['species.orthomcl_three_letter = ?', orthomcl_three_letter]
     }   
   }
+  named_scope :apicomplexan, {
+    :joins => {:gene => {:scaffold => :species}},
+    :conditions => ['species.name in (?)', Species.apicomplexan_names]
+  }
   # This named scope slows down queries by a lot (in the order of a second), and
   # I'm not sure how to fix this. In the meantime use find_by_name_or_alternate - it is much faster
   # # explain ANALYZE SELECT "coding_regions".* FROM "coding_regions" INNER JOIN "coding_region_alternate_string_ids" ON coding_region_alternate_string_ids.coding_region_id = coding_regions.id WHERE (coding_regions.string_id = E'PF01_0013' or coding_region_alternate_string_ids.name = E'PF01_0013') LIMIT 1;
@@ -116,10 +130,18 @@ class CodingRegion < ActiveRecord::Base
     :joins => {:gene => {:scaffold => :species}},
     :conditions => ['species.name = ?', Species.falciparum_name]
   }
+  named_scope :list, lambda {|gene_list_name|
+    {
+      :joins => :plasmodb_gene_lists,
+      :conditions => ['plasmodb_gene_lists.description = ?', gene_list_name]
+    }
+  }
   
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'
   UNKNOWN_ORIENTATION = 'U'
+  
+  concerned_with :machine_learning
   
   def calculate_upstream_region
     
@@ -213,10 +235,26 @@ class CodingRegion < ActiveRecord::Base
   # can be either a real id, or an alternate id.
   def self.find_all_by_name_or_alternate(string_id)
     simple = CodingRegion.find_all_by_string_id string_id
-    if simple
+    if !simple.empty?
       return simple
     else
       alts = CodingRegionAlternateStringId.find_all_by_name string_id
+      if alts
+        return alts.pick(:coding_region)
+      else
+        return []
+      end
+    end
+  end
+  
+  # Return the coding region associated with the string id. The string_id
+  # can be either a real id, or an alternate id.
+  def self.find_all_by_name_or_alternate_and_species(string_id, species_common_name)
+    simple = CodingRegion.s(species_common_name).find_all_by_string_id string_id
+    if !simple.empty?
+      return simple
+    else
+      alts = CodingRegionAlternateStringId.s(species_common_name).find_all_by_name string_id
       if alts
         return alts.pick(:coding_region)
       else
@@ -285,7 +323,7 @@ class CodingRegion < ActiveRecord::Base
       raise CodingRegionNotFoundException, "No amino acid sequence found for coding region #{string_id}"
     end
     seq = amino_acid_sequence.sequence
-    sp_result = SignalP.calculate_signal(seq)
+    sp_result = signalp_however
     return sp_result.cleave(seq)
   end
   
@@ -371,6 +409,10 @@ class CodingRegion < ActiveRecord::Base
   # return all the names (string_id and alternate string_ids) of this record
   def names
     [string_id, coding_region_alternate_string_ids.collect{|s| s.name}].flatten
+  end
+  
+  def alternate_names
+    coding_region_alternate_string_ids.collect{|s| s.name}.uniq.select{|n| n}
   end
   
   # all the names with null and repeats taken out
@@ -473,7 +515,7 @@ class CodingRegion < ActiveRecord::Base
   def single_orthomcl(run_name = OrthomclRun.official_run_v2_name, options = {})
     genes = orthomcl_genes.run(run_name).all(options)
     if genes.length != 1
-      raise UnexpectedOrthomclGeneCount, "Unexpected number of orthomcl genes found for #{inspect}: #{genes.inspect}"
+      raise CodingRegion::UnexpectedOrthomclGeneCount, "Unexpected number of orthomcl genes found for #{inspect}: #{genes.inspect}"
     else
       return genes[0]
     end
@@ -513,10 +555,204 @@ class CodingRegion < ActiveRecord::Base
     end
     return results
   end
+  
+  # convenience method to reduce typing
+  def species
+    gene.scaffold.species
+  end
+  
+  # Calculate/retrieve the winning WoLF_PSORT localisation for this coding
+  # region, given the sequence is already associated with this coding region
+  def wolf_psort_localisation(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    if preds.length > 0
+      # cached
+      return preds[0].localisation
+    else # not cached, run from scratch
+      Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
+    end    
+  end
+  
+  # All the highest localisations, including those that came second that really
+  # have the same score as the top one. If a dual localisation is there, then both are returned
+  def wolf_psort_localisations(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    locs = nil
+    if preds.length > 0
+      newpreds = wolf_psort_predictions.all(:conditions => ['organism_type =? and score = ?', psort_organism_type, preds[0].score])
+      # cached
+      locs = newpreds.reach.localisation
+    else # not cached, run from scratch
+      Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
+    end
+  end
+  
+  # Read only from the cache, don't run it if no cache exists
+  def cached_wold_psort_localisation(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    if preds.length > 0
+      # cached
+      return preds[0].localisation
+    else # not cached, run from scratch
+      return nil
+    end    
+  end
+  
+  def cache_wolf_psort_predictions
+    if !amino_acid_sequence
+      $stderr.puts "Unable to run WoLF_PSORT because there is no amino acid sequence for #{inspect}"
+      return
+    end
+    
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      result = Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, organism_type)
+      next if !result #skip sequences that are too short
+      
+      result.score_hash.each do |loc, score|
+        WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
+      end
+      
+    end
+  end
+  
+  def wolf_psort_localisations_line(organism_type)
+    wolf_psort_predictions.all(:conditions => {:organism_type => organism_type}, :order => 'score desc').collect{ |pred|
+      "#{pred.localisation} #{pred.score}"
+    }.join(", ")
+  end
+  
+  # The sum of the linkages emanating from this coding region in
+  # wormnet core
+  def wormnet_core_total_linkage_scores
+    CodingRegionNetworkEdge.coding_region_id(id).wormnet_core.all.reach.strength.sum
+  end
+  
+  # The number of the linkages emanating from this coding region in
+  # wormnet core
+  def wormnet_core_number_interactions
+    CodingRegionNetworkEdge.coding_region_id(id).wormnet_core.count
+  end
+  
+  def wormnet_full_total_linkage_scores
+    CodingRegionNetworkEdge.coding_region_id(id).wormnet.all.reach.strength.sum
+  end
+ 
+
+  def wormnet_full_number_interactions
+    CodingRegionNetworkEdge.coding_region_id(id).wormnet.count
+  end
+
+  # determine whether this coding region is classified as an enzyme
+  # according to the associated GO terms.
+  # WARNING: This method is not thread-safe due
+  # to the static variables
+  def is_enzyme?
+    @@go_object ||= Bio::Go.new
+    @@go_enzyme_subsumer ||= @@go_object.subsume_tester(GoTerm::ENZYME_GO_TERM)
+    
+    go_terms.all.reach.go_identifier.select{|go_id| 
+      @@go_enzyme_subsumer.subsume?(go_id)
+    }.length > 0
+  end
+  
+  # determine whether this coding region is classified as gpcr 
+  # according to the associated GO terms.
+  # WARNING: This method is not thread-safe due
+  # to the static variables
+  def is_gpcr?
+    @@go_object ||= Bio::Go.new
+    @@go_gpcr_subsumer ||= @@go_object.subsume_tester(GoTerm::GPCR_GO_TERM)
+    
+    go_terms.all.reach.go_identifier.select{|go_id|
+      @@go_gpcr_subsumer.subsume?(go_id)
+    }.length > 0
+  end
+  
+  def aaseq
+    amino_acid_sequence ? amino_acid_sequence.sequence : nil
+  end
+  
+  class UnexpectedOrthomclGeneCount < StandardError; end
+  
+  def gmars_vector(max_gap=3, gmars = GMARS.new)
+    aaseq ? gmars.gmars_gapped_vector(aaseq, max_gap) : nil
+  end
+  
+  # Return the golgi consensus sequences that the amino acid
+  # sequence of this coding region is attached to. Return [] if none
+  # are found or if there is no amino acid sequence attached
+  def golgi_consensi
+    return [] if !aaseq
+    
+    consensi = []
+    
+    [GolgiNTerminalSignal, GolgiCTerminalSignal].each do |model|
+      model.all.each do |s|
+        consensi.push s if aaseq.match(s.regex)
+      end
+    end
+    consensi
+  end
+  
+  # Return true iff this coding region is either a pseudogene
+  # or rifin, stevor, surfin, PfEMP1, etc.
+  # This method is probably not perfect because it only calculates
+  # the returned value based on the annotation.
+  # Manually checked the results for PlasmoDB v5.5 and there was no
+  # false positives at least, though.
+  def falciparum_cruft?
+    return false unless annotation # ignore unannotated sequences
+    
+    a = annotation.annotation
+    [/var /i,/pfemp1/i, /pseudogene/i, /rifin/i, /stevor/i, /surfin/i, /RESA/].each do |crap|
+      if annotation.annotation.match(crap)
+        return true
+      end
+    end
+    return false
+  end
+  
+  # Return the saved exportpred result, or calculate
+  # it if this does not exist
+  def export_pred_however
+    return nil if aaseq.nil?
+    
+    return export_pred_cache unless export_pred_cache.nil? #returned cached if possible
+    
+    # otherwise just calculate the bastard
+    result = Bio::ExportPred::Wrapper.new.calculate(aaseq)
+    ExportPredCache.create_from_result(id, result)
+  end
+  
+  # Return the saved signalp result, or calculate
+  # it if this does not exist
+  def signalp_however
+    return nil if aaseq.nil?
+    return signal_p_cache unless signal_p_cache.nil? #returned cached if possible
+
+    # otherwise just calculate the bastard
+    result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
+    SignalPCache.create_from_result(id, result)
+  end
+  
+  def signal?
+    signalp_however.signal?
+  end
+  
+  def hypothetical_by_annotation?
+    annotation.annotation.match(/hypothetical/i)
+  end
+  
+  def plasmo_a_p
+    amino_acid_sequence.plasmo_a_p
+  end
 end
 
 
 
 
 class CodingRegionNotFoundException < Exception; end
-class UnexpectedOrthomclGeneCount < Exception; end
+#class UnexpectedOrthomclGeneCount < Exception; end

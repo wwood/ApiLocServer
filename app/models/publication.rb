@@ -29,6 +29,15 @@ class Publication < ActiveRecord::Base
       return pubmed_id
     end
   end
+  
+  def linkout_url
+    if pubmed_id.nil?
+      return url
+    else
+      to_return = "http://www.ncbi.nlm.nih.gov/sites/entrez?db=pubmed&term=#{pubmed_id}"
+      return to_return
+    end
+  end
 end
 
 

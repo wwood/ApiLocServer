@@ -30,8 +30,28 @@ module Transmembrane
       !@transmembrane_domains.empty?
     end
   end
+  
+  class OrientedTransmembraneDomainProtein<TransmembraneProtein
+    def transmembrane_type_1?
+      @transmembrane_domains and @transmembrane_domains.length == 1 and @transmembrane_domains[0].orientation == OrientedTransmembraneDomain::OUTSIDE_IN
+    end
+    
+    def transmembrane_type_2?
+      @transmembrane_domains and @transmembrane_domains.length == 1 and @transmembrane_domains[0].orientation == OrientedTransmembraneDomain::INSIDE_OUT
+    end
+    
+    def transmembrane_type
+      if transmembrane_type_1?
+        return 'I'
+      elsif transmembrane_type_2?
+        return 'II'
+      else
+        return 'Unknown'
+      end
+    end
+  end
 
-  class TransmembraneDomain
+  class TransmembraneDomainDefinition
     attr_accessor :start, :stop
   
     def length
@@ -46,9 +66,18 @@ module Transmembrane
       start == other.start and
         stop == other.stop
     end
+    
+    def sequence(protein_sequence_string, nterm_offset=0, cterm_offset=0)
+      one = start+nterm_offset-1
+      one = 0 if one < 0
+      two = stop+cterm_offset-1
+      two = 0 if two < 0
+      
+      protein_sequence_string[(one)..(two)]
+    end
   end
   
-  class ConfidencedTransmembraneDomain<TransmembraneDomain
+  class ConfidencedTransmembraneDomain<TransmembraneDomainDefinition
     attr_accessor :confidence
     
     def <=>(other)
@@ -62,5 +91,14 @@ module Transmembrane
         stop == other.stop and
         confidence == other.confidence
     end
+  end
+  
+  class OrientedTransmembraneDomain<TransmembraneDomainDefinition
+    # The orientation can either be inside out (like a type II transmembrane domain protein)
+    INSIDE_OUT = 'inside_out'
+    # Or outside in, like a type I transmembrane domain protein)
+    OUTSIDE_IN = 'outside_in'
+    
+    attr_accessor :orientation
   end
 end

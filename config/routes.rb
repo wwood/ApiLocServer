@@ -49,6 +49,9 @@ ActionController::Routing::Routes.draw do |map|
 
   map.resources :go_terms
 
+  map.connect 'coding_regions/export/:strings', :controller => 'coding_regions', :action => 'export'
+  map.connect 'coding_regions/export', :controller => 'coding_regions', :action => 'export'
+  map.connect 'coding_regions/annotate', :controller => 'coding_regions', :action => 'annotate'
   map.resources :coding_regions
 
   map.resources :genes
@@ -88,6 +91,6 @@ ActionController::Routing::Routes.draw do |map|
   # See how all your routes lay out with "rake routes"
 
   # Install the default routes as the lowest priority.
-  map.connect ':controller/:action/:id'
+  map.connect ':controller/:action/:id', :controller => 'coding_regions', :action => 'index'
   map.connect ':controller/:action/:id.:format'
 end

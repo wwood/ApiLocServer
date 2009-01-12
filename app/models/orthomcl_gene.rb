@@ -4,9 +4,12 @@ class OrthomclGene < ActiveRecord::Base
   has_many :coding_regions, :through => :orthomcl_gene_coding_regions
   has_one :orthomcl_gene_official_data
   
+  MAMMALIAN_THREE_LETTER_CODES = ['hsa', 'mmu', 'rno']
+  
   named_scope :code, lambda { |three_letter_species_code| {
       :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
     }}
+  #  alias_method(:three_letter_code, :code)
   named_scope :codes, lambda { |three_letter_species_codes| 
     pre = 'orthomcl_genes.orthomcl_name like ?'
     post = ["#{three_letter_species_codes[0]}%"]
@@ -16,6 +19,7 @@ class OrthomclGene < ActiveRecord::Base
     }
     {:conditions => [pre, post].flatten}
   }
+  #alias_method(:three_letter_codes, :codes)
   named_scope :official, {
     :include => {:orthomcl_group => :orthomcl_run},
     :conditions => ['orthomcl_runs.name = ?', OrthomclRun.official_run_v2_name]
@@ -178,15 +182,14 @@ class OrthomclGene < ActiveRecord::Base
       'tan'
     ]
   end
-  
-  
+    
   
   
   # Basically fill out the orthomcl_gene_coding_regions table appropriately
   # for only the official one
-  def link_orthomcl_and_coding_regions(*interesting_orgs)
+  def link_orthomcl_and_coding_regions(interesting_orgs=['cel'])
     goods = 0
-    if !interesting_orgs
+    if !interesting_orgs or interesting_orgs.empty?
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
       #    interesting_orgs = ['ath']
@@ -220,8 +223,58 @@ class OrthomclGene < ActiveRecord::Base
     
     puts "Properly linked #{goods} coding regions"
   end
+  
+  # same as link_orthomcl_and_coding_regions, except don't
+  # require the orthomcl genes to be linked to the official one. This
+  # makes it include, then, all genes that have not been put into an
+  # orthomcl group
+  def link_orthomcl_and_coding_regions_loose(interesting_orgs=['cel'], warn=false)
+    goods = 0
+    if !interesting_orgs or interesting_orgs.empty?
+      #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
+      #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
+      #    interesting_orgs = ['ath']
+      interesting_orgs = ['cel']
+    end
+    
+    puts "linking genes for species: #{interesting_orgs.inspect}"
+    
+    # Maybe a bit heavy handed but ah well.
+    OrthomclGene.codes(interesting_orgs).all.each do |orthomcl_gene|
+    
+      org, name = official_split(orthomcl_gene.orthomcl_name)
+      if org.nil? #error check
+        raise Exception, "Couldn't parse orthomcl name: #{orthomcl_gene.orthomcl_name}"
+      end
+      
+      species = Species.find_by_orthomcl_three_letter(org)
+      raise if !species
+      codes = CodingRegion.find_all_by_name_or_alternate_and_species(name, species.name)
+      if !codes or codes.length == 0
+        if warn
+          $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"
+        end
+        next
+      elsif codes.length > 1
+        if warn
+          $stderr.puts "Multiple coding regions found for #{orthomcl_gene.inspect}"
+        end
+        next
+      else
+        code = codes[0]
+        goods += 1
+      end
+      
+      OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
+        orthomcl_gene.id,
+        code.id
+      )
+    end  
+      puts "Properly linked #{goods} coding regions"
+  end
 
+  class UnexpectedCodingRegionCount < StandardError; end
 end
 
 
-class UnexpectedCodingRegionCount < Exception; end
+

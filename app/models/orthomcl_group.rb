@@ -3,14 +3,21 @@ class OrthomclGroup < ActiveRecord::Base
   belongs_to :orthomcl_run
   
   named_scope :overlapping do |*species_array|  
-      if species_array.length != 2 or true
-        raise Exception, "Unhandled number of orthomcl species"
-        fd
-      end
+    if species_array.length != 2 or true
+      raise Exception, "Unhandled number of orthomcl species"
+      fd
+    end
     {}
   end
   
-  named_scope :official, {:joins => :orthomcl_run, :conditions => {:orthomcl_runs => {:name => OrthomclRun.official_run_v2_name}}}
+  named_scope :run, lambda {|run_name|
+    {
+      :joins => :orthomcl_run,
+      :conditions => ['orthomcl_runs.name = ?', run_name]
+    }
+  }
+  
+  named_scope :official, {:joins => :orthomcl_run, :conditions => ['orthomcl_runs.name = ?', OrthomclRun.official_run_v2_name]}
   
   # Find all the groups that have one or more genes from each of multiple species. 
   # For instance OrthomclGroup.all_overlapping_groups(['dme','cel') will find all the
@@ -36,5 +43,14 @@ class OrthomclGroup < ActiveRecord::Base
     end
     
     return self.find_by_sql(sql)
+  end
+  
+  # return true iff this group contains 1 orthomcl_gene of each from
+  # each species in this group.
+  def single_members_by_codes(orthomcl_three_letter_codes)
+    orthomcl_three_letter_codes.each do |three|
+      return false if orthomcl_genes.code(three).count != 1
+    end
+    return true
   end
 end

@@ -37,13 +37,25 @@ module Bio
     
     # WBGene00000005 aat-4 (T13A10.10)
     def parse_gene_line(line)
-      if !matches = line.match(/^(WBGene\d+)/)
-        raise Exception, "Could not parse gene line: #{line}"
+      cur_gene = WormbaseProteinWithOntology.new
+      if !matches = line.match(/^(WBGene\d+) \S+ \((\S+)\)/)
+        if !matches = line.match(/^(WBGene\d+) (\S+)/) and !matches = line.match(/^(WBGene\d+)\s*/)
+          raise Exception, "Could not parse gene line: #{line}"
+        else
+          cur_gene.gene_name = matches[1]
+          cur_gene.go_identifiers = []        
+        end
+      else
+        cur_gene.gene_name = matches[1]
+        cur_gene.protein_name = matches[2]
+        cur_gene.go_identifiers = []   
       end
-      cur_gene = PositionedGeneWithOntology.new
-      cur_gene.name = matches[1]
-      cur_gene.go_identifiers = []
       return cur_gene
     end
+  end
+  
+  
+  class WormbaseProteinWithOntology
+    attr_accessor :protein_name, :gene_name, :go_identifiers
   end
 end

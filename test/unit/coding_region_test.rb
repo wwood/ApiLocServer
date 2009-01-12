@@ -74,18 +74,142 @@ class CodingRegionTest < ActiveSupport::TestCase
     assert_equal 2, o.id
     
     # test fail with no orthomcl gene
-    assert_raise UnexpectedOrthomclGeneCount do
+    assert_raise CodingRegion::UnexpectedOrthomclGeneCount do
       CodingRegion.find(7).single_orthomcl
     end
     
     # test fail with multiple orthomcl genes
-    assert_raise UnexpectedOrthomclGeneCount do
+    assert_raise CodingRegion::UnexpectedOrthomclGeneCount do
       CodingRegion.find(1).single_orthomcl
     end
     
     # test fail when single one is non-official
-    assert_raise UnexpectedOrthomclGeneCount do
+    assert_raise CodingRegion::UnexpectedOrthomclGeneCount do
       CodingRegion.find(3).single_orthomcl
     end
+  end
+  
+  def test_wormnet_core_total_linkage_scores
+    # test normal, that includes non wormnet and wormnet non core decoys
+    assert_equal 3.2, CodingRegion.find(4).wormnet_core_total_linkage_scores
+    
+    # test nothing
+    assert_equal 0.0, CodingRegion.find(3).wormnet_core_total_linkage_scores
+  end
+  
+  def test_is_enzyme?
+    assert CodingRegion.find(2).is_enzyme?
+    assert_equal false, CodingRegion.find(1).is_enzyme?
+  end
+  
+  def test_is_gpcr?
+    # plain gpcr
+    assert CodingRegion.find(3).is_gpcr?
+    
+    # gpcr offspring
+    assert CodingRegion.find(4).is_gpcr?
+    
+    # false
+    assert_equal false, CodingRegion.find(2).is_gpcr?
+  end
+  
+  def test_enzyme_then_gpcr_bug
+    assert CodingRegion.find(3).is_gpcr?
+    assert_equal false, CodingRegion.find(3).is_enzyme?
+  end
+  
+  def test_golgi_consensi
+    n = GolgiNTerminalSignal.create!(:signal => '^A')
+    c = GolgiCTerminalSignal.create!(:signal => 'BB$')
+    
+    code = CodingRegion.first
+    code.amino_acid_sequence = AminoAcidSequence.create(
+      :coding_region_id => code.id,
+      :sequence => 'AGGGGGGGDBB'
+    )
+    assert_equal [n, c], code.golgi_consensi
+  end
+  
+  def test_signalp
+    @seq_with_signal = "MKKIITLKNLFLIILVYIFSEKKDLRCNVIKGNNIK"
+    @seq_without_signal = "MRRRRRRRRRRRRRRRRRRRRRRRRR" #ie lotsa charge
+    code = nil
+    
+    assert_differences([AminoAcidSequence, SignalPCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever12131')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        @seq_with_signal
+      )
+      code.save!
+      sp = code.signalp_however
+      
+      assert sp
+      assert sp.signal?
+    end
+    
+    assert_differences([AminoAcidSequence, SignalPCache, CodingRegion], nil, [0,0,0]) do
+      code = CodingRegion.find_by_string_id('whatever12131')
+      sp = code.signalp_however
+      assert sp.signal?
+    end
+    
+    assert_differences([AminoAcidSequence, SignalPCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever121311321')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        @seq_without_signal
+      )
+      code.save!
+      sp = code.signalp_however
+      
+      assert sp
+      assert_equal false, sp.signal?
+    end
+  end
+  
+  def test_export_pred
+    code = nil
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever12fd1311321')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        'MAVSTYNNTRRNGLRYVLKRRTILSVFAVICMLSLNLSIFENNNNNYGFHCNKRHFKSLAEASPEEHNNLRSHSTSDPKKNEEKSLSDEINKCDMKKYTAEEINEMINSSNEFINRNDMNIIFSYVHESEREKFKKVEENIFKFIQSIVETYKIPDEYKMRKFKFAHFEMQGYALKQEKFLLEYAFLSLNGKLCERKKFKEVLEYVKREWIEFRKSMFDVWKEKLASEFREHGEMLNQKRKLKQHELDRRAQREKMLEEHSRGIFAKGYLGEVESETIKKKTEHHENVNEDNVEKPKLQQHKVQ'
+      )
+      sp = code.export_pred_however
+      
+      assert sp
+      assert sp.predicted?
+    end   
+    
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [0,0,0]) do
+      code.export_pred_cache(:reload => true) #how come this doesn't reload by itself?
+      sp = code.export_pred_however
+      
+      assert sp
+      assert sp.predicted?
+    end
+    
+    # not predicted sequence
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever12fd13fdsa11321')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        'MDVQDFLNCNKLKISKEKISNLNKSKIGILITNLGSPEKLTYWSLYKYLSEFLTDPRVVKLNRFLWLPILYTFVLPFRSGKVLSKYKSIWIKDGSPLCVNTHNQ'
+      )
+      sp = code.export_pred_however
+      
+      assert sp
+      assert_equal false, sp.predicted?
+    end 
+    
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [0,0,0]) do
+      code.export_pred_cache(:reload => true) #how come this doesn't reload by itself?
+      sp = code.export_pred_however
+      
+      assert sp
+      assert_equal false, sp.predicted?
+      assert_equal nil, sp.score #annoyingly exportpred doesn't seem to give negative scores - this is a bug in the code
+    end  
   end
 end

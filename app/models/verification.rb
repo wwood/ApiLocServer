@@ -628,4 +628,51 @@ class Verification < ActiveRecord::Base
     raise if !CodingRegion.fs('Pv085115', Species.vivax_name)
     raise if !CodingRegion.fs('Pv085115', Species.vivax_name).amino_acid_sequence
   end
+  
+  def winzeler_2003_microarray
+    # test first normal one
+    raise if CodingRegion.ff('MAL13P1.100').microarray_measurements.timepoint_name('Cell Cycle 1 (Sorbitol), Early Ring').count != 20
+    
+    # test random temperature one
+    raise if CodingRegion.ff('MAL13P1.106').microarray_measurements.timepoint_name('Cell Cycle 2 (Temperature), Early Ring').count != 11
+    
+    raise if Microarray.find_by_description(Microarray::WINZELER_2003_NAME).microarray_timepoints.count != 17
+  end
+  
+  def toxoplasma_gondii
+    # test gff first
+    # ben@ben:~/phd/gnr$ grep '>' ../data/Toxoplasma\ gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta |wc -l
+    # 7793
+    raise if CodingRegion.s(Species::TOXOPLASMA_GONDII_NAME).count != 7793
+    
+    # test first one is there
+    raise if !CodingRegion.fs('190.m00008', Species::TOXOPLASMA_GONDII_NAME)
+    raise if !CodingRegion.fs('41.m02959', Species::TOXOPLASMA_GONDII_NAME)
+    raise if !CodingRegion.fs('328.m00001', Species::TOXOPLASMA_GONDII_NAME)
+    
+    # check a sequence from the fasta file
+    raise if CodingRegion.fs('328.m00001', Species::TOXOPLASMA_GONDII_NAME).amino_acid_sequence.sequence !=
+      'MKHPIICRLIHFSNSSNINNFHDLRSLRFEAKSPNSRRTLHKPGVTIWMPPTLPHIRRTRIHKI*'
+    raise if CodingRegion.fs('41.m02959', Species::TOXOPLASMA_GONDII_NAME).amino_acid_sequence.sequence != 
+      %w(MNPVAAAEAAAVRERVAEEMGEIAEAAGRLFDLGGEHRERATAFLYRGCAAQVATSTAGM
+YGEMVESSVRQVVQYMRHYGGDEFSVFLDLGSGRGAPSCIALYQQPWLACLGIEKCPQAY
+SLSLETHWTVLRREMMQAELIAPPPRFPSVLCASQRCASEADGAHTADDSGEATAQKQAS
+RWTSGALCGRGRPGGRVPERRLCFTQEDLSAFYHLEGVTHVYSFDAAMEGALINWIVQMF
+MRTKTWYLYASFRSDLISKFELKGASLVGQVSSSMWVSSEGRTTYIYVKDDWRTCKAYHR
+RWLSQFLFSSSVSSKTPTGEAGAPGVSKPEASGAAVGFQEEQNLAAKVLQMTAAETFRLL
+CVQQEAMWDEFENRDRTPSRSRCPLQAQRECDASLRSPSSPSPASETRSRGRSTSRRRAS
+SVSGASRHLQLQTLQLQAASHCCAEDRLPDCLRVHGRIWATEQDLEEKEPRDVERREAVP
+RDTKGEFSTSEENEEKLLRHAVKTFRASFVRMSKWLQPLTVLDMLRLAFLPGEGQEAWLE
+QRQQQLTGGGVLTRTRRPTARGFDEQERRKEELERDGLLEMLAKAENPQEAAMCRRNLEL
+KLETTRRDRYSIFPFSLLQDSELSPELLTRVNEDAQAVAESLAHLLSSPSPRTSSVSPLS
+SPLSARRHSAVAPVSVQRKSQGLPVSPQKRDLRVRVVDAAQTVSPCRPRFSAQPNTLGEW
+NCQDSNMEDVEQSVSFLGGSQPSVMPSFDSTPRRRSRRSSPHKELTSCRRKSELSPQISS
+RKEKNEHTPSPPLKRRGAGNPEESKAMISDPASSRMTPKTRAAYKLMELGFDALEIRTAL
+SRRKRRMPEGLDN*).join('')
+    
+    raise if CodingRegion.s(Species::TOXOPLASMA_GONDII_NAME).count(:joins => :amino_acid_sequence) != 7793
+    
+    # check orthomcl integration - single_orthomcl will raise an exception by itself
+    CodingRegion.fs('80.m02161', Species::TOXOPLASMA_GONDII_NAME).single_orthomcl
+  end
 end
