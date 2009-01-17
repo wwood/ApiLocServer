@@ -57,7 +57,9 @@ class Localisation < ActiveRecord::Base
     'hepatocyte parasitophorous vacuole membrane',
     'intracellular vacuole membrane',
     'moving junction',
-    'apicoplast membrane'
+    'apicoplast membrane',
+    'proximal to plasma membrane',
+    'diffuse cytoplasm'
   ]
   
   # Return a list of ORFs that have this and only this localisation
@@ -216,7 +218,28 @@ class Localisation < ActiveRecord::Base
     
     # split on commas
     dirt.split(',').each do |fragment|
-      if matches = fragment.match('^(.*) during (.*)')
+      # If gene is not expressed during a certain developmental stage
+      if matches = fragment.match('not during (.*)')
+        stages = []
+        matches[1].split(' and ').each do |stage|
+          positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(stage)
+
+          if positive_devs.empty?
+            raise Exception, "No such dev stage '#{stage}' found."
+          else
+            positive_devs.each do |found|
+              negated = DevelopmentalStage.add_negation(found.name)
+              d = DevelopmentalStage.find_by_name_or_alternate(negated)
+              contexts.push ExpressionContext.new(
+                :developmental_stage => d
+              )
+            end
+          end
+        end
+        
+        # gene is expressed in a localisation during a particular developmental
+        # stage
+      elsif matches = fragment.match('^(.*) during (.*)')
         stages = []
         
         # split each of the localisations by 'and', 'then', etc.
@@ -224,13 +247,14 @@ class Localisation < ActiveRecord::Base
         
         # split each of the stages by 'and'
         matches[2].split(' and ').each do |stage|
-          d = DevelopmentalStage.find_by_name_or_alternate(stage)
-          if !d
+          d = DevelopmentalStage.find_all_by_name_or_alternate(stage)
+          if d.empty?
             raise Exception, "No such dev stage '#{stage}' found."
           else
             stages.push d
           end
         end
+        stages.flatten!
         
         # add each of the resulting pairs
         locs.pairs(stages).each do |arr|

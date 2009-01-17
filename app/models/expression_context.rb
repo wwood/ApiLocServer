@@ -13,7 +13,7 @@ class ExpressionContext < ActiveRecord::Base
     [:coding_region_id, :localisation_id, :developmental_stage_id, :publication_id].each do |col|
       me = send(col)
       you = another.send(col)
-      if me and you
+      if me and you and me!=you
         return me<=>you
       elsif me and !you
         return 1
@@ -41,5 +41,21 @@ class ExpressionContext < ActiveRecord::Base
       publication.definition,
       "\"#{comments.reach.comment.join(', ')}\""
     ]
+  end
+  
+  # Comparison operator, mainly for testing
+  def ==(another)
+    [:coding_region_id, :localisation_id, :developmental_stage_id, :publication_id].each do |col|
+      me = send(col)
+      you = another.send(col)
+      if me and you and me!=you
+        return false
+      elsif me and !you
+        return false
+      elsif !me and you
+        return false
+      end
+    end
+    return true
   end
 end

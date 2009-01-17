@@ -29,7 +29,8 @@ class TopLevelLocalisation < ActiveRecord::Base
     'ookinete microneme' => 'apical',
     'hepatocyte cytoplasm' => 'cytosol',
     'hepatocyte nucleus' => 'nucleus',
-    'hepatocyte parasitophorous vacuole membrane' => 'parasitophorous vacuole'
+    'hepatocyte parasitophorous vacuole membrane' => 'parasitophorous vacuole',
+    'diffuse cytoplasm' => 'cytosol'
   }
   
   TOP_LEVEL_LOCALISATIONS = [

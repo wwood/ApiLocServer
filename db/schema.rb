@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20081117040856) do
+ActiveRecord::Schema.define(:version => 20090117023500) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -28,8 +28,8 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.datetime "updated_at"
   end
 
-  add_index "binary_coding_region_measurements", ["coding_region_id"], :name => "index_binary_coding_region_measurements_on_coding_region_id"
   add_index "binary_coding_region_measurements", ["coding_region_id", "type"], :name => "index_binary_coding_region_measurements_on_coding_region_id_and"
+  add_index "binary_coding_region_measurements", ["coding_region_id"], :name => "index_binary_coding_region_measurements_on_coding_region_id"
 
   create_table "brafl_upstream_distances", :force => true do |t|
     t.integer  "go_term_id",        :null => false
@@ -78,8 +78,8 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.datetime "updated_at"
   end
 
-  add_index "coding_region_alternate_string_ids", ["coding_region_id"], :name => "index_coding_region_alternate_string_ids_on_coding_region_id"
   add_index "coding_region_alternate_string_ids", ["coding_region_id", "name"], :name => "index_coding_region_alternate_string_ids_on_coding_region_id_an", :unique => true
+  add_index "coding_region_alternate_string_ids", ["coding_region_id"], :name => "index_coding_region_alternate_string_ids_on_coding_region_id"
   add_index "coding_region_alternate_string_ids", ["name"], :name => "index_coding_region_alternate_string_ids_on_name"
 
   create_table "coding_region_drosophila_allele_genes", :force => true do |t|
@@ -155,8 +155,8 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.datetime "updated_at"
   end
 
-  add_index "coding_region_yeast_pheno_infos", ["coding_region_id"], :name => "index_coding_region_yeast_pheno_infos_on_coding_region_id"
   add_index "coding_region_yeast_pheno_infos", ["coding_region_id", "yeast_pheno_info_id"], :name => "index_coding_region_yeast_pheno_infos_on_coding_region_id_and_y", :unique => true
+  add_index "coding_region_yeast_pheno_infos", ["coding_region_id"], :name => "index_coding_region_yeast_pheno_infos_on_coding_region_id"
   add_index "coding_region_yeast_pheno_infos", ["yeast_pheno_info_id"], :name => "index_coding_region_yeast_pheno_infos_on_yeast_pheno_info_id"
 
   create_table "coding_regions", :force => true do |t|
@@ -288,9 +288,9 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.datetime "updated_at"
   end
 
+  add_index "gene_network_edges", ["gene_id_first", "gene_id_second", "gene_network_id"], :name => "index_gene_network_edges_on_gene_network_id_and_gene_id_first_a", :unique => true
   add_index "gene_network_edges", ["gene_id_first"], :name => "index_gene_network_edges_on_gene_id_first"
   add_index "gene_network_edges", ["gene_id_second"], :name => "index_gene_network_edges_on_gene_id_second"
-  add_index "gene_network_edges", ["gene_id_first", "gene_id_second", "gene_network_id"], :name => "index_gene_network_edges_on_gene_network_id_and_gene_id_first_a", :unique => true
 
   create_table "gene_networks", :force => true do |t|
     t.string   "name"
@@ -360,6 +360,7 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.datetime "updated_at"
   end
 
+  add_index "go_terms", ["aspect", "go_identifier", "term"], :name => "index_go_terms_on_go_identifier_and_term_and_aspect"
   add_index "go_terms", ["go_identifier"], :name => "go_term_idx_name", :unique => true
 
   create_table "gus", :force => true do |t|
@@ -400,9 +401,9 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.datetime "updated_at"
   end
 
+  add_index "localisation_top_level_localisations", ["localisation_id", "top_level_localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_type_and_localisa"
   add_index "localisation_top_level_localisations", ["localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_localisation_id_a"
   add_index "localisation_top_level_localisations", ["top_level_localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_top_level_localis"
-  add_index "localisation_top_level_localisations", ["localisation_id", "top_level_localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_type_and_localisa"
 
   create_table "localisations", :force => true do |t|
     t.string   "name",       :null => false
@@ -418,8 +419,8 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.datetime "updated_at"
   end
 
-  add_index "microarray_measurements", ["coding_region_id"], :name => "index_microarray_measurements_on_coding_region_id"
   add_index "microarray_measurements", ["coding_region_id", "measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_co"
+  add_index "microarray_measurements", ["coding_region_id"], :name => "index_microarray_measurements_on_coding_region_id"
 
   create_table "microarray_timepoints", :force => true do |t|
     t.integer  "microarray_id"
@@ -475,8 +476,8 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.datetime "updated_at"
   end
 
-  add_index "orthomcl_gene_coding_regions", ["coding_region_id"], :name => "index_orthomcl_gene_coding_regions_on_coding_region_id"
   add_index "orthomcl_gene_coding_regions", ["coding_region_id", "orthomcl_gene_id"], :name => "index_orthomcl_gene_coding_regions_on_coding_region_id_and_orth", :unique => true
+  add_index "orthomcl_gene_coding_regions", ["coding_region_id"], :name => "index_orthomcl_gene_coding_regions_on_coding_region_id"
   add_index "orthomcl_gene_coding_regions", ["orthomcl_gene_id"], :name => "index_orthomcl_gene_coding_regions_on_orthomcl_gene_id"
 
   create_table "orthomcl_gene_official_datas", :force => true do |t|
@@ -506,8 +507,8 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.integer  "orthomcl_run_id", :null => false
   end
 
-  add_index "orthomcl_groups", ["orthomcl_run_id"], :name => "index_orthomcl_groups_on_orthomcl_run_id"
   add_index "orthomcl_groups", ["orthomcl_name", "orthomcl_run_id"], :name => "index_orthomcl_groups_on_orthomcl_run_id_and_orthomcl_name"
+  add_index "orthomcl_groups", ["orthomcl_run_id"], :name => "index_orthomcl_groups_on_orthomcl_run_id"
 
   create_table "orthomcl_runs", :force => true do |t|
     t.string   "name",       :null => false

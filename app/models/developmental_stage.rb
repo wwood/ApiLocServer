@@ -21,11 +21,13 @@ class DevelopmentalStage < ActiveRecord::Base
       'gametocyte'
     ].each do |name|
       DevelopmentalStage.find_or_create_by_name(name) or raise
+      DevelopmentalStage.find_or_create_by_name(DevelopmentalStage.add_negation(name)) or raise
     end
     
     {
       'hepatocyte stage' => 'hepatocyte',
       'early ring' => 'ring',
+      'late ring' => 'ring',
       'trophs' => 'trophozoite',
       'rings' => 'ring',
       'merozoites' => 'merozoite',
@@ -35,14 +37,14 @@ class DevelopmentalStage < ActiveRecord::Base
       'schizonts' => 'schizont',
       'late troph' => 'trophozoite',
       'late trophozoite' => 'trophozoite',
-      'rings' => 'ring',
-      'late schizont' => 'schizont'
+      'late schizont' => 'schizont',
+      'blood stages' => ['ring', 'trophozoite', 'schizont']
     }.each do |key, value|
-      dev = DevelopmentalStage.find_by_name(value)
-      raise if !dev
-      raise if !DevelopmentalStageSynonym.find_or_create_by_name_and_developmental_stage_id(
-        key, dev.id
-      )
+      if value.kind_of?(Array)
+        value.each {|name| upload_stage_synonym(key, name)}
+      else
+        upload_stage_synonym(key, value)
+      end
     end
   end
   
@@ -53,5 +55,34 @@ class DevelopmentalStage < ActiveRecord::Base
       return s.developmental_stage
     end
     return nil
+  end
+  
+  def self.find_all_by_name_or_alternate(name)
+    all = DevelopmentalStage.find_all_by_name(name)
+    all.push(
+      DevelopmentalStageSynonym.find_all_by_name(name).reach.developmental_stage.retract
+    )
+    all.flatten
+  end
+  
+  def <=>(another)
+    id <=>another.id
+  end
+  
+  # Defining the grammar for defining negation of a developmental
+  # stage, like 'not ring'. Generally means it is not expressed during this
+  # time
+  def self.add_negation(name)
+    "not #{name}"
+  end
+  
+  private
+  # small method to DRY another method
+  def upload_stage_synonym(synonym, name)
+    dev = DevelopmentalStage.find_by_name(name)
+    raise if !dev
+    raise if !DevelopmentalStageSynonym.find_or_create_by_name_and_developmental_stage_id(
+      synonym, dev.id
+    )
   end
 end

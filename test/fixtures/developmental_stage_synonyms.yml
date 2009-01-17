@@ -1,9 +1,18 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
 one:
-  developmental_stage_id: 1
-  name: MyString
+  developmental_stage_id: 2
+  name: my ring
 
 two:
   developmental_stage_id: 1
-  name: MyString
+  name: your schziont
+blood_stage_one:
+  developmental_stage_id: 1
+  name: blood stages
+blood_stage_two:
+  developmental_stage_id: 2
+  name: blood stages
+blood_stage_three:
+  developmental_stage_id: 3
+  name: blood stages
