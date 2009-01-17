@@ -8,6 +8,8 @@ class CodingRegionsController < ApplicationController
   # GET /coding_regions
   # GET /coding_regions.xml
   def index
+    # obsolete? Useful for catching bugs when script/runner
+    # fails uselessly sometimes
     Script.new
 
     respond_to do |format|
@@ -69,7 +71,7 @@ class CodingRegionsController < ApplicationController
   # GET /coding_regions/1
   # GET /coding_regions/1.xml
   def show
-    @coding_region = CodingRegion.find(params[:id])
+    @coding_region = CodingRegion.f(params[:id])
 
     respond_to do |format|
       format.html # show.html.erb

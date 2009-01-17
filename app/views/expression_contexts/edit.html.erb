@@ -1,0 +1,12 @@
+<h1>Editing expression_context</h1>
+
+<% form_for(@expression_context) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.submit "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @expression_context %> |
+<%= link_to 'Back', expression_contexts_path %>

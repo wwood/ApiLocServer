@@ -749,6 +749,13 @@ class CodingRegion < ActiveRecord::Base
   def plasmo_a_p
     amino_acid_sequence.plasmo_a_p
   end
+  
+  # Comments on http://railscasts.com/episodes/35 says this is the way to make
+  # coding regions RESTful. Comes into play when coding_region_path(code)
+  # is called from a controller or action.
+  def to_param
+    "#{string_id}"
+  end
 end
 
 
