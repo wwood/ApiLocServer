@@ -145,7 +145,7 @@ class CodingRegionsController < ApplicationController
   def parse_string_ids(string)
     @coding_regions = []
     @coding_regions_not_found = []
-    string.split(/[\s\,]/).each do |string_id|
+    string.split(/[\s\,]+/).each do |string_id|
       code = CodingRegion.f(string_id)
       if code
         @coding_regions.push code
