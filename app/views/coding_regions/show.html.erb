@@ -1,18 +1,36 @@
-
+<%= auto_discovery_link_tag :rss, :format => :rss %>  
+<div style="background-color: black; color: white">
 <h2><%= @coding_region.string_id %></h2>
 <%=  @coding_region.annotation.nil? ? 'no annotation' : @coding_region.annotation.annotation %>
 <p>Also known as: <%= @coding_region.alternate_names.join(', ') %></p>
+</div>
 <h3>Localisation(s)</h3>
 <ul>
   <% @coding_region.expression_contexts.each do |context| %>
     <li><%= link_to context.english, expression_context_path(context) %> says <%= link_to context.publication.definition, publication_path(context.publication) %></li>
   <% end %>
 </ul>
+<div style="background-color: black; color: white">
+<h3>Comments</h3>
+<% if @coding_region.user_comments.length > 0 %>
+  <% @coding_region.user_comments.each do |comment| %>
+    <h4><%= comment.title %></h4>
+    <p><%= comment.comment %></p>
+  <% end %> 
+<% else %>
+  No comments yet.
+<% end %>
+<%= link_to 'Add comment', comment_coding_region_path(@coding_region) %>
+</div>
 
-<h3>Predictions</h3>
+<h3><i>In-silico</i> Predictions</h3>
+WoLF_PSORT Predictions:
 <% Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type| %>
   <p><b><%= organism_type %>:</b> <%= @coding_region.wolf_psort_localisations_line(organism_type) %></p>
 <% end %>
 
+<div style="background-color: magenta; color: white ">
 <h3>Links</h3>
-<%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@coding_region.string_id}"%>
+<%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@coding_region.string_id}"%><br />
+<%= link_to "RSS feed for comments and changes to #{@coding_region.string_id}", formatted_coding_region_path(@coding_region, :rss) %>
+</div>

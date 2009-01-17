@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090117023500) do
+ActiveRecord::Schema.define(:version => 20090117073412) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -677,6 +677,19 @@ ActiveRecord::Schema.define(:version => 20090117023500) do
   end
 
   add_index "transmembrane_domains", ["coding_region_id", "type"], :name => "index_transmembrane_domains_on_coding_region_id_and_type"
+
+  create_table "user_comments", :force => true do |t|
+    t.string   "title",            :limit => 50, :null => false
+    t.string   "comment",                        :null => false
+    t.integer  "user_id"
+    t.integer  "coding_region_id",               :null => false
+    t.integer  "number",                         :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "user_comments", ["coding_region_id", "number"], :name => "index_user_comments_on_coding_region_id_and_number", :unique => true
+  add_index "user_comments", ["coding_region_id"], :name => "index_user_comments_on_coding_region_id"
 
   create_table "verifications", :force => true do |t|
   end

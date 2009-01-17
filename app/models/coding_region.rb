@@ -79,6 +79,9 @@ class CodingRegion < ActiveRecord::Base
   has_one :export_pred_cache, :dependent => :destroy
   has_one :signal_p_cache, :dependent => :destroy
   
+  # website stuff
+  has_many :user_comments
+  
   named_scope :species_name, lambda{ |species_name|
     {
       :joins => {:gene => {:scaffold => :species}},
