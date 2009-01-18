@@ -9,12 +9,12 @@ require 'tm_hmm_wrapper'
 require 'rubygems'
 require 'csv'
 require 'bio'
-require 'mscript'
+#require 'mscript'
 require 'reach'
 require 'plasmo_a_p'
 require 'top_db_xml'
 require 'pdb_tm'
-require 'go'
+#require 'go'
 require 'wormbase_go_file'
 require 'libsvm_array'
 require 'bl2seq_report_shuffling'
@@ -1804,12 +1804,12 @@ class Script < ActiveRecord::Base
   
   
   def upload_hardy
-    #    puts "GO"
-    #    go_to_database
-    #    puts "Falciparum"
-    #    falciparum_to_database
-    #    puts "Vivax"
-    #    vivax_to_database # this fails with exception because of a known bug in my genes gff parser. It is OK, though - it should validate at least
+        puts "GO"
+        go_to_database
+        puts "Falciparum"
+        falciparum_to_database
+        puts "Vivax"
+        vivax_to_database # this fails with exception because of a known bug in my genes gff parser. It is OK, though - it should validate at least
     #    puts "Theileria"
     #    theileria_parva_gene_aliases
     #    puts "Seven species orthomcl"
@@ -1838,8 +1838,8 @@ class Script < ActiveRecord::Base
     #    puts 'crypto fasta'
     #    crypto_fasta_to_database
 
-    puts "Big orthomcl linking"
-    link_orthomcl_and_coding_regions
+#    puts "Big orthomcl linking"
+#    link_orthomcl_and_coding_regions
   end
   
   

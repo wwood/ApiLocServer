@@ -28,7 +28,7 @@ class Array
   end
   
   # is this included in Ruby 1.8.5, which is on reefedge?
-  def sum; inject( nil ) { |sum,x| sum ? sum+x : x }; end;
+  #def sum; inject( nil ) { |sum,x| sum ? sum+x : x }; end;
   
   def average
     sum.to_f / length.to_f
