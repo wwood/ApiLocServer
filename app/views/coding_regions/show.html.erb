@@ -31,6 +31,9 @@ WoLF_PSORT Predictions:
 
 <div style="background-color: magenta; color: white ">
 <h3>Links</h3>
-<%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@coding_region.string_id}"%><br />
-<%= link_to "RSS feed for comments and changes to #{@coding_region.string_id}", formatted_coding_region_path(@coding_region, :rss) %>
+<table><tr>
+<td><%= link_to image_tag('plasmodb_logo.gif', :height => 130, :alt=>'View this coding region at PlasmoDB'), "http://plasmodb.org/gene/#{@coding_region.string_id}"%><br />
+<td><%= link_to image_tag('rss.png', :height => 130, :alt=>"RSS feed for comments and changes to #{@coding_region.string_id}"), 
+  formatted_coding_region_path(@coding_region, :rss) %>
+</tr></table>
 </div>
