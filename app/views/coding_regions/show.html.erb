@@ -10,7 +10,7 @@
     <li><%= link_to context.english, expression_context_path(context) %> says <%= link_to context.publication.definition, publication_path(context.publication) %></li>
   <% end %>
 </ul>
-<div style="background-color: black; color: white">
+<div style="background-color: red; color: white">
 <h3>Comments</h3>
 <% if @coding_region.user_comments.length > 0 %>
   <% @coding_region.user_comments.each do |comment| %>
