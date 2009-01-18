@@ -38,6 +38,17 @@ class Publication < ActiveRecord::Base
       return to_return
     end
   end
+  
+  def to_param
+    if pubmed_id
+      return "#{pubmed_id}"
+    elsif url
+      return "#{url}"
+    else
+      # don't think this should ever happen but oh well
+      return "#{id}"
+    end
+  end
 end
 
 

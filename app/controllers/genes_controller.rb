@@ -13,7 +13,11 @@ class GenesController < ApplicationController
   # GET /genes/1
   # GET /genes/1.xml
   def show
-    @gene = Gene.find(params[:id])
+    @gene = Gene.find_by_name(params[:id], :include => :coding_regions)
+    if @gene.coding_regions.length == 1
+      redirect_to coding_region_path(@gene.coding_regions[0])
+      return
+    end
 
     respond_to do |format|
       format.html # show.html.erb

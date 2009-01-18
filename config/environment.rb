@@ -63,6 +63,7 @@ Rails::Initializer.run do |config|
   #config.gem "wwood-rsruby", :source => "http://gems.github.com", :lib => 'rsruby' 
   config.gem "fastercsv"
   config.gem 'wwood-rarff', :source => "http://gems.github.com", :lib => 'rarff'
+#  config.gem 'wwood-bioruby', :source => "http://gems.github.com", :lib => 'bio'
 end
 
 

@@ -8,6 +8,8 @@ class CodingRegionsController < ApplicationController
   # GET /coding_regions
   # GET /coding_regions.xml
   def index
+    # obsolete? Useful for catching bugs when script/runner
+    # fails uselessly sometimes
     Script.new
 
     respond_to do |format|
@@ -17,7 +19,7 @@ class CodingRegionsController < ApplicationController
   end
   
   def find
-    q = params[:coding_region]['string_id']
+    q = params[:coding_region]['string_id'].strip
     CodingRegion.first
     logger.debug "my q: #{q}"
     if !q
@@ -69,12 +71,7 @@ class CodingRegionsController < ApplicationController
   # GET /coding_regions/1
   # GET /coding_regions/1.xml
   def show
-    @coding_region = CodingRegion.find(params[:id])
-
-    respond_to do |format|
-      format.html # show.html.erb
-      format.xml  { render :xml => @coding_region }
-    end
+    @coding_region = CodingRegion.f(params[:id])
   end
 
   # GET /coding_regions/new
@@ -136,6 +133,28 @@ class CodingRegionsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to(coding_regions_url) }
       format.xml  { head :ok }
+    end
+  end
+  
+  def comment
+    @coding_region = CodingRegion.f(params[:id])
+  end
+  
+  def commit_comment
+    # use the real id, not PlasmoDB ID here
+    code = CodingRegion.find(params[:coding_region_id])
+    if UserComment.create(
+        :coding_region_id => code.id,
+        :title => params[:user_comment][:title],
+        :comment => params[:user_comment][:comment]
+      )
+      flash[:notice] = "Comment successfully posted. Cheers dude(ss)."
+      p code
+      p code.class
+      redirect_to coding_region_path(code.string_id)
+    else
+      #Should be handled by ExceptionNotifier plugin
+      raise Exception, "failed to commit comment with parameters: #{params.inspect}"
     end
   end
   

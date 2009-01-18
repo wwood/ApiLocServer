@@ -25,9 +25,11 @@ class ExpressionContext < ActiveRecord::Base
   end
   
   def english
-    return nil if !localisation_id
-    if developmental_stage_id
+    return nil if !localisation_id and !developmental_stage_id
+    if developmental_stage_id and localisation_id
       return "#{localisation.name} during #{developmental_stage.name}"
+    elsif developmental_stage_id
+      return "#{developmental_stage.name}"
     else
       return localisation.name
     end
