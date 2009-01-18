@@ -19,7 +19,7 @@ class CodingRegionsController < ApplicationController
   end
   
   def find
-    q = params[:coding_region]['string_id']
+    q = params[:coding_region]['string_id'].strip
     CodingRegion.first
     logger.debug "my q: #{q}"
     if !q
