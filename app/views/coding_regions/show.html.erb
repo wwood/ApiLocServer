@@ -9,6 +9,7 @@
   <% @coding_region.expression_contexts.each do |context| %>
     <li><%= link_to context.english, expression_context_path(context) %> says <%= link_to context.publication.definition, publication_path(context.publication) %></li>
   <% end %>
+<li><%= link_to 'Add another', expression_context_path(:id => @coding_region.string_id) %></li>
 </ul>
 <div style="background-color: red; color: white">
 <h3>Comments</h3>

@@ -24,7 +24,17 @@ class ExpressionContextsController < ApplicationController
   # GET /expression_contexts/new
   # GET /expression_contexts/new.xml
   def new
+@coding_region = CodingRegion.f(params[:id])
+@species = @coding_region.species
     @expression_context = ExpressionContext.new
+@localisations = Localisation.all(:joins {
+:expressed_coding_regions => {:gene => {:scaffold => :species}}},
+:conditions => {:species => {:id => @species.id}}
+)
+@developmental_stages = DevelopmentalStage.all(:joins {
+:expressed_coding_regions => {:gene => {:scaffold => :species}}},
+:conditions => {:species => {:id => @species.id}}
+)
 
     respond_to do |format|
       format.html # new.html.erb
@@ -41,6 +51,7 @@ class ExpressionContextsController < ApplicationController
   # POST /expression_contexts.xml
   def create
     @expression_context = ExpressionContext.new(params[:expression_context])
+    @coding_region = CodingRegion.find(params[:coding_region_id])
 
     respond_to do |format|
       if @expression_context.save
