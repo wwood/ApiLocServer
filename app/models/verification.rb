@@ -675,4 +675,16 @@ SRRKRRMPEGLDN*).join('')
     # check orthomcl integration - single_orthomcl will raise an exception by itself
     CodingRegion.fs('80.m02161', Species::TOXOPLASMA_GONDII_NAME).single_orthomcl
   end
+  
+  def upload_winzeler_gametocyte_microarray
+    microarray = Microarray.find_by_description(Microarray::WINZELER_2005_GAMETOCYTE_NAME)
+    
+    code = CodingRegion.f('PFE0065w')
+    timepoints = code.microarray_measurements.all(:joins => :microarray_timepoint,
+      :conditions => {:microarray_timepoint => {:microarray_id => microarray.id}}
+    )
+    raise unless timepoints.length == 39
+    panova = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_PANOVA}[0]
+    raise unless 1.12E-125 == panova.measurement
+  end
 end

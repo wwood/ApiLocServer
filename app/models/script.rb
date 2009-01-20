@@ -19,6 +19,7 @@ require 'wormbase_go_file'
 require 'libsvm_array'
 require 'bl2seq_report_shuffling'
 require 'rarff'
+require 'stdlib'
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -1804,12 +1805,12 @@ class Script < ActiveRecord::Base
   
   
   def upload_hardy
-        puts "GO"
-        go_to_database
-        puts "Falciparum"
-        falciparum_to_database
-        puts "Vivax"
-        vivax_to_database # this fails with exception because of a known bug in my genes gff parser. It is OK, though - it should validate at least
+    puts "GO"
+    go_to_database
+    puts "Falciparum"
+    falciparum_to_database
+    puts "Vivax"
+    vivax_to_database # this fails with exception because of a known bug in my genes gff parser. It is OK, though - it should validate at least
     #    puts "Theileria"
     #    theileria_parva_gene_aliases
     #    puts "Seven species orthomcl"
@@ -1838,8 +1839,8 @@ class Script < ActiveRecord::Base
     #    puts 'crypto fasta'
     #    crypto_fasta_to_database
 
-#    puts "Big orthomcl linking"
-#    link_orthomcl_and_coding_regions
+    #    puts "Big orthomcl linking"
+    #    link_orthomcl_and_coding_regions
   end
   
   
@@ -6858,5 +6859,97 @@ PFL2395c
       oes.push o
     end
     puts oes.reach.orthomcl_gene_official_data.fasta.join("\n")
+  end
+  
+  # See phd.html [[Winzeler Gametocyte Microarray Upload]]
+  # Uploads the gametocyte and previous results that come out from the MOID
+  # analysis done by Winzeler and crew.
+  def upload_winzeler_gametocyte_microarray
+    columns = [
+      nil,
+      nil,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_PANOVA,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_PC,
+      nil,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_LATE_RING_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_TROPHOZOITE_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_LATE_TROPHOZOITE_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_SCHIZONT_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_LATE_SCHIZONT_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_MEROZOITE_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_RING_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_LATE_RING_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_TROPHOZOITE_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_LATE_TROPHOZOITE_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_SCHIZONT_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_LATE_SCHIZONT_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_MEROZOITE_TEMPERATURE,
+
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_EARLY_DAY_1,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_EARLY_DAY_2,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_EARLY_DAY_3,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_EARLY_DAY_4,
+
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_1,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_2,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_3,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_6,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_8,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_12,
+
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_1,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_2,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_3,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_4,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_5,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_6,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_7,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_8,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_9,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_10,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_11,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_12,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_13
+    ]
+    
+    microarray = Microarray.find_or_create_by_description(Microarray::WINZELER_2005_GAMETOCYTE_NAME)
+    
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/microarray/WinzelerGametocyte/AllData.csv", 
+      :col_sep => "\t", :headers => :first_row) do |row|
+      
+      raise if columns.length != row.length #checking
+      
+      code = CodingRegion.f(row['Gene'])
+      
+      if !code
+        $stderr.puts "Could not find PlasmoDB ID #{row['Gene']}. Skipping."
+        next
+      end
+      
+      # upload each column
+      columns.each_with_index do |column, index|
+        next if column.nil? #ignore some columns, including the sporozoite one
+        
+        timepoint = MicroarrayTimepoint.find_or_create_by_name_and_microarray_id(column, microarray.id)
+        raise unless timepoint
+        cell = row[index]
+        if [2,3].include?(index)
+          # Had to comment out the to_f? checking because it didn't handle 1.20E-4 type things
+          #raise Exception, "error parsing #{cell}" unless cell.to_f?
+          cell = cell.to_f
+        else
+          raise Exception, "error parsing #{cell}" unless cell.to_i? # Every cell is expected to be an integer
+          cell = cell.to_i
+        end
+        
+        
+        raise unless MicroarrayMeasurement.find_or_create_by_measurement_and_microarray_timepoint_id_and_coding_region_id(
+          cell,
+          timepoint.id,
+          code.id
+        )
+      end
+    end
   end
 end
