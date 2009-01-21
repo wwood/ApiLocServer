@@ -681,10 +681,35 @@ SRRKRRMPEGLDN*).join('')
     
     code = CodingRegion.f('PFE0065w')
     timepoints = code.microarray_measurements.all(:joins => :microarray_timepoint,
-      :conditions => {:microarray_timepoint => {:microarray_id => microarray.id}}
+      :conditions => "microarray_timepoints.microarray_id = #{microarray.id}"
     )
     raise unless timepoints.length == 39
-    panova = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_PANOVA}[0]
-    raise unless 1.12E-125 == panova.measurement
+    
+    # test Panova
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_PANOVA}
+    raise unless points.length == 1
+    raise unless 1.12E-125 == points[0].measurement
+    
+    # test Early Ring S
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL}
+    raise unless points.length == 1
+    raise unless 8331 == points[0].measurement
+    
+    # test 3D7 Early Day 2
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_EARLY_DAY_2}
+    raise unless points.length == 1
+    raise unless 1163 == points[0].measurement
+    
+    # test NF54 Day 13
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_13}
+    raise unless points.length == 1
+    raise unless 48 == points[0].measurement
+    
+    # In PlasmoDB 5.5 upload, there is 77 that do not have any associated data, and 5159 entries in the spreadsheet
+    # This means there must be 39*(5159-77) entries uploaded to this microarray
+    # Actually, that's not technically correct since they aren't all in the same microarray, but eh to that
+    count = MicroarrayMeasurement.count(:joins => :microarray_timepoint, :conditions => "microarray_id=#{microarray.id}")
+    expected = 39*(5159-77)
+    raise Exception, "Incorrect number of timepoints found: #{count}, expected #{expected}" unless count == expected
   end
 end
