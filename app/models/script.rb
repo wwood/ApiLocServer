@@ -21,6 +21,8 @@ require 'bl2seq_report_shuffling'
 require 'rarff'
 require 'stdlib'
 
+
+
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
 
@@ -32,6 +34,9 @@ WORK_DIR = "#{ENV['HOME']}/Workspace"
 class Script < ActiveRecord::Base  
   PHD_DIR = "#{ENV['HOME']}/phd"
   DATA_DIR = "#{ENV['HOME']}/phd/data"
+  
+  require 'microarray_timepoint' #include the constants for less typing
+  include MicroarrayTimepointNames
 
   def brafl_to_database
     puts "Deleting all records..."
@@ -471,8 +476,8 @@ class Script < ActiveRecord::Base
       "#{DATA_DIR}/falciparum/localisation/tRNASynthetases/cytosolic.Stuart.20080220.txt",
       "#{DATA_DIR}/falciparum/localisation/exportpred/exportPred10.txt",
       "#{DATA_DIR}/falciparum/exportpred/exportome.csv",
-      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_HIGH_confid_set3",
-      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_LOWER_confid_set",
+#      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_HIGH_confid_set3",
+#      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_LOWER_confid_set",
       "#{DATA_DIR}/falciparum/localisation/pexelPlasmoDB5.5.txt",
       "#{DATA_DIR}/falciparum/localisation/htPlasmoDB5.5.txt"
     ]
@@ -5651,20 +5656,44 @@ class Script < ActiveRecord::Base
   # for each of the nuclear proteins in the proteomics list, print out the average and list of winzeler 2003 cell
   # cycle absolute counts
   def nuclear_proteome_winzeler_data
+
+    
+    array_constants = [
+      WINZELER_2003_EARLY_RING_SORBITOL,
+      WINZELER_2003_LATE_RING_SORBITOL,
+      WINZELER_2003_EARLY_TROPHOZOITE_SORBITOL,
+      WINZELER_2003_LATE_TROPHOZOITE_SORBITOL,
+      WINZELER_2003_EARLY_SCHIZONT_SORBITOL,
+      WINZELER_2003_LATE_SCHIZONT_SORBITOL,
+      WINZELER_2003_MEROZOITE_SORBITOL,
+      WINZELER_2003_EARLY_RING_TEMPERATURE,
+      WINZELER_2003_LATE_RING_TEMPERATURE,
+      WINZELER_2003_EARLY_TROPHOZOITE_TEMPERATURE,
+      WINZELER_2003_LATE_TROPHOZOITE_TEMPERATURE,
+      WINZELER_2003_EARLY_SCHIZONT_TEMPERATURE,
+      WINZELER_2003_LATE_SCHIZONT_TEMPERATURE,
+      WINZELER_2003_MEROZOITE_TEMPERATURE,
+
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_1,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_2,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_3,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_4,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_5,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_6,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_7,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_8,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_9,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_10,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_11,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_12,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_13
+    ]
+    
     # Headers
     puts [
       'PlasmoDB ID',
-      'Average Ring',
-      'Average Trophozoite',
-      'Average Schizont'
-    ].join("\t")
-    
-    array_constants = [
-#            [MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL], # to check the measurements are coming out correctly
-      MicroarrayTimepoint::WINZELER_RING_TIMEPOINT_NAMES,
-      MicroarrayTimepoint::WINZELER_TROPHOZOITE_TIMEPOINT_NAMES,
-      MicroarrayTimepoint::WINZELER_SCHIZONT_TIMEPOINT_NAMES
-    ]
+      array_constants
+    ].flatten.join("\t")
     
     # For each gene in the proteome list
     PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.falciparum.all(
@@ -5672,7 +5701,7 @@ class Script < ActiveRecord::Base
       results = [code.string_id]
       
       array_constants.each do |timepoints|
-        results.push code.microarray_measurements.timepoint_names(timepoints).all.reach.measurement.to_f.average
+        results.push code.microarray_measurements.timepoint_names([timepoints].flatten).all.reach.percentile.average
       end
       
       puts results.join("\t")
@@ -6968,6 +6997,71 @@ PFL2395c
           timepoint.id,
           code.id
         )
+      end
+    end
+  end
+  
+  # Florian spreadsheet to do
+  #ben, 9 December 2008 (created 9 December 2008)
+  #
+  #check falciparum genome for TA proteins
+  #
+  #    * predict single spanning TMDs using various TMD predictors: tmhmm, tmpred, toppred, aligator (or whatever it is called).
+  #    * for each predictor, give a spreadsheet containing:
+  #
+  #plasmoDB id
+  #annotation
+  #type I or II?
+  #start tmd
+  #end tmd
+  #length tmd
+  #number of residues c terminal
+  #SignalP 3.0
+  #exportpred
+  #pexel
+  #hts
+  def florian_spreadsheet_yet_again
+    # Headers
+    headers = %w(
+      plasmoDB_id
+      annotation
+      type_I_or_II?
+      start_tmd
+    end_tmd
+    length_tmd
+    number_of_residues_c_terminal
+    SignalP_3.0
+    exportpred
+    pexel
+    hts
+    )
+    
+    [
+      :tmhmm, 
+#      :tmpred, 
+#      :toppred
+    ].each do |predictor|
+      FasterCSV.open("#{PHD_DIR}/yet_another_florian/#{predictor}.csv", "w", :col_sep => "\t") do |csv|
+        csv << headers
+        CodingRegion.falciparum.all.each do |code|
+          next unless code.aaseq #everything must have a sequence to be considered
+          predicted = code.send(predictor)
+          if predicted.transmembrane_type_1? or predicted.transmembrane_type_2?
+            csv << [
+              code.string_id,
+              code.annotation ? code.annotation.annotation : nil,
+              predicted.transmembrane_type,
+              predicted.transmembrane_domains[0].start,
+              predicted.transmembrane_domains[0].stop,
+              predicted.transmembrane_domains[0].stop.to_i - predicted.transmembrane_domains[0].start.to_i,
+              code.sequence_without_signal_peptide.length - predicted.transmembrane_domains[0].stop,
+              code.signalp_however.signal?,
+              code.export_pred_however.predicted?,
+              PlasmodbGeneList.find_by_description('pexelPlasmoDB5.5').coding_regions.all(:conditions => ["coding_regions.id = ?", code.id]) ? 'yes': 'no',
+              PlasmodbGeneList.find_by_description('htPlasmoDB5.5').coding_regions.all(:conditions => ["coding_regions.id = ?", code.id]) ? 'yes': 'no'
+            ]
+          end
+        end
       end
     end
   end

@@ -1,7 +1,7 @@
 <h3>Contributed Localisations</h3>
 <ul>
 <% @publication.expression_contexts.each do |express| %>
-  <li><%= link_to express.coding_region.string_id, coding_region_path %>: 
+  <li><%= link_to express.coding_region.string_id, coding_region_path(express.coding_region) %>: 
 <%=  link_to express.english, expression_context_path(express) %></li>
 <% end %>
 </ul>

@@ -386,6 +386,11 @@ class CodingRegion < ActiveRecord::Base
     return to_print
   end
   
+  def tmhmm
+    minus_sp = sequence_without_signal_peptide
+    TmHmmWrapper.new.calculate(minus_sp)
+  end
+  
   
   # Given a coding region, return the orthologs in another species, as given
   # by orthomcl
@@ -727,18 +732,25 @@ class CodingRegion < ActiveRecord::Base
     
     # otherwise just calculate the bastard
     result = Bio::ExportPred::Wrapper.new.calculate(aaseq)
-    ExportPredCache.create_from_result(id, result)
+    self.export_pred_cache = ExportPredCache.create_from_result(id, result)
+    return export_pred_cache
   end
   
   # Return the saved signalp result, or calculate
   # it if this does not exist
   def signalp_however
     return nil if aaseq.nil?
-    return signal_p_cache unless signal_p_cache.nil? #returned cached if possible
+    puts "searching for signal for #{string_id}"
+    return signal_p_cache if signal_p_cache #returned cached if possible
+    puts "No cache found for #{string_id}"
 
     # otherwise just calculate the bastard
     result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
-    SignalPCache.create_from_result(id, result)
+    puts "Uploading SignalP for #{string_id}"
+    res = SignalPCache.create_from_result(id, result)
+    puts "Finished Uploading SignalP for #{string_id}"
+    self.signal_p_cache = res
+    return res
   end
   
   def signal?

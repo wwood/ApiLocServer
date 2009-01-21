@@ -1,7 +1,4 @@
-class MicroarrayTimepoint < ActiveRecord::Base
-  has_many :microarray_measurements, :dependent => :destroy
-  belongs_to :microarray
-  
+module MicroarrayTimepointNames
   WINZELER_2003_EARLY_RING_SORBITOL = 'Cell Cycle 1 (Sorbitol), Early Ring'
   WINZELER_2003_LATE_RING_SORBITOL = 'Cell Cycle 1 (Sorbitol), Late Ring'
   WINZELER_2003_EARLY_TROPHOZOITE_SORBITOL = 'Cell Cycle 1 (Sorbitol), Early Trophozoite'
@@ -52,20 +49,27 @@ class MicroarrayTimepoint < ActiveRecord::Base
   WINZELER_2005_GAMETOCYTE_3D7_DAY_12 = 'Winzler 2005 Gametocyte 3D7 Day 12'
   # NF54 Day 1	NF54 Day 2	NF54 Day 3	NF54 Day 4	NF54 Day 5	NF54 Day 6	NF54 Day 7	
   # NF54 Day 8	NF54 Day 9	NF54 Day 10	NF54 Day 11	NF54 Day 12	NF54 Day 13
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_1 = 'Winzler 2005 Gametocyte 3D7 Day 1'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_2 = 'Winzler 2005 Gametocyte 3D7 Day 2'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_3 = 'Winzler 2005 Gametocyte 3D7 Day 3'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_4 = 'Winzler 2005 Gametocyte 3D7 Day 4'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_5 = 'Winzler 2005 Gametocyte 3D7 Day 5'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_6 = 'Winzler 2005 Gametocyte 3D7 Day 6'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_7 = 'Winzler 2005 Gametocyte 3D7 Day 7'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_8 = 'Winzler 2005 Gametocyte 3D7 Day 8'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_9 = 'Winzler 2005 Gametocyte 3D7 Day 9'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_10 = 'Winzler 2005 Gametocyte 3D7 Day 10'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_11 = 'Winzler 2005 Gametocyte 3D7 Day 11'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_12 = 'Winzler 2005 Gametocyte 3D7 Day 12'
-  WINZELER_2005_GAMETOCYTE_NF54_DAY_13 = 'Winzler 2005 Gametocyte 3D7 Day 13'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_1 = 'Winzler 2005 Gametocyte NF54 Day 1'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_2 = 'Winzler 2005 Gametocyte NF54 Day 2'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_3 = 'Winzler 2005 Gametocyte NF54 Day 3'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_4 = 'Winzler 2005 Gametocyte NF54 Day 4'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_5 = 'Winzler 2005 Gametocyte NF54 Day 5'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_6 = 'Winzler 2005 Gametocyte NF54 Day 6'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_7 = 'Winzler 2005 Gametocyte NF54 Day 7'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_8 = 'Winzler 2005 Gametocyte NF54 Day 8'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_9 = 'Winzler 2005 Gametocyte NF54 Day 9'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_10 = 'Winzler 2005 Gametocyte NF54 Day 10'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_11 = 'Winzler 2005 Gametocyte NF54 Day 11'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_12 = 'Winzler 2005 Gametocyte NF54 Day 12'
+  WINZELER_2005_GAMETOCYTE_NF54_DAY_13 = 'Winzler 2005 Gametocyte NF54 Day 13'
   WINZELER_2005_GAMETOCYTE_PANOVA = 'Winzler 2005 Gametocyte Panova'
   WINZELER_2005_GAMETOCYTE_PC = 'Winzler 2005 Gametocyte PC'
+
+end
+
+class MicroarrayTimepoint < ActiveRecord::Base
+  has_many :microarray_measurements, :dependent => :destroy
+  belongs_to :microarray
   
+  include MicroarrayTimepointNames
 end
