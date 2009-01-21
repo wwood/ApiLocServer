@@ -27,11 +27,11 @@ class ExpressionContextsController < ApplicationController
 @coding_region = CodingRegion.f(params[:id])
 @species = @coding_region.species
     @expression_context = ExpressionContext.new
-@localisations = Localisation.all(:joins {
+@localisations = Localisation.all(:joins => {
 :expressed_coding_regions => {:gene => {:scaffold => :species}}},
 :conditions => {:species => {:id => @species.id}}
 )
-@developmental_stages = DevelopmentalStage.all(:joins {
+@developmental_stages = DevelopmentalStage.all(:joins => {
 :expressed_coding_regions => {:gene => {:scaffold => :species}}},
 :conditions => {:species => {:id => @species.id}}
 )

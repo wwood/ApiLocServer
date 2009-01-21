@@ -5660,7 +5660,7 @@ class Script < ActiveRecord::Base
     ].join("\t")
     
     array_constants = [
-      #      [MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL], # to check the measurements are coming out correctly
+#            [MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL], # to check the measurements are coming out correctly
       MicroarrayTimepoint::WINZELER_RING_TIMEPOINT_NAMES,
       MicroarrayTimepoint::WINZELER_TROPHOZOITE_TIMEPOINT_NAMES,
       MicroarrayTimepoint::WINZELER_SCHIZONT_TIMEPOINT_NAMES
@@ -5677,6 +5677,10 @@ class Script < ActiveRecord::Base
       
       puts results.join("\t")
     end
+  end
+  
+  def nuclear_proteome_winzeler_classification
+    
   end
 
   def elegans_only_and_lethal
