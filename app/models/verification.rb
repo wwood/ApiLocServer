@@ -705,11 +705,36 @@ SRRKRRMPEGLDN*).join('')
     raise unless points.length == 1
     raise unless 48 == points[0].measurement
     
+    
+    # Test random one from the middle
+    code = CodingRegion.f('PF11_0482')
+    timepoints = code.microarray_measurements.all(:joins => :microarray_timepoint,
+      :conditions => "microarray_timepoints.microarray_id = #{microarray.id}"
+    )
+    raise unless timepoints.length == 39
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2003_EARLY_SCHIZONT_SORBITOL}
+    raise unless points.length == 1
+    raise unless 137 == points[0].measurement
+    
+    # Test very last one
+    code = CodingRegion.f('PFI1220w')
+    timepoints = code.microarray_measurements.all(:joins => :microarray_timepoint,
+      :conditions => "microarray_timepoints.microarray_id = #{microarray.id}"
+    )
+    raise unless timepoints.length == 39
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_13}
+    raise unless points.length == 1
+    raise unless 339 == points[0].measurement
+        
     # In PlasmoDB 5.5 upload, there is 77 that do not have any associated data, and 5159 entries in the spreadsheet
     # This means there must be 39*(5159-77) entries uploaded to this microarray
     # Actually, that's not technically correct since they aren't all in the same microarray, but eh to that
     count = MicroarrayMeasurement.count(:joins => :microarray_timepoint, :conditions => "microarray_id=#{microarray.id}")
     expected = 39*(5159-77)
-    raise Exception, "Incorrect number of timepoints found: #{count}, expected #{expected}" unless count == expected
+    raise Exception, "Incorrect number of measurements found: #{count}, expected #{expected}" unless count == expected
+  end
+  
+  def voss_nuclear_proteome_2008_upload
+    raise unless PlasmodbGeneList.find_all_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.count == 1091
   end
 end

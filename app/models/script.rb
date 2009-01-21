@@ -5633,6 +5633,20 @@ class Script < ActiveRecord::Base
     end
   end
   
+  
+  def voss_nuclear_proteome_2008_upload
+    codes = []
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/VossNuclearProteome/October2008List.csv",
+      :col_sep => "\t", :headers => true) do |row|
+      codes.push row['Protein AC']
+    end
+    
+    PlasmodbGeneList.create_gene_list(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008, Species::FALCIPARUM, codes)
+    
+    puts "Done. Checking.."
+    Verification.new.voss_nuclear_proteome_2008_upload
+  end
+  
 
   # for each of the nuclear proteins in the proteomics list, print out the average and list of winzeler 2003 cell
   # cycle absolute counts
@@ -5653,7 +5667,8 @@ class Script < ActiveRecord::Base
     ]
     
     # For each gene in the proteome list
-    PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.falciparum.each do |code|
+    PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.falciparum.all(
+      :order => 'plasmodb_gene_list_entries.id').each do |code|
       results = [code.string_id]
       
       array_constants.each do |timepoints|
