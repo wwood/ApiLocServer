@@ -740,15 +740,11 @@ class CodingRegion < ActiveRecord::Base
   # it if this does not exist
   def signalp_however
     return nil if aaseq.nil?
-    puts "searching for signal for #{string_id}"
     return signal_p_cache if signal_p_cache #returned cached if possible
-    puts "No cache found for #{string_id}"
 
     # otherwise just calculate the bastard
     result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
-    puts "Uploading SignalP for #{string_id}"
     res = SignalPCache.create_from_result(id, result)
-    puts "Finished Uploading SignalP for #{string_id}"
     self.signal_p_cache = res
     return res
   end

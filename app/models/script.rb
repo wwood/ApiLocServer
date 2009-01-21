@@ -7034,6 +7034,7 @@ PFL2395c
     exportpred
     pexel
     hts
+    cruft
     )
     
     [
@@ -7053,12 +7054,13 @@ PFL2395c
               predicted.transmembrane_type,
               predicted.transmembrane_domains[0].start,
               predicted.transmembrane_domains[0].stop,
-              predicted.transmembrane_domains[0].stop.to_i - predicted.transmembrane_domains[0].start.to_i,
+              predicted.transmembrane_domains[0].length,
               code.sequence_without_signal_peptide.length - predicted.transmembrane_domains[0].stop,
               code.signalp_however.signal?,
               code.export_pred_however.predicted?,
-              PlasmodbGeneList.find_by_description('pexelPlasmoDB5.5').coding_regions.all(:conditions => ["coding_regions.id = ?", code.id]) ? 'yes': 'no',
-              PlasmodbGeneList.find_by_description('htPlasmoDB5.5').coding_regions.all(:conditions => ["coding_regions.id = ?", code.id]) ? 'yes': 'no'
+              PlasmodbGeneList.find_by_description('pexelPlasmoDB5.5').coding_regions.all(:conditions => ["coding_regions.id = ?", code.id]).empty? ? 'no': 'yes',
+              PlasmodbGeneList.find_by_description('htPlasmoDB5.5').coding_regions.all(:conditions => ["coding_regions.id = ?", code.id]).empty? ? 'no': 'yes',
+              code.falciparum_cruft?
             ]
           end
         end
