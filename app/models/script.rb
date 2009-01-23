@@ -7067,4 +7067,54 @@ PFL2395c
       end
     end
   end
+  
+  def apiloc_winzeler_bias
+    array_constants = [
+      WINZELER_2003_EARLY_RING_SORBITOL,
+      WINZELER_2003_LATE_RING_SORBITOL,
+      WINZELER_2003_EARLY_TROPHOZOITE_SORBITOL,
+      WINZELER_2003_LATE_TROPHOZOITE_SORBITOL,
+      WINZELER_2003_EARLY_SCHIZONT_SORBITOL,
+      WINZELER_2003_LATE_SCHIZONT_SORBITOL,
+      WINZELER_2003_MEROZOITE_SORBITOL,
+      WINZELER_2003_EARLY_RING_TEMPERATURE,
+      WINZELER_2003_LATE_RING_TEMPERATURE,
+      WINZELER_2003_EARLY_TROPHOZOITE_TEMPERATURE,
+      WINZELER_2003_LATE_TROPHOZOITE_TEMPERATURE,
+      WINZELER_2003_EARLY_SCHIZONT_TEMPERATURE,
+      WINZELER_2003_LATE_SCHIZONT_TEMPERATURE,
+      WINZELER_2003_MEROZOITE_TEMPERATURE,
+
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_1,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_2,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_3,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_4,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_5,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_6,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_7,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_8,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_9,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_10,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_11,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_12,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_13
+    ]
+    
+    # Headers
+    puts [
+      'PlasmoDB ID',
+      array_constants
+    ].flatten.join("\t")
+    
+    # For each gene in the proteome list
+    CodingRegion.falciparum.localised.all.each do |code|
+      results = [code.string_id]
+      
+      array_constants.each do |timepoints|
+        results.push code.microarray_measurements.timepoint_names([timepoints].flatten).all.reach.percentile.average
+      end
+      
+      puts results.join("\t")
+    end
+  end
 end

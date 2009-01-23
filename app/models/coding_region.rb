@@ -139,6 +139,9 @@ class CodingRegion < ActiveRecord::Base
       :conditions => ['plasmodb_gene_lists.description = ?', gene_list_name]
     }
   }
+  named_scope :localised, {
+    :joins => :expressed_localisations
+  }
   
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'

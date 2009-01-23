@@ -737,4 +737,15 @@ SRRKRRMPEGLDN*).join('')
   def voss_nuclear_proteome_2008_upload
     raise unless PlasmodbGeneList.find_all_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.count == 1091
   end
+  
+  def percentiles
+    nums = []
+    CodingRegion.falciparum(:joins => :microarray_measurements).all.each do |code|
+      r = code.microarray_measurements.timepoint_names([MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL].flatten).all.reach.percentile.average
+      next if r.nil?
+      puts r
+      nums.push r
+    end
+    puts "Average: #{nums.average}"
+  end
 end
