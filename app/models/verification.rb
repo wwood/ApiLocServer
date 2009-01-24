@@ -748,4 +748,20 @@ SRRKRRMPEGLDN*).join('')
     end
     puts "Average: #{nums.average}"
   end
+
+  def neafsey
+    raise unless CodingRegion.f('PFC0485w').neafsey_synonymous_snp.value == 1
+    raise unless CodingRegion.f('MAL7P1.227').neafsey_synonymous_snp.value == 2
+    raise unless CodingRegion.f('MAL7P1.227').neafsey_non_synonymous_snp.value == 2
+    
+    # ben@uyen:~/phd/gnr$ grep 'Non-Synon' /home/ben/phd/data/falciparum/polymorphism/SNP/NeafseySchaffner2008-gb-2008-9-12-r171-s5.csv |awk '{print $5}' |uniq |wc -l
+    # 441
+    raise unless NeafseyNonSynonymousSnp.count == 441
+    # ben@uyen:~/phd/gnr$ grep 'Synon' /home/ben/phd/data/falciparum/polymorphism/SNP/NeafseySchaffner2008-gb-2008-9-12-r171-s5.csv |grep -v 'Non-Syn' |awk '{print $5}' |uniq |wc -l
+    # 257
+    raise unless NeafseySynonymousSnp.count == 257
+    # ben@uyen:~/phd/gnr$ grep 'Intronic' /home/ben/phd/data/falciparum/polymorphism/SNP/NeafseySchaffner2008-gb-2008-9-12-r171-s5.csv |grep -v 'Non-Syn' |awk '{print $5}' |uniq |wc -l
+    # 36
+    raise unless NeafseyIntronicSnp.count == 36
+  end
 end

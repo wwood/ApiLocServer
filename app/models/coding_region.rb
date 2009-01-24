@@ -56,6 +56,9 @@ class CodingRegion < ActiveRecord::Base
   has_one :it_non_synonymous_snp
   has_one :pf_clin_synonymous_snp
   has_one :pf_clin_non_synonymous_snp
+  has_one :neafsey_intronic_snp
+  has_one :neafsey_synonymous_snp
+  has_one :neafsey_non_synonymous_snp
   
   # Worm project
   # elegans

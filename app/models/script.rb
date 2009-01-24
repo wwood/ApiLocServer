@@ -7117,4 +7117,58 @@ PFL2395c
       puts results.join("\t")
     end
   end
+
+  def upload_neafsey_2008_snp_data
+    hash_code_to_syn_snp = {}
+    hash_code_to_non_syn_snp = {}
+    hash_code_to_intronic_snp = {}
+    
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/polymorphism/SNP/NeafseySchaffner2008-gb-2008-9-12-r171-s5.csv",
+      :col_sep => "\t",
+      :headers => true
+    ) do |row|
+      gene_id = row['Gene']
+      gene_id.gsub!('_','.') if gene_id and gene_id.match(/^MAL/)
+      case row['SNP Type']
+      when 'Non-Synonymous'
+        hash_code_to_non_syn_snp[gene_id] ||= 0
+        hash_code_to_non_syn_snp[gene_id] += 1
+      when 'Synonymous'
+        hash_code_to_syn_snp[gene_id] ||= 0
+        hash_code_to_syn_snp[gene_id] += 1
+      when 'Intronic'
+        hash_code_to_intronic_snp[gene_id] ||= 0
+        hash_code_to_intronic_snp[gene_id] += 1
+      when 'Intergenic'
+      else
+        raise Exception, "Parsing problem on line #{row.inspect}"
+      end
+    end
+    
+    # Now upload each
+    hash_code_to_syn_snp.each do |gene_id, count|
+      code = CodingRegion.f(gene_id)
+      if code.nil?
+        $stderr.puts "Couldn't find #{gene_id}"
+        next
+      end
+      NeafseySynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, count)
+    end
+    hash_code_to_non_syn_snp.each do |gene_id, count|
+      code = CodingRegion.f(gene_id)
+      if code.nil?
+        $stderr.puts "Couldn't find #{gene_id}"
+        next
+      end
+      NeafseyNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, count)
+    end
+    hash_code_to_intronic_snp.each do |gene_id, count|
+      code = CodingRegion.f(gene_id)
+      if code.nil?
+        $stderr.puts "Couldn't find #{gene_id}"
+        next
+      end
+      NeafseyIntronicSnp.find_or_create_by_coding_region_id_and_value(code.id, count)
+    end
+  end
 end
