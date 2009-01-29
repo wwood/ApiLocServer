@@ -476,8 +476,8 @@ class Script < ActiveRecord::Base
       "#{DATA_DIR}/falciparum/localisation/tRNASynthetases/cytosolic.Stuart.20080220.txt",
       "#{DATA_DIR}/falciparum/localisation/exportpred/exportPred10.txt",
       "#{DATA_DIR}/falciparum/exportpred/exportome.csv",
-#      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_HIGH_confid_set3",
-#      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_LOWER_confid_set",
+      #      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_HIGH_confid_set3",
+      #      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_LOWER_confid_set",
       "#{DATA_DIR}/falciparum/localisation/pexelPlasmoDB5.5.txt",
       "#{DATA_DIR}/falciparum/localisation/htPlasmoDB5.5.txt"
     ]
@@ -4317,7 +4317,7 @@ class Script < ActiveRecord::Base
     derisi_microarray_to_database2
   end
   
-  def localisation_spreadsheet
+  def localisation_spreadsheet_arff
     sep = "\t"
     
     # headings
@@ -4347,6 +4347,9 @@ class Script < ActiveRecord::Base
       'Number of Non-Synonymous IT SNPs according to Jeffares et al',
       'Number of Synonymous Clinical SNPs according to Jeffares et al',
       'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+      'Number of Synonymous SNPs according to Neafsey et al',
+      'Number of Non-Synonymous SNPs according to Neafsey et al',
+      'Number of Intronic SNPs according to Neafsey et al'
     ]
     derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
     headings.push derisi_timepoints.collect{|t| 
@@ -4354,7 +4357,8 @@ class Script < ActiveRecord::Base
     }
     
     headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
-    puts headings.join(sep)
+    #    puts headings.join(sep)
+    all_data = []
     
     # genes that are understandably not in the orthomcl databases, because
     # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
@@ -4426,7 +4430,7 @@ class Script < ActiveRecord::Base
             end
           end
         end
-      rescue UnexpectedOrthomclGeneCount => e
+      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
         # This happens for singlet genes
       end
       [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
@@ -4437,7 +4441,17 @@ class Script < ActiveRecord::Base
       #      'Number of Non-Synonymous IT SNPs according to Jeffares et al',
       #      'Number of Synonymous Clinical SNPs according to Jeffares et al',
       #      'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
-      [:it_synonymous_snp, :it_non_synonymous_snp, :pf_clin_synonymous_snp, :pf_clin_non_synonymous_snp].each do |method|
+      #      'Number of Synonymous SNPs according to Neafsey et al',
+      #      'Number of Non-Synonymous SNPs according to Neafsey et al',
+      #      'Number of Intronic SNPs according to Neafsey et al'
+      [:it_synonymous_snp, 
+        :it_non_synonymous_snp, 
+        :pf_clin_synonymous_snp, 
+        :pf_clin_non_synonymous_snp,
+        :neafsey_synonymous_snp,
+        :neafsey_non_synonymous_snp,
+        :neafsey_intronic_snp
+      ].each do |method|
         if s = code.send(method)
           results.push s.value
         else
@@ -4467,8 +4481,16 @@ class Script < ActiveRecord::Base
       if results.length != headings.length
         raise Exception, "Bad number of entries in the row for code #{code.inspect}: #{results.inspect}"
       end
-      puts results.join(sep)
+      all_data.push(results)
+#      puts results.join(sep)
     end
+    
+    rarff_relation = Rarff::Relation.new('PfalciparumLocalisation')
+    rarff_relation.instances = all_data
+    headings.each_with_index do |heading, index|
+      rarff_relation.attributes[index].name = heading
+    end
+    puts rarff_relation.to_arff
   end
   
   def test_spreadsheet
@@ -6868,13 +6890,19 @@ PFL2395c
       next unless code.uniq_top?
       
       # SignalP
-      attribute_names.push 'SignalP' if first_code
+      attribute_names.push 'SignalPSignal' if first_code
       h = code.signalp_however
       results.push h.signal?
+      attribute_names.push 'SignalPnn_D' if first_code
+      h = code.signalp_however
+      results.push h.nn_D
+      attribute_names.push 'SignalPhmm_S' if first_code
+      h = code.signalp_however
+      results.push h.hmm_Sprob
       
       # PlasmoAP
       attribute_names.push 'PlasmoAP' if first_code
-      results.push code.amino_acid_sequence.plasmo_a_p.points
+      results.push code.amino_acid_sequence.plasmo_a_p.apicoplast_targeted?
       
       # ExportPred
       attribute_names.push 'ExportPred' if first_code
@@ -6882,10 +6910,11 @@ PFL2395c
       
       # Final result
       attribute_names.push 'Localisation' if first_code
-      results.push code.tops[0].name
+      results.push code.tops[0].name.gsub(' ','_')
       
-      first_code = false
       all_results.push results.flatten
+      #      break unless first_code
+      first_code = false
     end
     
     
@@ -6895,7 +6924,7 @@ PFL2395c
     attribute_names.each_with_index do |name, index|
       rel.attributes[index].name = name
     end
-    rel.attributes[all_results.length-1] = "{#{TopLevelLocalisation.all.reach.name.join(', ')}}"
+    rel.attributes[rel.attributes.length-1].type = "{#{TopLevelLocalisation.all.reach.name.join(', ')}}"
     puts rel.to_s
   end
   
@@ -7039,8 +7068,8 @@ PFL2395c
     
     [
       :tmhmm, 
-#      :tmpred, 
-#      :toppred
+      #      :tmpred, 
+      #      :toppred
     ].each do |predictor|
       FasterCSV.open("#{PHD_DIR}/yet_another_florian/#{predictor}.csv", "w", :col_sep => "\t") do |csv|
         csv << headers

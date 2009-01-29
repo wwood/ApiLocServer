@@ -1,3 +1,4 @@
+require 'bio'
 require 'gmars'
 
 class CodingRegion < ActiveRecord::Base
@@ -584,8 +585,15 @@ class CodingRegion < ActiveRecord::Base
       # cached
       return preds[0].localisation
     else # not cached, run from scratch
-      Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
-    end    
+      cache_wolf_psort_predictions
+      preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+      if preds.length > 0
+        # cached
+        return preds[0].localisation
+      else
+        return nil
+      end
+    end
   end
   
   # All the highest localisations, including those that came second that really
@@ -604,7 +612,7 @@ class CodingRegion < ActiveRecord::Base
   end
   
   # Read only from the cache, don't run it if no cache exists
-  def cached_wold_psort_localisation(psort_organism_type)
+  def cached_wolf_psort_localisation(psort_organism_type)
     # Check if they have already been cached
     preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
     if preds.length > 0
@@ -622,14 +630,17 @@ class CodingRegion < ActiveRecord::Base
     end
     
     Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      logger.warn "Running WoLF_PSORT using organism type '#{organism_type}' on #{string_id}"
       result = Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, organism_type)
       next if !result #skip sequences that are too short
       
       result.score_hash.each do |loc, score|
-        WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
-      end
-      
+        w = WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
+        self.wolf_psort_predictions << w
+      end  
     end
+    
+    self.wolf_psort_predictions
   end
   
   def wolf_psort_localisations_line(organism_type)

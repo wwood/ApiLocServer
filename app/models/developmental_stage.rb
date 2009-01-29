@@ -38,6 +38,7 @@ class DevelopmentalStage < ActiveRecord::Base
       'late troph' => 'trophozoite',
       'late trophozoite' => 'trophozoite',
       'late schizont' => 'schizont',
+      'mature schizont' => 'schizont',
       'blood stages' => ['ring', 'trophozoite', 'schizont']
     }.each do |key, value|
       if value.kind_of?(Array)

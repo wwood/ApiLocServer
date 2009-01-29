@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090117073412) do
+ActiveRecord::Schema.define(:version => 20090121033832) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -128,8 +128,6 @@ ActiveRecord::Schema.define(:version => 20090117073412) do
     t.datetime "updated_at"
   end
 
-  add_index "coding_region_network_edges", ["coding_region_id_first", "coding_region_id_second", "network_id"], :name => "index_coding_region_network_edges_on_network_id_and_coding_regi", :unique => true
-
   create_table "coding_region_phenotype_informations", :force => true do |t|
     t.integer  "coding_region_id"
     t.integer  "phenotype_information_id"
@@ -209,10 +207,12 @@ ActiveRecord::Schema.define(:version => 20090117073412) do
 
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
-    t.string   "name"
+    t.string   "name",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "developmental_stages", ["name"], :name => "index_developmental_stages_on_name"
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false
@@ -421,6 +421,8 @@ ActiveRecord::Schema.define(:version => 20090117073412) do
 
   add_index "microarray_measurements", ["coding_region_id", "measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_co"
   add_index "microarray_measurements", ["coding_region_id"], :name => "index_microarray_measurements_on_coding_region_id"
+  add_index "microarray_measurements", ["measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_me"
+  add_index "microarray_measurements", ["microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id"
 
   create_table "microarray_timepoints", :force => true do |t|
     t.integer  "microarray_id"

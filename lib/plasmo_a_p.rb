@@ -151,6 +151,8 @@ module Bio
     def apicoplast_targeted?
       @points >= 4
     end
+    
+    alias_method :predicted, :apicoplast_targeted?
   end
 end # End module Bio
 

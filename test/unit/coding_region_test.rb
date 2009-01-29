@@ -212,4 +212,13 @@ class CodingRegionTest < ActiveSupport::TestCase
       assert_equal nil, sp.score #annoyingly exportpred doesn't seem to give negative scores - this is a bug in the code
     end  
   end
+  
+  def test_wolf_psort_predictions
+    # cached one is for testing, but is actually wrong, so deleting all of them yields a
+    # different result
+    assert_equal 'nucl', CodingRegion.find(1).wolf_psort_localisation('plant')
+    
+    WolfPsortPrediction.destroy_all
+    assert_equal 'cyto', CodingRegion.find(1).wolf_psort_localisation('plant')
+  end
 end

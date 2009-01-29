@@ -2,12 +2,16 @@
 
 one:
   coding_region_id: 1
-  organism_type: MyString
-  localisation: MyString
+  organism_type: plant
+  localisation: nucl
   score: 9.99
-
 two:
   coding_region_id: 1
-  organism_type: MyString
-  localisation: MyString
-  score: 9.99
+  organism_type: plant
+  localisation: cyto
+  score: 9.98
+three:
+  coding_region_id: 1
+  organism_type: fungi
+  localisation: memb
+  score: 10
