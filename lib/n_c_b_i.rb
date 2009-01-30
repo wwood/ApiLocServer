@@ -2,12 +2,12 @@ require 'rubygems'
 
 require 'bio'
 require 'tempfile'
-require 'reach' #I should publish this to rubyforge really
+require 'reach'
 
 module Bio
   class SegmaskerWrapper    
     # Return a SegmaskerResult object corresponding to the Segmask Result
-    def self.calculate(amino_acid_sequence)
+    def calculate(amino_acid_sequence)
       Tempfile.open('segmasker_wrapper_input') do |tempfile|
         tempfile.puts ">segmaskerWrapper"
         tempfile.puts amino_acid_sequence

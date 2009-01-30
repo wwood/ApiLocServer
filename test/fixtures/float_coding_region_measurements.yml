@@ -1,11 +1,6 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
-one:
-  type: MyString
+SegmaskerLowComplexityPercentage:
+  type: SegmaskerLowComplexityPercentage
   coding_region_id: 1
-  value: 1.5
-
-two:
-  type: MyString
-  coding_region_id: 1
-  value: 1.5
+  value: 0.75

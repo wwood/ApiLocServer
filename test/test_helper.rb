@@ -63,7 +63,7 @@ class Test::Unit::TestCase
     yield
     
     # Checking at the end
-    if differences == 1
+    unless differences.kind_of?(Array)
       # everything is incremented by one
       i = 0
       for initial in initial_values

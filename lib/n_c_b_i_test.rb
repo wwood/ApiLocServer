@@ -13,7 +13,7 @@ class NCBITest < Test::Unit::TestCase
     #8 - 20
     #18 - 31
     #51 - 71
-    output = Bio::SegmaskerWrapper.calculate('MVSFSKNKVLSAAVFASVLLLDNNNSAFNNNLCSKNAKGLNLNKRLLHETQAHVDDAHHAHHVADAHHAHHV')
+    output = Bio::SegmaskerWrapper.new.calculate('MVSFSKNKVLSAAVFASVLLLDNNNSAFNNNLCSKNAKGLNLNKRLLHETQAHVDDAHHAHHVADAHHAHHV')
     assert_equal 3, output.masked_segments.length
     assert_equal 20, output.masked_segments[0].stop
   end

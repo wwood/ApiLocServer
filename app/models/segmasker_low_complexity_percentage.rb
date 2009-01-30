@@ -1,0 +1,2 @@
+class SegmaskerLowComplexityPercentage < FloatCodingRegionMeasurement
+end

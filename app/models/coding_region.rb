@@ -1,5 +1,6 @@
 require 'bio'
 require 'gmars'
+require 'n_c_b_i'
 
 class CodingRegion < ActiveRecord::Base
   
@@ -82,6 +83,7 @@ class CodingRegion < ActiveRecord::Base
   # cached results
   has_one :export_pred_cache, :dependent => :destroy
   has_one :signal_p_cache, :dependent => :destroy
+  has_one :segmasker_low_complexity_percentage, :dependent => :destroy
   
   # website stuff
   has_many :user_comments
@@ -768,6 +770,19 @@ class CodingRegion < ActiveRecord::Base
   
   def signal?
     signalp_however.signal?
+  end
+  
+  # Return the saved signalp result, or calculate
+  # it if this does not exist
+  def segmasker_low_complexity_percentage_however
+    return nil if aaseq.nil?
+    return segmasker_low_complexity_percentage.value if segmasker_low_complexity_percentage #returned cached if possible
+
+    # otherwise just calculate the bastard
+    result = Bio::SegmaskerWrapper.new.calculate(aaseq)
+    res = SegmaskerLowComplexityPercentage.new(:value => (result.total_masked_length.to_f/aaseq.length.to_f))
+    self.segmasker_low_complexity_percentage = res
+    return res.value
   end
   
   def hypothetical_by_annotation?

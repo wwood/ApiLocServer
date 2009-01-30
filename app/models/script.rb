@@ -4488,7 +4488,7 @@ class Script < ActiveRecord::Base
     rarff_relation = Rarff::Relation.new('PfalciparumLocalisation')
     rarff_relation.instances = all_data
     headings.each_with_index do |heading, index|
-      rarff_relation.attributes[index].name = heading
+      rarff_relation.attributes[index].name = heading.gsub(' ','_')
     end
     puts rarff_relation.to_arff
   end
