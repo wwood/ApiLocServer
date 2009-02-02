@@ -4349,7 +4349,8 @@ class Script < ActiveRecord::Base
       'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
       'Number of Synonymous SNPs according to Neafsey et al',
       'Number of Non-Synonymous SNPs according to Neafsey et al',
-      'Number of Intronic SNPs according to Neafsey et al'
+      'Number of Intronic SNPs according to Neafsey et al',
+      'Percentage of Amino Acid Sequence Low Complexity according to NCBI Segmasker'
     ]
     derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
     headings.push derisi_timepoints.collect{|t| 
@@ -4372,10 +4373,12 @@ class Script < ActiveRecord::Base
       :select => 'distinct(coding_regions.*)',
       :joins => {:expressed_localisations => :malaria_top_level_localisation}
     ).each do |code|
+      next unless code.uniq_top?
+      
       results = [
         code.string_id,
         code.annotation.annotation,
-        code.tops.pick(:name).uniq.sort.join(', '),  # Top level localisations
+        code.tops.pick(:name).gsub(' ','_').uniq.sort.join(', '),  # Top level localisations
         code.amino_acid_sequence.sequence,
       ]
       
@@ -4460,6 +4463,8 @@ class Script < ActiveRecord::Base
       end
       
       
+      # Segmasker
+      results.push code.segmasker_low_complexity_percentage_however
 
 
       # Microarray DeRisi
@@ -4490,6 +4495,7 @@ class Script < ActiveRecord::Base
     headings.each_with_index do |heading, index|
       rarff_relation.attributes[index].name = heading.gsub(' ','_')
     end
+    rarff_relation.attributes[2].type = "{#{TopLevelLocalisation.all.reach.name.join(',').gsub(' ','_')}}"
     puts rarff_relation.to_arff
   end
   

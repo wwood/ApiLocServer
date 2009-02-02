@@ -762,6 +762,7 @@ class CodingRegion < ActiveRecord::Base
     return signal_p_cache if signal_p_cache #returned cached if possible
 
     # otherwise just calculate the bastard
+    logger.debug "Running SignalP on #{string_id}"
     result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
     res = SignalPCache.create_from_result(id, result)
     self.signal_p_cache = res
@@ -779,6 +780,7 @@ class CodingRegion < ActiveRecord::Base
     return segmasker_low_complexity_percentage.value if segmasker_low_complexity_percentage #returned cached if possible
 
     # otherwise just calculate the bastard
+    logger.debug "Running Segmasker on #{string_id}"
     result = Bio::SegmaskerWrapper.new.calculate(aaseq)
     res = SegmaskerLowComplexityPercentage.new(:value => (result.total_masked_length.to_f/aaseq.length.to_f))
     self.segmasker_low_complexity_percentage = res
