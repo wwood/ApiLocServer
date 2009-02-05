@@ -8,13 +8,19 @@ class Species < ActiveRecord::Base
   TOXOPLASMA_GONDII_NAME = TOXOPLASMA_GONDII
   ELEGANS_NAME = 'elegans'
   BABESIA_BOVIS_NAME = 'Babesia bovis'
+  YEAST_NAME= 'yeast',
+   MOUSE_NAME = 'mouse',
+   DROSOPHILA_NAME= 'fly'
   
   has_many :scaffolds, :dependent => :destroy
   
   ORTHOMCL_THREE_LETTERS = {
     FALCIPARUM => 'pfa',
     ELEGANS_NAME => 'cel',
-    TOXOPLASMA_GONDII_NAME => 'tgo'
+    #TOXOPLASMA_GONDII_NAME => 'tgo',
+    YEAST_NAME=> 'sce',
+    MOUSE_NAME=> 'mmu',
+    DROSOPHILA_NAME=> 'dme'
   }
   
   def update_known_three_letters

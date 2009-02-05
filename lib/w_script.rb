@@ -59,7 +59,7 @@ class WScript
           else
             phenotype_count += 1
           end
-        rescue UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
+        rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
           missing_count += 1
         end
       end
@@ -71,6 +71,9 @@ class WScript
     lc.missing_count = missing_count
     return lc
   end
+  
+
+  
   
   def lethal_gene_comparisons(orthomcl_groups, species_orthomcl_code)
     
@@ -204,6 +207,7 @@ class WScript
     puts compute_lethal_count(groups, 'cel').to_s
   end
   
+  
   def cel_vs_all
     overlaps = [
       ['cel','dme'],
@@ -222,6 +226,41 @@ class WScript
     end
   end
   
+    def all_genes_including_genes_not_in_orthomclgroups
+    species = [
+      # ['cel']  
+      # ['mmu'] 
+        #['dme']
+        ['sce']
+    ]
+     lc = LethalCount2.new
+     lc.total_count = OrthomclGene.code(species).count
+         
+    lethal_count = 0
+    phenotype_count = 0
+    missing_count = 0
+        OrthomclGene.code(species).each do |og|       
+          
+          begin
+           lethal = og.single_code.lethal?
+          if lethal
+            phenotype_count += 1
+            lethal_count += 1
+          elsif lethal.nil?
+          else
+            phenotype_count += 1
+          end
+        rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
+          missing_count += 1
+        end
+      end
+    
+    lc.lethal_count = lethal_count
+    lc.phenotype_count = phenotype_count
+    lc.missing_count = missing_count
+      puts lc.to_s
+    end
+    
   
   def lethal_orthology
     overlaps = [
@@ -263,6 +302,25 @@ class WScript
       puts compute_lethal_count(groups, arrays[1]).to_s
     end    
   end
+  
+  def yeast_only_lethal_orthology
+    overlaps = [
+      [['sce'],['sce']],
+      [['sce','cel'],['sce']],
+      [['sce','dme'],['sce']],
+      [['sce','mmu'],['sce']],
+      [['sce','dme','mmu'],['sce']],
+      [['sce','mmu','cel'],['sce']],
+      [['sce','dme','cel'],['sce']],
+      [['sce','dme','mmu','cel'],['sce']]
+    ]
+    overlaps.each do |arrays|
+      p arrays
+      groups = OrthomclGroup.all_overlapping_groups(arrays[0])
+      puts compute_lethal_count(groups, arrays[1]).to_s
+    end    
+  end
+  
   
   def lethal_orthology_no_human
     overlaps = [
@@ -411,6 +469,41 @@ class WScript
       puts compute_lethal_count(nopara, arrays[1]).to_s
     end    
   end
+  
+    def lethal_no_paralogues_multiple_spp_mouse_only
+    
+    overlaps = [
+      [['mmu'],['mmu']],
+      [['mmu','cel'],['mmu']],
+      [['mmu','dme'],['mmu']],
+      [['mmu','sce'],['mmu']],
+      [['mmu','dme','sce'],['mmu']],
+      [['mmu','sce','cel'],['mmu']],
+      [['mmu','dme','cel'],['mmu']],
+      [['mmu','dme','sce','cel'],['mmu']]    
+    ]
+    nopara = nil
+       
+    overlaps.each do |arrays|
+      nopara = Array.new
+      p arrays
+      groups = OrthomclGroup.all_overlapping_groups(arrays[0])
+       
+      #only keep groups where there are 1 to 1 orthologues i.e no paralogues for the selected species
+      arrays[0].each do |species_code|
+        groups.reject! do |g|
+          g.orthomcl_genes.code(species_code).count > 1
+        end
+      end      
+ 
+      nopara = groups
+      #count the lethal genes in these groups
+      puts compute_lethal_count(nopara, arrays[1]).to_s
+    end    
+  end
+  
+  
+  
   
   def lethal_no_paralogues_in_test_species_only
     
@@ -1072,7 +1165,6 @@ class WScript
     end
   end
     
-
 end
 
   class LethalCount
@@ -1080,5 +1172,12 @@ end
   
     def to_s
       "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes) from #{@group_count} orthomcl groups. #{@missing_count} didn't have matching coding regions"
+    end
+  end
+    class LethalCount2
+    attr_accessor :lethal_count, :total_count, :phenotype_count, :missing_count
+  
+    def to_s
+      "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes). #{@missing_count} didn't have matching coding regions"
     end
   end

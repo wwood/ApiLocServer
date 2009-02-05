@@ -10,8 +10,8 @@ require 'reach'
 
 
 class Mscript
-
-  DATA_DIR = "#{ENV['HOME']}/Workspace/Rails/essentiality"
+  DATA_DIR = "#{ENV['HOME']}/data"
+  #DATA_DIR = "#{ENV['HOME']}/Workspace/Rails/essentiality"
   WORK_DIR = "#{ENV['HOME']}/Workspace"
 
   def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv")
@@ -180,7 +180,54 @@ class Mscript
     puts "Uploaded #{count} links"
 
   end
+  
+  def link_dros_genes_and_coding_regions_genes_not_in_groups
+  #def link_mouse_genes_and_coding_regions_genes_not_in_groups
+    interesting_orgs = ['dme']
+    #interesting_orgs = ['mmu']
+    count = 0
+    
+    
+    # Maybe a bit heavy handed but ah well.
+    OrthomclGene.code(interesting_orgs).each do |orthomcl_gene|
 
+      #iterate over each orthomcl protein id (eg dme|CGxxxx)
+      #get gene name by first getting orthomcl protein id from OrthomclGene table and then then using that to get the gene id from the annotation information in the OrthomclGeneOfficialData table  
+
+      e = orthomcl_gene.orthomcl_gene_official_data
+
+
+      #the annotation line in orthomcl_gene_official_data =
+      #|  CG1977|ENSF00000000161|Spectrin alpha chain. [Source:Uniprot/SWISSPROT;Acc:P13395] |
+
+      #split on bars and extract first without spaces
+      splits = e.annotation.split('|')
+      name = splits[0].strip #this is the gene id
+      #create coding region for this gene id and the protein name
+
+      #extract protein id
+      matches = orthomcl_gene.orthomcl_name.match('(.*)\|(.*)')
+      pname = matches[2]
+
+      # get primary id for gene
+      a = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.fly_name)
+      #a = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.mouse_name)
+      if !a
+        #        puts "#{name} not found in gene table"
+        next
+      else
+        count += 1
+
+        OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
+          orthomcl_gene.id,
+          a.id
+        )
+      end
+    end
+    
+    puts "Uploaded #{count} links"
+
+  end
   
   def upload_mouse_phenotype_descriptions(filename="#{WORK_DIR}/Gasser/Essentiality/Mouse/VOC_MammalianPhenotype.rpt")
     CSV.open(filename,
@@ -333,17 +380,17 @@ class Mscript
     return lethal_groups
   end
   
-      def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
+  def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups") 
-  #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Celegans_database_analysis/Checking_the_approx_500genes_in_ortho_not_in_db/genes_in_orthomcl_not_in_dbresults.with_species_code")
-  #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Method_used_seqclean_repeatmasker_WITHOUT_CAP3/Database_Queries/22_cel_gene.ids_with_species_code")
+    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Celegans_database_analysis/Checking_the_approx_500genes_in_ortho_not_in_db/genes_in_orthomcl_not_in_dbresults.with_species_code")
+    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Method_used_seqclean_repeatmasker_WITHOUT_CAP3/Database_Queries/22_cel_gene.ids_with_species_code")
     # def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Acaninum_analysis/Database_queries/ALL_acan_gps_get_elegans.gene_ids_first3600")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Acaninum_analysis/BLAST_results/ALL_acan_gps_get_elegans.gene_ids")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Acaninum_analysis/BLAST_results/acan_cel_hits_no_group.geneids")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Method_used_seqclean_repeatmasker_WITHOUT_CAP3/hcon_cel_hits_no_group.gene_ids")
 
-#Note: gene ids in file being analysed must be preceded by the species code form orthomcl or script won't run e.g must be cel|WBGene00001606
+    #Note: gene ids in file being analysed must be preceded by the species code form orthomcl or script won't run e.g must be cel|WBGene00001606
     
     puts [
       "gene id",
@@ -394,6 +441,112 @@ class Mscript
     
   end
   
+  def print_all_elegans_string_ids
+    # script to output all elegans string_ids for coding regions (i.e protein name)
+    CodingRegion.s('elegans').all.each do |o|
+      puts o.string_id      
+    end
+  end
+
+ 
+ 
+  def wormnet_upload_check
+    #method ben used to upload wormnet, using it now to find the wormnet genes not in our database   
+    net = Network.find_or_create_by_name(
+      Network::WORMNET_NAME
+    )
+    first = true
+    CSV.open("#{DATA_DIR}/elegans/lee/ng.2007.70-S3.txt", 'r', "\t") do |row|
+      
+      if first #skip the header line
+        first = false
+        next
+      end
+      
+      # Wormnet finds genes and not coding regions, which is kind of confusing.
+      # find gene if it exists
+      g1 = CodingRegion.find_by_name_or_alternate_and_organism(row[0], Species.elegans_name)
+      g2 = CodingRegion.find_by_name_or_alternate_and_organism(row[1], Species.elegans_name)
+
+      
+      if !g1
+        puts "Couldn't find gene1 #{[row[0],row[1],row[11]].join("\t")}"
+        next
+      end
+      
+      if !g2
+        puts "Couldn't find gene2 #{[row[0],row[1],row[11]].join("\t")}"
+        next
+      end
+      
+      #just commenting out below so can find the ids not found in our database
+      #CodingRegionNetworkEdge.find_or_create_by_network_id_and_coding_region_id_first_and_coding_region_id_second_and_strength(
+      #net.id,
+      #g1.id,
+      #g2.id,
+      #row[11]
+      #)
+    end
+  end      
   
+      
+  def upload_wormnet_matching_ids
+    # reuploading wormnet as some wormnet ids were not matched (and as a result the data for those genes not being loaded) resulting from the id for a specifc splice variant being used as the id in database
+    net = Network.find_or_create_by_name(
+      Network::WORMNET_NAME
+    )
+    first = true
+    #wormnet_genes_not_found.formatted contains the genes not found during Script.new.upload_wormnet in the format:
+    #gene1  gene2 integrated_network_value
+    #F18A1.7	K10B2.3	2.74815187995567
+    
+    #started uploading genes but threw exception with a gene with more than 1 coding region so made file of rest of genes and started from there
+    #CSV.open("#{DATA_DIR}/elegans/lee/wormnet_genes_not_found.formatted2", 'r', "\t") do |row|
+    #CSV.open("#{DATA_DIR}/elegans/lee/wormnet_genes_not_found.formatted2.part2", 'r', "\t") do |row|
+      CSV.open("#{DATA_DIR}/elegans/lee/wormnet_genes_not_found.formatted2.part3", 'r', "\t") do |row|
+      if first #skip the header line
+        first = false
+        next
+      end
+      
+      # Wormnet finds genes and not coding regions, which is kind of confusing.
+      # find gene if it exists
+      g1 = CodingRegion.s('elegans').all(:conditions => ['string_id ~ ?', "^#{row[0]}[a-z]?$"])
+      g2 = CodingRegion.s('elegans').all(:conditions => ['string_id ~ ?', "^#{row[1]}[a-z]?$"])
+      
+      if g1.empty?
+        puts "Couldn't find gene1 #{[row[0],row[1],row[2]].join("\t")}"
+        next
+      end
+      
+      if g2.empty?
+        puts "Couldn't find gene2 #{[row[0],row[1],row[2]].join("\t")}"
+        next
+      end
+
+      if g1.length > 1
+        raise Exception, "More than one gene found for #{row[0]}"
+      end
+      
+      if g2.length > 1
+        raise Exception, "More than one gene found for #{row[1]}"
+      end
+
+      final_gene1 = g1[0]
+      $stderr.print "#{final_gene1.string_id}..tick\n"
+      final_gene2 = g2[0]
+      $stderr.print "#{final_gene2.string_id}..tick\n"
+ 
+      CodingRegionNetworkEdge.find_or_create_by_network_id_and_coding_region_id_first_and_coding_region_id_second_and_strength(
+        net.id,
+        final_gene1.id,
+        final_gene2.id,
+        row[2]
+      )
+    end
+  end
+  
+  
+      
 end
 
