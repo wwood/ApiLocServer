@@ -4360,6 +4360,9 @@ class Script < ActiveRecord::Base
     headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
     #    puts headings.join(sep)
     all_data = []
+    #String attributes aren't useful in arff files, because many classifiers and visualisations don't handle them
+    # So make a list of outputs so they can be made nominal in the end.
+    wolf_psort_outputs = {} 
     
     # genes that are understandably not in the orthomcl databases, because
     # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
@@ -4391,6 +4394,11 @@ class Script < ActiveRecord::Base
       results.push code.amino_acid_sequence.plasmo_a_p.points
       
       #WoLF_PSORT
+      ['plant','animal','fungi'].each do |organism|
+        c = code.wolf_psort_localisation(organism)
+        results.push c
+        wolf_psort_outputs[c] ||= true
+      end
       results.push code.wolf_psort_localisation('plant')
       results.push code.wolf_psort_localisation('animal')
       results.push code.wolf_psort_localisation('fungi')
@@ -4495,7 +4503,15 @@ class Script < ActiveRecord::Base
     headings.each_with_index do |heading, index|
       rarff_relation.attributes[index].name = heading.gsub(' ','_')
     end
+    
+    # Make some attributes noiminal instead of String
+    # Localisation
     rarff_relation.attributes[2].type = "{#{TopLevelLocalisation.all.reach.name.join(',').gsub(' ','_')}}"
+    # Wolf_PSORTs
+    [6..8].each do |i|
+      rarff_relation.attributes[i].type = "{#{wolf_psort_outputs.keys.join(',').gsub(' ','_')}}"
+    end
+    
     puts rarff_relation.to_arff
   end
   

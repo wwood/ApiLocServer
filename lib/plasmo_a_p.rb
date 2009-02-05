@@ -10,21 +10,28 @@ module Bio
   class PlasmoAP
     
     # Calculate the PlasmoAP score for a sequence (a string of amino acids)
-    def calculate_score(sequence)
-      # to_s means the sequence can be amino acid string or proper Bio::Sequence::AA object
-      signalp = SignalSequence::SignalPWrapper.new.calculate(sequence.to_s)
+    # sequence - the amino acids to test on
+    # has_signal_sequence - Define if it has a signal sequence or not. The default
+    # nil specifies that it should be worked out by SignalP.
+    def calculate_score(sequence, has_signal_sequence = nil, signalp_cleaved_sequence = nil)
+      # Only calculate signal sequence if it isn't already set by the parameter
+      if has_signal_sequence.nil?
+        # to_s means the sequence can be amino acid string or proper Bio::Sequence::AA object
+        signalp = SignalSequence::SignalPWrapper.new.calculate(sequence.to_s)
+        has_signal_sequence = signalp.classical_signal_sequence?
+        
+        signalp_cleaved_sequence = signalp.cleave(sequence)
+      elsif signalp_cleaved_sequence.nil?
+        raise ArgumentError, "if the has_signal_sequence parameter is defined, then so must the signalp_cleaved_sequence be as well"
+      end
       
-      # Whether it passes one or both of the set tests
-      set1 = set2 = false
+      return PlasmoAPResult.new(0) if  !has_signal_sequence #Both set of rules need a signal peptide
       
-      signal = signalp.classical_signal_sequence?
-      return PlasmoAPResult.new(0) if  !signal#Both set of rules need a signal peptide
-      cleaved = Bio::Sequence::AA.new(signalp.cleave(sequence))
+      cleaved = Bio::Sequence::AA.new(signalp_cleaved_sequence)
       
       set1 = set1?(cleaved)
       set2 = set2?(cleaved)
       additional = additional?(cleaved)
-      
       
       points = 0
       points += 2 if set1
