@@ -44,4 +44,8 @@ class SignalPCache < ActiveRecord::Base
   def signal?
     to_signalp_result.signal?
   end
+  
+  def classical_signal_sequence?
+    to_signalp_result.classical_signal_sequence?
+  end
 end

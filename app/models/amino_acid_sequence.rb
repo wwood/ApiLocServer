@@ -49,7 +49,9 @@ class AminoAcidSequence < Sequence
   # Caches the SignalP output so it can be worked out faster
   def plasmo_a_p
     signal = coding_region.signalp_however
-    Bio::PlasmoAP.new.calculate_score(sequence, signal.classical_signal_sequence?, signal.cleave(sequence))
+    Bio::PlasmoAP.new.calculate_score(sequence, 
+      signal.classical_signal_sequence?, 
+      signal.cleave(sequence))
   end
   
   def exportpred

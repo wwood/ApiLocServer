@@ -4350,7 +4350,10 @@ class Script < ActiveRecord::Base
       'Number of Synonymous SNPs according to Neafsey et al',
       'Number of Non-Synonymous SNPs according to Neafsey et al',
       'Number of Intronic SNPs according to Neafsey et al',
-      'Percentage of Amino Acid Sequence Low Complexity according to NCBI Segmasker'
+      'Percentage of Amino Acid Sequence Low Complexity according to NCBI Segmasker',
+      'Number of Acidic Residues',
+      'Number of Basic Residues',
+      'Length of Protein'
     ]
     derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
     headings.push derisi_timepoints.collect{|t| 
@@ -4381,7 +4384,7 @@ class Script < ActiveRecord::Base
       results = [
         code.string_id,
         code.annotation.annotation,
-        code.tops.pick(:name).gsub(' ','_').uniq.sort.join(', '),  # Top level localisations
+        code.tops[0].name.gsub(' ','_'),  # Top level localisations
         code.amino_acid_sequence.sequence,
       ]
       
@@ -4399,9 +4402,6 @@ class Script < ActiveRecord::Base
         results.push c
         wolf_psort_outputs[c] ||= true
       end
-      results.push code.wolf_psort_localisation('plant')
-      results.push code.wolf_psort_localisation('animal')
-      results.push code.wolf_psort_localisation('fungi')
       
       # official orthomcl
       interestings = ['pfa','pvi','cpa','cho','the','tan','ath','sce','mmu']
@@ -4474,7 +4474,15 @@ class Script < ActiveRecord::Base
       # Segmasker
       results.push code.segmasker_low_complexity_percentage_however
 
-
+      # Number of Acidic and basic Residues in the protein
+      b = code.amino_acid_sequence.to_bioruby_sequence
+      results.push b.acidic_count
+      results.push b.basic_count
+      
+      # Length of protein
+      results.push code.amino_acid_sequence.sequence.length
+      
+      
       # Microarray DeRisi
       derisi_timepoints.each do |timepoint|
         measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
@@ -4487,8 +4495,6 @@ class Script < ActiveRecord::Base
           results.push nil
         end
       end
-      
-
       
       # Check to make sure that all the rows have the same number of entries as a debug thing
       if results.length != headings.length
@@ -4508,7 +4514,7 @@ class Script < ActiveRecord::Base
     # Localisation
     rarff_relation.attributes[2].type = "{#{TopLevelLocalisation.all.reach.name.join(',').gsub(' ','_')}}"
     # Wolf_PSORTs
-    [6..8].each do |i|
+    [6,7,8].each do |i|
       rarff_relation.attributes[i].type = "{#{wolf_psort_outputs.keys.join(',').gsub(' ','_')}}"
     end
     
