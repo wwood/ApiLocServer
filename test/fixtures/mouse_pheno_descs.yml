@@ -1,0 +1,16 @@
+lethal:
+  id: 1
+  pheno_id: one
+  pheno_desc: really lethal
+lethal_but_not_by_information:
+  id: 2
+  pheno_id: two
+  pheno_desc: lethal
+non_lethal:
+  id: 3
+  pheno_id: three
+  pheno_desc: so so
+no_info:
+  id: 4
+  pheno_id: four
+  pheno_desc: really lethal but no information

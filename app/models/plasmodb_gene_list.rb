@@ -7,7 +7,8 @@ class PlasmodbGeneList < ActiveRecord::Base
   # A generic method for uploading a bunch of genes using stdin
   # description - the name of the list
   # organism - the common name for the organism the gene is for. nil means organism isn't considered when uploading the data
-  def self.create_gene_list(description, organism=nil)
+  # string_ids
+  def self.create_gene_list(description, organism=nil, string_ids=nil)
     if !description or description ===''
       raise Exception, "Bad gene list description: '#{description}'"
     end
@@ -16,7 +17,11 @@ class PlasmodbGeneList < ActiveRecord::Base
       :description => description
     )
     
-    $stdin.each do |line|
+    # stdin or arguments passed?
+    string_ids = $stdin if string_ids.nil? or string_ids.empty?
+    
+    # upload each
+    string_ids.each do |line|
       line.strip!
       
       if organism

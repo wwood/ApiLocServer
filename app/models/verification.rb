@@ -675,4 +675,93 @@ SRRKRRMPEGLDN*).join('')
     # check orthomcl integration - single_orthomcl will raise an exception by itself
     CodingRegion.fs('80.m02161', Species::TOXOPLASMA_GONDII_NAME).single_orthomcl
   end
+  
+  def upload_winzeler_gametocyte_microarray
+    microarray = Microarray.find_by_description(Microarray::WINZELER_2005_GAMETOCYTE_NAME)
+    
+    code = CodingRegion.f('PFE0065w')
+    timepoints = code.microarray_measurements.all(:joins => :microarray_timepoint,
+      :conditions => "microarray_timepoints.microarray_id = #{microarray.id}"
+    )
+    raise unless timepoints.length == 39
+    
+    # test Panova
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_PANOVA}
+    raise unless points.length == 1
+    raise unless 1.12E-125 == points[0].measurement
+    
+    # test Early Ring S
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL}
+    raise unless points.length == 1
+    raise unless 8331 == points[0].measurement
+    
+    # test 3D7 Early Day 2
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_EARLY_DAY_2}
+    raise unless points.length == 1
+    raise unless 1163 == points[0].measurement
+    
+    # test NF54 Day 13
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_13}
+    raise unless points.length == 1
+    raise unless 48 == points[0].measurement
+    
+    
+    # Test random one from the middle
+    code = CodingRegion.f('PF11_0482')
+    timepoints = code.microarray_measurements.all(:joins => :microarray_timepoint,
+      :conditions => "microarray_timepoints.microarray_id = #{microarray.id}"
+    )
+    raise unless timepoints.length == 39
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2003_EARLY_SCHIZONT_SORBITOL}
+    raise unless points.length == 1
+    raise unless 137 == points[0].measurement
+    
+    # Test very last one
+    code = CodingRegion.f('PFI1220w')
+    timepoints = code.microarray_measurements.all(:joins => :microarray_timepoint,
+      :conditions => "microarray_timepoints.microarray_id = #{microarray.id}"
+    )
+    raise unless timepoints.length == 39
+    points = timepoints.select{|t| t.microarray_timepoint.name == MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_13}
+    raise unless points.length == 1
+    raise unless 339 == points[0].measurement
+        
+    # In PlasmoDB 5.5 upload, there is 77 that do not have any associated data, and 5159 entries in the spreadsheet
+    # This means there must be 39*(5159-77) entries uploaded to this microarray
+    # Actually, that's not technically correct since they aren't all in the same microarray, but eh to that
+    count = MicroarrayMeasurement.count(:joins => :microarray_timepoint, :conditions => "microarray_id=#{microarray.id}")
+    expected = 39*(5159-77)
+    raise Exception, "Incorrect number of measurements found: #{count}, expected #{expected}" unless count == expected
+  end
+  
+  def voss_nuclear_proteome_2008_upload
+    raise unless PlasmodbGeneList.find_all_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.count == 1091
+  end
+  
+  def percentiles
+    nums = []
+    CodingRegion.falciparum(:joins => :microarray_measurements).all.each do |code|
+      r = code.microarray_measurements.timepoint_names([MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL].flatten).all.reach.percentile.average
+      next if r.nil?
+      puts r
+      nums.push r
+    end
+    puts "Average: #{nums.average}"
+  end
+
+  def neafsey
+    raise unless CodingRegion.f('PFC0485w').neafsey_synonymous_snp.value == 1
+    raise unless CodingRegion.f('MAL7P1.227').neafsey_synonymous_snp.value == 2
+    raise unless CodingRegion.f('MAL7P1.227').neafsey_non_synonymous_snp.value == 2
+    
+    # ben@uyen:~/phd/gnr$ grep 'Non-Synon' /home/ben/phd/data/falciparum/polymorphism/SNP/NeafseySchaffner2008-gb-2008-9-12-r171-s5.csv |awk '{print $5}' |uniq |wc -l
+    # 441
+    raise unless NeafseyNonSynonymousSnp.count == 441
+    # ben@uyen:~/phd/gnr$ grep 'Synon' /home/ben/phd/data/falciparum/polymorphism/SNP/NeafseySchaffner2008-gb-2008-9-12-r171-s5.csv |grep -v 'Non-Syn' |awk '{print $5}' |uniq |wc -l
+    # 257
+    raise unless NeafseySynonymousSnp.count == 257
+    # ben@uyen:~/phd/gnr$ grep 'Intronic' /home/ben/phd/data/falciparum/polymorphism/SNP/NeafseySchaffner2008-gb-2008-9-12-r171-s5.csv |grep -v 'Non-Syn' |awk '{print $5}' |uniq |wc -l
+    # 36
+    raise unless NeafseyIntronicSnp.count == 36
+  end
 end

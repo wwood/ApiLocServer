@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20081117040856) do
+ActiveRecord::Schema.define(:version => 20090121033832) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -360,6 +360,7 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
     t.datetime "updated_at"
   end
 
+  add_index "go_terms", ["aspect", "go_identifier", "term"], :name => "index_go_terms_on_go_identifier_and_term_and_aspect"
   add_index "go_terms", ["go_identifier"], :name => "go_term_idx_name", :unique => true
 
   create_table "gus", :force => true do |t|
@@ -420,6 +421,8 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
 
   add_index "microarray_measurements", ["coding_region_id", "measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_co"
   add_index "microarray_measurements", ["coding_region_id"], :name => "index_microarray_measurements_on_coding_region_id"
+  add_index "microarray_measurements", ["measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_me"
+  add_index "microarray_measurements", ["microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id"
 
   create_table "microarray_timepoints", :force => true do |t|
     t.integer  "microarray_id"
@@ -676,6 +679,19 @@ ActiveRecord::Schema.define(:version => 20081117040856) do
   end
 
   add_index "transmembrane_domains", ["coding_region_id", "type"], :name => "index_transmembrane_domains_on_coding_region_id_and_type"
+
+  create_table "user_comments", :force => true do |t|
+    t.string   "title",            :limit => 50, :null => false
+    t.string   "comment",                        :null => false
+    t.integer  "user_id"
+    t.integer  "coding_region_id",               :null => false
+    t.integer  "number",                         :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "user_comments", ["coding_region_id", "number"], :name => "index_user_comments_on_coding_region_id_and_number", :unique => true
+  add_index "user_comments", ["coding_region_id"], :name => "index_user_comments_on_coding_region_id"
 
   create_table "verifications", :force => true do |t|
   end

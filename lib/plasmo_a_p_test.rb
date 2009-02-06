@@ -110,4 +110,15 @@ class PlasmoAPTest < Test::Unit::TestCase
     obj = @plasmoap.calculate_score('MMM')
     assert_equal 0, obj.points
   end
+  
+  def test_define_signal
+    signal = 'MKILLLCIIFLYYVNA'
+    transit = 'FKNTQKDGVSLQILKKKRSNQVNF'
+    rest = 'LNRKNDYNLIKNKNPSSSLKSTFDDIKKIISKQLSVEEDKIQMNSNFTKDLGADSLDLVELIMALEEKFNVTISDQDALKINTVQDAIDYIEKNNKQ'
+    assert_raise ArgumentError do
+      @plasmoap.calculate_score(signal+transit+rest, false)
+    end
+    assert_equal 0, @plasmoap.calculate_score(signal+transit+rest, false, signal+transit+rest).points
+    assert_equal 5, @plasmoap.calculate_score(signal+transit+rest, true, transit+rest).points
+  end
 end

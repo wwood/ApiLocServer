@@ -1,0 +1,12 @@
+lethal:
+  mouse_pheno_desc_id: 1
+  mgi_allele: dunno
+  allele_type: Chemically and radiation induced
+not_lethal:
+  mouse_pheno_desc_id: 2
+  mgi_allele: dunno
+  allele_type: meh
+nothing:
+  mouse_pheno_desc_id: 3
+  mgi_allele: dunno
+  allele_type: duh

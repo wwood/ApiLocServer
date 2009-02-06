@@ -9,16 +9,19 @@ require 'tm_hmm_wrapper'
 require 'rubygems'
 require 'csv'
 require 'bio'
-require 'mscript'
+#require 'mscript'
 require 'reach'
 require 'plasmo_a_p'
 require 'top_db_xml'
 require 'pdb_tm'
-require 'go'
+#require 'go'
 require 'wormbase_go_file'
 require 'libsvm_array'
 require 'bl2seq_report_shuffling'
 require 'rarff'
+require 'stdlib'
+
+
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -31,6 +34,9 @@ WORK_DIR = "#{ENV['HOME']}/Workspace"
 class Script < ActiveRecord::Base  
   PHD_DIR = "#{ENV['HOME']}/phd"
   DATA_DIR = "#{ENV['HOME']}/phd/data"
+  
+  require 'microarray_timepoint' #include the constants for less typing
+  include MicroarrayTimepointNames
 
   def brafl_to_database
     puts "Deleting all records..."
@@ -470,8 +476,8 @@ class Script < ActiveRecord::Base
       "#{DATA_DIR}/falciparum/localisation/tRNASynthetases/cytosolic.Stuart.20080220.txt",
       "#{DATA_DIR}/falciparum/localisation/exportpred/exportPred10.txt",
       "#{DATA_DIR}/falciparum/exportpred/exportome.csv",
-      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_HIGH_confid_set3",
-      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_LOWER_confid_set",
+      #      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_HIGH_confid_set3",
+      #      "#{PHD_DIR}/babesiaApicoplastReAnnotation/annotation1/Pvi_Pfa_Tpa_LOWER_confid_set",
       "#{DATA_DIR}/falciparum/localisation/pexelPlasmoDB5.5.txt",
       "#{DATA_DIR}/falciparum/localisation/htPlasmoDB5.5.txt"
     ]
@@ -1804,12 +1810,12 @@ class Script < ActiveRecord::Base
   
   
   def upload_hardy
-    #    puts "GO"
-    #    go_to_database
-    #    puts "Falciparum"
-    #    falciparum_to_database
-    #    puts "Vivax"
-    #    vivax_to_database # this fails with exception because of a known bug in my genes gff parser. It is OK, though - it should validate at least
+    puts "GO"
+    go_to_database
+    puts "Falciparum"
+    falciparum_to_database
+    puts "Vivax"
+    vivax_to_database # this fails with exception because of a known bug in my genes gff parser. It is OK, though - it should validate at least
     #    puts "Theileria"
     #    theileria_parva_gene_aliases
     #    puts "Seven species orthomcl"
@@ -1838,8 +1844,8 @@ class Script < ActiveRecord::Base
     #    puts 'crypto fasta'
     #    crypto_fasta_to_database
 
-    puts "Big orthomcl linking"
-    link_orthomcl_and_coding_regions
+    #    puts "Big orthomcl linking"
+    #    link_orthomcl_and_coding_regions
   end
   
   
@@ -4313,7 +4319,7 @@ class Script < ActiveRecord::Base
     derisi_microarray_to_database2
   end
   
-  def localisation_spreadsheet
+  def localisation_spreadsheet_arff
     sep = "\t"
     
     # headings
@@ -4343,6 +4349,13 @@ class Script < ActiveRecord::Base
       'Number of Non-Synonymous IT SNPs according to Jeffares et al',
       'Number of Synonymous Clinical SNPs according to Jeffares et al',
       'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+      'Number of Synonymous SNPs according to Neafsey et al',
+      'Number of Non-Synonymous SNPs according to Neafsey et al',
+      'Number of Intronic SNPs according to Neafsey et al',
+      'Percentage of Amino Acid Sequence Low Complexity according to NCBI Segmasker',
+      'Number of Acidic Residues',
+      'Number of Basic Residues',
+      'Length of Protein'
     ]
     derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
     headings.push derisi_timepoints.collect{|t| 
@@ -4350,7 +4363,11 @@ class Script < ActiveRecord::Base
     }
     
     headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
-    puts headings.join(sep)
+    #    puts headings.join(sep)
+    all_data = []
+    #String attributes aren't useful in arff files, because many classifiers and visualisations don't handle them
+    # So make a list of outputs so they can be made nominal in the end.
+    wolf_psort_outputs = {} 
     
     # genes that are understandably not in the orthomcl databases, because
     # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
@@ -4364,10 +4381,12 @@ class Script < ActiveRecord::Base
       :select => 'distinct(coding_regions.*)',
       :joins => {:expressed_localisations => :malaria_top_level_localisation}
     ).each do |code|
+      next unless code.uniq_top?
+      
       results = [
         code.string_id,
         code.annotation.annotation,
-        code.tops.pick(:name).uniq.sort.join(', '),  # Top level localisations
+        code.tops[0].name.gsub(' ','_'),  # Top level localisations
         code.amino_acid_sequence.sequence,
       ]
       
@@ -4380,9 +4399,11 @@ class Script < ActiveRecord::Base
       results.push code.amino_acid_sequence.plasmo_a_p.points
       
       #WoLF_PSORT
-      results.push code.wolf_psort_localisation('plant')
-      results.push code.wolf_psort_localisation('animal')
-      results.push code.wolf_psort_localisation('fungi')
+      ['plant','animal','fungi'].each do |organism|
+        c = code.wolf_psort_localisation(organism)
+        results.push c
+        wolf_psort_outputs[c] ||= true
+      end
       
       # official orthomcl
       interestings = ['pfa','pvi','cpa','cho','the','tan','ath','sce','mmu']
@@ -4422,7 +4443,7 @@ class Script < ActiveRecord::Base
             end
           end
         end
-      rescue UnexpectedOrthomclGeneCount => e
+      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
         # This happens for singlet genes
       end
       [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
@@ -4433,7 +4454,17 @@ class Script < ActiveRecord::Base
       #      'Number of Non-Synonymous IT SNPs according to Jeffares et al',
       #      'Number of Synonymous Clinical SNPs according to Jeffares et al',
       #      'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
-      [:it_synonymous_snp, :it_non_synonymous_snp, :pf_clin_synonymous_snp, :pf_clin_non_synonymous_snp].each do |method|
+      #      'Number of Synonymous SNPs according to Neafsey et al',
+      #      'Number of Non-Synonymous SNPs according to Neafsey et al',
+      #      'Number of Intronic SNPs according to Neafsey et al'
+      [:it_synonymous_snp, 
+        :it_non_synonymous_snp, 
+        :pf_clin_synonymous_snp, 
+        :pf_clin_non_synonymous_snp,
+        :neafsey_synonymous_snp,
+        :neafsey_non_synonymous_snp,
+        :neafsey_intronic_snp
+      ].each do |method|
         if s = code.send(method)
           results.push s.value
         else
@@ -4442,8 +4473,18 @@ class Script < ActiveRecord::Base
       end
       
       
+      # Segmasker
+      results.push code.segmasker_low_complexity_percentage_however
 
-
+      # Number of Acidic and basic Residues in the protein
+      b = code.amino_acid_sequence.to_bioruby_sequence
+      results.push b.acidic_count
+      results.push b.basic_count
+      
+      # Length of protein
+      results.push code.amino_acid_sequence.sequence.length
+      
+      
       # Microarray DeRisi
       derisi_timepoints.each do |timepoint|
         measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
@@ -4457,14 +4498,29 @@ class Script < ActiveRecord::Base
         end
       end
       
-
-      
       # Check to make sure that all the rows have the same number of entries as a debug thing
       if results.length != headings.length
         raise Exception, "Bad number of entries in the row for code #{code.inspect}: #{results.inspect}"
       end
-      puts results.join(sep)
+      all_data.push(results)
+#      puts results.join(sep)
     end
+    
+    rarff_relation = Rarff::Relation.new('PfalciparumLocalisation')
+    rarff_relation.instances = all_data
+    headings.each_with_index do |heading, index|
+      rarff_relation.attributes[index].name = heading.gsub(' ','_')
+    end
+    
+    # Make some attributes noiminal instead of String
+    # Localisation
+    rarff_relation.attributes[2].type = "{#{TopLevelLocalisation.all.reach.name.join(',').gsub(' ','_')}}"
+    # Wolf_PSORTs
+    [6,7,8].each do |i|
+      rarff_relation.attributes[i].type = "{#{wolf_psort_outputs.keys.join(',').gsub(' ','_')}}"
+    end
+    
+    puts rarff_relation.to_arff
   end
   
   def test_spreadsheet
@@ -5634,35 +5690,78 @@ class Script < ActiveRecord::Base
     end
   end
   
+  
+  def voss_nuclear_proteome_2008_upload
+    codes = []
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/VossNuclearProteome/October2008List.csv",
+      :col_sep => "\t", :headers => true) do |row|
+      codes.push row['Protein AC']
+    end
+    
+    PlasmodbGeneList.create_gene_list(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008, Species::FALCIPARUM, codes)
+    
+    puts "Done. Checking.."
+    Verification.new.voss_nuclear_proteome_2008_upload
+  end
+  
 
   # for each of the nuclear proteins in the proteomics list, print out the average and list of winzeler 2003 cell
   # cycle absolute counts
   def nuclear_proteome_winzeler_data
+
+    
+    array_constants = [
+      WINZELER_2003_EARLY_RING_SORBITOL,
+      WINZELER_2003_LATE_RING_SORBITOL,
+      WINZELER_2003_EARLY_TROPHOZOITE_SORBITOL,
+      WINZELER_2003_LATE_TROPHOZOITE_SORBITOL,
+      WINZELER_2003_EARLY_SCHIZONT_SORBITOL,
+      WINZELER_2003_LATE_SCHIZONT_SORBITOL,
+      WINZELER_2003_MEROZOITE_SORBITOL,
+      WINZELER_2003_EARLY_RING_TEMPERATURE,
+      WINZELER_2003_LATE_RING_TEMPERATURE,
+      WINZELER_2003_EARLY_TROPHOZOITE_TEMPERATURE,
+      WINZELER_2003_LATE_TROPHOZOITE_TEMPERATURE,
+      WINZELER_2003_EARLY_SCHIZONT_TEMPERATURE,
+      WINZELER_2003_LATE_SCHIZONT_TEMPERATURE,
+      WINZELER_2003_MEROZOITE_TEMPERATURE,
+
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_1,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_2,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_3,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_4,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_5,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_6,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_7,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_8,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_9,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_10,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_11,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_12,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_13
+    ]
+    
     # Headers
     puts [
       'PlasmoDB ID',
-      'Average Ring',
-      'Average Trophozoite',
-      'Average Schizont'
-    ].join("\t")
-    
-    array_constants = [
-      #      [MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL], # to check the measurements are coming out correctly
-      MicroarrayTimepoint::WINZELER_RING_TIMEPOINT_NAMES,
-      MicroarrayTimepoint::WINZELER_TROPHOZOITE_TIMEPOINT_NAMES,
-      MicroarrayTimepoint::WINZELER_SCHIZONT_TIMEPOINT_NAMES
-    ]
+      array_constants
+    ].flatten.join("\t")
     
     # For each gene in the proteome list
-    PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.falciparum.each do |code|
+    PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.falciparum.all(
+      :order => 'plasmodb_gene_list_entries.id').each do |code|
       results = [code.string_id]
       
       array_constants.each do |timepoints|
-        results.push code.microarray_measurements.timepoint_names(timepoints).all.reach.measurement.to_f.average
+        results.push code.microarray_measurements.timepoint_names([timepoints].flatten).all.reach.percentile.average
       end
       
       puts results.join("\t")
     end
+  end
+  
+  def nuclear_proteome_winzeler_classification
+    
   end
 
   def elegans_only_and_lethal
@@ -6783,8 +6882,10 @@ PFL2395c
         # make sure we are only dealing with type 1 or 2 here
         raise Exception, "Unexepected number of TMDs found" unless tm.transmembrane_domains.length == 1
         
-#        tmseq = tm.transmembrane_domains[0].sequence(code.aaseq)
-        puts ">#{code.string_id} #{code.annotation ? code.annotation.annotation : nil}\n#{code.aaseq}"
+        seq = code.sequence_without_signal_peptide
+        #        tmseq = tm.transmembrane_domains[0].sequence(seq)
+        tmseq = tm.transmembrane_domains[0].sequence(seq, -10, 10)
+        puts ">#{code.string_id} #{code.annotation ? code.annotation.annotation : nil}\n#{tmseq}"
       end
     end
   end
@@ -6805,7 +6906,7 @@ PFL2395c
     # For all genes that only have 1 localisation
     CodingRegion.species_name(Species.falciparum_name).all(
       :joins => {:expressed_localisations => :malaria_top_level_localisation}
-#      :limit => 15
+      #      :limit => 15
     ).uniq.each do |code|
       
       results = [
@@ -6819,13 +6920,19 @@ PFL2395c
       next unless code.uniq_top?
       
       # SignalP
-      attribute_names.push 'SignalP' if first_code
+      attribute_names.push 'SignalPSignal' if first_code
       h = code.signalp_however
       results.push h.signal?
+      attribute_names.push 'SignalPnn_D' if first_code
+      h = code.signalp_however
+      results.push h.nn_D
+      attribute_names.push 'SignalPhmm_S' if first_code
+      h = code.signalp_however
+      results.push h.hmm_Sprob
       
       # PlasmoAP
       attribute_names.push 'PlasmoAP' if first_code
-      results.push code.amino_acid_sequence.plasmo_a_p.points
+      results.push code.amino_acid_sequence.plasmo_a_p.apicoplast_targeted?
       
       # ExportPred
       attribute_names.push 'ExportPred' if first_code
@@ -6833,10 +6940,11 @@ PFL2395c
       
       # Final result
       attribute_names.push 'Localisation' if first_code
-      results.push code.tops[0].name
+      results.push code.tops[0].name.gsub(' ','_')
       
-      first_code = false
       all_results.push results.flatten
+      #      break unless first_code
+      first_code = false
     end
     
     
@@ -6846,7 +6954,280 @@ PFL2395c
     attribute_names.each_with_index do |name, index|
       rel.attributes[index].name = name
     end
-    rel.attributes[all_results.length-1] = "{#{TopLevelLocalisation.all.reach.name.join(', ')}}"
+    rel.attributes[rel.attributes.length-1].type = "{#{TopLevelLocalisation.all.reach.name.join(', ')}}"
     puts rel.to_s
+  end
+  
+  def orthomcl_blast_result_fasta(m8='/home/ben/phd/cbm48/4/humanB1fragmentVorthomcl.blast.tab')
+    oes = []
+    FasterCSV.foreach(m8, :col_sep => "\t") do |row|
+      o = OrthomclGene.find_by_orthomcl_name(row[1])
+      return "Failed #{row[1]}" if o.nil?
+      oes.push o
+    end
+    puts oes.reach.orthomcl_gene_official_data.fasta.join("\n")
+  end
+  
+  # See phd.html [[Winzeler Gametocyte Microarray Upload]]
+  # Uploads the gametocyte and previous results that come out from the MOID
+  # analysis done by Winzeler and crew.
+  def upload_winzeler_gametocyte_microarray
+    columns = [
+      nil,
+      nil,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_PANOVA,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_PC,
+      nil,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_LATE_RING_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_TROPHOZOITE_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_LATE_TROPHOZOITE_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_SCHIZONT_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_LATE_SCHIZONT_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_MEROZOITE_SORBITOL,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_RING_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_LATE_RING_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_TROPHOZOITE_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_LATE_TROPHOZOITE_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_EARLY_SCHIZONT_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_LATE_SCHIZONT_TEMPERATURE,
+      MicroarrayTimepoint::WINZELER_2003_MEROZOITE_TEMPERATURE,
+
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_EARLY_DAY_1,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_EARLY_DAY_2,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_EARLY_DAY_3,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_EARLY_DAY_4,
+
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_1,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_2,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_3,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_6,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_8,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_3D7_DAY_12,
+
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_1,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_2,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_3,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_4,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_5,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_6,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_7,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_8,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_9,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_10,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_11,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_12,
+      MicroarrayTimepoint::WINZELER_2005_GAMETOCYTE_NF54_DAY_13
+    ]
+    
+    microarray = Microarray.find_or_create_by_description(Microarray::WINZELER_2005_GAMETOCYTE_NAME)
+    
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/microarray/WinzelerGametocyte/AllData.csv", 
+      :col_sep => "\t", :headers => :first_row) do |row|
+      
+      raise if columns.length != row.length #checking
+      
+      code = CodingRegion.f(row['Gene'])
+      
+      if !code
+        $stderr.puts "Could not find PlasmoDB ID #{row['Gene']}. Skipping."
+        next
+      end
+      
+      # upload each column
+      columns.each_with_index do |column, index|
+        next if column.nil? #ignore some columns, including the sporozoite one
+        
+        timepoint = MicroarrayTimepoint.find_or_create_by_name_and_microarray_id(column, microarray.id)
+        raise unless timepoint
+        cell = row[index]
+        if [2,3].include?(index)
+          # Had to comment out the to_f? checking because it didn't handle 1.20E-4 type things
+          #raise Exception, "error parsing #{cell}" unless cell.to_f?
+          cell = cell.to_f
+        else
+          raise Exception, "error parsing #{cell}" unless cell.to_i? # Every cell is expected to be an integer
+          cell = cell.to_i
+        end
+        
+        
+        raise unless MicroarrayMeasurement.find_or_create_by_measurement_and_microarray_timepoint_id_and_coding_region_id(
+          cell,
+          timepoint.id,
+          code.id
+        )
+      end
+    end
+  end
+  
+  # Florian spreadsheet to do
+  #ben, 9 December 2008 (created 9 December 2008)
+  #
+  #check falciparum genome for TA proteins
+  #
+  #    * predict single spanning TMDs using various TMD predictors: tmhmm, tmpred, toppred, aligator (or whatever it is called).
+  #    * for each predictor, give a spreadsheet containing:
+  #
+  #plasmoDB id
+  #annotation
+  #type I or II?
+  #start tmd
+  #end tmd
+  #length tmd
+  #number of residues c terminal
+  #SignalP 3.0
+  #exportpred
+  #pexel
+  #hts
+  def florian_spreadsheet_yet_again
+    # Headers
+    headers = %w(
+      plasmoDB_id
+      annotation
+      type_I_or_II?
+      start_tmd
+    end_tmd
+    length_tmd
+    number_of_residues_c_terminal
+    SignalP_3.0
+    exportpred
+    pexel
+    hts
+    cruft
+    )
+    
+    [
+      :tmhmm, 
+      #      :tmpred, 
+      #      :toppred
+    ].each do |predictor|
+      FasterCSV.open("#{PHD_DIR}/yet_another_florian/#{predictor}.csv", "w", :col_sep => "\t") do |csv|
+        csv << headers
+        CodingRegion.falciparum.all.each do |code|
+          next unless code.aaseq #everything must have a sequence to be considered
+          predicted = code.send(predictor)
+          if predicted.transmembrane_type_1? or predicted.transmembrane_type_2?
+            csv << [
+              code.string_id,
+              code.annotation ? code.annotation.annotation : nil,
+              predicted.transmembrane_type,
+              predicted.transmembrane_domains[0].start,
+              predicted.transmembrane_domains[0].stop,
+              predicted.transmembrane_domains[0].length,
+              code.sequence_without_signal_peptide.length - predicted.transmembrane_domains[0].stop,
+              code.signalp_however.signal?,
+              code.export_pred_however.predicted?,
+              PlasmodbGeneList.find_by_description('pexelPlasmoDB5.5').coding_regions.all(:conditions => ["coding_regions.id = ?", code.id]).empty? ? 'no': 'yes',
+              PlasmodbGeneList.find_by_description('htPlasmoDB5.5').coding_regions.all(:conditions => ["coding_regions.id = ?", code.id]).empty? ? 'no': 'yes',
+              code.falciparum_cruft?
+            ]
+          end
+        end
+      end
+    end
+  end
+  
+  def apiloc_winzeler_bias
+    array_constants = [
+      WINZELER_2003_EARLY_RING_SORBITOL,
+      WINZELER_2003_LATE_RING_SORBITOL,
+      WINZELER_2003_EARLY_TROPHOZOITE_SORBITOL,
+      WINZELER_2003_LATE_TROPHOZOITE_SORBITOL,
+      WINZELER_2003_EARLY_SCHIZONT_SORBITOL,
+      WINZELER_2003_LATE_SCHIZONT_SORBITOL,
+      WINZELER_2003_MEROZOITE_SORBITOL,
+      WINZELER_2003_EARLY_RING_TEMPERATURE,
+      WINZELER_2003_LATE_RING_TEMPERATURE,
+      WINZELER_2003_EARLY_TROPHOZOITE_TEMPERATURE,
+      WINZELER_2003_LATE_TROPHOZOITE_TEMPERATURE,
+      WINZELER_2003_EARLY_SCHIZONT_TEMPERATURE,
+      WINZELER_2003_LATE_SCHIZONT_TEMPERATURE,
+      WINZELER_2003_MEROZOITE_TEMPERATURE,
+
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_1,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_2,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_3,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_4,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_5,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_6,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_7,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_8,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_9,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_10,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_11,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_12,
+      WINZELER_2005_GAMETOCYTE_NF54_DAY_13
+    ]
+    
+    # Headers
+    puts [
+      'PlasmoDB ID',
+      array_constants
+    ].flatten.join("\t")
+    
+    # For each gene in the proteome list
+    CodingRegion.falciparum.localised.all.each do |code|
+      results = [code.string_id]
+      
+      array_constants.each do |timepoints|
+        results.push code.microarray_measurements.timepoint_names([timepoints].flatten).all.reach.percentile.average
+      end
+      
+      puts results.join("\t")
+    end
+  end
+
+  def upload_neafsey_2008_snp_data
+    hash_code_to_syn_snp = {}
+    hash_code_to_non_syn_snp = {}
+    hash_code_to_intronic_snp = {}
+    
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/polymorphism/SNP/NeafseySchaffner2008-gb-2008-9-12-r171-s5.csv",
+      :col_sep => "\t",
+      :headers => true
+    ) do |row|
+      gene_id = row['Gene']
+      gene_id.gsub!('_','.') if gene_id and gene_id.match(/^MAL/)
+      case row['SNP Type']
+      when 'Non-Synonymous'
+        hash_code_to_non_syn_snp[gene_id] ||= 0
+        hash_code_to_non_syn_snp[gene_id] += 1
+      when 'Synonymous'
+        hash_code_to_syn_snp[gene_id] ||= 0
+        hash_code_to_syn_snp[gene_id] += 1
+      when 'Intronic'
+        hash_code_to_intronic_snp[gene_id] ||= 0
+        hash_code_to_intronic_snp[gene_id] += 1
+      when 'Intergenic'
+      else
+        raise Exception, "Parsing problem on line #{row.inspect}"
+      end
+    end
+    
+    # Now upload each
+    hash_code_to_syn_snp.each do |gene_id, count|
+      code = CodingRegion.f(gene_id)
+      if code.nil?
+        $stderr.puts "Couldn't find #{gene_id}"
+        next
+      end
+      NeafseySynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, count)
+    end
+    hash_code_to_non_syn_snp.each do |gene_id, count|
+      code = CodingRegion.f(gene_id)
+      if code.nil?
+        $stderr.puts "Couldn't find #{gene_id}"
+        next
+      end
+      NeafseyNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, count)
+    end
+    hash_code_to_intronic_snp.each do |gene_id, count|
+      code = CodingRegion.f(gene_id)
+      if code.nil?
+        $stderr.puts "Couldn't find #{gene_id}"
+        next
+      end
+      NeafseyIntronicSnp.find_or_create_by_coding_region_id_and_value(code.id, count)
+    end
   end
 end

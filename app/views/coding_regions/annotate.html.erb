@@ -15,14 +15,14 @@
       <td><%= coding_region.alternate_names.join(', ') %></td>
       <td><%= coding_region.annotation.nil? ? 'no annotation' : coding_region.annotation.annotation %>
       <td>
-        <% coding_region.expression_contexts.each do |context|%>
-          <%= link_to context.english, :controller => :expression_contexts, :action => :show, :id => context %>,
-       <% end %>
+        <%= coding_region.expression_contexts.collect { |context|
+          "#{context.english}"
+        }.join(', ') %>
       </td>
       <td>
-        <% coding_region.expression_contexts.reach.publication.uniq.each do |pub|%>
-              <%= link_to pub.definition, pub.linkout_url %>,
-        <% end %>
+        <%= coding_region.expression_contexts.reach.publication.uniq.collect { |pub|
+          "#{link_to pub.definition, publication_path(pub)}"
+        }.join(', ') %>
       </td>
     </tr>
   <% end %>

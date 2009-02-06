@@ -37,11 +37,15 @@ class SignalPCache < ActiveRecord::Base
     return res
   end
   
-  def cleave
-    to_signalp_result.cleave
+  def cleave(sequence = nil)
+    to_signalp_result.cleave(sequence.nil? ? coding_region.aaseq : sequence)
   end
   
   def signal?
     to_signalp_result.signal?
+  end
+  
+  def classical_signal_sequence?
+    to_signalp_result.classical_signal_sequence?
   end
 end

@@ -1,4 +1,6 @@
+require 'bio'
 require 'gmars'
+require 'n_c_b_i'
 
 class CodingRegion < ActiveRecord::Base
   
@@ -56,6 +58,9 @@ class CodingRegion < ActiveRecord::Base
   has_one :it_non_synonymous_snp
   has_one :pf_clin_synonymous_snp
   has_one :pf_clin_non_synonymous_snp
+  has_one :neafsey_intronic_snp
+  has_one :neafsey_synonymous_snp
+  has_one :neafsey_non_synonymous_snp
   
   # Worm project
   # elegans
@@ -78,6 +83,10 @@ class CodingRegion < ActiveRecord::Base
   # cached results
   has_one :export_pred_cache, :dependent => :destroy
   has_one :signal_p_cache, :dependent => :destroy
+  has_one :segmasker_low_complexity_percentage, :dependent => :destroy
+  
+  # website stuff
+  has_many :user_comments
   
   named_scope :species_name, lambda{ |species_name|
     {
@@ -135,6 +144,9 @@ class CodingRegion < ActiveRecord::Base
       :joins => :plasmodb_gene_lists,
       :conditions => ['plasmodb_gene_lists.description = ?', gene_list_name]
     }
+  }
+  named_scope :localised, {
+    :joins => :expressed_localisations
   }
   
   POSITIVE_ORIENTATION = '+'
@@ -383,6 +395,11 @@ class CodingRegion < ActiveRecord::Base
     return to_print
   end
   
+  def tmhmm
+    minus_sp = sequence_without_signal_peptide
+    TmHmmWrapper.new.calculate(minus_sp)
+  end
+  
   
   # Given a coding region, return the orthologs in another species, as given
   # by orthomcl
@@ -570,8 +587,15 @@ class CodingRegion < ActiveRecord::Base
       # cached
       return preds[0].localisation
     else # not cached, run from scratch
-      Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
-    end    
+      cache_wolf_psort_predictions
+      preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+      if preds.length > 0
+        # cached
+        return preds[0].localisation
+      else
+        return nil
+      end
+    end
   end
   
   # All the highest localisations, including those that came second that really
@@ -590,7 +614,7 @@ class CodingRegion < ActiveRecord::Base
   end
   
   # Read only from the cache, don't run it if no cache exists
-  def cached_wold_psort_localisation(psort_organism_type)
+  def cached_wolf_psort_localisation(psort_organism_type)
     # Check if they have already been cached
     preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
     if preds.length > 0
@@ -608,14 +632,17 @@ class CodingRegion < ActiveRecord::Base
     end
     
     Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      logger.warn "Running WoLF_PSORT using organism type '#{organism_type}' on #{string_id}"
       result = Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, organism_type)
       next if !result #skip sequences that are too short
       
       result.score_hash.each do |loc, score|
-        WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
-      end
-      
+        w = WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
+        self.wolf_psort_predictions << w
+      end  
     end
+    
+    self.wolf_psort_predictions
   end
   
   def wolf_psort_localisations_line(organism_type)
@@ -724,22 +751,40 @@ class CodingRegion < ActiveRecord::Base
     
     # otherwise just calculate the bastard
     result = Bio::ExportPred::Wrapper.new.calculate(aaseq)
-    ExportPredCache.create_from_result(id, result)
+    self.export_pred_cache = ExportPredCache.create_from_result(id, result)
+    return export_pred_cache
   end
   
   # Return the saved signalp result, or calculate
   # it if this does not exist
   def signalp_however
     return nil if aaseq.nil?
-    return signal_p_cache unless signal_p_cache.nil? #returned cached if possible
+    return signal_p_cache if signal_p_cache #returned cached if possible
 
     # otherwise just calculate the bastard
+    logger.debug "Running SignalP on #{string_id}"
     result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
-    SignalPCache.create_from_result(id, result)
+    res = SignalPCache.create_from_result(id, result)
+    self.signal_p_cache = res
+    return res
   end
   
   def signal?
     signalp_however.signal?
+  end
+  
+  # Return the saved signalp result, or calculate
+  # it if this does not exist
+  def segmasker_low_complexity_percentage_however
+    return nil if aaseq.nil?
+    return segmasker_low_complexity_percentage.value if segmasker_low_complexity_percentage #returned cached if possible
+
+    # otherwise just calculate the bastard
+    logger.debug "Running Segmasker on #{string_id}"
+    result = Bio::SegmaskerWrapper.new.calculate(aaseq)
+    res = SegmaskerLowComplexityPercentage.new(:value => (result.total_masked_length.to_f/aaseq.length.to_f))
+    self.segmasker_low_complexity_percentage = res
+    return res.value
   end
   
   def hypothetical_by_annotation?
@@ -748,6 +793,13 @@ class CodingRegion < ActiveRecord::Base
   
   def plasmo_a_p
     amino_acid_sequence.plasmo_a_p
+  end
+  
+  # Comments on http://railscasts.com/episodes/35 says this is the way to make
+  # coding regions RESTful. Comes into play when coding_region_path(code)
+  # is called from a controller or action.
+  def to_param
+    "#{string_id}"
   end
 end
 

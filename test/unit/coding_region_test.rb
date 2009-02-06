@@ -130,6 +130,7 @@ class CodingRegionTest < ActiveSupport::TestCase
     assert_equal [n, c], code.golgi_consensi
   end
   
+<<<<<<< HEAD:test/unit/coding_region_test.rb
 #  def test_signalp
 #    @seq_with_signal = "MKKIITLKNLFLIILVYIFSEKKDLRCNVIKGNNIK"
 #    @seq_without_signal = "MRRRRRRRRRRRRRRRRRRRRRRRRR" #ie lotsa charge
@@ -212,4 +213,127 @@ class CodingRegionTest < ActiveSupport::TestCase
 #      assert_equal nil, sp.score #annoyingly exportpred doesn't seem to give negative scores - this is a bug in the code
 #    end  
 #  end
+=======
+  def test_signalp
+    @seq_with_signal = "MKKIITLKNLFLIILVYIFSEKKDLRCNVIKGNNIK"
+    @seq_without_signal = "MRRRRRRRRRRRRRRRRRRRRRRRRR" #ie lotsa charge
+    code = nil
+    
+    assert_differences([AminoAcidSequence, SignalPCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever12131')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        @seq_with_signal
+      )
+      code.save!
+      sp = code.signalp_however
+      
+      assert sp
+      assert sp.signal?
+    end
+    
+    assert_differences([AminoAcidSequence, SignalPCache, CodingRegion], nil, [0,0,0]) do
+      code = CodingRegion.find_by_string_id('whatever12131')
+      sp = code.signalp_however
+      assert sp.signal?
+    end
+    
+    assert_differences([AminoAcidSequence, SignalPCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever121311321')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        @seq_without_signal
+      )
+      code.save!
+      sp = code.signalp_however
+      
+      assert sp
+      assert_equal false, sp.signal?
+    end
+  end
+  
+  def test_export_pred
+    code = nil
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever12fd1311321')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        'MAVSTYNNTRRNGLRYVLKRRTILSVFAVICMLSLNLSIFENNNNNYGFHCNKRHFKSLAEASPEEHNNLRSHSTSDPKKNEEKSLSDEINKCDMKKYTAEEINEMINSSNEFINRNDMNIIFSYVHESEREKFKKVEENIFKFIQSIVETYKIPDEYKMRKFKFAHFEMQGYALKQEKFLLEYAFLSLNGKLCERKKFKEVLEYVKREWIEFRKSMFDVWKEKLASEFREHGEMLNQKRKLKQHELDRRAQREKMLEEHSRGIFAKGYLGEVESETIKKKTEHHENVNEDNVEKPKLQQHKVQ'
+      )
+      sp = code.export_pred_however
+      
+      assert sp
+      assert sp.predicted?
+    end   
+    
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [0,0,0]) do
+      code.export_pred_cache(:reload => true) #how come this doesn't reload by itself?
+      sp = code.export_pred_however
+      
+      assert sp
+      assert sp.predicted?
+    end
+    
+    # not predicted sequence
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [1,1,1]) do
+      code = CodingRegion.create!(:string_id => 'whatever12fd13fdsa11321')
+      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        'MDVQDFLNCNKLKISKEKISNLNKSKIGILITNLGSPEKLTYWSLYKYLSEFLTDPRVVKLNRFLWLPILYTFVLPFRSGKVLSKYKSIWIKDGSPLCVNTHNQ'
+      )
+      sp = code.export_pred_however
+      
+      assert sp
+      assert_equal false, sp.predicted?
+    end 
+    
+    assert_differences([AminoAcidSequence, ExportPredCache, CodingRegion], nil, [0,0,0]) do
+      code.export_pred_cache(:reload => true) #how come this doesn't reload by itself?
+      sp = code.export_pred_however
+      
+      assert sp
+      assert_equal false, sp.predicted?
+      assert_equal nil, sp.score #annoyingly exportpred doesn't seem to give negative scores - this is a bug in the code
+    end  
+  end
+  
+  def test_wolf_psort_predictions
+    # cached one is for testing, but is actually wrong, so deleting all of them yields a
+    # different result
+    assert_equal 'nucl', CodingRegion.find(1).wolf_psort_localisation('plant')
+    
+    WolfPsortPrediction.destroy_all
+    assert_equal 'cyto', CodingRegion.find(1).wolf_psort_localisation('plant')
+  end
+  
+  def test_segmasker
+    # try cached
+    num = SegmaskerLowComplexityPercentage.count
+    assert_equal 0.75, CodingRegion.find(1).segmasker_low_complexity_percentage_however
+    assert_equal num, SegmaskerLowComplexityPercentage.count
+    
+    # try uncached
+    CodingRegion.find(1).segmasker_low_complexity_percentage.destroy
+    num = SegmaskerLowComplexityPercentage.count
+    # $ segmasker 
+    #>da
+    #TSPFIIIINIIDIFHHSYLLYFIFSFNFITIIFFYYYVEKSIFIFIFIIKYTFSYHIIIF
+    #>da
+    #4 - 12
+    #20 - 36
+    #41 - 48
+    assert_equal(
+      (12+36+48-4-20-41+3).to_f/60.to_f, 
+      CodingRegion.find(1).segmasker_low_complexity_percentage_however
+    )
+    assert_equal num+1, SegmaskerLowComplexityPercentage.count
+    #    p CodingRegion.find(1).segmasker_low_complexity_percentage_however.class
+    #    p ((12+36+48-4-20-41+3).to_f/60.to_f).class
+    assert_equal(
+      ((12+36+48-4-20-41+3).to_f/60.to_f).round(3), 
+      CodingRegion.find(1).segmasker_low_complexity_percentage_however.round(3)
+    )
+    assert_equal num+1, SegmaskerLowComplexityPercentage.count
+  end
+>>>>>>> d8007cb65a97d686339ced373b2bee34cf618865:test/unit/coding_region_test.rb
 end

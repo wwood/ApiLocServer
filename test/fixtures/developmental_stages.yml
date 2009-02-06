@@ -6,3 +6,9 @@ schizont:
 ring:
   id: 2
   name: ring
+troph:
+  id: 3
+  name: trophozoite
+not_schizont:
+  id: 4
+  name: not schizont

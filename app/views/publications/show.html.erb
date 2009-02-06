@@ -1,0 +1,14 @@
+<h3>Contributed Localisations</h3>
+<ul>
+<% @publication.expression_contexts.each do |express| %>
+  <li><%= link_to express.coding_region.string_id, coding_region_path(express.coding_region) %>: 
+<%=  link_to express.english, expression_context_path(express) %></li>
+<% end %>
+</ul>
+
+<h3>Links</h3>
+<% if @publication.pubmed_id.nil? %>
+  <%= link_to @publication.linkout_url %>
+<% else %>
+  <%= link_to 'PubMed', @publication.linkout_url %>
+<% end %>

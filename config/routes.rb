@@ -1,4 +1,8 @@
 ActionController::Routing::Routes.draw do |map|
+  map.resources :publications
+
+  map.resources :expression_contexts
+
   map.resources :microarrays
 
   map.resources :signal_ps
@@ -51,14 +55,15 @@ ActionController::Routing::Routes.draw do |map|
 
   map.connect 'coding_regions/export/:strings', :controller => 'coding_regions', :action => 'export'
   map.connect 'coding_regions/export', :controller => 'coding_regions', :action => 'export'
-  map.connect 'coding_regions/annotate', :controller => 'coding_regions', :action => 'annotate'
-  map.resources :coding_regions
+  map.resources :coding_regions, :member =>  {:annotate => :put, :comment => :get}
 
   map.resources :genes
 
   map.resources :taxons
 
   map.resources :taxon_names
+  
+  map.resources :expression_contexts
 
   # The priority is based upon order of creation: first created -> highest priority.
 
