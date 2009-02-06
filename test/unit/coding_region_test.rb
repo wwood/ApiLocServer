@@ -91,7 +91,7 @@ class CodingRegionTest < ActiveSupport::TestCase
   
   def test_wormnet_core_total_linkage_scores
     # test normal, that includes non wormnet and wormnet non core decoys
-    assert_equal 1.7+0.405465108108, CodingRegion.find(4).wormnet_core_total_linkage_scores
+    assert_equal((1.7+0.405465108108), CodingRegion.find(4).wormnet_core_total_linkage_scores)
     
     # test nothing
     assert_equal 0.0, CodingRegion.find(3).wormnet_core_total_linkage_scores

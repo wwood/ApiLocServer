@@ -1,4 +1,4 @@
-# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+# WORMNET_CORE_CUTOFF_STRENGTH =  0.405465108108
 core:
  network_id: 1
  coding_region_id_first: 4
@@ -13,7 +13,7 @@ non_core:
  network_id: 1
  coding_region_id_first: 4
  coding_region_id_second: 6
- strength: 0.2
+ strength: 0.3
 non_wormnet:
  network_id: 2
  coding_region_id_first: 3

@@ -1,6 +1,7 @@
 require 'bio'
 require 'gmars'
 require 'n_c_b_i'
+require 'go'
 
 class CodingRegion < ActiveRecord::Base
   
