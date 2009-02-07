@@ -3,6 +3,7 @@ class PlasmodbGeneList < ActiveRecord::Base
   has_many :coding_regions, :through => :plasmodb_gene_list_entries
   
   VOSS_NUCLEAR_PROTEOME_OCTOBER_2008 = 'voss_nuclear_proteome_october_2008'
+  CONFIRMATION_APILOC_LIST_NAME = 'non-redundant falciparum localised proteins 20080206'
   
   # A generic method for uploading a bunch of genes using stdin
   # description - the name of the list

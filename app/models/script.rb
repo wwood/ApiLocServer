@@ -4359,6 +4359,10 @@ class Script < ActiveRecord::Base
     headings.push derisi_timepoints.collect{|t| 
       'DeRisi 2006 3D7 '+t.name
     }
+    amino_acids = Bio::AminoAcid.names.keys.select{|code| code.length == 1}
+    amino_acids.each do |one|
+      headings.push "Number of AA: #{one}"
+    end
     
     headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
     #    puts headings.join(sep)
@@ -4374,11 +4378,14 @@ class Script < ActiveRecord::Base
     # Genes that have 2 orthomcl entries but only 1 plasmoDB entry
     merged_genes = ['PFD0100c']
     
-    # For all genes that only have 1 localisation
-    CodingRegion.species_name(Species.falciparum_name).all(
-      :select => 'distinct(coding_regions.*)',
-      :joins => {:expressed_localisations => :malaria_top_level_localisation}
-    ).each do |code|
+    # For all genes that only have 1 localisation and that are non-redundant
+    PlasmodbGeneList.find_by_description(
+      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+    ).coding_regions.each do |code|
+      #    CodingRegion.species_name(Species.falciparum_name).all(
+      #      :select => 'distinct(coding_regions.*)',
+      #      :joins => {:expressed_localisations => :malaria_top_level_localisation}
+      #    ).each do |code|
       next unless code.uniq_top?
       
       results = [
@@ -4390,7 +4397,7 @@ class Script < ActiveRecord::Base
       
       #      SignalP
       results.push(
-        code.amino_acid_sequence.signal?
+        code.signal?
       )
       
       # PlasmoAP
@@ -4496,12 +4503,19 @@ class Script < ActiveRecord::Base
         end
       end
       
+      # Amino Acid Composition
+      composition = code.amino_acid_sequence.to_bioruby_sequence.composition
+      amino_acids.each do |one|
+        results.push(composition[one].nil? ? 0 : composition[one])
+      end
+      
       # Check to make sure that all the rows have the same number of entries as a debug thing
       if results.length != headings.length
         raise Exception, "Bad number of entries in the row for code #{code.inspect}: #{results.inspect}"
       end
       all_data.push(results)
-#      puts results.join(sep)
+      #      break
+      #      puts results.join(sep)
     end
     
     rarff_relation = Rarff::Relation.new('PfalciparumLocalisation')
@@ -4669,12 +4683,20 @@ class Script < ActiveRecord::Base
   end
   
   # print out a fasta file of all the proteins with known localisation
-  def localisation_fasta
+  # uniq_top - only print out proteins that have a single localisation
+  # id_only - only use the PlasmoDB id in the name, not anything else
+  def localisation_fasta(uniq_top=false, id_only=false)
     ExpressionContext.all(:select => 'distinct(coding_region_id)').each do |context|
       code = context.coding_region
       raise Exception, "Coding region for context #{context.inspect} not found!" if !code
       
-      puts ">#{code.string_id}|#{code.localisation_english}|#{code.annotation.annotation}"
+      next if uniq_top and !code.uniq_top?
+      
+      if id_only
+        puts ">#{code.string_id}"
+      else
+        puts ">#{code.string_id}|#{code.localisation_english}|#{code.annotation.annotation}"
+      end
       puts code.amino_acid_sequence.sequence
     end
   end
@@ -7226,6 +7248,16 @@ PFL2395c
         next
       end
       NeafseyIntronicSnp.find_or_create_by_coding_region_id_and_value(code.id, count)
+    end
+  end
+  
+  def orthomcl_redundancy_reduce_test
+    PlasmodbGeneList.find_by_description(PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME).coding_regions.collect do |code|
+      begin
+        puts code.single_orthomcl.orthomcl_group.orthomcl_name
+      rescue CodingRegion::UnexpectedOrthomclGeneCount
+        $stderr.puts "No group found for: #{code.string_id} #{code.annotation.annotation}"
+      end
     end
   end
 end

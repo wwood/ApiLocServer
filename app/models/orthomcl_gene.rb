@@ -167,6 +167,18 @@ class OrthomclGene < ActiveRecord::Base
     return codes[0]
   end
   
+  # Get the first coding region associated with this orthomcl_gene like single_code,
+  # but don't raise an exception if none is found, though still do this if more than 
+  # one is found
+  def single_code!
+    codes = coding_regions(:reload => true)
+    
+    if coding_regions.length > 1
+      raise UnexpectedCodingRegionCount, "Unexpected number of coding regions found for #{inspect}: #{codes.inspect}"
+    end
+    return codes[0]    
+  end
+  
   def self.official_orthomcl_apicomplexa_codes
     [
       'cpa',
