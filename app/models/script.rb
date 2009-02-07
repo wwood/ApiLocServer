@@ -7260,4 +7260,13 @@ PFL2395c
       end
     end
   end
+  
+  def apical_merozoite_surface_plasmoap_bonus_bonus_msa
+    PlasmodbGeneList.find_by_description(PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME).coding_regions.collect do |code|
+      next unless ['merozoite surface', 'apical'].include?(code.tops[0].name)
+      next unless code.signal?
+      puts ">#{code.string_id} #{code.tops[0].name} #{code.annotation.annotation}"
+      puts code.sequence_without_signal_peptide
+    end
+  end
 end
