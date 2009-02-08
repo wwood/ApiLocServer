@@ -38,10 +38,21 @@ class Array
   
   #  Run the method given on each member of the array, then
   #  collect and return the results
-  def pick(method_symbol)
-    return collect{|element|
-      element.send(method_symbol)
-    }
+  def pick(*method_symbols)
+    if method_symbols.empty?
+      return nil
+    elsif method_symbols.length > 1
+      return collect{|element|
+        method_symbols.collect{|meth|
+          element.send(meth)
+        }
+      }
+    else
+      return collect{|element|
+        element.send(method_symbols[0])
+      }
+    end
+    
   end
   
   # so intuitively the opposite of Array.reject

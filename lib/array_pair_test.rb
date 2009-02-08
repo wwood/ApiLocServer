@@ -43,4 +43,17 @@ class ArrayPairTest < Test::Unit::TestCase
     hash = {}
     assert_equal hash, [].to_hash
   end
+  
+  def test_pick
+    # No picks
+    assert_equal nil, [0,9].pick()
+    
+    # Single picks
+    assert_equal [], [].pick(:zero?)
+    assert_equal [true], [0].pick(:zero?)
+    assert_equal [true, false, true], [0,1,0].pick(:zero?)
+    
+    # multiple picks
+    assert_equal [[true, 0.0],[false, 2.0]], [0,2].pick(:zero?,:to_f)
+  end
 end
