@@ -472,7 +472,7 @@ class CodingRegion < ActiveRecord::Base
       obs = mouse_phenotype_informations(:include => :mouse_pheno_desc)
       return nil if obs.empty?
       obs.each do |ob|
-        if ob.mouse_pheno_desc.lethal?
+        if ob.lethal?
           return true
         end
       end
