@@ -3590,11 +3590,12 @@ class Script < ActiveRecord::Base
   end
   
   def upload_wormnet
-    
+   
     net = Network.find_or_create_by_name(
       Network::WORMNET_NAME
     )
     first = true
+    #test_on_one_gene
     CSV.open("#{DATA_DIR}/elegans/lee/ng.2007.70-S3.txt", 'r', "\t") do |row|
       
       if first #skip the header line
@@ -3617,9 +3618,10 @@ class Script < ActiveRecord::Base
         puts "Couldn't find gene2 #{[row[0],row[1],row[11]].join("\t")}"
         next
       end
-      
+          
+ 
       CodingRegionNetworkEdge.find_or_create_by_network_id_and_coding_region_id_first_and_coding_region_id_second_and_strength(
-        net.id,
+      net.id,
         g1.id,
         g2.id,
         row[11]

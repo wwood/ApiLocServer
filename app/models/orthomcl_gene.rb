@@ -199,6 +199,7 @@ class OrthomclGene < ActiveRecord::Base
   
   # Basically fill out the orthomcl_gene_coding_regions table appropriately
   # for only the official one
+
   def link_orthomcl_and_coding_regions(interesting_orgs=['cel'])
     goods = 0
     if !interesting_orgs or interesting_orgs.empty?
@@ -240,14 +241,18 @@ class OrthomclGene < ActiveRecord::Base
   # require the orthomcl genes to be linked to the official one. This
   # makes it include, then, all genes that have not been put into an
   # orthomcl group
-  def link_orthomcl_and_coding_regions_loose(interesting_orgs=['cel'], warn=false)
+  
+ def link_orthomcl_and_coding_regions_loose(interesting_orgs=['mmu'], warn=true)
+    # def link_orthomcl_and_coding_regions_loose(interesting_orgs=['sce'], warn=false)
+       #def link_orthomcl_and_coding_regions_loose(interesting_orgs=['cel'], warn=false)
     goods = 0
     if !interesting_orgs or interesting_orgs.empty?
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
       #    interesting_orgs = ['ath']
-      interesting_orgs = ['cel']
-    end
+      #interesting_orgs = ['cel']
+       interesting_orgs = ['mmu']
+       end
     
     puts "linking genes for species: #{interesting_orgs.inspect}"
     
