@@ -1,12 +1,20 @@
 lethal:
+  id: 1
   mouse_pheno_desc_id: 1
   mgi_allele: dunno
   allele_type: Chemically and radiation induced
 not_lethal:
+  id: 2
   mouse_pheno_desc_id: 2
   mgi_allele: dunno
   allele_type: meh
 nothing:
+  id: 3
   mouse_pheno_desc_id: 3
   mgi_allele: dunno
   allele_type: duh
+proper_but_non_lethal:
+  id: 4
+  mouse_pheno_desc_id: 5
+  mgi_allele: mad
+  allele_type: Gene trapped

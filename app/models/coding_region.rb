@@ -70,8 +70,8 @@ class CodingRegion < ActiveRecord::Base
   has_many :coding_region_phenotype_observeds, :dependent => :destroy
   has_many :phenotype_observeds, :through => :coding_region_phenotype_observeds
   #mouse
-  has_many :coding_region_mouse_phenotype_information, :dependent => :destroy
-  has_many :mouse_phenotype_informations, :through => :coding_region_mouse_phenotype_information, :dependent => :destroy
+  has_many :coding_region_mouse_phenotype_informations, :dependent => :destroy
+  has_many :mouse_phenotype_informations, :through => :coding_region_mouse_phenotype_informations, :dependent => :destroy
   #yeast
   has_many :coding_region_yeast_pheno_infos, :dependent => :destroy
   has_many :yeast_pheno_infos, :through => :coding_region_yeast_pheno_infos
@@ -469,10 +469,12 @@ class CodingRegion < ActiveRecord::Base
       end
       return false
     elsif get_species.name == Species.mouse_name
-      obs = mouse_phenotype_informations
+      obs = mouse_phenotype_informations(:include => :mouse_pheno_desc)
       return nil if obs.empty?
       obs.each do |ob|
-        return true if ob.mouse_pheno_desc.lethal?
+        if ob.mouse_pheno_desc.lethal?
+          return true
+        end
       end
       return false
     elsif get_species.name == Species.yeast_name

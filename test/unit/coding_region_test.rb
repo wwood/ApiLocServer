@@ -1,13 +1,6 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
 class CodingRegionTest < ActiveSupport::TestCase
-  fixtures :genes, 
-    :scaffolds, 
-    :coding_regions, 
-    :cds, 
-    :coding_region_alternate_string_ids,
-    :species
-  
   def test_get_first_base_scaffold_wise
     #nadda
     assert_equal nil, CodingRegion.find(1).calculate_upstream_region
@@ -250,5 +243,11 @@ class CodingRegionTest < ActiveSupport::TestCase
       CodingRegion.find(1).segmasker_low_complexity_percentage_however.round(3)
     )
     assert_equal num+1, SegmaskerLowComplexityPercentage.count
+  end
+  
+  # Also tested (orthologously) in mouse_pheno_desc_test
+  def test_lethal?
+    assert_equal true, CodingRegion.find(10).lethal?
+    assert_equal false, CodingRegion.find(11).lethal?
   end
 end

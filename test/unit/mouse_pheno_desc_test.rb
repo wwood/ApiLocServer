@@ -6,5 +6,6 @@ class MousePhenoDescTest < ActiveSupport::TestCase
     assert_equal false, MousePhenoDesc.find(2).lethal?
     assert_equal false, MousePhenoDesc.find(3).lethal?
     assert_equal false, MousePhenoDesc.find(4).lethal?
+    assert_equal false, MousePhenoDesc.find(4).lethal?
   end
 end

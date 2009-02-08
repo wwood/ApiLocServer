@@ -12,3 +12,7 @@ three:
     id: 3
     name: s2
     species_id: 2
+mouse:
+    id: 4
+    name: mgi1
+    species_id: 3

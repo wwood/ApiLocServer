@@ -14,3 +14,7 @@ no_info:
   id: 4
   pheno_id: four
   pheno_desc: really lethal but no information
+non_lethal_properly_informed:
+  id: 5
+  pheno_id: five
+  pheno_desc: nada

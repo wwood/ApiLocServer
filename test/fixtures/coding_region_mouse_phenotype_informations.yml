@@ -1,9 +1,8 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
 one:
-  coding_region_id: 1
+  coding_region_id: 10
   mouse_phenotype_information_id: 1
-
 two:
-  coding_region_id: 1
+  coding_region_id: 11
   mouse_phenotype_information_id: 2

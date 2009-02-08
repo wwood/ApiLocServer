@@ -6,3 +6,6 @@ falciparum:
 sponge:
   id: 2
   name: sponge
+mouse:
+  id: 3
+  name: mouse

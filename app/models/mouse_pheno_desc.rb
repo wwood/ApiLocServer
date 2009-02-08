@@ -1,5 +1,5 @@
 class MousePhenoDesc < ActiveRecord::Base
-  has_one :mouse_phenotype_information
+  has_many :mouse_phenotype_informations
   
   # Commented out named scope because lethal? method changed, leaving this
   # one inaccurate
@@ -8,12 +8,9 @@ class MousePhenoDesc < ActiveRecord::Base
   # Tests if the pheno_desc attribute says lethal, and that the 
   # phenotyp_information is of a valid type
   def lethal?
-    # Need information, otherwise just return false
-    return false unless mouse_phenotype_information
-
-    return (
-      !(/.*lethal.*/i.match(pheno_desc).nil?) and 
-        [
+    return false if /.*lethal.*/i.match(pheno_desc).nil?
+    mouse_phenotype_informations.each do |info|
+      return true if [
         'Chemically and radiation induced',
         'Chemically induced (ENU)',
         'Chemically induced (other)',
@@ -23,7 +20,8 @@ class MousePhenoDesc < ActiveRecord::Base
         'Targeted (knock-out)',
         'Targeted (Reporter)',
         'Transgenic (random, gene disruption)'
-      ].include?(mouse_phenotype_information.allele_type)
-    )
+      ].include?(info.allele_type)
+    end
+    return false
   end
 end

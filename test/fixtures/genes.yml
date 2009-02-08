@@ -16,3 +16,7 @@ four: #same name as three, but different organism
   id: 4
   name: gene3
   scaffold_id: 3
+mouse:
+  id: 5
+  name: mouse1
+  scaffold_id: 4
