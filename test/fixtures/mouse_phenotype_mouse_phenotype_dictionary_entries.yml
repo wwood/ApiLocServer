@@ -1,0 +1,14 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  mouse_phenotype_id: 1
+  mouse_phenotype_dictionary_entry_id: 1
+two:
+  mouse_phenotype_id: 2
+  mouse_phenotype_dictionary_entry_id: 2
+two1:
+  mouse_phenotype_id: 3
+  mouse_phenotype_dictionary_entry_id: 3
+two2:
+  mouse_phenotype_id: 5
+  mouse_phenotype_dictionary_entry_id: 4

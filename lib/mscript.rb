@@ -235,7 +235,7 @@ class Mscript
   def upload_mouse_phenotype_descriptions(filename="#{WORK_DIR}/Gasser/Essentiality/Mouse/VOC_MammalianPhenotype.rpt")
     CSV.open(filename,
       'r', "\t") do |row| 
-      MousePhenoDesc.find_or_create_by_pheno_id_and_pheno_desc(row[0], row[1])
+      MousePhenotypeDictionaryEntry.find_or_create_by_pheno_id_and_pheno_desc(row[0], row[1])
     end
   end
 
@@ -247,18 +247,19 @@ class Mscript
 
     dummy = Gene.new.create_dummy(Species.mouse_name)
     
-    File.open(filename).
-      each do |row2|
+    File.open(filename).each do |row2|
 
       # skip headers, the first 7 lines
-      next if $. <= 7
+      next if row2.match(/^\#/)
       splits = row2.split("\t")
       #skip line if no ensembl gene id
       ensembl = splits[8].strip
       phenotype_ids = splits[9].strip
       
-      if !ensembl or !phenotype_ids
-        raise Exception, "Badly handled line: #{ensembl} #{phenotype_ids} - #{row2}"
+      p ensembl
+      next if ensembl == ''
+      unless ensembl.match(/^ENSMUS/)
+        raise Exception, "Badly handled line - expected Ensembl ID: #{ensembl} #{phenotype_ids} - #{row2}"
       end
       
       code = CodingRegion.find_by_name_or_alternate_and_organism(ensembl, Species.mouse_name)
@@ -267,17 +268,22 @@ class Mscript
       end
       
       
-      phenotype_ids.split(',').each do |pheno_id|
+      phenotype_ids.split(',').uniq.each do |pheno_id|
         # get primary id for phenotype id
-        i = MousePhenoDesc.find_by_pheno_id(pheno_id.strip)
+        i = MousePhenotypeDictionaryEntry.find_by_pheno_id(pheno_id.strip)
         
-        raise Exception, "#{pheno_id}" if !i
+        raise Exception, "#{pheno_id}" unless i
         
-        info = MousePhenotypeInformation.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_mouse_pheno_desc_id(
-          splits[0], splits[3], splits[5], i.id
+        info = MousePhenotype.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker(
+          splits[0], splits[3], splits[5]
         )
-        # find or create association
-        CodingRegionMousePhenotypeInformation.find_or_create_by_coding_region_id_and_mouse_phenotype_information_id(
+        
+        # find or create associations
+        MousePhenotypeMousePhenotypeDictionaryEntry.find_or_create_by_mouse_phenotype_id_and_mouse_phenotype_dictionary_entry_id(
+          info.id,
+          i.id
+        )
+        CodingRegionMousePhenotype.find_or_create_by_coding_region_id_and_mouse_phenotype_id(
           code.id,
           info.id
         )

@@ -1,15 +1,16 @@
-class MousePhenotypeInformation < ActiveRecord::Base
-  has_many :coding_region_mouse_phenotype_informations
-  has_many :coding_regions, :through => :coding_region_mouse_phenotype_informations
+class MousePhenotype < ActiveRecord::Base
+  has_many :coding_region_mouse_phenotypes, :dependent => :destroy
+  has_many :coding_regions, :through => :coding_region_mouse_phenotypes
   
-  belongs_to :mouse_pheno_desc
+  has_many :mouse_phenotype_mouse_phenotype_dictionary_entries, :dependent => :destroy
+  has_many :mouse_phenotype_dictionary_entries, :through => :mouse_phenotype_mouse_phenotype_dictionary_entries
   
   # Tests if the pheno_desc attribute says lethal, and that the
   # phenotyp_information is of a valid type
   def lethal?
-    if by_mutation? and 
-        /.*lethal.*/i.match(mouse_pheno_desc.pheno_desc)
-      return true
+    return false unless by_mutation?
+    mouse_phenotype_dictionary_entries.each do |dick|
+      return true if /.*lethal.*/i.match(dick.pheno_desc)
     end
     return false
   end

@@ -110,14 +110,14 @@ ActiveRecord::Schema.define(:version => 20090209044558) do
   add_index "coding_region_localisations", ["coding_region_id", "localisation_id", "localisation_method_id"], :name => "index_coding_region_localisations_on_coding_region_id_and_local", :unique => true
   add_index "coding_region_localisations", ["coding_region_id", "localisation_id", "localisation_method_id"], :name => "index_coding_region_localisations_on_localisation_id_and_coding", :unique => true
 
-  create_table "coding_region_mouse_phenotype_informations", :force => true do |t|
+  create_table "coding_region_mouse_phenotypes", :force => true do |t|
     t.integer  "coding_region_id"
-    t.integer  "mouse_phenotype_information_id"
+    t.integer  "mouse_phenotype_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  add_index "coding_region_mouse_phenotype_informations", ["coding_region_id", "mouse_phenotype_information_id"], :name => "index_coding_region_mouse_phenotype_informations_on_coding_regi", :unique => true
+  add_index "coding_region_mouse_phenotypes", ["coding_region_id", "mouse_phenotype_id"], :name => "index_coding_region_mouse_phenotype_informations_on_coding_regi", :unique => true
 
   create_table "coding_region_network_edges", :force => true do |t|
     t.integer  "network_id",              :null => false
@@ -440,21 +440,29 @@ ActiveRecord::Schema.define(:version => 20090209044558) do
     t.datetime "updated_at"
   end
 
-  create_table "mouse_pheno_descs", :force => true do |t|
+  create_table "mouse_phenotype_dictionary_entries", :force => true do |t|
     t.string   "pheno_id",   :null => false
     t.string   "pheno_desc"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  add_index "mouse_pheno_descs", ["pheno_desc", "pheno_id"], :name => "index_mouse_pheno_descs_on_pheno_desc_and_pheno_id", :unique => true
-  add_index "mouse_pheno_descs", ["pheno_id"], :name => "index_mouse_pheno_descs_on_pheno_id", :unique => true
+  add_index "mouse_phenotype_dictionary_entries", ["pheno_desc", "pheno_id"], :name => "index_mouse_pheno_descs_on_pheno_desc_and_pheno_id", :unique => true
+  add_index "mouse_phenotype_dictionary_entries", ["pheno_id"], :name => "index_mouse_pheno_descs_on_pheno_id", :unique => true
 
-  create_table "mouse_phenotype_informations", :force => true do |t|
-    t.string   "mgi_allele",          :null => false
+  create_table "mouse_phenotype_mouse_phenotype_dictionary_entries", :force => true do |t|
+    t.integer  "mouse_phenotype_id",                  :null => false
+    t.integer  "mouse_phenotype_dictionary_entry_id", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "mouse_phenotype_mouse_phenotype_dictionary_entries", ["mouse_phenotype_dictionary_entry_id", "mouse_phenotype_id"], :name => "index_mouse_phenotype_mouse_phenotype_dictionary_entries_on_mou", :unique => true
+
+  create_table "mouse_phenotypes", :force => true do |t|
+    t.string   "mgi_allele",  :null => false
     t.string   "allele_type"
     t.string   "mgi_marker"
-    t.integer  "mouse_pheno_desc_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

@@ -1,0 +1,18 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  coding_region_id: 10
+  mouse_phenotype_id: 1
+
+two:
+  coding_region_id: 11
+  mouse_phenotype_id: 2
+three:
+  coding_region_id: 12
+  mouse_phenotype_id: 4
+good_and_bad_good:
+  coding_region_id: 13
+  mouse_phenotype_id: 1
+good_and_bad_bad:
+  coding_region_id: 13
+  mouse_phenotype_id: 4

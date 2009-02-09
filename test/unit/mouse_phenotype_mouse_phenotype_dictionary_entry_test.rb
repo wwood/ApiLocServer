@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class CodingRegionMousePhenotypeInformationsTest < ActiveSupport::TestCase
+class MousePhenotypeMousePhenotypeDictionaryEntryTest < ActiveSupport::TestCase
   # Replace this with your real tests.
   test "the truth" do
     assert true

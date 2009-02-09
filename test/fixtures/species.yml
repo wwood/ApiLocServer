@@ -9,3 +9,6 @@ sponge:
 mouse:
   id: 3
   name: mouse
+elegans:
+  id: 4
+  name: elegans
