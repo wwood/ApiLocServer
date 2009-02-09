@@ -6,3 +6,6 @@ one:
 two:
   coding_region_id: 11
   mouse_phenotype_information_id: 2
+good_pheno_but_no_lethal:
+  coding_region_id: 12
+  mouse_phenotype_information_id: 4

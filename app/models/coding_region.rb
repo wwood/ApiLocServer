@@ -461,16 +461,18 @@ class CodingRegion < ActiveRecord::Base
   # Based on which species this coding region belongs to, return true if it has any phenotypes that
   # are classified as lethal. Return false if not, and nil if no phenotypes were found at all
   def lethal?
+    return nil unless phenotype_information?
+    
     if get_species.name == Species.elegans_name
       obs = phenotype_observeds
-      return nil if obs.empty?
+      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
       obs.each do |ob|
         return true if ob.lethal?
       end
       return false
     elsif get_species.name == Species.mouse_name
       obs = mouse_phenotype_informations(:include => :mouse_pheno_desc)
-      return nil if obs.empty?
+      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
       obs.each do |ob|
         if ob.lethal?
           return true
@@ -479,14 +481,14 @@ class CodingRegion < ActiveRecord::Base
       return false
     elsif get_species.name == Species.yeast_name
       obs = yeast_pheno_infos
-      return nil if obs.empty?
+      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
       obs.each do |ob|
         return true if ob.lethal?
       end
       return false
     elsif get_species.name == Species.fly_name
       obs = drosophila_allele_genes.pick(:drosophila_allele_phenotypes).flatten
-      return nil if obs.empty?
+      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
       obs.each do |ob|
         return true if ob.lethal?
       end
@@ -495,6 +497,26 @@ class CodingRegion < ActiveRecord::Base
       raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
     end
     
+  end
+  
+  # Returns true iff there is sufficient data available for this coding region
+  # to be classified as lethal? or not
+  def phenotype_information?
+    if get_species.name == Species.elegans_name
+      return !phenotype_observeds.empty?
+    elsif get_species.name == Species.mouse_name
+      obs = mouse_phenotype_informations
+      obs.each do |ob|
+        return true if ob.by_mutation?
+      end
+      return false
+    elsif get_species.name == Species.yeast_name
+      return !yeast_pheno_infos.empty?
+    elsif get_species.name == Species.fly_name
+      return !drosophila_allele_genes.pick(:drosophila_allele_phenotypes).flatten.empty?
+    else
+      raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
+    end
   end
   
   
