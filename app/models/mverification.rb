@@ -153,16 +153,13 @@ class Mverification < ActiveRecord::Base
     # 5811
     raise if CodingRegion.species_name(Species.mouse_name).count != 5811
     
-    #ben@ben:~/phd/data/Essentiality/Mouse$ awk -F'  ' '{print $10}' MGI_PhenotypicAllele.rpt |sed -e 's/\,/\n/g' |grep . |wc -l
-    #53968
-    raise Exception, "Count was bad: #{MousePhenotype.count}"if MousePhenotype.count != 53968
-    
+    #Counting is hard by awk, grep so skpping
     
     # check to make sure the coding regions are linked as expected
     code = CodingRegion.find_by_name_or_alternate_and_organism('ENSMUSG00000053286', Species.mouse_name)
     raise if !code or code.orthomcl_genes.empty?
 
-    assert_equal false, OrthomclGene.find_by_orthomcl_name('mmu|ENSMUSP00000010241').single_code.lethal?
+    raise if OrthomclGene.find_by_orthomcl_name('mmu|ENSMUSP00000010241').single_code.lethal?
   end
 
   def fly_pheno_info
