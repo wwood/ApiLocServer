@@ -70,8 +70,8 @@ class CodingRegion < ActiveRecord::Base
   has_many :coding_region_phenotype_observeds, :dependent => :destroy
   has_many :phenotype_observeds, :through => :coding_region_phenotype_observeds
   #mouse
-  has_many :coding_region_mouse_phenotype_informations, :dependent => :destroy
-  has_many :mouse_phenotype_informations, :through => :coding_region_mouse_phenotype_informations, :dependent => :destroy
+  has_many :coding_region_mouse_phenotypes, :dependent => :destroy
+  has_many :mouse_phenotypes, :through => :coding_region_mouse_phenotypes, :dependent => :destroy
   #yeast
   has_many :coding_region_yeast_pheno_infos, :dependent => :destroy
   has_many :yeast_pheno_infos, :through => :coding_region_yeast_pheno_infos
@@ -471,7 +471,7 @@ class CodingRegion < ActiveRecord::Base
       end
       return false
     elsif get_species.name == Species.mouse_name
-      obs = mouse_phenotype_informations(:include => :mouse_pheno_desc)
+      obs = mouse_phenotypes(:include => :mouse_phenotype_dictionary_entries)
       raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
       obs.each do |ob|
         if ob.lethal?
@@ -505,7 +505,7 @@ class CodingRegion < ActiveRecord::Base
     if get_species.name == Species.elegans_name
       return !phenotype_observeds.empty?
     elsif get_species.name == Species.mouse_name
-      obs = mouse_phenotype_informations
+      obs = mouse_phenotypes
       obs.each do |ob|
         return true if ob.by_mutation?
       end
