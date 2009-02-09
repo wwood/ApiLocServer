@@ -117,40 +117,41 @@ class Mverification < ActiveRecord::Base
   end
   
   
-  def mouse_pheno_desc
-    if MousePhenoDesc.count != 6370
-      puts "Unexpected number of descriptions: #{MousePhenoDesc.count}"
+  def mouse_phenotype_dictionary_entries
+    if MousePhenotypeDictionaryEntry.count != 6370
+      puts "Unexpected number of descriptions: #{MousePhenotypeDictionaryEntry.count}"
     end
     
-    d = MousePhenoDesc.first(:order => :pheno_id)
+    d = MousePhenotypeDictionaryEntry.first(:order => :pheno_id)
     if d.pheno_id != 'MP:0000001' or d.pheno_desc != 'Phenotype Ontology'
       puts "first phenotype unexpected attributes: #{d.inspect}"
     end
     
-    d = MousePhenoDesc.find_by_pheno_id('MP:0000035')
+    d = MousePhenotypeDictionaryEntry.find_by_pheno_id('MP:0000035')
     if !d or d.pheno_desc != 'abnormal membranous labyrinth'
       puts "one in the middle failed: #{d.inspect}"
     end
   end
   
   
-  def mouse_pheno_info
+  def mouse_phenotypes
     code = CodingRegion.find_by_name_or_alternate_and_organism('ENSMUSG00000053094', Species.mouse_name)
     raise if !code
-    infos = code.mouse_phenotype_informations
+    infos = code.mouse_phenotypes
     raise if infos.length != 0
 
     code = CodingRegion.find_by_name_or_alternate_and_organism('ENSMUSG00000053286', Species.mouse_name)
     raise if !code
-    infos = code.mouse_phenotype_informations
-    raise if infos.length != 2
+    infos = code.mouse_phenotypes
+    raise if infos.length != 1
     raise if ['MP:0005386','MP:0005389'].sort !=
-      infos.pick(:mouse_pheno_desc).pick(:pheno_id).sort
+      infos[0].mouse_phenotype_dictionary_entries.pick(:pheno_id).sort
     
-    # This is misleading if more genes than just the mouse pheno are uploaded
+    # This is misleading if more genes than just the mouse pheno are uploaded. If
+    # 5812 is found, that is a mistake - one with no ensembl has been uploaded
     # ben@ben:~/phd/data/Essentiality/Mouse$ awk -F'  ' '{print $9}' MGI_PhenotypicAllele.rpt |sort |uniq |grep . |wc -l
     # 5811
-    raise if CodingRegion.species_name(Species.mouse_name).count != 5812
+    raise if CodingRegion.species_name(Species.mouse_name).count != 5811
     
     #ben@ben:~/phd/data/Essentiality/Mouse$ awk -F'  ' '{print $10}' MGI_PhenotypicAllele.rpt |sed -e 's/\,/\n/g' |grep . |wc -l
     #53968
@@ -161,6 +162,7 @@ class Mverification < ActiveRecord::Base
     code = CodingRegion.find_by_name_or_alternate_and_organism('ENSMUSG00000053286', Species.mouse_name)
     raise if !code or code.orthomcl_genes.empty?
 
+    assert_equal false, OrthomclGene.find_by_orthomcl_name('mmu|ENSMUSP00000010241').single_code.lethal?
   end
 
   def fly_pheno_info

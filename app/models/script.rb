@@ -3621,7 +3621,7 @@ class Script < ActiveRecord::Base
           
  
       CodingRegionNetworkEdge.find_or_create_by_network_id_and_coding_region_id_first_and_coding_region_id_second_and_strength(
-      net.id,
+        net.id,
         g1.id,
         g2.id,
         row[11]
@@ -4076,6 +4076,18 @@ class Script < ActiveRecord::Base
   
   def ben_celegans_phenotype_observed_to_database
     Mscript.new.celegans_phenotype_observed_to_database("#{DATA_DIR}/elegans/essentiality/cel_wormbase_pheno.tsv")
+  end
+  
+  def upload_mouse_essentiality_data
+    puts "Deleting old entries.."
+    MousePhenotype.delete_all
+    MousePhenotypeDictionaryEntry.delete_all
+    CodingRegionMousePhenotype.delete_all
+    MousePhenotypeMousePhenotypeDictionaryEntry.delete_all
+    puts "Uploading Descriptions.."
+    ben_upload_mouse_phenotype_descriptions
+    puts "Uploading phenotypes.."
+    ben_upload_mouse_phenotype_information
   end
   
   def ben_upload_mouse_phenotype_descriptions

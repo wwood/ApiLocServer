@@ -1,8 +1,8 @@
 class MousePhenotype < ActiveRecord::Base
-  has_many :coding_region_mouse_phenotypes
+  has_many :coding_region_mouse_phenotypes, :dependent => :destroy
   has_many :coding_regions, :through => :coding_region_mouse_phenotypes
   
-  has_many :mouse_phenotype_mouse_phenotype_dictionary_entries
+  has_many :mouse_phenotype_mouse_phenotype_dictionary_entries, :dependent => :destroy
   has_many :mouse_phenotype_dictionary_entries, :through => :mouse_phenotype_mouse_phenotype_dictionary_entries
   
   # Tests if the pheno_desc attribute says lethal, and that the

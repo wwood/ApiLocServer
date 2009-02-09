@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090209025339) do
+ActiveRecord::Schema.define(:version => 20090209035806) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -456,11 +456,12 @@ ActiveRecord::Schema.define(:version => 20090209025339) do
     t.datetime "updated_at"
   end
 
+  add_index "mouse_phenotype_mouse_phenotype_dictionary_entries", ["mouse_phenotype_dictionary_entry_id", "mouse_phenotype_id"], :name => "index_mouse_phenotype_mouse_phenotype_dictionary_entries_on_mou", :unique => true
+
   create_table "mouse_phenotypes", :force => true do |t|
-    t.string   "mgi_allele",          :null => false
+    t.string   "mgi_allele",  :null => false
     t.string   "allele_type"
     t.string   "mgi_marker"
-    t.integer  "mouse_pheno_desc_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
