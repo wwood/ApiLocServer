@@ -1,17 +1,8 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
 one:
-  dbxref: MyString
-  phenotype: MyString
-  experiments: 1
-  primary: 1
-  specific: 1
-  observed: 1
-
+  id: 1
+  phenotype: super lethal
 two:
-  dbxref: MyString
-  phenotype: MyString
-  experiments: 1
-  primary: 1
-  specific: 1
-  observed: 1
+  id: 2
+  phenotype: waste of space

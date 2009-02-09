@@ -465,7 +465,8 @@ class CodingRegion < ActiveRecord::Base
     
     if get_species.name == Species.elegans_name
       obs = phenotype_observeds
-      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
+      # It is ok that it has no phenotype_observeds, if it has phenotype_informations,
+      # which it does according to CodingRegion#phenotype_information?
       obs.each do |ob|
         return true if ob.lethal?
       end
@@ -503,7 +504,7 @@ class CodingRegion < ActiveRecord::Base
   # to be classified as lethal? or not
   def phenotype_information?
     if get_species.name == Species.elegans_name
-      return !phenotype_observeds.empty?
+      return !phenotype_informations.empty?
     elsif get_species.name == Species.mouse_name
       obs = mouse_phenotypes
       obs.each do |ob|

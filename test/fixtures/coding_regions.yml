@@ -67,3 +67,18 @@ mouse_good_and_bad_pheno:
    gene_id: 5
    string_id: mea
    orientation: +
+elegans:
+   id: 14
+   gene_id: 6
+   string_id: something_complicated
+   orientation: -
+elegans_non_lethal:
+   id: 15
+   gene_id: 6
+   string_id: something_complicated2
+   orientation: -
+elegans_no_pheno:
+   id: 16
+   gene_id: 6
+   string_id: mea
+   orientation: +

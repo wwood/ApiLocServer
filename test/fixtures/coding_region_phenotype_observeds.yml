@@ -1,9 +1,9 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
 one:
-  coding_region_id: 1
+  coding_region_id: 14
   phenotype_observed_id: 1
 
 two:
-  coding_region_id: 1
+  coding_region_id: 15
   phenotype_observed_id: 2

@@ -16,3 +16,7 @@ mouse:
     id: 4
     name: mgi1
     species_id: 3
+elegans:
+    id: 5
+    name: mgi1_eleg
+    species_id: 4
