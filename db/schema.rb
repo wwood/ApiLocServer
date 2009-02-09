@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090121033832) do
+ActiveRecord::Schema.define(:version => 20090209044558) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -138,6 +138,7 @@ ActiveRecord::Schema.define(:version => 20090121033832) do
   end
 
   add_index "coding_region_phenotype_informations", ["coding_region_id", "phenotype_information_id"], :name => "index_coding_region_phenotype_informations_on_coding_region_id_", :unique => true
+  add_index "coding_region_phenotype_informations", ["phenotype_information_id"], :name => "index_coding_region_phenotype_informations_on_phenotype_informa"
 
   create_table "coding_region_phenotype_observeds", :force => true do |t|
     t.integer  "coding_region_id"

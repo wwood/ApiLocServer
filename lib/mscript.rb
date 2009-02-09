@@ -14,7 +14,7 @@ class Mscript
   #DATA_DIR = "#{ENV['HOME']}/Workspace/Rails/essentiality"
   WORK_DIR = "#{ENV['HOME']}/Workspace"
 
-  def celegans_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Essentiality/Celegans/cel_wormbase_pheno.tsv")
+  def celegans_phenotype_information_to_database(filename = "#{DATA_DIR}/Essentiality/Celegans/cel_wormbase_pheno.tsv")
     #dummy_gene = Gene.new.create_dummy Species.elegans_name
     first = true
 
@@ -56,9 +56,12 @@ class Mscript
           
           # I want collection<< functionality, but check to make sure isn't already there otherwise
           # database will complain
-          if !pheno.coding_region_ids.include?(code.id)
-            pheno.coding_regions << code
-          end
+          CodingRegionPhenotypeInformation.find_or_create_by_coding_region_id_and_phenotype_information_id(
+            code.id, pheno.id
+          )
+#          if !pheno.coding_region_ids.include?(code.id)
+#            pheno.coding_regions << code
+#          end
 
         end
       end
@@ -182,7 +185,7 @@ class Mscript
   end
   
   def link_dros_genes_and_coding_regions_genes_not_in_groups
-  #def link_mouse_genes_and_coding_regions_genes_not_in_groups
+    #def link_mouse_genes_and_coding_regions_genes_not_in_groups
     interesting_orgs = ['dme']
     #interesting_orgs = ['mmu']
     count = 0
@@ -503,7 +506,7 @@ class Mscript
     #started uploading genes but threw exception with a gene with more than 1 coding region so made file of rest of genes and started from there
     #CSV.open("#{DATA_DIR}/elegans/lee/wormnet_genes_not_found.formatted2", 'r', "\t") do |row|
     #CSV.open("#{DATA_DIR}/elegans/lee/wormnet_genes_not_found.formatted2.part2", 'r', "\t") do |row|
-      CSV.open("#{DATA_DIR}/elegans/lee/wormnet_genes_not_found.formatted2.part3", 'r', "\t") do |row|
+    CSV.open("#{DATA_DIR}/elegans/lee/wormnet_genes_not_found.formatted2.part3", 'r', "\t") do |row|
       if first #skip the header line
         first = false
         next
