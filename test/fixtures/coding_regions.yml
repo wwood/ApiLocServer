@@ -53,7 +53,12 @@ mouse:
    string_id: something_complicated
    orientation: -
 mouse2:
-    id: 11
-    gene_id: 5
-    string_id: something_complicated2
-    orientation: -
+   id: 11
+   gene_id: 5
+   string_id: something_complicated2
+   orientation: -
+mouse_no_pheno:
+   id: 12
+   gene_id: 5
+   string_id: mea
+   orientation: +

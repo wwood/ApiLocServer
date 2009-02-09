@@ -248,6 +248,13 @@ class CodingRegionTest < ActiveSupport::TestCase
   # Also tested (orthologously) in mouse_pheno_desc_test
   def test_lethal?
     assert_equal true, CodingRegion.find(10).lethal?
-    assert_equal false, CodingRegion.find(11).lethal?
+    assert_nil CodingRegion.find(11).lethal?
+    assert_equal false, CodingRegion.find(12).lethal?
+  end
+  
+  def test_phenotype_information?
+    assert_equal true, CodingRegion.find(10).phenotype_information?
+    assert_equal false, CodingRegion.find(11).phenotype_information?
+    assert_equal true, CodingRegion.find(12).phenotype_information?
   end
 end
