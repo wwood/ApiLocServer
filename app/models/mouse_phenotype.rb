@@ -1,4 +1,4 @@
-class MousePhenotypeInformation < ActiveRecord::Base
+class MousePhenotype < ActiveRecord::Base
   has_many :coding_region_mouse_phenotype_informations
   has_many :coding_regions, :through => :coding_region_mouse_phenotype_informations
   

@@ -270,7 +270,7 @@ class Mscript
         
         raise Exception, "#{pheno_id}" if !i
         
-        info = MousePhenotypeInformation.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_mouse_pheno_desc_id(
+        info = MousePhenotype.find_or_create_by_mgi_allele_and_allele_type_and_mgi_marker_and_mouse_pheno_desc_id(
           splits[0], splits[3], splits[5], i.id
         )
         # find or create association

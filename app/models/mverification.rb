@@ -154,7 +154,7 @@ class Mverification < ActiveRecord::Base
     
     #ben@ben:~/phd/data/Essentiality/Mouse$ awk -F'  ' '{print $10}' MGI_PhenotypicAllele.rpt |sed -e 's/\,/\n/g' |grep . |wc -l
     #53968
-    raise Exception, "Count was bad: #{MousePhenotypeInformation.count}"if MousePhenotypeInformation.count != 53968
+    raise Exception, "Count was bad: #{MousePhenotype.count}"if MousePhenotype.count != 53968
     
     
     # check to make sure the coding regions are linked as expected
