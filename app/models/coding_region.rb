@@ -504,7 +504,7 @@ class CodingRegion < ActiveRecord::Base
   # to be classified as lethal? or not
   def phenotype_information?
     if get_species.name == Species.elegans_name
-      return !phenotype_informations.empty?
+      return coding_region_phenotype_informations.count > 0
     elsif get_species.name == Species.mouse_name
       obs = mouse_phenotypes
       obs.each do |ob|

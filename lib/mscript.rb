@@ -184,10 +184,58 @@ class Mscript
 
   end
   
+   def link_mouse_genes_and_coding_regions_genes_not_in_groups
+  
+    interesting_orgs = ['mmu']
+    count = 0
+    
+    
+    # Maybe a bit heavy handed but ah well.
+    OrthomclGene.code(interesting_orgs).each do |orthomcl_gene|
+
+      #iterate over each orthomcl protein id (eg dme|CGxxxx)
+      #get gene name by first getting orthomcl protein id from OrthomclGene table and then then using that to get the gene id from the annotation information in the OrthomclGeneOfficialData table  
+
+      e = orthomcl_gene.orthomcl_gene_official_data
+
+
+      #the annotation line in orthomcl_gene_official_data =
+      #|  CG1977|ENSF00000000161|Spectrin alpha chain. [Source:Uniprot/SWISSPROT;Acc:P13395] |
+
+      #split on bars and extract first without spaces
+      splits = e.annotation.split('|')
+      name = splits[0].strip #this is the gene id
+      #create coding region for this gene id and the protein name
+
+      #extract protein id
+      matches = orthomcl_gene.orthomcl_name.match('(.*)\|(.*)')
+      pname = matches[2]
+
+      # get primary id for gene
+
+      a = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.mouse_name)
+      if !a
+        #        puts "#{name} not found in gene table"
+        next
+      else
+        count += 1
+
+        OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
+          orthomcl_gene.id,
+          a.id
+        )
+      end
+    end
+    
+    puts "Uploaded #{count} links"
+
+  end
+  
+  
   def link_dros_genes_and_coding_regions_genes_not_in_groups
-    #def link_mouse_genes_and_coding_regions_genes_not_in_groups
+
     interesting_orgs = ['dme']
-    #interesting_orgs = ['mmu']
+
     count = 0
     
     
@@ -214,7 +262,6 @@ class Mscript
 
       # get primary id for gene
       a = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.fly_name)
-      #a = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.mouse_name)
       if !a
         #        puts "#{name} not found in gene table"
         next
@@ -232,14 +279,14 @@ class Mscript
 
   end
   
-  def upload_mouse_phenotype_descriptions(filename="#{WORK_DIR}/Gasser/Essentiality/Mouse/VOC_MammalianPhenotype.rpt")
+  def upload_mouse_phenotype_descriptions(filename="#{DATA_DIR}/Essentiality/Mouse/VOC_MammalianPhenotype.rpt")
     CSV.open(filename,
       'r', "\t") do |row| 
       MousePhenotypeDictionaryEntry.find_or_create_by_pheno_id_and_pheno_desc(row[0], row[1])
     end
   end
 
-  def upload_mouse_phenotype_information(filename="#{WORK_DIR}/Gasser/Essentiality/Mouse/MGI_PhenotypicAllele.rpt")
+  def upload_mouse_phenotype_information(filename="#{DATA_DIR}/Essentiality/Mouse/MGI_PhenotypicAllele.rpt")
     #add gene ids from phenotype file to gene table
 
     #Example line from MGI phenotype file
