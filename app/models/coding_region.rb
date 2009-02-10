@@ -730,10 +730,6 @@ class CodingRegion < ActiveRecord::Base
   
   class UnexpectedOrthomclGeneCount < StandardError; end
   
-  def gmars_vector(max_gap=3, gmars = GMARS.new)
-    aaseq ? gmars.gmars_gapped_vector(aaseq, max_gap) : nil
-  end
-  
   # Return the golgi consensus sequences that the amino acid
   # sequence of this coding region is attached to. Return [] if none
   # are found or if there is no amino acid sequence attached

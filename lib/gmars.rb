@@ -73,6 +73,10 @@ class GMARS
     return nodes.flatten
   end
   
+  def to_s
+    "gMARS calculator. Alphabet #{@protein_ids.join('')} Ignoring #{@ignoring_alphabet} object_id #{object_id}"
+  end
+  
   class NamedNode
     attr_accessor :count, :total, :max_gap, :first_aa, :second_aa
     

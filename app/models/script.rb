@@ -4355,7 +4355,7 @@ class Script < ActiveRecord::Base
       'Number of Yeast Genes in Official Orthomcl Group',
       'Number of Mouse Genes in Official Orthomcl Group',
       'Number of P. falciparum Genes in 7species Orthomcl Group', #7species orthomcl
-      'Number of P. vivax Genes in 7species Orthomcl Group',
+      #      'Number of P. vivax Genes in 7species Orthomcl Group',
       'Number of Babesia Genes in 7species Orthomcl Group',
       'Number of Synonymous IT SNPs according to Jeffares et al', #SNP Data
       'Number of Non-Synonymous IT SNPs according to Jeffares et al',
@@ -4377,10 +4377,14 @@ class Script < ActiveRecord::Base
     amino_acids.each do |one|
       headings.push "Number of AA: #{one}"
     end
+    amino_acids.each do |one|
+      headings.push "Normalised number of AA: #{one}"
+    end
     
     headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
     #    puts headings.join(sep)
     all_data = []
+    first = true
     #String attributes aren't useful in arff files, because many classifiers and visualisations don't handle them
     # So make a list of outputs so they can be made nominal in the end.
     wolf_psort_outputs = {} 
@@ -4454,18 +4458,27 @@ class Script < ActiveRecord::Base
           og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
           raise Exception, "7species falciparum not found for #{code.inspect}" if !og
           og.orthomcl_group.orthomcl_genes.all.each do |gene|
-            species_name = gene.single_code.gene.scaffold.species.name
-            if seven_name_hash[species_name]
-              seven_name_hash[species_name] += 1
-            else
-              seven_name_hash[species_name] = 1
+            begin
+              species_name = gene.single_code.gene.scaffold.species.name
+              if seven_name_hash[species_name]
+                seven_name_hash[species_name] += 1
+              else
+                seven_name_hash[species_name] = 1
+              end
+            rescue OrthomclGene::UnexpectedCodingRegionCount => e
+              # ignore vivas because of current linking errors
+              raise e unless gene.orthomcl_name.match(/^Plasmodium_vivax_/)
             end
           end
         end
       rescue CodingRegion::UnexpectedOrthomclGeneCount => e
         # This happens for singlet genes
+      rescue OrthomclGene::UnexpectedCodingRegionCount => e
+        raise e unless code.species==Species::VIVAX_NAME
       end
-      [Species.falciparum_name, Species.vivax_name, Species.babesia_bovis_name].each do |name|
+      [Species.falciparum_name, 
+        #        Species.vivax_name, 
+        Species.babesia_bovis_name].each do |name|
         results.push seven_name_hash[name] ? seven_name_hash[name] : 0
       end
       
@@ -4522,10 +4535,23 @@ class Script < ActiveRecord::Base
       amino_acids.each do |one|
         results.push(composition[one].nil? ? 0 : composition[one])
       end
+      # Normalised AA Composition
+      amino_acids.each do |one|
+        results.push(composition[one].nil? ? 0.0 : composition[one].to_f/code.amino_acid_sequence.sequence.length.to_f)
+      end
+      
+      # gMARS and other headings
+      code.gmars_vector(3).each do |node|
+        # Push the headings on the fly - easier this way
+        headings.push node.name if first
+        results.push node.normalised_value
+      end
+      
+      first = false if first
       
       # Check to make sure that all the rows have the same number of entries as a debug thing
       if results.length != headings.length
-        raise Exception, "Bad number of entries in the row for code #{code.inspect}: #{results.inspect}"
+        raise Exception, "Bad number of entries in the row for code #{code.inspect}: headings #{headings.length} results #{results.length}"
       end
       all_data.push(results)
       #      break
@@ -4700,6 +4726,11 @@ class Script < ActiveRecord::Base
   # uniq_top - only print out proteins that have a single localisation
   # id_only - only use the PlasmoDB id in the name, not anything else
   def localisation_fasta(uniq_top=false, id_only=false)
+    print localisation_fasta_programmatic(uniq_top, id_only)
+  end
+  
+  def localisation_fasta_programmatic(uniq_top=false, id_only=false)
+    to_return = ""
     ExpressionContext.all(:select => 'distinct(coding_region_id)').each do |context|
       code = context.coding_region
       raise Exception, "Coding region for context #{context.inspect} not found!" if !code
@@ -4707,12 +4738,14 @@ class Script < ActiveRecord::Base
       next if uniq_top and !code.uniq_top?
       
       if id_only
-        puts ">#{code.string_id}"
+        to_return.concat ">#{code.string_id}\n"
       else
-        puts ">#{code.string_id}|#{code.localisation_english}|#{code.annotation.annotation}"
+        to_return.concat ">#{code.string_id}|#{code.localisation_english}|#{code.annotation.annotation}\n"
       end
-      puts code.amino_acid_sequence.sequence
+      to_return.concat code.amino_acid_sequence.sequence
+      to_return.concat "\n"
     end
+    return to_return
   end
   
   # Print out proteins predicted to be type 2 transmembrane proteins and that are localised
@@ -6004,8 +6037,10 @@ class Script < ActiveRecord::Base
   
   # generate the files necessary to run a prediction run
   # in LIBSVM format
-  def gmars_all_localisations
+  def gmars_arff
     gmars = GMARS.new
+    
+    
     raise Exception, "too many lines output from each I think - doubtful this routine is bug free"
     
     top_hash = {}
@@ -6275,6 +6310,7 @@ class Script < ActiveRecord::Base
   end
   
   def localisation_libsvm_normalised
+    raise Exception, "No longer maintained - use ARFF instead"
     
     # headings
     headings = [
@@ -6547,6 +6583,7 @@ class Script < ActiveRecord::Base
   
   def localisation_libsvm_normalised_apicoplast_test
     
+    raise Exception, "No longer maintained - use ARFF instead"
     # headings
     headings = [
       #      'PlasmoDB ID',
@@ -7282,5 +7319,25 @@ PFL2395c
       puts ">#{code.string_id} #{code.tops[0].name} #{code.annotation.annotation}"
       puts code.sequence_without_signal_peptide
     end
+  end
+  
+  def create_redundancy_reduced_apiloc_list
+    upload_other_meta
+    File.open("#{PHD_DIR}/gene lists/ApiLocLocalisedProteinsUniqTop.fa", 'w') do |f|
+      f.print localisation_fasta_programmatic(true, true)
+    end
+    entries = []
+    Dir.chdir("#{PHD_DIR}/gene lists") do
+      system("blastclust -i ApiLocLocalisedProteinsUniqTop.fa -S 10 >ApiLocLocalisedProteinsUniqTop.fa.blastclust")
+      
+      File.open("ApiLocLocalisedProteinsUniqTop.fa.blastclust").each_line do |line|
+        entries.push line.split(' ')[0]
+      end
+    end
+    # Get rid of the previous ones because they just get in the way
+    PlasmodbGeneList.all(:conditions => {:description => PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME}).reach.destroy
+    
+    # Upload the newest and best version
+    PlasmodbGeneList.create_gene_list(PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME, Species.falciparum_name, entries)
   end
 end
