@@ -249,7 +249,33 @@ class Mverification < ActiveRecord::Base
     
     #count no of unique phenotype entries: grep 'ORF' /home/maria/data/Essentiality/Yeast/phenotype_data.tab | cut -f6,7,10 | sort -u|wc -l = 1155
     raise if YeastPhenoInfo.count != 1155
+    
+    #check only genes with "trusted" phenotypes are included in analysis (i.e those from knockout/mutation and not overexpression)
+    
+    # check that a gene with mutant_type = null and phenotype = inviable returns true
+    # e.g YAL001C ORF     TFC3    S000000001      PMID: 12140549|SGD_REF: S000071347      systematic mutation set null            S288C   inviable 
+    name = 'sce|YAL001C'
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+      puts "Bad lethal phenotype association, should be true for lethal phenotype: #{name}"
+    end
+    
+    # check that a gene with mutant_type = overexpression and phenotype = inviable returns false
+    #YDR389W ORF     SAC7    S000002797      PMID: 16455487|SGD_REF: S000114334      systematic mutation set overexpression          S288C   inviable  
+    name = 'sce|YDR389W'
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? == true
+      puts "Bad lethal phenotype association, should be false for lethal phenotype, not correct mutant_type #{name}"
+    end
+    
+    # check that a gene with mutant_type = null and phenotype != inviable returns false
+    #YAL022C	ORF	FUN26	S000000020	PMID: 12140549|SGD_REF: S000071347	systematic mutation set	null		S288C	viable				
+    #YAL022C	ORF	FUN26	S000000020	PMID: 16582425|SGD_REF: S000114750	systematic mutation set	null		S288C	chemical compound excretion: increased	inositols	synthetic medium lacking inositol and choline	Opi- phenotype; overproduction and excretion of inositol in the absence of inositol and choline	
 
+    name = 'sce|YAL022C'
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != false
+      puts "Bad lethal phenotype association, should be false for lethal phenotype, not correct phenotype #{name}"
+    end
+   
+  
   end
   
   

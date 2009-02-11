@@ -228,10 +228,10 @@ class WScript
   
     def all_genes_including_genes_not_in_orthomclgroups
     species = [
-       ['cel']  
+       #['cel']  
       #['mmu'] 
         #['dme']
-        #['sce']
+        ['sce']
     ]
     #made new LethalCount class for genes not in groups as the other LethalCount class prints out info for groups
      lc = LethalCount2.new
