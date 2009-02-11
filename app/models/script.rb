@@ -1079,7 +1079,7 @@ class Script < ActiveRecord::Base
   
   # Load the data from the groups file alone - upload all genes and groups
   # in the process
-  def orthomcl_groups_to_database(filename="#{DATA_DIR}/orthomcl/groups_orthomcl-2.txt")
+  def orthomcl_groups_to_database(filename="#{DATA_DIR}/orthomcl/v2/groups_orthomcl-2.txt")
     #    OrthomclGene.delete_all 
     #    OrthomclGroup.delete_all 
     #    OrthomclGeneCodingRegion.delete_all
@@ -1098,14 +1098,17 @@ class Script < ActiveRecord::Base
         raise Exception, "Bad line: #{line}"
       end
       
-      g = OrthomclGroup.find_or_create_by_orthomcl_run_id_and_orthomcl_name(run.id, splits1[0])
+      g = OrthomclGroup.find_or_create_by_orthomcl_name(splits1[0])
       
       splits2 = splits1[1].split(' ')
       if splits2.length < 1
         raise Exception, "Bad line (2): #{line}"
       end
       splits2.each do |name|
-        OrthomclGene.find_or_create_by_orthomcl_group_id_and_orthomcl_name(g.id, name)
+        og = OrthomclGene.find_or_create_by_orthomcl_name(name)
+        OrthomclGeneOrthomclGroupOrthomclRun.find_or_create_by_orthomcl_gene_id_and_orthomcl_group_id_and_orthomcl_run_id(
+          og.id, g.id, run.id
+        )
       end
     end
   end
@@ -1142,7 +1145,9 @@ class Script < ActiveRecord::Base
       
       puts
     end
-    enddef map_plasmodb_ids
+  end
+  
+  def map_plasmodb_ids
     $stdin.each do |line|
       p = CodingRegion.find_by_name_or_alternate(line.strip)
       if !p
@@ -4559,11 +4564,11 @@ class Script < ActiveRecord::Base
       end
       
       # gMARS and other headings
-#      code.gmars_vector(3).each do |node|
-#        # Push the headings on the fly - easier this way
-#        headings.push node.name if first
-#        results.push node.normalised_value
-#      end
+      #      code.gmars_vector(3).each do |node|
+      #        # Push the headings on the fly - easier this way
+      #        headings.push node.name if first
+      #        results.push node.normalised_value
+      #      end
       
       first = false if first
       
