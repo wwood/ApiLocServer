@@ -4381,6 +4381,10 @@ class Script < ActiveRecord::Base
       headings.push "Normalised number of AA: #{one}"
     end
     headings.push WINZELER_TIMEPOINTS
+    WINZELER_TIMEPOINTS.each do |name|
+      name += ' percentile'
+      headings.push name
+    end
     
     headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
     #    puts headings.join(sep)
@@ -4406,6 +4410,7 @@ class Script < ActiveRecord::Base
       #      :joins => {:expressed_localisations => :malaria_top_level_localisation}
       #    ).each do |code|
       next unless code.uniq_top?
+      next unless ['apicoplast','exported'].include?(code.tops[0].name)
       
       results = [
         code.string_id,
@@ -4545,6 +4550,12 @@ class Script < ActiveRecord::Base
       WINZELER_TIMEPOINTS.each do |timepoint|
         t = code.microarray_measurements.timepoint_name(timepoint).first
         results.push t ? t.measurement : nil
+      end
+      
+      # Winzeler Timepoints percentiles
+      WINZELER_TIMEPOINTS.each do |timepoint|
+        t = code.microarray_measurements.timepoint_name(timepoint).first
+        results.push t ? t.percentile : nil
       end
       
       # gMARS and other headings
