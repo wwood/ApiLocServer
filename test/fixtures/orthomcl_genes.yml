@@ -3,48 +3,36 @@
 one:
   id: 1
   orthomcl_name: pfa|PF01
-  orthomcl_group_id: 1
 two:
   id: 2
   orthomcl_name: ath|ad01
-  orthomcl_group_id: 1
 three:
   id: 3
   orthomcl_name: dme|dmoe11
-  orthomcl_group_id: 1
 four:
   id: 4
   orthomcl_name: cel|dmoe12
-  orthomcl_group_id: 1
 five:
   id: 5
   orthomcl_name: dme|dmoe13aa
-  orthomcl_group_id: 2
 six:
   id: 6
   orthomcl_name: dme|dmoe14
-  orthomcl_group_id: 3
 seven:
   id: 7
-  orthomcl_name: cel|dmoe15 
-  orthomcl_group_id: 3
+  orthomcl_name: cel|dmoe15
 4.1:
   id: 8
   orthomcl_name: two|dmoe13q
-  orthomcl_group_id: 4
 4.2:
   id: 9
   orthomcl_name: two|dmoe13w
-  orthomcl_group_id: 4
 4.3:
   id: 10
   orthomcl_name: two|dmoe13e
-  orthomcl_group_id: 4
 4.4:
   id: 11
   orthomcl_name: one|dmoe13r
-  orthomcl_group_id: 4
 compute_test:
   id: 12
   orthomcl_name: pfa|PF1
-  orthomcl_group_id: 5 #I don't care about this

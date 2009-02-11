@@ -249,7 +249,6 @@ class Mverification < ActiveRecord::Base
     
     #count no of unique phenotype entries: grep 'ORF' /home/maria/data/Essentiality/Yeast/phenotype_data.tab | cut -f6,7,10 | sort -u|wc -l = 1155
     raise if YeastPhenoInfo.count != 1155
-
   end
   
   

@@ -10,31 +10,14 @@ class OrthomclGeneTest < ActiveSupport::TestCase
     assert_equal 'AD01', OrthomclGene.find(2).accepted_database_id
   end
   
-  def test_compute_coding_region
+  def test_compute_coding_regions
     
     assert OrthomclGene.find(1).orthomcl_group
     
-    code = OrthomclGene.find(12).compute_coding_region
-    assert code
-    assert_equal 5, code.id
-  end
-  
-  def test_compute_coding_region!
-    g = OrthomclGene.create!(
-      :orthomcl_name => 'pfa|PF1.1',
-      :orthomcl_group_id => 2
-    )
-    assert g
-    assert_difference('CodingRegion.count', 0) {
-      g.compute_coding_region!
-    }
-    g = OrthomclGene.create!(
-      :orthomcl_name => 'pfa|PF1.1no_way',
-      :orthomcl_group_id => 2
-    )
-    assert_difference('CodingRegion.count', 1) {
-      g.compute_coding_region!
-    }
+    codes = OrthomclGene.find(12).compute_coding_regions
+    assert codes
+    assert_equal 1, codes.length
+    assert_equal 5, codes[0].id
   end
   
   def test_code_named_scope

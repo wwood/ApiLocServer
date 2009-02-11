@@ -1,5 +1,7 @@
 class OrthomclRun < ActiveRecord::Base
-  has_many :orthomcl_groups, :dependent => :destroy
+  has_many :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
+  has_many :orthomcl_genes, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
+  has_one :orthomcl_groups, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
   
   def self.official_run_v2_name
     'Official OrthoMCL v2'

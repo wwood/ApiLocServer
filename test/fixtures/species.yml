@@ -3,6 +3,7 @@
 falciparum:
   id: 1
   name: falciparum
+  orthomcl_three_letter: pfa
 sponge:
   id: 2
   name: sponge
