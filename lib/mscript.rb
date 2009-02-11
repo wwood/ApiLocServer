@@ -339,7 +339,7 @@ class Mscript
     end
   end
   
-  def yeast_phenotype_information_to_database(filename = "#{WORK_DIR}/Gasser/Essentiality/Yeast/phenotype_data.tab")
+  def yeast_phenotype_information_to_database(filename = "#{DATA_DIR}/Essentiality/Yeast/phenotype_data.tab")
     File.open(filename).each do |row|
       splits = row.split("\t")
       #only add phenotype info for ORFs i.e. not RNAs or phenotypes not mapped to genes
@@ -349,9 +349,9 @@ class Mscript
           raise Exception, "No coding region found for yeast id: #{splits[0]}"
         end
 
-        #YAL001C	ORF	TFC3	S000000001	PMID: 12140549|SGD_REF: S000071347	systematic mutation set	null		S288C	inviable		
-      
-        info = YeastPhenoInfo.find_or_create_by_experiment_type_and_phenotype(splits[5],splits[9])
+        #YAL001C    ORF    TFC3    S000000001    PMID: 12140549|SGD_REF: S000071347    systematic mutation set    null        S288C    inviable       
+     
+        info = YeastPhenoInfo.find_or_create_by_experiment_type_and_mutant_type_and_phenotype(splits[5],splits[6],splits[9])
         CodingRegionYeastPhenoInfo.find_or_create_by_coding_region_id_and_yeast_pheno_info_id(
           code.id,
           info.id
@@ -361,6 +361,8 @@ class Mscript
     end
   end
   
+ 
+ 
   def drosophila_phenotypes_to_db(dir = '/home/maria/Desktop/Essentiality/Drosophila')
     
     dummy = Gene.new.create_dummy(Species.fly_name)

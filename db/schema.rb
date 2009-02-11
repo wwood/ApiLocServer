@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090209044558) do
+ActiveRecord::Schema.define(:version => 20090210063553) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -721,6 +721,7 @@ ActiveRecord::Schema.define(:version => 20090209044558) do
     t.string   "phenotype",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "mutant_type",     :null => false
   end
 
 end

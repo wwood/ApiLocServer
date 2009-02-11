@@ -228,8 +228,8 @@ class WScript
   
     def all_genes_including_genes_not_in_orthomclgroups
     species = [
-      # ['cel']  
-      ['mmu'] 
+       ['cel']  
+      #['mmu'] 
         #['dme']
         #['sce']
     ]

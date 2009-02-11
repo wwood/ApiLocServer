@@ -68,6 +68,7 @@ class Mverification < ActiveRecord::Base
   end
   
   def check_sce_links
+    #check for sce genes in orthomcl groups   
     sce = OrthomclGene.find_by_orthomcl_name('sce|YNL214W')
     if !sce
       puts "Yeast not uploaded properly"
@@ -86,6 +87,27 @@ class Mverification < ActiveRecord::Base
         end
       end
     end
+    
+    #check sce gene in orthomcl no_group is linked correctly
+    sce = OrthomclGene.find_by_orthomcl_name('sce|YDL223C')
+    if !sce
+      puts "Yeast not uploaded properly"
+    else
+      g = sce.coding_regions
+      if !g
+        puts "No coding region for orthomcl sce"
+      else
+        if g.length != 1
+          puts "Sce orthomcl gene not linked in properly - nil"
+        elsif g[0].string_id != 'YDL223C'
+          puts "Sce orthomcl gene falsy linked in properly BAD BAD BAD - wrong code #{g[0].id}"
+        end
+      end
+    end
+    
+    
+    
+    
   end
   
   
@@ -188,4 +210,47 @@ class Mverification < ActiveRecord::Base
     #215805
     raise if DrosophilaAllelePhenotype.count != 24321
   end
+  
+  def yeast_pheno_info
+  
+    name = 'YOR350C'
+    code = CodingRegion.find_by_name_or_alternate(name)
+    if !code
+      puts "#{name} not uploaded correctly."; return
+    end
+    
+    #count no .of phenotypes for this gene: $ grep 'YOR350C'  phenotype_data.tab | cut -f1,6,7,10 |sort -u| wc -l = 6
+    if code.yeast_pheno_infos.length != 6
+      puts "Unexpected number of observations for gene #{name}: #{code.yeast_pheno_infos.inspect}"; return
+    end
+    
+    # repeat for gene not in orthomcl no_group
+    name = 'YDL223C'
+    code = CodingRegion.find_by_name_or_alternate(name)
+    if !code
+      puts "#{name} not uploaded correctly - you aren't even close."; return
+    end
+    
+    # count no .of phenotypes for this gene: grep 'YDL223C' phenotype_data.tab | cut -f1,6,7,10 |sort -u| wc -l
+    if code.yeast_pheno_infos.length != 3
+      puts "Unexpected number of observations for gene #{name}: #{code.yeast_pheno_infos.inspect}"; return
+    end
+    
+    #check phenotype, experiment type and mutant type are loaded correctly
+    if code.yeast_pheno_infos.pick(:phenotype).sort[0] != 'chitin deposition: normal'
+      puts "Bad phenotype phenotype name: #{code.yeast_pheno_infos.pick(:phenotype).sort[0]}"
+    end
+    if code.yeast_pheno_infos.pick(:experiment_type).sort[0] != 'systematic mutation set'
+      puts "Bad phenotype experiment type: #{code.yeast_pheno_infos.pick(:experiment_type).sort[0]}"
+    end
+    if code.yeast_pheno_infos.pick(:mutant_type).sort[0] != 'null'
+      puts "Bad phenotype mutant type: #{code.yeast_pheno_infos.pick(:mutant_type).sort[0]}"
+    end
+    
+    #count no of unique phenotype entries: grep 'ORF' /home/maria/data/Essentiality/Yeast/phenotype_data.tab | cut -f6,7,10 | sort -u|wc -l = 1155
+    raise if YeastPhenoInfo.count != 1155
+
+  end
+  
+  
 end
