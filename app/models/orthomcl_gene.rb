@@ -1,5 +1,8 @@
 class OrthomclGene < ActiveRecord::Base
-  belongs_to :orthomcl_group
+  has_many :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
+  has_one :orthomcl_group, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs
+  has_one :orthomcl_run, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs
+  
   has_many :orthomcl_gene_coding_regions
   has_many :coding_regions, :through => :orthomcl_gene_coding_regions
   has_one :orthomcl_gene_official_data
@@ -21,12 +24,12 @@ class OrthomclGene < ActiveRecord::Base
   }
   #alias_method(:three_letter_codes, :codes)
   named_scope :official, {
-    :include => {:orthomcl_group => :orthomcl_run},
+    :include => :orthomcl_run,
     :conditions => ['orthomcl_runs.name = ?', OrthomclRun.official_run_v2_name]
   }
   named_scope :run, lambda { |run_name|
     {
-      :include => {:orthomcl_group => :orthomcl_run},
+      :include => :orthomcl_run,
       :conditions => ['orthomcl_runs.name = ?', run_name]
     }
   }
@@ -53,7 +56,7 @@ class OrthomclGene < ActiveRecord::Base
       raise Exception, "Bad linking in the database - no group associated with this orthomcl gene" 
     end
     
-    if orthomcl_group.orthomcl_run.name === OrthomclRun.official_run_v2_name
+    if orthomcl_run.name === OrthomclRun.official_run_v2_name
       matches = orthomcl_name.match('(.*)\|(.*)')
       
       if !matches
@@ -86,27 +89,6 @@ class OrthomclGene < ActiveRecord::Base
     end
   end
   
-  
-  # Like compute_code_region except create the coding region if it does not
-  # already exist
-  def compute_coding_region!
-    code = compute_coding_region
-    if code
-      return code
-    else
-      species, name = official_split(orthomcl_name)
-      if !species
-        return CodingRegion.create!(
-          :string_id => orthomcl_name
-        )
-      else
-        return CodingRegion.create(
-          :string_id => name
-        )
-      end
-    end
-  end
-  
   # With the official names, split them up into the 2 parts
   # return nil if it didn't match properly
   def official_split(name)
@@ -124,7 +106,7 @@ class OrthomclGene < ActiveRecord::Base
   def create_elegans_coding_region_links
     count = 0
     OrthomclGene.all(
-      :include => {:orthomcl_group => :orthomcl_run},
+      :include => [:orthomcl_group, :orthomcl_run],
       :conditions => "orthomcl_genes.orthomcl_name like 'cel%' and orthomcl_runs.name = '#{OrthomclRun.official_run_v2_name}'"
     ).each do |og|
       

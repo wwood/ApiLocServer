@@ -1,0 +1,59 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+## official
+#one:
+#  id: 1
+#  name: "Official OrthoMCL v2"
+#
+#two:
+#  id: 2
+#  name: MyString
+
+one:
+  orthomcl_gene_id: 1
+  orthomcl_group_id: 1
+  orthomcl_run_id: 1
+two:
+  orthomcl_gene_id: 2
+  orthomcl_group_id: 1
+  orthomcl_run_id: 1
+three:
+  orthomcl_gene_id: 3
+  orthomcl_group_id: 1
+  orthomcl_run_id: 1
+four:
+  orthomcl_gene_id: 4
+  orthomcl_group_id: 1
+  orthomcl_run_id: 1
+five:
+  orthomcl_gene_id: 5
+  orthomcl_group_id: 2
+  orthomcl_run_id: 1
+six:
+  orthomcl_gene_id: 6
+  orthomcl_group_id: 3
+  orthomcl_run_id: 2
+seven:
+  orthomcl_gene_id: 7
+  orthomcl_group_id: 3
+  orthomcl_run_id: 2
+4.1:
+  orthomcl_gene_id: 8
+  orthomcl_group_id: 4
+  orthomcl_run_id: 1
+4.2:
+  orthomcl_gene_id: 9
+  orthomcl_group_id: 4
+  orthomcl_run_id: 1
+4.3:
+  orthomcl_gene_id: 10
+  orthomcl_group_id: 4
+  orthomcl_run_id: 1
+4.4:
+  orthomcl_gene_id: 11
+  orthomcl_group_id: 4
+  orthomcl_run_id: 1
+compute_test:
+  orthomcl_gene_id: 12
+  orthomcl_group_id: 5 #I don't care about this
+  orthomcl_run_id: 1

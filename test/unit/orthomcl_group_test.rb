@@ -23,7 +23,7 @@ class OrthomclGroupTest < ActiveSupport::TestCase
   
   def test_empty_all_overlapping
     stupid = OrthomclGroup.all_overlapping_groups([])
-    assert_equal OrthomclRun.official_run_v2.orthomcl_groups.count, stupid.length, stupid
+    assert_equal OrthomclRun.official_run_v2.orthomcl_groups.count(:select => 'distinct(orthomcl_group_id)'), stupid.length, stupid.inspect
   end
   
   def test_single_group_with_multiple_same_species_members

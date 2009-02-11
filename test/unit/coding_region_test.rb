@@ -252,6 +252,8 @@ class CodingRegionTest < ActiveSupport::TestCase
     assert_nil CodingRegion.find(11).lethal?
     assert_equal false, CodingRegion.find(12).lethal?
     assert_equal true, CodingRegion.find(13).lethal?
+    # test one with one lethal and one trusted
+    assert_equal false, CodingRegion.find(17).lethal?
     
     # test elegans
     assert_equal true, CodingRegion.find(14).lethal?

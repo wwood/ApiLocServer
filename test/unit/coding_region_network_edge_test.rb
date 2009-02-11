@@ -21,17 +21,17 @@ class CodingRegionNetworkEdgeTest < ActiveSupport::TestCase
     n = Network.create!(
       :name => 'dummy'
     )
-    assert_not_equal CodingRegion.first.id, CodingRegion.last.id #so we are on the same page
+    assert_not_equal CodingRegion.first(:order => 'id').id, CodingRegion.last(:order => 'id').id #so we are on the same page
     edge = CodingRegionNetworkEdge.create!(
-      :coding_region_id_first => CodingRegion.first.id,
-      :coding_region_id_second => CodingRegion.last.id,
+      :coding_region_id_first => CodingRegion.first(:order => 'id').id,
+      :coding_region_id_second => CodingRegion.last(:order => 'id').id,
       :network_id => n.id
     )
     assert edge
   
-    assert CodingRegionNetworkEdge.coding_region_ids(CodingRegion.first.id, CodingRegion.last.id).first
-    assert CodingRegionNetworkEdge.coding_region_ids(CodingRegion.last.id, CodingRegion.first.id).first
-    assert_nil CodingRegionNetworkEdge.coding_region_ids(CodingRegion.last.id, CodingRegion.last.id).first
+    assert CodingRegionNetworkEdge.coding_region_ids(CodingRegion.first(:order => 'id').id, CodingRegion.last(:order => 'id').id).first
+    assert CodingRegionNetworkEdge.coding_region_ids(CodingRegion.last(:order => 'id').id, CodingRegion.first(:order => 'id').id).first
+    assert_nil CodingRegionNetworkEdge.coding_region_ids(CodingRegion.last(:order => 'id').id, CodingRegion.last(:order => 'id').id).first
   end
   
   def test_network_name_named_scope
@@ -53,8 +53,8 @@ class CodingRegionNetworkEdgeTest < ActiveSupport::TestCase
   end
   
   def test_wormnet_named_scope
-    n = Network.create!(
-      :name => Network::WORMNET_NAME
+    n = Network.find_or_create_by_name(
+      Network::WORMNET_NAME
     )
     edge = CodingRegionNetworkEdge.create!(
       :coding_region_id_first => CodingRegion.first.id,

@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090210063553) do
+ActiveRecord::Schema.define(:version => 20090211053535) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -502,25 +502,30 @@ ActiveRecord::Schema.define(:version => 20090210063553) do
 
   add_index "orthomcl_gene_official_datas", ["orthomcl_gene_id"], :name => "index_orthomcl_gene_official_datas_on_orthomcl_gene_id", :unique => true
 
-  create_table "orthomcl_genes", :force => true do |t|
-    t.string   "orthomcl_name"
+  create_table "orthomcl_gene_orthomcl_group_orthomcl_runs", :force => true do |t|
+    t.integer  "orthomcl_gene_id",  :null => false
     t.integer  "orthomcl_group_id"
+    t.integer  "orthomcl_run_id",   :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  add_index "orthomcl_genes", ["orthomcl_group_id", "orthomcl_name"], :name => "index_orthomcl_genes_on_orthomcl_group_id_and_orthomcl_name", :unique => true
+  add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_gene_id", "orthomcl_group_id", "orthomcl_run_id"], :name => "ogogor", :unique => true
+  add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_gene_id", "orthomcl_run_id"], :name => "ogog", :unique => true
+
+  create_table "orthomcl_genes", :force => true do |t|
+    t.string   "orthomcl_name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   add_index "orthomcl_genes", ["orthomcl_name"], :name => "index_orthomcl_genes_on_orthomcl_name"
 
   create_table "orthomcl_groups", :force => true do |t|
     t.string   "orthomcl_name"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "orthomcl_run_id", :null => false
   end
-
-  add_index "orthomcl_groups", ["orthomcl_name", "orthomcl_run_id"], :name => "index_orthomcl_groups_on_orthomcl_run_id_and_orthomcl_name"
-  add_index "orthomcl_groups", ["orthomcl_run_id"], :name => "index_orthomcl_groups_on_orthomcl_run_id"
 
   create_table "orthomcl_runs", :force => true do |t|
     t.string   "name",       :null => false
