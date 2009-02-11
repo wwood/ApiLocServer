@@ -4380,6 +4380,7 @@ class Script < ActiveRecord::Base
     amino_acids.each do |one|
       headings.push "Normalised number of AA: #{one}"
     end
+    headings.push WINZELER_TIMEPOINTS
     
     headings = headings.flatten #The length of headings array is used later as a check, so need to actually modify it here
     #    puts headings.join(sep)
@@ -4540,12 +4541,18 @@ class Script < ActiveRecord::Base
         results.push(composition[one].nil? ? 0.0 : composition[one].to_f/code.amino_acid_sequence.sequence.length.to_f)
       end
       
-      # gMARS and other headings
-      code.gmars_vector(3).each do |node|
-        # Push the headings on the fly - easier this way
-        headings.push node.name if first
-        results.push node.normalised_value
+      # Winzeler Timepoints
+      WINZELER_TIMEPOINTS.each do |timepoint|
+        t = code.microarray_measurements.timepoint_name(timepoint).first
+        results.push t ? t.measurement : nil
       end
+      
+      # gMARS and other headings
+#      code.gmars_vector(3).each do |node|
+#        # Push the headings on the fly - easier this way
+#        headings.push node.name if first
+#        results.push node.normalised_value
+#      end
       
       first = false if first
       
@@ -4561,12 +4568,12 @@ class Script < ActiveRecord::Base
     rarff_relation = Rarff::Relation.new('PfalciparumLocalisation')
     rarff_relation.instances = all_data
     headings.each_with_index do |heading, index|
-      rarff_relation.attributes[index].name = heading.gsub(' ','_')
+      rarff_relation.attributes[index].name = "\"#{heading}\""
     end
     
     # Make some attributes noiminal instead of String
     # Localisation
-    rarff_relation.attributes[2].type = "{#{TopLevelLocalisation.all.reach.name.join(',').gsub(' ','_')}}"
+    rarff_relation.attributes[2].type = "{#{TopLevelLocalisation.all.reach.name.join(',').gsub(/[\ \(\)]/,'_')}}"
     # Wolf_PSORTs
     [6,7,8].each do |i|
       rarff_relation.attributes[i].type = "{#{wolf_psort_outputs.keys.join(',').gsub(' ','_')}}"

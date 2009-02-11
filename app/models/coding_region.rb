@@ -512,7 +512,11 @@ class CodingRegion < ActiveRecord::Base
       end
       return false
     elsif get_species.name == Species.yeast_name
-      return !yeast_pheno_infos.empty?
+      obs = yeast_pheno_infos
+      obs.each do |ob|
+        return true if ob.trusted?
+      end
+      return false
     elsif get_species.name == Species.fly_name
       return !drosophila_allele_genes.pick(:drosophila_allele_phenotypes).flatten.empty?
     else
