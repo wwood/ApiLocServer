@@ -6,4 +6,10 @@ class YeastPhenoInfo < ActiveRecord::Base
     phenotype === 'inviable'
 #    phenotype.match(/inviable/i)
   end
+  
+  def trusted?
+    %w(null
+repressible
+reduction of function).include?(mutant_type)
+  end
 end

@@ -512,7 +512,11 @@ class CodingRegion < ActiveRecord::Base
       end
       return false
     elsif get_species.name == Species.yeast_name
-      return !yeast_pheno_infos.empty?
+      obs = yeast_pheno_infos
+      obs.each do |ob|
+        return true if ob.trusted?
+      end
+      return false
     elsif get_species.name == Species.fly_name
       return !drosophila_allele_genes.pick(:drosophila_allele_phenotypes).flatten.empty?
     else
@@ -729,10 +733,6 @@ class CodingRegion < ActiveRecord::Base
   end
   
   class UnexpectedOrthomclGeneCount < StandardError; end
-  
-  def gmars_vector(max_gap=3, gmars = GMARS.new)
-    aaseq ? gmars.gmars_gapped_vector(aaseq, max_gap) : nil
-  end
   
   # Return the golgi consensus sequences that the amino acid
   # sequence of this coding region is attached to. Return [] if none

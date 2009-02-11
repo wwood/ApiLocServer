@@ -53,4 +53,12 @@ class CodingRegion < ActiveRecord::Base
     end
     return results
   end
+    
+  def gmars_vector(max_gap=3, gmars = GMARS.new)
+    t = Time.now
+    logger.debug "Starting gMARS for #{string_id} - #{gmars}"
+    to_return = aaseq ? gmars.gmars_gapped_vector(aaseq, max_gap) : nil
+    logger.debug "Finished running gMARS for #{string_id} (#{(t-Time.now)*1000.0}ms)"
+    return to_return
+  end
 end

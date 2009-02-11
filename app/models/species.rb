@@ -8,9 +8,9 @@ class Species < ActiveRecord::Base
   TOXOPLASMA_GONDII_NAME = TOXOPLASMA_GONDII
   ELEGANS_NAME = 'elegans'
   BABESIA_BOVIS_NAME = 'Babesia bovis'
-  YEAST_NAME= 'yeast',
-   MOUSE_NAME = 'mouse',
-   DROSOPHILA_NAME= 'fly'
+  YEAST_NAME= 'yeast'
+  MOUSE_NAME = 'mouse'
+  DROSOPHILA_NAME= 'fly'
   
   has_many :scaffolds, :dependent => :destroy
   

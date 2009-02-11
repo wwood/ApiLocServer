@@ -678,6 +678,7 @@ SRRKRRMPEGLDN*).join('')
   
   def upload_winzeler_gametocyte_microarray
     microarray = Microarray.find_by_description(Microarray::WINZELER_2005_GAMETOCYTE_NAME)
+    raise unless microarray
     
     code = CodingRegion.f('PFE0065w')
     timepoints = code.microarray_measurements.all(:joins => :microarray_timepoint,

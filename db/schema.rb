@@ -138,6 +138,7 @@ ActiveRecord::Schema.define(:version => 20090210063553) do
   end
 
   add_index "coding_region_phenotype_informations", ["coding_region_id", "phenotype_information_id"], :name => "index_coding_region_phenotype_informations_on_coding_region_id_", :unique => true
+  add_index "coding_region_phenotype_informations", ["coding_region_id"], :name => "index_coding_region_phenotype_informations_on_coding_region_id"
   add_index "coding_region_phenotype_informations", ["phenotype_information_id"], :name => "index_coding_region_phenotype_informations_on_phenotype_informa"
 
   create_table "coding_region_phenotype_observeds", :force => true do |t|

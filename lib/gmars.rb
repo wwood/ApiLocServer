@@ -32,7 +32,10 @@ class GMARS
         nodes[gap][first_index] = []
         
         @protein_ids.each_with_index do |letter2, alphabet_index|
-          n = Node.new
+          n = NamedNode.new
+          n.first_aa = letter1
+          n.second_aa = letter2
+          n.max_gap = gap
           matches = sequence.scan(/#{letter1}/) # How many times does it match in total?
           n.total = matches.empty? ? 0 : matches.length
           n.count = 0
@@ -67,12 +70,22 @@ class GMARS
     end
 
     # return a flat array of normalised elements, returning 0.0 when the letter does not appear in the alphabet
-    nodes.flatten.collect {|node|
-      node.total > 0 ? node.count.to_f / node.total.to_f : 0.0
-    }
+    return nodes.flatten
   end
   
-  class Node
-    attr_accessor :count, :total
+  def to_s
+    "gMARS calculator. Alphabet #{@protein_ids.join('')} Ignoring #{@ignoring_alphabet} object_id #{object_id}"
+  end
+  
+  class NamedNode
+    attr_accessor :count, :total, :max_gap, :first_aa, :second_aa
+    
+    def normalised_value
+      @total > 0 ? @count.to_f / @total.to_f : 0.0
+    end
+    
+    def name
+      "gMARS #{@first_aa} #{@second_aa} gap #{@max_gap}"
+    end
   end
 end
