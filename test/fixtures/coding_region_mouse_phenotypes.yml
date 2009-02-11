@@ -16,3 +16,9 @@ good_and_bad_good:
 good_and_bad_bad:
   coding_region_id: 13
   mouse_phenotype_id: 4
+good_and_good_trusted_nonlethal:
+  coding_region_id: 17
+  mouse_phenotype_id: 4
+good_and_good_untrusted_lethal:
+  coding_region_id: 17
+  mouse_phenotype_id: 2

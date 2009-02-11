@@ -141,7 +141,7 @@ class Array
   end
   
   # For SQL conditions
-  # ['a','bc'] => "('a','bc')"
+  # ['a','bc'] => "('a','bc')" 
   def to_sql_in_string
     return '()' if empty?
     
