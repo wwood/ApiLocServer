@@ -56,4 +56,9 @@ class ArrayPairTest < Test::Unit::TestCase
     # multiple picks
     assert_equal [[true, 0.0],[false, 2.0]], [0,2].pick(:zero?,:to_f)
   end
+  
+  def test_to_sql_in_string
+    assert_equal '()', [].to_sql_in_string
+    assert_equal "('a','bc')", ['a','bc'].to_sql_in_string
+  end
 end

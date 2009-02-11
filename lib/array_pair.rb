@@ -139,4 +139,12 @@ class Array
     end
     hash
   end
+  
+  # For SQL conditions
+  # ['a','bc'] => "('a','bc')"
+  def to_sql_in_string
+    return '()' if empty?
+    
+    return "('#{join("','")}')"
+  end
 end

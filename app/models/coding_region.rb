@@ -472,7 +472,7 @@ class CodingRegion < ActiveRecord::Base
       end
       return false
     elsif get_species.name == Species.mouse_name
-      obs = mouse_phenotypes(:include => :mouse_phenotype_dictionary_entries)
+      obs = mouse_phenotypes.trusted.all(:include => :mouse_phenotype_dictionary_entries)
       raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
       obs.each do |ob|
         if ob.lethal?
@@ -481,7 +481,7 @@ class CodingRegion < ActiveRecord::Base
       end
       return false
     elsif get_species.name == Species.yeast_name
-      obs = yeast_pheno_infos
+      obs = yeast_pheno_infos.trusted.all
       raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
       obs.each do |ob|
         return true if ob.lethal?
@@ -506,17 +506,9 @@ class CodingRegion < ActiveRecord::Base
     if get_species.name == Species.elegans_name
       return coding_region_phenotype_informations.count > 0
     elsif get_species.name == Species.mouse_name
-      obs = mouse_phenotypes
-      obs.each do |ob|
-        return true if ob.by_mutation?
-      end
-      return false
+      return mouse_phenotypes.trusted.count > 0
     elsif get_species.name == Species.yeast_name
-      obs = yeast_pheno_infos
-      obs.each do |ob|
-        return true if ob.trusted?
-      end
-      return false
+      return yeast_pheno_infos.trusted.count > 0
     elsif get_species.name == Species.fly_name
       return !drosophila_allele_genes.pick(:drosophila_allele_phenotypes).flatten.empty?
     else
