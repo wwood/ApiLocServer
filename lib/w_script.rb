@@ -34,12 +34,9 @@ class WScript
   def compute_lethal_count(orthomcl_groups, species_orthomcl_code)
     
     lc = LethalCount.new
-    lc.groups_count = orthomcl_groups.length
+    lc.groups_count += orthomcl_groups.length
     
-    lethal_count = 0
     total = 0
-    phenotype_count = 0
-    missing_count = 0
     orthomcl_groups.each do |group|
       
       # for each cel gene in the group, count if it is lethal or not
@@ -47,31 +44,30 @@ class WScript
       group.orthomcl_genes.code(species_orthomcl_code).all(:select => 'distinct(id)').each do |og|
         total += 1
         
-        
-        
-        begin
-          # returns true, false or nil
-          lethal = og.single_code.lethal?
-          if lethal
-            phenotype_count += 1
-            lethal_count += 1
-          elsif lethal.nil?
-          else
-            phenotype_count += 1
-          end
-        rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
-          missing_count += 1
-        end
+        add_orthomcl_gene_to_lethal_count(og, lc)
       end
     end
-    
-    lc.lethal_count = lethal_count
-    lc.phenotype_count = phenotype_count
-    lc.total_count = total
-    lc.missing_count = missing_count
+    lc.total_count += total
     return lc
   end
   
+  
+  def add_orthomcl_gene_to_lethal_count(orthomcl_gene, lethal_count)
+    begin
+      # returns true, false or nil
+      lethal = orthomcl_gene.single_code.lethal?
+      if lethal
+        lethal_count.phenotype_count += 1
+        lethal_count.lethal_count += 1
+      elsif lethal.nil?
+      else
+        lethal_count.phenotype_count += 1
+      end
+    rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
+      lethal_count.missing_count += 1
+    end
+    return lethal_count #for convenience
+  end
 
   
   
@@ -226,41 +222,41 @@ class WScript
     end
   end
   
-    def all_genes_including_genes_not_in_orthomclgroups
+  def all_genes_including_genes_not_in_orthomclgroups
     species = [
-       #['cel']  
+      ['cel']  
       #['mmu'] 
-        #['dme']
-        ['sce']
+      #['dme']
+      #['sce']
     ]
     #made new LethalCount class for genes not in groups as the other LethalCount class prints out info for groups
-     lc = LethalCount2.new
-     lc.total_count = OrthomclGene.code(species).count
+    lc = LethalCount2.new
+    lc.total_count = OrthomclGene.code(species).count
          
     lethal_count = 0
     phenotype_count = 0
     missing_count = 0
-        OrthomclGene.code(species).each do |og|       
+    OrthomclGene.code(species).each do |og|       
           
-          begin
-           lethal = og.single_code.lethal?
-          if lethal
-            phenotype_count += 1
-            lethal_count += 1
-          elsif lethal.nil?
-          else
-            phenotype_count += 1
-          end
-        rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
-          missing_count += 1
+      begin
+        lethal = og.single_code.lethal?
+        if lethal
+          phenotype_count += 1
+          lethal_count += 1
+        elsif lethal.nil?
+        else
+          phenotype_count += 1
         end
+      rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
+        missing_count += 1
       end
+    end
     
     lc.lethal_count = lethal_count
     lc.phenotype_count = phenotype_count
     lc.missing_count = missing_count
-      puts lc.to_s
-    end
+    puts lc.to_s
+  end
     
   
   def lethal_orthology
@@ -408,11 +404,14 @@ class WScript
         end
       end
       #count the lethal ones
-      puts compute_lethal_count(nopara, arrays[1]).to_s
+      lethal_count = compute_lethal_count(nopara, arrays[1]).to_s
+      OrthomclGene.code(arrays[1]).no_group.all.each do |orthomcl_gene|
+        add_orthomcl_gene_to_lethal_count(orthomcl_gene, lethal_count)
+      end
     end    
   end
     
-def lethal_no_paralogues_including_genes_not_in_ortho_groups
+  def lethal_no_paralogues_including_genes_not_in_ortho_groups
     # this method doesn't work yet!!!
     spp = [
       ['cel'],
@@ -492,7 +491,7 @@ def lethal_no_paralogues_including_genes_not_in_ortho_groups
     end    
   end
   
-    def lethal_no_paralogues_multiple_spp_mouse_only
+  def lethal_no_paralogues_multiple_spp_mouse_only
     
     overlaps = [
       [['mmu'],['mmu']],
@@ -810,8 +809,8 @@ def lethal_no_paralogues_including_genes_not_in_ortho_groups
       end
         
       #for each group if elegans gene has lethal phenotype print id   
-        groups.each do |lg|         
-       lg.orthomcl_genes.code('cel').all(:select  => 'distinct(id)').each do |og|
+      groups.each do |lg|         
+        lg.orthomcl_genes.code('cel').all(:select  => 'distinct(id)').each do |og|
           begin
             if og.single_code.lethal?
               name = OrthomclGene.find(og)
@@ -819,8 +818,8 @@ def lethal_no_paralogues_including_genes_not_in_ortho_groups
             end
           rescue UnexpectedCodingRegionCount => e
           end
-       end            
-    end
+        end            
+      end
     end    
      
   end   
@@ -1106,16 +1105,16 @@ def lethal_no_paralogues_including_genes_not_in_ortho_groups
     
   end
   
-    def get_cel_genes_ids
+  def get_cel_genes_ids
     # get the ids for cel genes lethal in another species AND in cel
       
     overlaps = [
-     # [['cel','sce'],['cel']] 
-     [['cel','dme'],['cel']]
+      # [['cel','sce'],['cel']] 
+      [['cel','dme'],['cel']]
      
     ]
     nopara = nil
-      #find the groups with genes from all species
+    #find the groups with genes from all species
   
     overlaps.each do |arrays|
       nopara = Array.new
@@ -1139,23 +1138,23 @@ def lethal_no_paralogues_including_genes_not_in_ortho_groups
       #get groups that have lethal genes for query species 
       lethalgroups = lethal_gene_comparisons_multiple_spp(nopara, arrays[0])
       #for each group print the cel gene id
-        lethalgroups.each do |lg|
-          lg.orthomcl_genes.code(arrays[1]).all(:select  => 'distinct(orthomcl_name)').each do |og|
-            puts og.orthomcl_name
+      lethalgroups.each do |lg|
+        lg.orthomcl_genes.code(arrays[1]).all(:select  => 'distinct(orthomcl_name)').each do |og|
+          puts og.orthomcl_name
         end
       end    
     end
   end
 
-    def get_cel_genes_ids2
+  def get_cel_genes_ids2
     # get the ids for cel genes lethal in another species 
    
-      overlaps = [
-     [['cel','sce'],['sce'],['cel']],
-     #[['cel','dme'],['dme'],['cel']]
+    overlaps = [
+      [['cel','sce'],['sce'],['cel']],
+      #[['cel','dme'],['dme'],['cel']]
     ]
     nopara = nil
-      #find the groups with genes from all species
+    #find the groups with genes from all species
   
     overlaps.each do |arrays|
       nopara = Array.new
@@ -1179,9 +1178,9 @@ def lethal_no_paralogues_including_genes_not_in_ortho_groups
       #get groups that have lethal genes for query species 
       lethalgroups = lethal_gene_comparisons_multiple_spp(nopara, arrays[1])
       #for each group print the cel gene id
-        lethalgroups.each do |lg|
-          lg.orthomcl_genes.code(arrays[2]).all(:select  => 'distinct(orthomcl_name)').each do |og|
-            puts og.orthomcl_name
+      lethalgroups.each do |lg|
+        lg.orthomcl_genes.code(arrays[2]).all(:select  => 'distinct(orthomcl_name)').each do |og|
+          puts og.orthomcl_name
         end
       end    
     end
@@ -1189,17 +1188,17 @@ def lethal_no_paralogues_including_genes_not_in_ortho_groups
     
 end
 
-  class LethalCount
-    attr_accessor :lethal_count, :total_count, :phenotype_count, :groups_count, :missing_count
+class LethalCount
+  attr_accessor :lethal_count, :total_count, :phenotype_count, :groups_count, :missing_count
   
-    def to_s
-      "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes) from #{@group_count} orthomcl groups. #{@missing_count} didn't have matching coding regions"
-    end
+  def to_s
+    "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes) from #{@group_count} orthomcl groups. #{@missing_count} didn't have matching coding regions"
   end
-    class LethalCount2
-    attr_accessor :lethal_count, :total_count, :phenotype_count, :missing_count
+end
+class LethalCount2
+  attr_accessor :lethal_count, :total_count, :phenotype_count, :missing_count
   
-    def to_s
-      "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes). #{@missing_count} didn't have matching coding regions"
-    end
+  def to_s
+    "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes). #{@missing_count} didn't have matching coding regions"
   end
+end
