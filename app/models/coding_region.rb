@@ -549,6 +549,12 @@ class CodingRegion < ActiveRecord::Base
     )
   end
   
+  def single_top_level_localisation
+    stuffs = tops.uniq
+    raise Exception, "Unexpected number of top level localisations for #{string_id}: #{stuffs.inspect}" if stuffs.length != 1
+    return stuffs[0]
+  end
+  
   # convenience method for getting the single orthomcl gene associated with this coding region.
   # optional argument run_name is the name of the orthomcl_run to be searched for.
   def single_orthomcl(run_name = OrthomclRun.official_run_v2_name, options = {})

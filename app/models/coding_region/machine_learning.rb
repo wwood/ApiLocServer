@@ -8,7 +8,7 @@ class CodingRegion < ActiveRecord::Base
   end
   
   def amino_acid_composition
-    amino_acid_hash = Bio::AminoAcid::Data::NAMES.keys.select{|k| k.length == 1}.reach.downcase.to_hash
+    amino_acid_hash = AminoAcidSequence::AMINO_ACIDS.reach.downcase.to_hash
     mine = []
     amino_acid_sequence.to_bioruby_sequence.composition.each do |aa, count|
       a = aa.downcase

@@ -9,6 +9,8 @@ require 'tm_hmm_wrapper'
 require 'rubygems'
 require 'csv'
 require 'bio'
+require 'peach'
+
 #require 'mscript'
 require 'reach'
 require 'plasmo_a_p'
@@ -4342,9 +4344,9 @@ class Script < ActiveRecord::Base
     # headings
     headings = [
       'PlasmoDB ID',
-      'Annotation',
+      #      'Annotation',
       'Top Level Localisations',
-      'Amino Acid Sequence',
+      #      'Amino Acid Sequence',
       'SignalP Prediction',
       'PlasmoAP Score',
       'WoLF_PSORT prediction Plant',
@@ -4415,14 +4417,21 @@ class Script < ActiveRecord::Base
       #      :joins => {:expressed_localisations => :malaria_top_level_localisation}
       #    ).each do |code|
       next unless code.uniq_top?
-      next unless ['apicoplast','exported'].include?(code.tops[0].name)
       
       results = [
         code.string_id,
-        code.annotation.annotation,
-        code.tops[0].name.gsub(' ','_'),  # Top level localisations
-        code.amino_acid_sequence.sequence,
+        #        code.annotation.annotation
       ]
+      
+      if code.tops[0].name == 'exported'
+        results.push 'exported'
+      else
+        results.push 'not_exported'
+      end
+      #        code.tops[0].name.gsub(' ','_'),  # Top level localisations
+
+      #      results.push code.amino_acid_sequence.sequence,
+      
       
       #      SignalP
       results.push(
@@ -4589,7 +4598,7 @@ class Script < ActiveRecord::Base
     
     # Make some attributes noiminal instead of String
     # Localisation
-    rarff_relation.attributes[2].type = "{#{TopLevelLocalisation.all.reach.name.join(',').gsub(/[\ \(\)]/,'_')}}"
+    rarff_relation.attributes[1].type = "{#{TopLevelLocalisation.all.reach.name.join(',').gsub(/[\ \(\)]/,'_')}}"
     # Wolf_PSORTs
     [6,7,8].each do |i|
       rarff_relation.attributes[i].type = "{#{wolf_psort_outputs.keys.join(',').gsub(' ','_')}}"
@@ -7362,5 +7371,137 @@ PFL2395c
     
     # Upload the newest and best version
     PlasmodbGeneList.create_gene_list(PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME, Species.falciparum_name, entries)
+  end
+  
+  def alanine_bias
+    File.open('../alanine_bias/exported.csv','w') do |exported_file|
+      File.open('../alanine_bias/localised.csv','w') do |localised_file|
+        File.open('../alanine_bias/population.csv','w') do |population_file|
+          CodingRegion.falciparum.all.each do |code|
+            next unless code.aaseq
+            #            p code.aaseq
+            #            p code.amino_acid_sequence.to_bioruby_sequence.composition['A']
+            
+            alanines = code.amino_acid_sequence.to_bioruby_sequence.composition['A'].to_f / code.aaseq.length.to_f
+            #            p alanines
+            #            return
+            
+            population_file.puts [code.string_id, alanines].join("\t")
+            if code.uniq_top?
+              localised_file.puts [code.string_id, alanines].join("\t")
+              if code.tops[0].name == 'exported'
+                exported_file.puts [code.string_id, alanines].join("\t")
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  
+  def kolmogorov_smirnov_amino_acids_bias
+    populations = {}
+    localiseds = {}
+    exporteds = {}
+    
+    #    CodingRegion.falciparum.all(:include => :amino_acid_sequence).each do |code|
+    CodingRegion.falciparum.all(:include => [
+        {:expressed_localisations => :malaria_top_level_localisation},
+        :amino_acid_sequence]
+    ).each do |code|
+      next unless code.aaseq
+      
+      localised = code.uniq_top?
+      exported = (code.uniq_top? and code.tops[0].name == 'exported')
+      
+      composed = code.amino_acid_sequence.to_bioruby_sequence.composition
+      AminoAcidSequence::AMINO_ACIDS.each do |amino_acid|
+        count = composed[amino_acid]
+        alanines = count.to_f / code.aaseq.length.to_f
+        
+        populations[amino_acid] ||= []
+        populations[amino_acid].push alanines
+        #        p populations
+        #        p code.aaseq
+        #        p code.aaseq.length
+        #        p code.aaseq.scan(/V/)
+        #        return
+        if localised
+          localiseds[amino_acid] ||= []
+          localiseds[amino_acid].push alanines
+        end
+        if exported
+          exporteds[amino_acid] ||= []
+          exporteds[amino_acid].push alanines
+        end
+      end
+    end
+    
+    r = RSRuby.instance
+    puts AminoAcidSequence::AMINO_ACIDS.collect{|amino_acid| 
+      e = exporteds[amino_acid]
+      l = localiseds[amino_acid]
+      p = populations[amino_acid]
+      kep = r.ks_test(e,p)
+      klp = r.ks_test(l,p)
+      [
+        amino_acid, 
+        kep['statistic']['D']-klp['statistic']['D'], 
+        kep['statistic']['D'], 
+        klp['statistic']['D'],
+        kep['p.value']-klp['p.value'], 
+        kep['p.value'], 
+        klp['p.value'],
+      ]
+    }.sort{|a,b| 
+      b[1]<=>a[1]
+    }.collect{|e|
+      e.join("\t")
+    }.join("\n")
+
+    return [populations, localiseds, exporteds]
+  end
+  
+  def kolmogorov_smirnov_challenge_arff
+    all_data = []
+    
+    acids = AminoAcidSequence::AMINO_ACIDS
+    headings = [
+      'Localisation',
+      acids
+    ].flatten
+    
+    PlasmodbGeneList.find_by_description(
+      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+    ).coding_regions.each do |code|
+      next unless code.uniq_top?
+      composition = code.amino_acid_composition
+      
+      result = []
+
+      if code.single_top_level_localisation.name == 'exported'
+        result.push 'exported'
+        result.push composition
+        all_data.push result.flatten
+      else
+        result.push 'not_exported'
+        result.push composition
+        all_data.push result.flatten
+      end
+      
+      raise if result.flatten.length != headings.length
+    end
+    
+    rarff_relation = Rarff::Relation.new('PfalciparumLocalisationExportedVsNotExported')
+    rarff_relation.instances = all_data
+    headings.each_with_index do |heading, index|
+      rarff_relation.attributes[index].name = "\"#{heading}\""
+    end
+    
+    # Make some attributes noiminal instead of String
+    # Localisation
+    rarff_relation.attributes[0].type = "{exported,not_exported}"
+    
+    puts rarff_relation.to_arff    
   end
 end

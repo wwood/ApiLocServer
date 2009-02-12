@@ -10,6 +10,8 @@ require 'signalp'
 class AminoAcidSequence < Sequence
   belongs_to :coding_region
   
+  AMINO_ACIDS = Bio::AminoAcid::Data::NAMES.keys.select{|k| k.length == 1}.reach.upcase.retract
+  
   def signal_p?
     return SignalSequence::SignalPWrapper.new.calculate(sequence).signal?
   end
