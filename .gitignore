@@ -7,3 +7,4 @@ vendor/rails
 db.data*
 .RData
 .Rhistory
+my_input_output_files_not_part_of_rails_appln

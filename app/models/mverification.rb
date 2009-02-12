@@ -182,6 +182,33 @@ class Mverification < ActiveRecord::Base
     raise if !code or code.orthomcl_genes.empty?
 
     raise if OrthomclGene.find_by_orthomcl_name('mmu|ENSMUSP00000010241').single_code.lethal?
+    
+    # check only trusted phenotypes are being counted i.e.:1)correct expt type + lethal = true; 2)correct expt type + not lethal = false; 3) incorrect expt type + lethal = nil 
+    #1)check correct expt type + lethal = true
+    #MGI:2180115	Aebp1<tm1Mdl>	targeted mutation 1, Matthew D Layne	Targeted (knock-out)	11438679	MGI:1197012	Aebp1	NM_009636	ENSMUSG00000020473	MP:0005370,MP:0005371,MP:0005374,MP:0005376,MP:0005380,MP:0005381
+    #ENSMUSG00000020473 =mmu|ENSMUSP00000020766
+    name = 'mmu|ENSMUSP00000020766'
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+      puts "Bad lethal phenotype association, should be true for lethal phenotype: #{name}"
+    end
+    
+    #2)check correct expt type + not lethal = false
+    #MGI:3702935	1190005F20Rik<Gt(W027A02)Wrst>	gene trap W027A02, Wolfgang Wurst	Gene trapped	17198746	MGI:1916185	1190005F20Rik	XM_355244	ENSMUSG00000053286	MP:0005386,MP:0005389
+    #ENSMUSG00000053286 = mmu|ENSMUSP00000068309
+    name = 'mmu|ENSMUSP00000068309'
+      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != false
+      puts "Bad lethal phenotype association, should be false as not lethal phenotype: #{name}"
+    end
+    
+    
+    #3)check incorrect expt type + lethal = nil 
+    #MGI:3774413	Avil<tm1(ALPP)Fawa>	targeted mutation 1, Fan Wang	Targeted (knock-in)	18160648	MGI:1333798	Avil	NM_009635	ENSMUSG00000025432	MP:0003631,MP:0005372,MP:0005374
+    #ENSMUSG00000025432 =mmu|ENSMUSP00000026500 
+     name = 'mmu|ENSMUSP00000026500'
+      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != nil
+      puts "Bad lethal phenotype association, should be nil as incorrect expt type: #{name}"
+    end
+   
   end
 
   def fly_pheno_info
@@ -250,10 +277,34 @@ class Mverification < ActiveRecord::Base
     #count no of unique phenotype entries: grep 'ORF' /home/maria/data/Essentiality/Yeast/phenotype_data.tab | cut -f6,7,10 | sort -u|wc -l = 1155
     raise if YeastPhenoInfo.count != 1155
     
+    
+    #check only genes with "trusted" phenotypes are included in analysis (i.e those from knockout/mutation and not overexpression)
+    
+    # check that a gene with correct expt type + lethal returns true
+    # e.g YAL001C ORF     TFC3    S000000001      PMID: 12140549|SGD_REF: S000071347      systematic mutation set null            S288C   inviable 
+    name = 'sce|YAL001C'
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+      puts "Bad lethal phenotype association, should be true for lethal phenotype: #{name}"
+    end
+    
+    # check that a gene with correct expt type + not lethal returns false
+    #YAL022C	ORF	FUN26	S000000020	PMID: 12140549|SGD_REF: S000071347	systematic mutation set	null		S288C	viable				
+    #YAL022C	ORF	FUN26	S000000020	PMID: 16582425|SGD_REF: S000114750	systematic mutation set	null		S288C	chemical compound excretion: increased	inositols	synthetic medium lacking inositol and choline	Opi- phenotype; overproduction and excretion of inositol in the absence of inositol and choline	
+    name = 'sce|YAL022C'
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != false
+      puts "Bad lethal phenotype association, should be false for lethal phenotype, not correct phenotype #{name}"
+    end
 
-    # This showed there was a bug in the past
-    raise unless OrthomclGene.find_by_orthomcl_name('sce|YDR389W').single_code.lethal? == false
+    # check that a gene with incorrect expt type + lethal returns nil
+    #YHR027C	ORF	RPN1	S000001069	PMID: 8970163|SGD_REF: S000048185	classical genetics	unspecified	hrd2-1	Other	resistance to chemicals: decreased	canavanine (1.5 ug/mL)			
+    #YHR027C	ORF	RPN1	S000001069	PMID: 8970163|SGD_REF: S000048185	classical genetics	unspecified	hrd2-1	Other	resistance to chemicals: increased	lovastatin	
+    name = 'sce|YHR027C'
+    if  OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != nil
+      puts "Bad phenotype inclusion, should be nil as not correct expt type #{name}"
+    end
+      
+      
+    
   end
-  
   
 end
