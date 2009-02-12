@@ -32,7 +32,6 @@ class WScript
   
   
   def compute_lethal_count(orthomcl_groups, species_orthomcl_code)
-    
     lc = LethalCount.new
     lc.groups_count += orthomcl_groups.length
     
@@ -41,7 +40,7 @@ class WScript
       
       # for each cel gene in the group, count if it is lethal or not
       # We exclude genes don't correspond between othomcl and our IDs
-      group.orthomcl_genes.code(species_orthomcl_code).all(:select => 'distinct(id)').each do |og|
+      group.orthomcl_genes.code(species_orthomcl_code).all(:select => 'distinct(orthomcl_genes.id)').each do |og|
         total += 1
         
         add_orthomcl_gene_to_lethal_count(og, lc)
@@ -404,10 +403,11 @@ class WScript
         end
       end
       #count the lethal ones
-      lethal_count = compute_lethal_count(nopara, arrays[1]).to_s
+      lethal_count = compute_lethal_count(nopara, arrays[1])
       OrthomclGene.code(arrays[1]).no_group.all.each do |orthomcl_gene|
         add_orthomcl_gene_to_lethal_count(orthomcl_gene, lethal_count)
       end
+      puts lethal_count
     end    
   end
    
@@ -1168,6 +1168,14 @@ end
 
 class LethalCount
   attr_accessor :lethal_count, :total_count, :phenotype_count, :groups_count, :missing_count
+  
+  def initialize
+    @lethal_count = 0
+    @total_count = 0
+    @phenotype_count = 0
+    @groups_count = 0
+    @missing_count = 0
+  end
   
   def to_s
     "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes) from #{@group_count} orthomcl groups. #{@missing_count} didn't have matching coding regions"

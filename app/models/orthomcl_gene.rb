@@ -33,6 +33,10 @@ class OrthomclGene < ActiveRecord::Base
       :conditions => ['orthomcl_runs.name = ?', run_name]
     }
   }
+  named_scope :no_group, {
+    :joins => :orthomcl_gene_orthomcl_group_orthomcl_runs,
+    :conditions => {:orthomcl_gene_orthomcl_group_orthomcl_runs => {:orthomcl_group_id => nil}}
+  }
   
   def accepted_database_id
     matches = orthomcl_name.match('pfa\|(.*)$')
@@ -194,26 +198,28 @@ class OrthomclGene < ActiveRecord::Base
     puts "linking genes for species: #{interesting_orgs.inspect}"
     
     # Maybe a bit heavy handed but ah well.
-    OrthomclGene.codes(interesting_orgs).official.all.each do |orthomcl_gene|
+    puts OrthomclGene.official.no_group.count; return
+    OrthomclGene.codes(interesting_orgs).official.no_group.all.each do |orthomcl_gene|
     
       codes = orthomcl_gene.compute_coding_regions
       if !codes or codes.length == 0
         #        next #ignore for the moment
-        #        raise Exception, "No coding region found for #{orthomcl_gene.inspect}"
+                raise Exception, "No coding region found for #{orthomcl_gene.inspect}"
         #        $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"
         next
       elsif codes.length > 1
         #ignore
+        raise Exception, "Too many coding regions found for #{orthomcl_gene.orthomcl_name}"
         next
       else
         code = codes[0]
         goods += 1
-      end
       
-      OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
-        orthomcl_gene.id,
-        code.id
-      )
+        OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
+          orthomcl_gene.id,
+          code.id
+        )
+      end
     end
     
     puts "Properly linked #{goods} coding regions"
@@ -224,17 +230,17 @@ class OrthomclGene < ActiveRecord::Base
   # makes it include, then, all genes that have not been put into an
   # orthomcl group
   
- def link_orthomcl_and_coding_regions_loose(interesting_orgs=['mmu'], warn=true)
+  def link_orthomcl_and_coding_regions_loose(interesting_orgs=['mmu'], warn=true)
     # def link_orthomcl_and_coding_regions_loose(interesting_orgs=['sce'], warn=false)
-       #def link_orthomcl_and_coding_regions_loose(interesting_orgs=['cel'], warn=false)
+    #def link_orthomcl_and_coding_regions_loose(interesting_orgs=['cel'], warn=false)
     goods = 0
     if !interesting_orgs or interesting_orgs.empty?
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
       #    interesting_orgs = ['ath']
       #interesting_orgs = ['cel']
-       interesting_orgs = ['mmu']
-       end
+      interesting_orgs = ['mmu']
+    end
     
     puts "linking genes for species: #{interesting_orgs.inspect}"
     
@@ -269,7 +275,7 @@ class OrthomclGene < ActiveRecord::Base
         code.id
       )
     end  
-      puts "Properly linked #{goods} coding regions"
+    puts "Properly linked #{goods} coding regions"
   end
 
   class UnexpectedCodingRegionCount < StandardError; end

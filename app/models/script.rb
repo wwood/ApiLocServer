@@ -2486,11 +2486,13 @@ class Script < ActiveRecord::Base
       if orthomcl_group_name == 'no_group'
         # Upload the gene as well now
         ogene = OrthomclGene.find_or_create_by_orthomcl_name(orthomcl_id)
+        
+        OrthomclGeneOrthomclGroupOrthomclRun.find_or_create_by_orthomcl_gene_id_and_orthomcl_run_id(
+          ogene.id, run.id
+        )
       else
-        ogenes = OrthomclGene.find(:all,
-          :include => :orthomcl_group,
-          :conditions => "orthomcl_groups.orthomcl_run_id=#{run.id} and "+
-            "orthomcl_genes.orthomcl_name='#{orthomcl_id}'"
+        ogenes = OrthomclGene.official.find(:all,
+          :conditions => {:orthomcl_genes => {:orthomcl_name => orthomcl_id}}
         )
         
         if ogenes.length != 1
