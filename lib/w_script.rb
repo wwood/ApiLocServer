@@ -383,7 +383,7 @@ class WScript
   end
   
     
-  def lethal_no_paralogues
+  def lethal_no_paralogues_including_genes_not_in_ortho_groups
     
     overlaps = [
       [['cel'],['cel']],
@@ -426,13 +426,12 @@ class WScript
       allgenes = OrthomclGene.code.species(arrays)
       allgenes.each do |g|
         #get all genes without paralogues
-        if g.orthomcl_genes.code(arrays[1]).count ==1
+        if g.orthomcl_genes.code(arrays[0]).count ==1
           nopara << g
-          break
         end
       end
       #count the lethal ones
-      puts compute_lethal_count(nopara, arrays[1]).to_s
+      puts compute_lethal_count(nopara, arrays[0]).to_s
     end    
   end
   
