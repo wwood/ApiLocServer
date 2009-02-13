@@ -383,7 +383,7 @@ class WScript
   end
   
     
-  def lethal_no_paralogues_including_genes_not_in_ortho_groups
+  def lethal_no_paralogues
     
     overlaps = [
       [['cel'],['cel']],
