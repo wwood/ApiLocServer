@@ -4080,11 +4080,11 @@ class Script < ActiveRecord::Base
   end
   
   def ben_celegans_phenotype_information_to_database
-    Mscript.new.celegans_phenotype_information_to_database("#{DATA_DIR}/elegans/essentiality/cel_wormbase_pheno.tsv")
+    Mscript.new.celegans_phenotype_information_to_database("#{DATA_DIR}/Essentiality/Celegans/cel_wormbase_pheno.tsv")
   end
   
   def ben_celegans_phenotype_observed_to_database
-    Mscript.new.celegans_phenotype_observed_to_database("#{DATA_DIR}/elegans/essentiality/cel_wormbase_pheno.tsv")
+    Mscript.new.celegans_phenotype_observed_to_database("#{DATA_DIR}/Essentiality/Celegans/cel_wormbase_pheno.tsv")
   end
   
   def upload_mouse_essentiality_data
@@ -7505,5 +7505,56 @@ PFL2395c
     rarff_relation.attributes[0].type = "{exported,not_exported}"
     
     puts rarff_relation.to_arff    
+  end
+  
+  # Find all proteins that are contained in the ribosomes, for use in the
+  # 2nd tier dataset
+  def ribosomal_protein_search
+    CodingRegion.falciparum.all(:include => :annotation, :conditions => ['annotation like ? or annotation like ?', "%ribosom%", "%Ribosom%"]).sort{|a,b| 
+      a.annotation.annotation <=> b.annotation.annotation}.each do |code|
+      if code.aaseq.nil?
+        $stderr.puts "No amino acid sequence found for #{code.string_id}"
+        next
+      end
+      puts [code.string_id, code.annotation.annotation, code.signal?, code.plasmo_a_p.predicted?].join("\t")
+    end
+  end
+  
+  def ribosome_falciparum_annotation
+    codes = []
+    FasterCSV.open("#{PHD_DIR}/ribosomes/PfalciparumAmigo.gene_association", :col_sep => "\t").each do |row|
+      codes.push CodingRegion.f(row[1])
+    end
+    codes.uniq.each do |code|
+      puts [code.string_id, code.annotation.annotation, code.signal?, code.plasmo_a_p.predicted?].join("\t")
+    end
+  end
+  
+  # Get out all the falciparum 
+  def yeast_ribosomal_proteome_fasta
+    codes = []
+    FasterCSV.open("#{PHD_DIR}/ribosomes/Scerevisiae.gene_association", :col_sep => "\t").each do |row|
+      names = row[10].split('|')
+      found = false
+      names.each do |name|
+        code = CodingRegion.f(name)
+        if code
+          codes.push code
+          found = true
+          break
+        end
+      end
+      unless found
+        $stderr.puts "Couldn't find gene for #{row[10]} - #{names.inspect}"
+      end
+    end
+    
+    codes.uniq.each do |code|
+      unless code.amino_acid_sequence
+        $stderr.puts "Couldn't find amino acid sequence for #{code.string_id} #{code.annotation}"
+        next
+      end
+      puts code.amino_acid_sequence.fasta
+    end
   end
 end

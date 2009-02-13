@@ -34,19 +34,15 @@ class WScript
   def compute_lethal_count(orthomcl_groups, species_orthomcl_code)
     lc = LethalCount.new
     lc.groups_count += orthomcl_groups.length
-    
-    total = 0
+
     orthomcl_groups.each do |group|
       
       # for each cel gene in the group, count if it is lethal or not
       # We exclude genes don't correspond between othomcl and our IDs
       group.orthomcl_genes.code(species_orthomcl_code).all(:select => 'distinct(orthomcl_genes.id)').each do |og|
-        total += 1
-        
         add_orthomcl_gene_to_lethal_count(og, lc)
       end
     end
-    lc.total_count += total
     return lc
   end
   
@@ -55,6 +51,9 @@ class WScript
     begin
       # returns true, false or nil
       lethal = orthomcl_gene.single_code.lethal?
+      
+      lethal_count.total_count += 1
+      
       if lethal
         lethal_count.phenotype_count += 1
         lethal_count.lethal_count += 1
@@ -396,18 +395,20 @@ class WScript
       nopara = Array.new
       p arrays
       groups = OrthomclGroup.all_overlapping_groups(arrays[0])
+      puts "Found #{groups.length} orthomcl groups with at least one #{arrays[0]} gene in them"
       groups.each do |g|
         #get all genes without paralogues
-        if g.orthomcl_genes.code(arrays[1]).count ==1
+        if g.orthomcl_genes.code(arrays[1]).official.count ==1
           nopara << g
         end
       end
       #count the lethal ones
       lethal_count = compute_lethal_count(nopara, arrays[1])
+      puts "LethalCount of genes with an orthomcl group: #{lethal_count}"
       OrthomclGene.code(arrays[1]).no_group.all.each do |orthomcl_gene|
         add_orthomcl_gene_to_lethal_count(orthomcl_gene, lethal_count)
       end
-      puts lethal_count
+      puts "LethalCount of genes with and without an orthomcl group: #{lethal_count}"
     end    
   end
     
@@ -427,6 +428,7 @@ class WScript
         #get all genes without paralogues
         if g.orthomcl_genes.code(arrays[1]).count ==1
           nopara << g
+          break
         end
       end
       #count the lethal ones

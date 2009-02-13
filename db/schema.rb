@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090211053535) do
+ActiveRecord::Schema.define(:version => 20090213002440) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -138,6 +138,7 @@ ActiveRecord::Schema.define(:version => 20090211053535) do
   end
 
   add_index "coding_region_phenotype_informations", ["coding_region_id", "phenotype_information_id"], :name => "index_coding_region_phenotype_informations_on_coding_region_id_", :unique => true
+  add_index "coding_region_phenotype_informations", ["coding_region_id"], :name => "index_coding_region_phenotype_informations_on_coding_region_id"
   add_index "coding_region_phenotype_informations", ["phenotype_information_id"], :name => "index_coding_region_phenotype_informations_on_phenotype_informa"
 
   create_table "coding_region_phenotype_observeds", :force => true do |t|
@@ -379,6 +380,11 @@ ActiveRecord::Schema.define(:version => 20090211053535) do
 
   add_index "integer_coding_region_measurements", ["coding_region_id", "type"], :name => "index_integer_coding_region_measurements_on_type_and_coding_reg"
 
+  create_table "kawaii_snippets", :force => true do |t|
+    t.string "key",   :limit => 50
+    t.text   "value"
+  end
+
   create_table "localisation_methods", :force => true do |t|
     t.string   "description"
     t.datetime "created_at"
@@ -511,6 +517,7 @@ ActiveRecord::Schema.define(:version => 20090211053535) do
 
   add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_gene_id", "orthomcl_group_id", "orthomcl_run_id"], :name => "ogogor", :unique => true
   add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_gene_id", "orthomcl_run_id"], :name => "ogog", :unique => true
+  add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_group_id"], :name => "index_orthomcl_gene_orthomcl_group_orthomcl_runs_on_orthomcl_gr"
 
   create_table "orthomcl_genes", :force => true do |t|
     t.string   "orthomcl_name"

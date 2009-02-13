@@ -34,8 +34,8 @@ class OrthomclGene < ActiveRecord::Base
     }
   }
   named_scope :no_group, {
-    :joins => :orthomcl_gene_orthomcl_group_orthomcl_runs,
-    :conditions => {:orthomcl_gene_orthomcl_group_orthomcl_runs => {:orthomcl_group_id => nil}}
+    :include => :orthomcl_gene_orthomcl_group_orthomcl_runs,
+    :conditions => 'orthomcl_gene_orthomcl_group_orthomcl_runs.orthomcl_group_id is NULL'
   }
   
   def accepted_database_id
@@ -54,12 +54,7 @@ class OrthomclGene < ActiveRecord::Base
   
   # Get the coding region that is associated with this gene, whether it is a
   # 
-  def compute_coding_regions
-    
-    if !orthomcl_group
-      raise Exception, "Bad linking in the database - no group associated with this orthomcl gene" 
-    end
-    
+  def compute_coding_regions    
     if orthomcl_run.name === OrthomclRun.official_run_v2_name
       matches = orthomcl_name.match('(.*)\|(.*)')
       
@@ -79,15 +74,36 @@ class OrthomclGene < ActiveRecord::Base
         # for drosophila drop the -PA or -PB at the end of it
         matches = name.match(/^(.*)\-(.*)$/)
         if matches
-          return CodingRegion.species_name(Species.fly_name).find_all_by_name_or_alternate(matches[1])
+          return CodingRegion.find_all_by_name_or_alternate_and_species(matches[1], Species.fly_name)
         else
           raise Exception, "Badly parsed dme orthomcl_name: #{inspect}"
         end
+      elsif matches[1] == 'mmu'
+        #iterate over each orthomcl protein id (eg dme|CGxxxx)
+        #get gene name by first getting orthomcl protein id from OrthomclGene table and then then using that to get the gene id from the annotation information in the OrthomclGeneOfficialData table  
+
+        e = orthomcl_gene_official_data
+        raise Exception, "Data bug in mmu orthomcl data - no orthomcl_gene_official_data found. Has it already been uploaded like it should be?" if e.nil?
+
+        #the annotation line in orthomcl_gene_official_data =
+        #|  CG1977|ENSF00000000161|Spectrin alpha chain. [Source:Uniprot/SWISSPROT;Acc:P13395] |
+
+        #split on bars and extract first without spaces
+        splits = e.annotation.split('|')
+        name = splits[0].strip #this is the gene id
+        #create coding region for this gene id and the protein name
+
+        #extract protein id
+        matches = orthomcl_name.match('(.*)\|(.*)')
+        pname = matches[2]
+
+        # get primary id for gene
+        return CodingRegion.find_all_by_name_or_alternate_and_species(name, Species.mouse_name)
       else
         # Add the normally linked ones that don't require a workaround
-        return CodingRegion.orthomcl_three_letter(matches[1]).find_all_by_name_or_alternate(name)
+        sp = Species.find_by_orthomcl_three_letter matches[1]
+        return CodingRegion.find_all_by_name_or_alternate_and_species(name, sp.name)
       end
-      
     else # For non-official runs do nothing at the moment
       return []
     end
@@ -187,7 +203,8 @@ class OrthomclGene < ActiveRecord::Base
   # for only the official one
 
   def link_orthomcl_and_coding_regions(interesting_orgs=['cel'])
-    goods = 0
+    goods = 0; nones = 0; too_manies = 0
+    
     if !interesting_orgs or interesting_orgs.empty?
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
@@ -198,18 +215,20 @@ class OrthomclGene < ActiveRecord::Base
     puts "linking genes for species: #{interesting_orgs.inspect}"
     
     # Maybe a bit heavy handed but ah well.
-    puts OrthomclGene.official.no_group.count; return
-    OrthomclGene.codes(interesting_orgs).official.no_group.all.each do |orthomcl_gene|
+    OrthomclGene.codes(interesting_orgs).official.all.each do |orthomcl_gene|
     
       codes = orthomcl_gene.compute_coding_regions
       if !codes or codes.length == 0
         #        next #ignore for the moment
-                raise Exception, "No coding region found for #{orthomcl_gene.inspect}"
+        #                raise Exception, "No coding region found for #{orthomcl_gene.inspect}"
         #        $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"
+        nones += 1
         next
       elsif codes.length > 1
         #ignore
-        raise Exception, "Too many coding regions found for #{orthomcl_gene.orthomcl_name}"
+        #        raise Exception, "Too many coding regions found for #{orthomcl_gene.orthomcl_name}" 
+        $stderr.puts "Too many coding regions found for #{orthomcl_gene.orthomcl_name}"
+        too_manies += 1
         next
       else
         code = codes[0]
@@ -222,7 +241,7 @@ class OrthomclGene < ActiveRecord::Base
       end
     end
     
-    puts "Properly linked #{goods} coding regions"
+    puts "Properly linked #{goods} coding regions. None found #{nones}. Too many found #{too_manies}."
   end
   
   # same as link_orthomcl_and_coding_regions, except don't

@@ -268,8 +268,10 @@ class Verification < ActiveRecord::Base
   end
   
   def orthomcl
-    if OrthomclGroup.official.count != 79695
-      puts "Incorrect number of gene groups"
+    expected = 79695
+    actual = OrthomclGroup.official.count(:select => 'distinct(orthomcl_groups.id)')
+    if actual != 79695
+      puts "Incorrect number of gene groups. Found #{actual}, expected #{expected}"
     end
     
     # Pick a random gene to make sure it is OK
@@ -309,6 +311,34 @@ class Verification < ActiveRecord::Base
       
       
     end
+    
+    
+    # Check mouse - one with a group and one without
+    # OG2_100010: mmu|ENSMUSP00000096204 rno|ENSRNOP00000028006 hsa|ENSP00000301244 sma|Smp_052230
+    mice = OrthomclGene.find_all_by_orthomcl_name('mmu|ENSMUSP00000096204')
+    raise unless mice.length == 1
+    mice = OrthomclGene.official.find_all_by_orthomcl_name('mmu|ENSMUSP00000096204')
+    raise unless mice.length == 1
+    mouse = mice[0]
+    raise unless mouse.orthomcl_group.orthomcl_name == 'OG2_100010'
+    raise if mouse.single_code.nil?
+    # no group and no coding region (in mouse_phenotypes at least)
+    # >mmu|ENSMUSP00000040224 | no_group | ENSMUSG00000004377|ENSF00000003814|WD repeat and FYVE domain containing 1 [Source:MarkerSymbol;Acc:MGI:1916618]
+    mice = OrthomclGene.find_all_by_orthomcl_name('mmu|ENSMUSP00000040224')
+    raise unless mice.length == 1
+    mice = OrthomclGene.find_all_by_orthomcl_name('mmu|ENSMUSP00000040224')
+    raise unless mice.length == 1
+    mouse = mice[0]
+    raise unless mouse.orthomcl_group.nil?
+    # no group and something attached in mouse_phenotypes
+    # >mmu|ENSMUSP00000081669 | no_group | ENSMUSG00000039809|ENSF00000001597|gamma-aminobutyric acid (GABA) B receptor 2 [Source:MarkerSymbol;Acc:MGI:2386030]
+    mice = OrthomclGene.find_all_by_orthomcl_name('mmu|ENSMUSP00000081669')
+    raise unless mice.length == 1
+    mice = OrthomclGene.find_all_by_orthomcl_name('mmu|ENSMUSP00000081669')
+    raise unless mice.length == 1
+    mouse = mice[0]
+    raise unless mouse.orthomcl_group.nil?
+    raise if mouse.single_code.nil?   
   end
  
   def check_cel_links

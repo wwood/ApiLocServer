@@ -134,6 +134,7 @@ class Mscript
   end
 
   def link_mouse_genes_and_coding_regions
+    raise Exception, "Deprecated - use OrthomclGene.link_orthomcl_and_coding_regions instead"
     #interesting_orgs = ['dme']
     interesting_orgs = ['mmu']
     count = 0
@@ -186,6 +187,7 @@ class Mscript
   
    def link_mouse_genes_and_coding_regions_genes_not_in_groups
   
+    raise Exception, "Deprecated - use OrthomclGene.link_orthomcl_and_coding_regions instead"
     interesting_orgs = ['mmu']
     count = 0
     
