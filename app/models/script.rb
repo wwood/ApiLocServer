@@ -800,6 +800,7 @@ class Script < ActiveRecord::Base
     locs.localisations.each do |lname|
       Localisation.find_or_create_by_name lname
     end
+    count = 0
     
     # Add each visualised row at a time
     while (l = locs.next_loc)
@@ -814,16 +815,20 @@ class Script < ActiveRecord::Base
           if !dloc
             raise Exception, "Localisation #{part} not found"
           end
+          
           if !CodingRegionLocalisation.find_or_create_by_coding_region_id_and_localisation_id_and_localisation_method_id(
               code.id,
               dloc.id,
               method.id
             )
             raise Exception, "Could not create.."
+          else 
+            count += 1
           end
         end
       end
     end
+    puts "Enumerated #{count} links"
   end
   
   # Count each group 
@@ -7555,6 +7560,25 @@ PFL2395c
         next
       end
       puts code.amino_acid_sequence.fasta
+    end
+  end
+  
+  # For all proteins in my list, which ones have been localised in Yeast
+  # (inferred through IDA GO CC annotations)
+  def yeast_localisation_to_apiloc_localisation
+    PlasmodbGeneList.find_by_description(PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME).coding_regions.each do |code|
+      yeasts = code.orthomcl_genes.code('sce').official.all
+      if yeasts.empty?
+        puts code.string_id
+      else
+        print "#{code.string_id}\t"
+        yeasts.each do |og|
+          og.single_code.each do |yc|
+            print "#{yc.go_terms.pick(:term).join(" | ")}\t"
+          end
+        end
+        puts
+      end
     end
   end
 end

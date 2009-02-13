@@ -213,17 +213,19 @@ class Verification < ActiveRecord::Base
     if ! method
       p "No Yeast GFP localisation method found"
     end
-    codes = CodingRegionLocalisation.find(:all, 
-      :conditions => "localisation_method_id=#{method.id}"
+    codes = CodingRegion.s(Species.yeast_name).count(:select => 'coding_region_locaisations.id',
+      :conditions => "localisation_method_id=#{method.id}",
+      :joins => :localisations
     )
-    if codes.length != 4152 
+    expected = 4152
+    if codes.length != expected
       # not 4160 (the simple count) because some of them are duplicates of the same
       # ORF
-      p "number of coding_region_localisations, #{codes.length} vs expected #{4160}"
+      puts "number of coding_region_localisations, #{codes.length} vs expected #{expected}"
     end
     
     locs = Localisation.find(:all,
-      :include => :coding_regions,
+      :joins => :coding_regions,
       :conditions => "string_id='YER173W'"
     ).collect {|l| l.name}
       
