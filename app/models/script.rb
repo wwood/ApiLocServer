@@ -7581,4 +7581,43 @@ PFL2395c
       end
     end
   end
+  
+  def upload_mu_et_al_snps
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/polymorphism/Mu2007/ng1924-S5.csv", :col_sep => "\t") do |row|
+      next unless row[0] and row[0].length > 0 and row[0] != 'Gene ID' and row[2]
+      
+      code = CodingRegion.ff(row[0])
+      unless code
+        $stderr.puts "Couldn't find #{row[0]}"
+        next
+      end
+      mu_bp_surveyed = row[2].to_i
+      mu_synonymous_snp = row[5].to_i
+      mu_non_synonymous_snp = row[6].to_i
+      mu_non_coding_snp = row[8].to_i
+      mu_pi = row[16]
+      mu_theta = row[15]
+
+      
+      # There is probably some rails way that is cooler but I don't know it
+      MuBpSurveyed.find_or_create_by_coding_region_id_and_value(
+        code.id, mu_bp_surveyed
+      ) or raise
+      MuNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(
+        code.id, mu_non_synonymous_snp
+      ) or raise
+      MuSynonymousSnp.find_or_create_by_coding_region_id_and_value(
+        code.id, mu_synonymous_snp
+      ) or raise
+      MuNonCodingSnp.find_or_create_by_coding_region_id_and_value(
+        code.id, mu_non_coding_snp
+      ) or raise
+      MuPi.find_or_create_by_coding_region_id_and_value(
+        code.id, mu_pi
+      ) or raise
+      MuTheta.find_or_create_by_coding_region_id_and_value(
+        code.id, mu_theta
+      ) or raise
+    end
+  end
 end

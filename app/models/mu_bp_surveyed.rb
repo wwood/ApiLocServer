@@ -1,0 +1,2 @@
+class MuBpSurveyed < FloatCodingRegionMeasurement
+end

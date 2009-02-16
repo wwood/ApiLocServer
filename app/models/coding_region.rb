@@ -62,7 +62,13 @@ class CodingRegion < ActiveRecord::Base
   has_one :neafsey_intronic_snp
   has_one :neafsey_synonymous_snp
   has_one :neafsey_non_synonymous_snp
-  
+  has_one :mu_bp_surveyed
+  has_one :mu_synonymous_snp
+  has_one :mu_non_coding_snp
+  has_one :mu_non_synonymous_snp
+  has_one :mu_pi
+  has_one :mu_theta
+
   # Worm project
   # elegans
   has_many :coding_region_phenotype_informations, :dependent => :destroy

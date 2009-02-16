@@ -1,0 +1,2 @@
+class MuSynonymousSnp < FloatCodingRegionMeasurement
+end
