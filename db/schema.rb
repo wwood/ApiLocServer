@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090213002440) do
+ActiveRecord::Schema.define(:version => 20090216052036) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -662,6 +662,17 @@ ActiveRecord::Schema.define(:version => 20090213002440) do
     t.datetime "updated_at"
     t.string   "orthomcl_three_letter"
   end
+
+  create_table "string_coding_region_measurements", :force => true do |t|
+    t.string   "measurement"
+    t.integer  "coding_region_id", :null => false
+    t.string   "type",             :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "string_coding_region_measurements", ["coding_region_id", "measurement", "type"], :name => "strind_code_ctm"
+  add_index "string_coding_region_measurements", ["coding_region_id", "type"], :name => "index_string_coding_region_measurements_on_coding_region_id_and"
 
   create_table "taxon_names", :force => true do |t|
     t.datetime "created_at"

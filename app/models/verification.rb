@@ -797,4 +797,32 @@ SRRKRRMPEGLDN*).join('')
     # 36
     raise unless NeafseyIntronicSnp.count == 36
   end
+  
+  def mu
+    raise if CodingRegion.ff('PFA0005w').mu_pi
+    raise unless CodingRegion.ff('PFA0120c').mu_bp_surveyed.value == 523.0
+    raise unless CodingRegion.ff('PFA0120c').mu_synonymous_snp.value == 0.0
+    raise unless CodingRegion.ff('PFA0120c').mu_synonymous_snp.value == 0.0
+    
+    raise unless CodingRegion.ff('PFB0085c').mu_bp_surveyed.value == 1229.0
+    raise unless CodingRegion.ff('PFB0085c').mu_synonymous_snp.value == 1.0
+    raise unless CodingRegion.ff('PFB0085c').mu_non_synonymous_snp.value == 1.0
+    raise unless CodingRegion.ff('PFB0085c').mu_non_coding_snp.value == 0.0
+    raise unless CodingRegion.ff('PFB0085c').mu_theta.value == 0.000781
+    raise unless CodingRegion.ff('PFB0085c').mu_pi.value == 0.001899
+    
+    raise unless CodingRegion.ff('PFB0535w').mu_non_coding_snp.value == 2.0
+    
+    #    ben@ben:~/phd/gnr$ scr Script.new.upload_mu_et_al_snps
+    #Couldn't find PFA0395c
+    #Couldn't find PFD0510c
+    #Couldn't find PFD0965w
+    #Couldn't find MAL6P1.234
+    #Couldn't find chr7.rRNA-1-28s
+    #
+    #ben@ben:~/phd/data/falciparum/polymorphism/Mu2007$ awk '{print $1}' ng1924-S5.csv |grep -v Gene |grep . |wc -l
+    #7399
+    raise unless MuSynonymousSnp.count != 7399-5
+    raise unless MuTheta.count != 7399-5
+  end
 end

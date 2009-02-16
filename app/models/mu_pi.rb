@@ -1,0 +1,2 @@
+class MuPi < FloatCodingRegionMeasurement
+end

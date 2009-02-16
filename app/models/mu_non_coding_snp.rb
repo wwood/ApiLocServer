@@ -1,0 +1,2 @@
+class MuNonCodingSnp < FloatCodingRegionMeasurement
+end

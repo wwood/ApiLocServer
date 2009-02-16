@@ -63,7 +63,7 @@ class WScript
       end
     rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
       lethal_count.missing_count += 1
-      puts orthomcl_gene.orthomcl_name
+      $stderr.puts "Couldn't find coding region for orthomcl gene: #{OrthomclGene.find(orthomcl_gene.id).orthomcl_name}"
     end
     return lethal_count #for convenience
   end
