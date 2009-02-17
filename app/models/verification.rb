@@ -616,7 +616,25 @@ class Verification < ActiveRecord::Base
     raise if ItSynonymousSnp.count != ItNonSynonymousSnp.count
     raise if PfClinSynonymousSnp.count != PfClinNonSynonymousSnp.count
     raise if CodingRegion.ff('MAL13P1.107').pf_clin_non_synonymous_snp.value != 2.89
+    raise if CodingRegion.ff('MAL13P1.100').reichenowi_dnds.value != 0.19
+    raise if CodingRegion.ff('MAL13P1.100').reichenowi_non_synonymous_snp.value != 9.58
+    raise if CodingRegion.ff('MAL13P1.100').reichenowi_synonymous_snp.value != 8.83
+    
+    # 0.07	561	1.02	4.1
+    raise if CodingRegion.ff('MAL13P1.111').reichenowi_dnds.value != 0.07
+    raise if CodingRegion.ff('MAL13P1.111').reichenowi_non_synonymous_snp.value != 1.02
+    raise if CodingRegion.ff('MAL13P1.111').reichenowi_synonymous_snp.value != 4.1
+
+    #ben@ben:~/phd/gnr$ awk -F'      ' '{print $16,$15}' /home/ben/phd/data/falciparum/polymorphism/Jeffares2007/ng1931-S4.csv |grep . |grep -v REICH |grep -v 'NA NA' | grep -v '^ $' |wc -l
+    #3024
+    # There are no entries that have a reich value and a coding region that no longer exists, however there is
+    # genes that have 2 measurements for the same - ignoring those so I can keep the coding_region has_one reichenowi_dnds
+    # thing going
+    raise unless ReichenowiNonSynonymousSnp.count == 3024
+    raise unless ReichenowiSynonymousSnp.count == 3024
+    raise unless ReichenowiDnds.count == 3024
   end
+
   
   def nucleo
     raise if NucleoNls.count != NucleoNonNls.count

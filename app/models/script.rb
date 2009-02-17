@@ -4450,7 +4450,7 @@ class Script < ActiveRecord::Base
     # http://www.nature.com.ezproxy.lib.unimelb.edu.au/ng/journal/v39/n1/suppinfo/ng1931_S1.html
     # Supplementary Table 1, saved as csv using tab separation and no text delimiter
     good_stuff = 0
-    CSV.open("#{DATA_DIR}/falciparum/polymorphism/ng1931-S4.csv", 'r', "\t") do |row|
+    CSV.open("#{DATA_DIR}/falciparum/polymorphism/Jeffares2007/ng1931-S4.csv", 'r', "\t") do |row|
       # skip until the useful bit
       if good_stuff == 0
         if row[0] === '#Data'
@@ -4467,6 +4467,9 @@ class Script < ActiveRecord::Base
       it_non_syn = row[6]
       pf_clin_syn = row[11]
       pf_clin_non_syn = row[10]
+      reich_dnds = row[12]
+      reich_syn = row[15]
+      reich_non_syn = row[14]
       
       code = CodingRegion.ff(gene)
       if !code
@@ -4483,12 +4486,13 @@ class Script < ActiveRecord::Base
         PfClinSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, pf_clin_syn) or raise
         PfClinNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, pf_clin_non_syn) or raise
       end
-    end
-  end
-  
-  def upload_snp_data_mu
-    CSV.open("#{DATA_DIR}/falciparum/polymorphism/ng1931-S4.csv", 'r', "\t") do |row|
       
+      if reich_dnds != 'NA' and reich_syn != 'NA' and reich_non_syn != 'NA'
+        puts "#{gene},#{code.string_id}"
+        ReichenowiDnds.find_or_create_by_coding_region_id_and_value(code.id, reich_dnds) or raise
+        ReichenowiNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, reich_non_syn) or raise
+        ReichenowiSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, reich_syn) or raise
+      end
     end
   end
   
