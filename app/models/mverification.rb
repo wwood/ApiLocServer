@@ -184,6 +184,7 @@ class Mverification < ActiveRecord::Base
     raise if OrthomclGene.find_by_orthomcl_name('mmu|ENSMUSP00000010241').single_code.lethal?
     
     # check only trusted phenotypes are being counted i.e.:1)correct expt type + lethal = true; 2)correct expt type + not lethal = false; 3) incorrect expt type + lethal = nil 
+    
     #1)check correct expt type + lethal = true
     #MGI:2180115	Aebp1<tm1Mdl>	targeted mutation 1, Matthew D Layne	Targeted (knock-out)	11438679	MGI:1197012	Aebp1	NM_009636	ENSMUSG00000020473	MP:0005370,MP:0005371,MP:0005374,MP:0005376,MP:0005380,MP:0005381
     #ENSMUSG00000020473 =mmu|ENSMUSP00000020766
@@ -199,8 +200,7 @@ class Mverification < ActiveRecord::Base
       if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != false
       puts "Bad lethal phenotype association, should be false as not lethal phenotype: #{name}"
     end
-    
-    
+        
     #3)check incorrect expt type + lethal = nil 
     #MGI:3774413	Avil<tm1(ALPP)Fawa>	targeted mutation 1, Fan Wang	Targeted (knock-in)	18160648	MGI:1333798	Avil	NM_009635	ENSMUSG00000025432	MP:0003631,MP:0005372,MP:0005374
     #ENSMUSG00000025432 =mmu|ENSMUSP00000026500 
@@ -208,7 +208,12 @@ class Mverification < ActiveRecord::Base
       if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != nil
       puts "Bad lethal phenotype association, should be nil as incorrect expt type: #{name}"
     end
-   
+    
+    #check a mouse gene in Orthomcl no_group that it is correctly linked to lethal phenotype
+    name = 'mmu|ENSMUSP00000000031'
+      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+      puts "Bad lethal phenotype association for gene in orthomcl no_group, should be true for lethal phenotype: #{name}"
+    end
   end
 
   def fly_pheno_info

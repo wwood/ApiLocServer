@@ -388,9 +388,9 @@ class WScript
     
     overlaps = [
       [['cel'],['cel']],
-      [['mmu'],['mmu']],
-      [['dme'],['dme']],
-      [['sce'],['sce']]   
+      #[['mmu'],['mmu']],
+      #[['dme'],['dme']],
+      #[['sce'],['sce']]   
     ]
     overlaps.each do |arrays|
       nopara = Array.new
@@ -413,28 +413,7 @@ class WScript
     end    
   end
     
-  def lethal_no_paralogues_including_genes_not_in_ortho_groups
-    # this method doesn't work yet!!!
-    spp = [
-      ['cel'],
-      ['mmu'],
-      ['dme'],
-      ['sce']   
-    ]
-    spp.each do |arrays|
-      nopara = Array.new
-      p arrays
-      allgenes = OrthomclGene.code.species(arrays)
-      allgenes.each do |g|
-        #get all genes without paralogues
-        if g.orthomcl_genes.code(arrays[0]).count ==1
-          nopara << g
-        end
-      end
-      #count the lethal ones
-      puts compute_lethal_count(nopara, arrays[0]).to_s
-    end    
-  end
+ 
   
   def lethal_no_paralogues_multiple_spp
     
