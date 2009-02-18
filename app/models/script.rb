@@ -5,6 +5,7 @@ require 'api_db_genes'
 require 'yeast_genome_genes'
 require 'signalp'
 require 'api_db_fasta'
+require 'gff3_genes'
 require 'tm_hmm_wrapper'
 require 'rubygems'
 require 'csv'
@@ -216,117 +217,7 @@ class Script < ActiveRecord::Base
     }
   end
   
-  def apidb_species_to_database(species_name, gff_file_path=nil, iter=nil)
-    
-    sp = Species.find_or_create_by_name species_name
-    #        sp.scaffolds.each do |scaff|
-    #          scaff.destroy
-    #        end
-    
-    # Create all the scaffolds, which are specified as supercontig
-    # The length is needed so I can work out the length to the end
-    # of the chromosome
-    raise Exception, "needs updating to include scaffold length - see add_lengths_to_scaffolds for an example. I s half implemented already."
-    GFF3ParserLight.new(File.open(gff_file_path)).each_feature('supercontig') do |feature|
-      scaff = Scaffold.find_or_create_by_name_and_species_id_and_length(
-        feature.name,
-        sp.id,
-        feature.to
-      )
-    end
-
-    # recreate iter if it does not already exist
-    iter ||= ApiDbGenes.new(gff_file_path)
-
-    puts "Inserting..."
-
-    gene = iter.next_gene
-
-    while gene
-
-      # Create scaffold if not done already
-      if !gene.seqname
-        raise Exception, "No seqname in gene: #{gene}"
-      end
-      scaff = Scaffold.find_by_name_and_species_id(
-        gene.seqname,
-        sp.id
-      )
-
-      g = Gene.find_or_create_by_scaffold_id_and_name(
-        scaff.id,
-        gene.name
-      )
-
-      code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
-        gene.name,
-        g.id,
-        gene.strand
-      )
-
-      gene.cds.each {|cd|
-        if cd.from < 1 or cd.to > scaff.length
-          $stderr.puts "Unexpected placement of CDS on scaffold: #{cd.inspect}"
-        end
-
-        Cd.find_or_create_by_coding_region_id_and_start_and_stop(
-          code.id,
-          cd.from,
-          cd.to
-        )
-      }
-      
-      Annotation.find_or_create_by_coding_region_id_and_annotation(
-        code.id,
-        gene.description
-      )
-      
-      if gene.go_identifiers
-        gene.go_identifiers.each do |goid|
-          go = GoTerm.find_by_go_identifier_or_alternate goid
-          if !go
-            raise Exception, "No go term found for #{goid}"
-          end
-          
-          # This should get rid of alternate+real GO term being attributed
-          # to the same gene, and therefore causing a duplicate.
-          if !CodingRegionGoTerm.find_by_go_term_id_and_coding_region_id(
-              go.id, code.id)
-            
-            CodingRegionGoTerm.create!(
-              :go_term_id => go.id,
-              :coding_region_id => code.id
-            )
-          end
-        end
-      end
-      
-      
-      if gene.alternate_ids
-        gene.alternate_ids.each do |alt|
-          
-          if !code
-            raise Exception, "No coding region still alive to attach an alternate to"
-          end
-          
-          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
-            code.id,
-            alt
-          )
-        end
-      end
-      
-      old_gene = gene
-      begin
-        gene = iter.next_gene
-      rescue Exception => e
-        $stderr.puts "Failed on the gene after #{old_gene}"
-        raise e
-      end
-    end
-
-    puts "finished."
-  end
+  
   
   def falciparum_to_database
     # abstraction!
@@ -1894,11 +1785,11 @@ class Script < ActiveRecord::Base
   
   
   def crypto_fasta_to_database
-    fa = ApiDbFasta.new.load("#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/3.4/CparvumAnnotatedProtein.fsa")
+    fa = CryptoDbFasta4p0.new.load("#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/4.0/CparvumAnnotatedProteins_CryptoDB-4.0.fasta")
     sp = Species.find_by_name(Species.cryptosporidium_parvum_name)
     upload_fasta_general(fa, sp)
     
-    fa = ApiDbFasta.new.load("#{DATA_DIR}/Cryptosporidium hominis/genome/cryptoDB/3.4/ChominisAnnotatedProtein.fsa")
+    fa = CryptoDbFasta4p0.new.load("#{DATA_DIR}/Cryptosporidium hominis/genome/cryptoDB/4.0/ChominisAnnotatedProteins_CryptoDB-4.0.fasta")
     sp = Species.find_by_name(Species.cryptosporidium_hominis_name)
     upload_fasta_general(fa, sp)
   end
@@ -4773,8 +4664,15 @@ class Script < ActiveRecord::Base
   end
   
   
-  def crypto_gff_to_database
-    apidb_species_to_database(Species.cryptosporidium_hominis_name, "#{DATA_DIR}/Cryptosporidium homonis/genome/cryptoDB/3.4/c_hominis_tu502.gff")
+  def crypto_to_database
+    #    apidb_species_to_database(Species.cryptosporidium_hominis_name, "#{DATA_DIR}/Cryptosporidium homonis/genome/cryptoDB/3.4/c_hominis_tu502.gff")
+    #    puts "Uploading hominis GFF"
+    #    apidb_species_to_database(Species.cryptosporidium_hominis_name, "#{DATA_DIR}/Cryptosporidium homonis/genome/cryptoDB/4.0/c_hominis_tu502.gff")
+    #    puts "Uploading parvum GFF"
+    #    apidb_species_to_database(Species.cryptosporidium_parvum_name, "#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/4.0/c_parvum_iowa_ii.gff")
+
+    puts "Uploading FASTA files"
+    crypto_fasta_to_database
   end
   
   def previous_signalp
@@ -7388,5 +7286,118 @@ PFL2395c
       scaff.length = feature.end
       scaff.save!
     end
+  end
+
+  def apidb_species_to_database(species_name, gff_file_path=nil, iter=nil)
+
+
+    sp = Species.find_or_create_by_name species_name
+    #        sp.scaffolds.each do |scaff|
+    #          scaff.destroy
+    #        end
+
+    # Create all the scaffolds, which are specified as supercontig
+    # The length is needed so I can work out the length to the end
+    # of the chromosome
+    #    raise Exception, "needs updating to include scaffold length - see add_lengths_to_scaffolds for an example. I s half implemented already."
+    GFF3ParserLight.new(File.open(gff_file_path)).each_feature('supercontig') do |feature|
+      scaff = Scaffold.find_or_create_by_name_and_species_id_and_length(
+        feature.seqname,
+        sp.id,
+        feature.end
+      )
+    end
+
+    # recreate iter if it does not already exist
+    iter ||= ApiDbGenes.new(gff_file_path)
+
+    puts "Inserting..."
+
+    gene = iter.next_gene
+
+    while gene
+
+      # Create scaffold if not done already
+      if !gene.seqname
+        raise Exception, "No seqname in gene: #{gene}"
+      end
+      scaff = Scaffold.find_by_name_and_species_id(
+        gene.seqname,
+        sp.id
+      )
+
+      g = Gene.find_or_create_by_scaffold_id_and_name(
+        scaff.id,
+        gene.name
+      )
+
+      code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
+        gene.name,
+        g.id,
+        gene.strand
+      )
+
+      gene.cds.each {|cd|
+        if cd.from.to_i < 1 or cd.to.to_i > scaff.length
+          $stderr.puts "Unexpected placement of CDS on scaffold: #{cd.inspect}"
+        end
+
+        Cd.find_or_create_by_coding_region_id_and_start_and_stop(
+          code.id,
+          cd.from,
+          cd.to
+        )
+      }
+
+      Annotation.find_or_create_by_coding_region_id_and_annotation(
+        code.id,
+        gene.description
+      )
+
+      if gene.go_identifiers
+        gene.go_identifiers.each do |goid|
+          go = GoTerm.find_by_go_identifier_or_alternate goid
+          if !go
+            raise Exception, "No go term found for #{goid}"
+          end
+
+          # This should get rid of alternate+real GO term being attributed
+          # to the same gene, and therefore causing a duplicate.
+          if !CodingRegionGoTerm.find_by_go_term_id_and_coding_region_id(
+              go.id, code.id)
+
+            CodingRegionGoTerm.create!(
+              :go_term_id => go.id,
+              :coding_region_id => code.id
+            )
+          end
+        end
+      end
+
+
+      if gene.alternate_ids
+        gene.alternate_ids.each do |alt|
+
+          if !code
+            raise Exception, "No coding region still alive to attach an alternate to"
+          end
+
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
+            code.id,
+            alt
+          )
+        end
+      end
+
+      old_gene = gene
+      begin
+        gene = iter.next_gene
+      rescue Exception => e
+        $stderr.puts "Failed on the gene after #{old_gene}"
+        raise e
+      end
+    end
+
+    puts "finished."
   end
 end

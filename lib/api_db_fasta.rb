@@ -130,3 +130,23 @@ class ApiDbVivaxFasta5p5 < FastaParser
     return s
   end
 end
+
+class CryptoDbFasta4p0 < FastaParser
+  def parse_name(definition)
+    s = FastaAnnotation.new
+
+    matches = definition.match(/^gb\|(.*?) \| organism=Cryptosporidium_(.+?) \| product=(.*?) \| location=(.*) \| length=\d+$/)
+    if !matches
+      raise Exception, "Definition line has unexpected format: #{definition}"
+    end
+
+    matches2 = matches[4].match(/^(.+?)\:/)
+    if !matches2
+      raise Exception, "Definition line has unexpected scaffold format: #{matches[4]}"
+    end
+    s.scaffold = matches2[1]
+    s.name = matches[1]
+    s.annotation = matches[3]
+    return s
+  end
+end
