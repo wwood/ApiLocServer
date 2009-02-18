@@ -15,7 +15,6 @@ class SpreadsheetGenerator
     @first = true
     #String attributes aren't useful in arff files, because many classifiers and visualisations don't handle them
     # So make a list of outputs so they can be made nominal in the end.
-    wolf_psort_outputs = {} 
     amino_acids = Bio::AminoAcid.names.keys.select{|code| code.length == 1}
     derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
     
@@ -36,24 +35,14 @@ class SpreadsheetGenerator
       #    ).each do |code|
       next unless code.uniq_top?
       
-      @headings.push 'PlasmoDB ID' if @first
+#      @headings.push 'PlasmoDB ID' if @first
       #      'Annotation',
       @current_row = [
-        code.string_id,
+#        code.string_id,
         #        code.annotation.annotation
       ]
       check_headings
       
-      @headings.push 'Top Level Localisations' if @first
-      #      'Amino Acid Sequence',
-      #      if code.tops[0].name == 'exported'
-      #        results.push 'exported'
-      #      else
-      #        results.push 'not_exported'
-      #      end
-      @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
-      check_headings
-
       #      results.push code.amino_acid_sequence.sequence,
       
       
@@ -74,7 +63,6 @@ class SpreadsheetGenerator
       ['plant','animal','fungi'].each do |organism|
         c = code.wolf_psort_localisation(organism)
         @current_row.push c
-        wolf_psort_outputs[c] ||= true
       end
       check_headings
       
@@ -207,7 +195,34 @@ class SpreadsheetGenerator
       @headings.push 'Length of Protein' if @first
       @current_row.push code.amino_acid_sequence.sequence.length
       check_headings
+
+      @headings.push 'Chromosome' if @first
+      name = code.chromosome_name
+      @current_row.push name
+      check_headings
       
+      @headings.push 'Distance from chromosome end' if @first
+      @current_row.push code.length_from_chromosome_end
+      check_headings
+
+      @headings.push 'Percentage from chromosome end' if @first
+      @current_row.push code.length_from_chromosome_end_percent
+      check_headings
+
+      @headings.push 'Number of Exons' if @first
+      @current_row.push code.cds.count
+      check_headings
+
+      @headings.push 'Offset of 2nd Exon' if @first
+      @current_row.push code.second_exon_splice_offset
+      check_headings
+
+      @headings.push 'Orientation' if @first
+      # pretty stupid really
+      @current_row.push code.positive_orientation? ? '+' : '-'
+      check_headings
+
+
       
       # Microarray DeRisi
       if @first
@@ -278,6 +293,12 @@ class SpreadsheetGenerator
       #        headings.push node.name if first
       #        results.push node.normalised_value
       #      end
+
+      # Localisation is last because WEKA's default is to predict the
+      # last attribute
+      @headings.push 'Localisation' if @first
+      @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
+      check_headings
       
       @first = false if @first
       
@@ -298,12 +319,7 @@ class SpreadsheetGenerator
     end
     
     # Make some attributes noiminal instead of String
-    # Localisation
-    rarff_relation.attributes[1].type = "{#{TopLevelLocalisation.all.reach.name.join(',').gsub(/[\ \(\)]/,'_')}}"
-    # Wolf_PSORTs
-    [4,5,6].each do |i|
-      rarff_relation.attributes[i].type = "{#{wolf_psort_outputs.keys.join(',').gsub(' ','_')}}"
-    end
+    rarff_relation.set_string_attributes_to_nominal
     
     puts rarff_relation.to_arff
   end

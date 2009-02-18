@@ -273,14 +273,31 @@ class CodingRegionTest < ActiveSupport::TestCase
     assert_equal false, CodingRegion.find(16).phenotype_information?
   end
 
-  def test_percent_length_from_chromosome_end
+  def test_percent_length_from_chromosome_end_percent
     # test positive near start
-    assert_equal 15, (CodingRegion.find(1).percent_length_from_chromosome_end*100).round
+    assert_equal 15, (CodingRegion.find(1).length_from_chromosome_end_percent*100).round
 
     # test positive near end of chromosome
-    assert_equal 9, (CodingRegion.find(4).percent_length_from_chromosome_end*100).round
+    assert_equal 9, (CodingRegion.find(4).length_from_chromosome_end_percent*100).round
 
     # test negative (near end)
-    assert_equal 8, (CodingRegion.find(2).percent_length_from_chromosome_end*100).round
+    assert_equal 8, (CodingRegion.find(2).length_from_chromosome_end_percent*100).round
+  end
+
+  def test_percent_length_from_chromosome_end
+    # tested mainly in test_percent_length_from_chromosome_end_percent
+    # test positive near start
+    assert_equal 10, CodingRegion.find(1).length_from_chromosome_end
+  end
+
+  def test_chromosome_name
+    assert_equal 'MAL3', CodingRegion.find(1).chromosome_name
+    assert_nil CodingRegion.find(4).chromosome_name
+  end
+
+  def test_second_exon_splice_offset
+    assert_equal 2, CodingRegion.find(1).second_exon_splice_offset
+    assert_equal 0, CodingRegion.find(2).second_exon_splice_offset
+    assert_nil CodingRegion.find(3).second_exon_splice_offset
   end
 end

@@ -2,12 +2,12 @@
 
 one:
     id: 1
-    name: s1
+    name: apidb|MAL3
     species_id: 1
     length: 65
 two:
     id: 2
-    name: s2
+    name: NAPPYDB|MAL3
     species_id: 1
     length: 165
 three:
