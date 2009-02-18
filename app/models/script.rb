@@ -223,36 +223,52 @@ class Script < ActiveRecord::Base
     #          scaff.destroy
     #        end
     
+    # Create all the scaffolds, which are specified as supercontig
+    # The length is needed so I can work out the length to the end
+    # of the chromosome
+    raise Exception, "needs updating to include scaffold length - see add_lengths_to_scaffolds for an example. I s half implemented already."
+    GFF3ParserLight.new(File.open(gff_file_path)).each_feature('supercontig') do |feature|
+      scaff = Scaffold.find_or_create_by_name_and_species_id_and_length(
+        feature.name,
+        sp.id,
+        feature.to
+      )
+    end
+
     # recreate iter if it does not already exist
     iter ||= ApiDbGenes.new(gff_file_path)
 
     puts "Inserting..."
-    
+
     gene = iter.next_gene
-    
+
     while gene
-      
+
       # Create scaffold if not done already
       if !gene.seqname
         raise Exception, "No seqname in gene: #{gene}"
       end
-      scaff = Scaffold.find_or_create_by_name_and_species_id(
+      scaff = Scaffold.find_by_name_and_species_id(
         gene.seqname,
         sp.id
       )
-      
+
       g = Gene.find_or_create_by_scaffold_id_and_name(
         scaff.id,
         gene.name
       )
-      
+
       code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
         gene.name,
         g.id,
         gene.strand
       )
-      
+
       gene.cds.each {|cd|
+        if cd.from < 1 or cd.to > scaff.length
+          $stderr.puts "Unexpected placement of CDS on scaffold: #{cd.inspect}"
+        end
+
         Cd.find_or_create_by_coding_region_id_and_start_and_stop(
           code.id,
           cd.from,
@@ -7353,6 +7369,24 @@ PFL2395c
       MuTheta.find_or_create_by_coding_region_id_and_value(
         code.id, mu_theta
       ) or raise
+    end
+  end
+
+  def add_lengths_to_scaffolds(species_name, gff_file_path=nil)
+    require 'gff3_genes'
+    sp = Species.find_or_create_by_name species_name
+    GFF3ParserLight.new(File.open(gff_file_path)).each_feature('supercontig') do |feature|
+      scaff = Scaffold.find_by_name_and_species_id(
+        feature.seqname,
+        sp.id
+      )
+      unless scaff
+        $stderr.puts "Couldn't find scaffold #{feature.seqname} - ignoring"
+        next
+      end
+      
+      scaff.length = feature.end
+      scaff.save!
     end
   end
 end

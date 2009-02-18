@@ -6,6 +6,7 @@ require 'rarff'
 class SpreadsheetGenerator
   require 'microarray_timepoint' #include the constants for less typing
   include MicroarrayTimepointNames
+  
   def arff
     # headings
     @headings = []
@@ -307,6 +308,7 @@ class SpreadsheetGenerator
     puts rarff_relation.to_arff
   end
   
+  private
   def check_headings
     if @first
       @headings.flatten!

@@ -96,8 +96,9 @@ class Verification < ActiveRecord::Base
     # ben@ben:~/phd/data/falciparum/genome/plasmodb/5.4$ grep '>' PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta |wc -l
     # 5460
     count = CodingRegion.species_name(Species.falciparum_name).count
+    expected = 5532
     if count  != 5532
-      p "Unexpected number of falciparum genes found uploaded: #{count}"
+      p "Unexpected number of falciparum genes found uploaded: #{count}, expected #{expected}"
     end
     
     # a troublesome one
@@ -106,6 +107,17 @@ class Verification < ActiveRecord::Base
     
     raise if CodingRegion.ff('PF14_0043').amino_acid_sequence.sequence != 'MEENLMKLGTLMLLGFGEAGAKIISKNINEQERVNLLINGEIVYSVFSFCDIRNFTEITEVLKEKIMIFINLIAEIIHECCDFYGGTINKNIGDAFLLVWKYQKKEYSNKKMNMFKSPNNNYDEYSEKENINRICDLAFLSTVQTLIKLRKSEKIHIFLNNENMDELIKNNILELSFGLHFGWAIEGAIGSSYKIDLSYLSENVNIASRLQDISKIYKNNIVISGDFYDNMSEKFKVFDDIKKKAERKKRKKEVLNLSYNLYEEYAKNDDIKFIKIHYPKDYLEQFKIALESYLIGKWNESKNILEYLKRNNIFEDEILNQLWNFLSMNNFIAPSDWCGYRKFLQKS'
     raise if CodingRegion.ff('MAL13P1.385').amino_acid_sequence.sequence != 'MKIGDVLHDYKLYDNTKKKSSEMVINENDNKERLLEEFEIRSKVRKVCLGIPTQDIDVKNILRLLKEPICLFGEDSYDKRKRLKNILITKYDRLIIKKKIEEEDDVEEFKNILKRYYIDFSDLYPSGLSEANKINEVHDKHKLKDVHDTKEEQNVHMKTVREEDKDILKEKCYTEGTKDLKKSRIEITIKTLPRIFLYKEMINKFQNGYSKKEYENYITSFNEHIKKESDLYVSQLGDDRPLTMGKFSPDNSVFAISSFNSYINIFNYRNDDYNLIKTLKNGHEEKINCIEWNYPNNYSYYSTMNYKDLSKHDLLLASCSSDKSFCIWKPFYDEYDDTNDNINDNINEYINENINENINENINENINDNISDNTSDTISDNINDNINDNISDSISDNISDNKNNNSHKVDKYNSNKNKLSAQNKNYLLCKVNAHDDRINKICFHPLNKYVLTCSDDETIKMFDIETQQELFYQEGHNTTVYSIAFNPYGNLYISGDSKGGLMLWDIRTGKNVEQIKMAHNNSIMNINFNPFLANMFCTCSTDNTIKIFDLRKFQISCNILAHNKIVTDALFEPTYGRYIVSSSFDTFIKIWDSVNFYCTKILCNNNNKVRNVDIAPDGSFISSTSFDRTWKLYKNKEYTQDNILSHFM'
+
+    # From the GFF file, and confirmed by looking at the genome browser
+    # apidb|MAL12	ApiDB	supercontig	1	2271478
+    # apidb|MAL13	ApiDB	supercontig	1	2895605
+    falciparum = Species.find_by_name(Species::FALCIPARUM_NAME)
+    {'apidb|MAL12' => 2271478, 'apidb|MAL13' => 2895605}.each do |scaffold, expected_length|
+      l = Scaffold.find_by_name_and_species_id(scaffold, falciparum.id).length
+      unless l == expected_length
+        $stderr.puts "Scaffold length - found #{l}, expected #{expected_length}"
+      end
+    end
   end
   
   def gene_lists
