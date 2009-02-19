@@ -5284,8 +5284,8 @@ class Script < ActiveRecord::Base
       CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(cd.id, gene.gene_name)
       gene.go_identifiers.each do |go_id|
         g = GoTerm.find_or_create_by_go_identifier(go_id)
-        CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id(
-          g.id, cd.id
+        CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id_and_evidence_code(
+          g.id, cd.id, go_id
         )
       end
     end
@@ -7402,33 +7402,42 @@ PFL2395c
   end
 
   def yeast_gene_ontology_to_database(filename = "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.sgd")
+    gene_ontology_to_database Species::YEAST_NAME, filename
+  end
+
+  def elegans_gene_ontology_to_database
+    gene_ontology_to_database Species::ELEGANS_NAME, "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.wb"
+  end
+
+  # Upload the GO annotations for a given species
+  def gene_ontology_to_database(species_name, gene_association_filename)
     require 'gene_association'
     goods = 0
     bads = 0
-    Bio::GeneAssociation.new(File.open(filename).read).entries.each do |entry|
-      name = entry.gene_name.gsub(' gene','')
-      code = CodingRegion.fs(
-        name,
-        Species::YEAST_NAME
-      )
+    Bio::GeneAssociation.new(File.open(gene_association_filename).read).entries.each do |entry|
+      names = [
+        entry.primary_id,
+        entry.gene_name,
+        entry.alternate_gene_ids,
+      ].flatten
+
+      code = nil
+      names.each do |name|
+        code = CodingRegion.fs(
+          name,
+          species_name
+        )
+        break unless code.nil?
+      end
       unless code
-        entry.alternate_gene_ids.each do |id|
-          code = CodingRegion.fs(
-            id,
-            Species::YEAST_NAME
-          )
-        end
-        unless code
-          puts "Couldn't find coding region #{name}"
-          bads += 1
-          next
-        end
+        puts "Couldn't find coding region called #{names.join(',')}"
+        bads += 1
+        next
       end
 
-      go_term = GoTerm.find_by_go_identifier_and_aspect(
-        entry.go_identifier,
-        entry.aspect
-      )
+      # GO terms should already be there
+      go_term = GoTerm.find_by_go_identifier_or_alternate(entry.go_identifier)
+
       unless go_term
         puts "Couldn't find GO term #{entry.go_identifier}"
         bads += 1
@@ -7446,6 +7455,11 @@ PFL2395c
 
   # Attempting to improve the speed of the subsumer by using Hash#key? instead
   # of Array#include? - it didn't work very well. Meh.
+  # However, using
+  #     primaree = subsumer_go_id
+  # instead of
+  #    primaree = @go.primary_go_id(subsumer_go_id)
+  # made things much faster
   def test_subsume_speed
     code = CodingRegion.first(:joins => :go_terms)
 
@@ -7462,9 +7476,10 @@ PFL2395c
   end
 
   def subsume?(subsumer_go_id)
-    primaree = @go.primary_go_id(subsumer_go_id)
+    primaree = subsumer_go_id
+    #    primaree = @go.primary_go_id(subsumer_go_id)
     return true if @master_go_id == primaree
-#    @subsumer_offspring_hash.key?.include?(primaree)
+    #    @subsumer_offspring_hash.key?.include?(primaree)
     @subsumer_offspring_hash.key?(primaree)
   end
 end

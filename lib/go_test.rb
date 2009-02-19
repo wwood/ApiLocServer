@@ -82,4 +82,26 @@ class GoTest < Test::Unit::TestCase
     tester = @go.subsume_tester('GO:0044435')
     assert tester.subsume?('GO:0044435')
   end
+
+  def test_subsume_tester_no_check_synonym
+    # test normal truth
+    tester = @go.subsume_tester('GO:0003824')
+    assert_equal true, tester.subsume?('GO:0050333', false)
+    assert_equal true, tester.subsume?('GO:0050333', true)
+
+    # test subsumee is synonym
+    tester = @go.subsume_tester('GO:0003824')
+    assert_equal false, tester.subsume?('GO:0048253', false)
+    assert_equal true, tester.subsume?('GO:0048253', true)
+
+    # test equal terms
+    tester = @go.subsume_tester('GO:0050333')
+    assert_equal true, tester.subsume?('GO:0050333', false)
+    assert_equal true, tester.subsume?('GO:0050333', true)
+
+    # test equal that is synonym
+    tester = @go.subsume_tester('GO:0050333')
+    assert_equal false, tester.subsume?('GO:0048253', false)
+    assert_equal true, tester.subsume?('GO:0048253', true)
+  end
 end

@@ -715,13 +715,13 @@ class CodingRegion < ActiveRecord::Base
   # to the static variables
   # if safe is true, then don't pass on RExceptions that are raised when
   # the go_identifier is not in the database, just ignore that entry
-  def is_enzyme?(safe=false)
+  def is_enzyme?(safe=false, check_for_synonym=true)
     @@go_object ||= Bio::Go.new
     @@go_enzyme_subsumer ||= @@go_object.subsume_tester(GoTerm::ENZYME_GO_TERM)
     
     go_terms.all.reach.go_identifier.select{|go_id|
       begin
-        @@go_enzyme_subsumer.subsume?(go_id)
+        @@go_enzyme_subsumer.subsume?(go_id, check_for_synonym)
       rescue RException => e
         raise e unless safe
         false
@@ -735,13 +735,33 @@ class CodingRegion < ActiveRecord::Base
   # to the static variables
   # if safe is true, then don't pass on RExceptions that are raised when
   # the go_identifier is not in the database, just ignore that entry
-  def is_gpcr?(safe=false)
+  def is_gpcr?(safe=false, check_for_synonym=true)
     @@go_object ||= Bio::Go.new
     @@go_gpcr_subsumer ||= @@go_object.subsume_tester(GoTerm::GPCR_GO_TERM)
     
     go_terms.all.reach.go_identifier.select{|go_id|
       begin
-        @@go_gpcr_subsumer.subsume?(go_id)
+        @@go_gpcr_subsumer.subsume?(go_id, check_for_synonym)
+      rescue RException => e
+        raise e unless safe
+        false
+      end
+    }.length > 0
+  end
+
+  # determine whether this coding region is classified as gpcr
+  # according to the associated GO terms.
+  # WARNING: This method is not thread-safe due
+  # to the static variables
+  # if safe is true, then don't pass on RExceptions that are raised when
+  # the go_identifier is not in the database, just ignore that entry
+  def is_transporter?(safe=false, check_for_synonym=true)
+    @@go_object ||= Bio::Go.new
+    @@go_transporter_subsumer ||= @@go_object.subsume_tester(GoTerm::TRANSPORTER_GO_TERM)
+
+    go_terms.all.reach.go_identifier.select{|go_id|
+      begin
+        @@go_transporter_subsumer.subsume?(go_id, check_for_synonym)
       rescue RException => e
         raise e unless safe
         false

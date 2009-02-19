@@ -59,9 +59,9 @@ class Mscript
           CodingRegionPhenotypeInformation.find_or_create_by_coding_region_id_and_phenotype_information_id(
             code.id, pheno.id
           )
-#          if !pheno.coding_region_ids.include?(code.id)
-#            pheno.coding_regions << code
-#          end
+          #          if !pheno.coding_region_ids.include?(code.id)
+          #            pheno.coding_regions << code
+          #          end
 
         end
       end
@@ -185,7 +185,7 @@ class Mscript
 
   end
   
-   def link_mouse_genes_and_coding_regions_genes_not_in_groups
+  def link_mouse_genes_and_coding_regions_genes_not_in_groups
   
     raise Exception, "Deprecated - use OrthomclGene.link_orthomcl_and_coding_regions instead"
     interesting_orgs = ['mmu']
@@ -440,19 +440,46 @@ class Mscript
     return lethal_groups
   end
 
-  def yeast_enzyme_gpcr_lethal
-    CodingRegion.s(Species::YEAST_NAME).all.each do |code|
-      puts [
-        code.string_id,
-        code.is_enzyme?(true),
-        code.is_gpcr?(true),
-        code.lethal?
-      ].join("\t")
+  def enzyme_gpcr_lethal
+    [Species::YEAST_NAME, Species::ELEGANS_NAME].each do |name|
+      gpcr_count = 0
+      enzyme_count = 0
+      gpcr_and_lethal = 0
+      enzyme_and_lethal = 0
+      lethal_count = 0
+      lethal_total_count = 0
+      CodingRegion.s(name).all.each do |code|
+        enzyme = code.is_enzyme?(true, false)
+        gpcr = code.is_gpcr?(true, false)
+        lethal = code.lethal?
+
+        lethal_count += 1 if lethal
+        lethal_total_count += 1 unless lethal.nil?
+
+        if enzyme
+          enzyme_count += 1
+          if lethal
+            enzyme_and_lethal += 1
+          end
+        end
+
+        if gpcr
+          gpcr_count += 1
+          if lethal
+            gpcr_and_lethal += 1
+          end
+        end
+      end
+      
+      puts name
+      puts "random: #{lethal_count} out of #{lethal_total_count}, probability #{lethal_count.to_f/lethal_total_count.to_f}"
+      puts "enzyme #{enzyme_count}, enzyme+lethal #{enzyme_and_lethal}, probability #{enzyme_and_lethal.to_f/enzyme_count.to_f}"
+      puts "gpcr #{gpcr_count}, gpcr+lethal #{gpcr_and_lethal}, probability #{gpcr_and_lethal.to_f/gpcr_count.to_f}"
     end
   end
   
   def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
-    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups") 
+    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Celegans_database_analysis/Checking_the_approx_500genes_in_ortho_not_in_db/genes_in_orthomcl_not_in_dbresults.with_species_code")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Method_used_seqclean_repeatmasker_WITHOUT_CAP3/Database_Queries/22_cel_gene.ids_with_species_code")
     # def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
@@ -470,8 +497,8 @@ class Mscript
       #"is gpcr",
       "wormnet_core_no._interactions",
       "wormnet_core_total_score",
-      "wormnet_full_no._interactions", 
-      "wormnet_full_total_score",     
+      "wormnet_full_no._interactions",
+      "wormnet_full_total_score",
       #"has mammalian orthologue",
       #"no. of elegans genes in group"
     ].join("\t")
@@ -492,15 +519,15 @@ class Mscript
           code.wormnet_core_number_interactions,
           code.wormnet_core_total_linkage_scores,
           code.wormnet_full_number_interactions,
-          code.wormnet_full_total_linkage_scores,        
-          #for genes not in orthomcl groups need to comment out the next couple of lines  
+          code.wormnet_full_total_linkage_scores,
+          #for genes not in orthomcl groups need to comment out the next couple of lines
           #code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
           #true : false,
           #code.single_orthomcl.orthomcl_group.orthomcl_genes.codes('cel').count
         ].join("\t")
       rescue OrthomclGene::UnexpectedCodingRegionCount
         badness_count1 += 1
-      rescue RException 
+      rescue RException
         badness_count2 += 1
           
       end
@@ -515,14 +542,14 @@ class Mscript
   def print_all_elegans_string_ids
     # script to output all elegans string_ids for coding regions (i.e protein name)
     CodingRegion.s('elegans').all.each do |o|
-      puts o.string_id      
+      puts o.string_id
     end
   end
 
  
  
   def wormnet_upload_check
-    #method ben used to upload wormnet, using it now to find the wormnet genes not in our database   
+    #method ben used to upload wormnet, using it now to find the wormnet genes not in our database
     net = Network.find_or_create_by_name(
       Network::WORMNET_NAME
     )
@@ -558,7 +585,7 @@ class Mscript
       #row[11]
       #)
     end
-  end      
+  end
   
       
   def upload_wormnet_matching_ids

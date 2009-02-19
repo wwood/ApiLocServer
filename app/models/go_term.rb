@@ -11,6 +11,7 @@ class GoTerm < ActiveRecord::Base
 
   ENZYME_GO_TERM = 'GO:0003824'
   GPCR_GO_TERM = 'GO:0004930'
+  TRANSPORTER_GO_TERM = 'GO:0006810'
   
   ASPECTS = [
     'molecular_function',

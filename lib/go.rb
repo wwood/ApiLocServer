@@ -141,8 +141,10 @@ module Bio
         @subsumer_offspring = @go.go_offspring(@master_go_id)
       end
     
-      def subsume?(subsumer_go_id)
-        primaree = @go.primary_go_id(subsumer_go_id)
+      def subsume?(subsumer_go_id, check_for_synonym=true)
+        primaree = check_for_synonym ?
+          @go.primary_go_id(subsumer_go_id) :
+          subsumer_go_id
         return true if @master_go_id == primaree
         @subsumer_offspring.include?(primaree)
       end
