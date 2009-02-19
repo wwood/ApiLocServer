@@ -77,7 +77,7 @@ class Script < ActiveRecord::Base
     GoTerm.destroy_all
     
 
-    sg = SimpleGo.new("#{DATA_DIR}/GO/20080321/gene_ontology_edit.obo")
+    sg = SimpleGo.new("#{DATA_DIR}/GO/cvs/go/ontology/gene_ontology_edit.obo")
     while (e = sg.next_go)
       go = GoTerm.find_or_create_by_go_identifier_and_term_and_aspect(
         e.go_id,
@@ -7399,5 +7399,72 @@ PFL2395c
     end
 
     puts "finished."
+  end
+
+  def yeast_gene_ontology_to_database(filename = "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.sgd")
+    require 'gene_association'
+    goods = 0
+    bads = 0
+    Bio::GeneAssociation.new(File.open(filename).read).entries.each do |entry|
+      name = entry.gene_name.gsub(' gene','')
+      code = CodingRegion.fs(
+        name,
+        Species::YEAST_NAME
+      )
+      unless code
+        entry.alternate_gene_ids.each do |id|
+          code = CodingRegion.fs(
+            id,
+            Species::YEAST_NAME
+          )
+        end
+        unless code
+          puts "Couldn't find coding region #{name}"
+          bads += 1
+          next
+        end
+      end
+
+      go_term = GoTerm.find_by_go_identifier_and_aspect(
+        entry.go_identifier,
+        entry.aspect
+      )
+      unless go_term
+        puts "Couldn't find GO term #{entry.go_identifier}"
+        bads += 1
+        next
+      end
+
+      raise unless CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
+        code.id, go_term.id, entry.evidence_code
+      )
+      goods += 1
+    end
+
+    puts "Uploaded #{goods}, failed to upload #{bads}."
+  end
+
+  # Attempting to improve the speed of the subsumer by using Hash#key? instead
+  # of Array#include? - it didn't work very well. Meh.
+  def test_subsume_speed
+    code = CodingRegion.first(:joins => :go_terms)
+
+    id = code.go_terms.first.go_identifier
+
+    @go = Bio::Go.new
+    @master_go_id = @go.primary_go_id(id)
+    @subsumer_offspring = @go.go_offspring(@master_go_id)
+    @subsumer_offspring_hash = @go.go_offspring(@master_go_id).to_hash
+
+    200.times do
+      subsume?(id)
+    end
+  end
+
+  def subsume?(subsumer_go_id)
+    primaree = @go.primary_go_id(subsumer_go_id)
+    return true if @master_go_id == primaree
+#    @subsumer_offspring_hash.key?.include?(primaree)
+    @subsumer_offspring_hash.key?(primaree)
   end
 end

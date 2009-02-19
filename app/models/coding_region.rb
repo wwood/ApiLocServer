@@ -8,8 +8,7 @@ class CodingRegion < ActiveRecord::Base
   #  validates_presence_of :orientation
   
   has_many :coding_region_go_terms, :dependent => :destroy
-  has_many :go_terms, 
-    {:through => :coding_region_go_terms}
+  has_many :go_terms, :through => :coding_region_go_terms
   belongs_to :gene
   has_many :cds, :dependent => :destroy
   has_many :coding_region_alternate_string_ids, :dependent => :destroy
@@ -714,12 +713,19 @@ class CodingRegion < ActiveRecord::Base
   # according to the associated GO terms.
   # WARNING: This method is not thread-safe due
   # to the static variables
-  def is_enzyme?
+  # if safe is true, then don't pass on RExceptions that are raised when
+  # the go_identifier is not in the database, just ignore that entry
+  def is_enzyme?(safe=false)
     @@go_object ||= Bio::Go.new
     @@go_enzyme_subsumer ||= @@go_object.subsume_tester(GoTerm::ENZYME_GO_TERM)
     
-    go_terms.all.reach.go_identifier.select{|go_id| 
-      @@go_enzyme_subsumer.subsume?(go_id)
+    go_terms.all.reach.go_identifier.select{|go_id|
+      begin
+        @@go_enzyme_subsumer.subsume?(go_id)
+      rescue RException => e
+        raise e unless safe
+        false
+      end
     }.length > 0
   end
   
@@ -727,12 +733,19 @@ class CodingRegion < ActiveRecord::Base
   # according to the associated GO terms.
   # WARNING: This method is not thread-safe due
   # to the static variables
-  def is_gpcr?
+  # if safe is true, then don't pass on RExceptions that are raised when
+  # the go_identifier is not in the database, just ignore that entry
+  def is_gpcr?(safe=false)
     @@go_object ||= Bio::Go.new
     @@go_gpcr_subsumer ||= @@go_object.subsume_tester(GoTerm::GPCR_GO_TERM)
     
     go_terms.all.reach.go_identifier.select{|go_id|
-      @@go_gpcr_subsumer.subsume?(go_id)
+      begin
+        @@go_gpcr_subsumer.subsume?(go_id)
+      rescue RException => e
+        raise e unless safe
+        false
+      end
     }.length > 0
   end
   

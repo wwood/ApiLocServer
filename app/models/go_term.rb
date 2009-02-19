@@ -12,6 +12,16 @@ class GoTerm < ActiveRecord::Base
   ENZYME_GO_TERM = 'GO:0003824'
   GPCR_GO_TERM = 'GO:0004930'
   
+  ASPECTS = [
+    'molecular_function',
+    'cellular_component',
+    'biological_process'
+  ]
+  
+  validates_each :aspect do |record, attr, value|
+    record.errors.add attr, 'invalid aspect string' unless ASPECTS.include?(value)
+  end
+  
   
   # Find a GO term by searching the go_term, or failing that
   # using the alternate as a proxy and returning the go_term that corresponds

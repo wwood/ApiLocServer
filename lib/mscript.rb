@@ -439,6 +439,17 @@ class Mscript
 
     return lethal_groups
   end
+
+  def yeast_enzyme_gpcr_lethal
+    CodingRegion.s(Species::YEAST_NAME).all.each do |code|
+      puts [
+        code.string_id,
+        code.is_enzyme?(true),
+        code.is_gpcr?(true),
+        code.lethal?
+      ].join("\t")
+    end
+  end
   
   def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups") 

@@ -93,6 +93,18 @@ class CodingRegionTest < ActiveSupport::TestCase
   def test_is_enzyme?
     assert CodingRegion.find(2).is_enzyme?
     assert_equal false, CodingRegion.find(1).is_enzyme?
+
+    # test no annotations
+    code = CodingRegion.create!(:string_id => 'dummya', :gene_id => CodingRegion.find(1).gene_id)
+
+    # test 1 annotation that is non-existant
+    assert_equal false, code.is_enzyme?(true)
+    go = GoTerm.create!(:term => 'you wish', :go_identifier => 'goid_nadda', :aspect => GoTerm::ASPECTS[0])
+    CodingRegionGoTerm.create(:coding_region_id => code.id, :go_term_id => go.id, :evidence_code => 'IEA')
+    assert_equal false, code.is_enzyme?(true)
+    assert_raise RException do
+      code.is_enzyme?(false)
+    end
   end
 
   def test_is_gpcr?
@@ -104,6 +116,19 @@ class CodingRegionTest < ActiveSupport::TestCase
 
     # false
     assert_equal false, CodingRegion.find(2).is_gpcr?
+
+
+    # test no annotations
+    code = CodingRegion.create!(:string_id => 'dummya', :gene_id => CodingRegion.find(1).gene_id)
+
+    # test 1 annotation that is non-existant
+    assert_equal false, code.is_gpcr?(true)
+    go = GoTerm.create!(:term => 'you wish', :go_identifier => 'goid_nadda', :aspect => GoTerm::ASPECTS[0])
+    CodingRegionGoTerm.create(:coding_region_id => code.id, :go_term_id => go.id, :evidence_code => 'IEA')
+    assert_equal false, code.is_gpcr?(true)
+    assert_raise RException do
+      code.is_gpcr?(false)
+    end
   end
 
   def test_enzyme_then_gpcr_bug

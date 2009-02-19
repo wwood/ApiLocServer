@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090217232336) do
+ActiveRecord::Schema.define(:version => 20090219023354) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -95,9 +95,11 @@ ActiveRecord::Schema.define(:version => 20090217232336) do
   create_table "coding_region_go_terms", :force => true do |t|
     t.integer "coding_region_id"
     t.integer "go_term_id"
+    t.string  "evidence_code"
   end
 
-  add_index "coding_region_go_terms", ["coding_region_id", "go_term_id"], :name => "index_coding_region_go_terms_on_coding_region_id_and_go_term_id", :unique => true
+  add_index "coding_region_go_terms", ["coding_region_id", "evidence_code", "go_term_id"], :name => "index_coding_region_go_terms_on_coding_region_id_and_go_term_id", :unique => true
+  add_index "coding_region_go_terms", ["coding_region_id", "go_term_id"], :name => "code_go"
 
   create_table "coding_region_localisations", :force => true do |t|
     t.integer  "coding_region_id",       :null => false
