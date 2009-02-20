@@ -35,10 +35,10 @@ class SpreadsheetGenerator
       #    ).each do |code|
       next unless code.uniq_top?
       
-#      @headings.push 'PlasmoDB ID' if @first
+      #      @headings.push 'PlasmoDB ID' if @first
       #      'Annotation',
       @current_row = [
-#        code.string_id,
+        #        code.string_id,
         #        code.annotation.annotation
       ]
       check_headings
@@ -222,7 +222,22 @@ class SpreadsheetGenerator
       @current_row.push code.positive_orientation? ? '+' : '-'
       check_headings
 
+      # predicted = code.send(predictor)
+      #          if predicted.transmembrane_type_1? or predicted.transmembrane_type_2?
+      @headings.push 'Number of transmembrane domains' if @first
+      @headings.push 'Type 1 transmembrane domain?' if @first
+      # pretty stupid really
+      tmhmm = code.tmhmm
+      @current_row.push [
+        tmhmm.transmembrane_domains.length,
+        tmhmm.transmembrane_type_1?
+      ]
+      check_headings
 
+      @headings.push 'Random number as noise cutoff' if @first
+      # pretty stupid really
+      @current_row.push rand
+      check_headings
       
       # Microarray DeRisi
       if @first
@@ -300,16 +315,12 @@ class SpreadsheetGenerator
       @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
       check_headings
       
-      @first = false if @first
-      
-      # Check to make sure that all the rows have the same number of entries as a debug thing
-      @headings.flatten!
-      if @current_row.length != @headings.length
-        
-      end
       all_data.push(@current_row)
       #      break
       #      puts results.join(sep)
+      
+      break unless @first
+      @first = false if @first
     end
     
     rarff_relation = Rarff::Relation.new('PfalciparumLocalisation')
@@ -328,6 +339,7 @@ class SpreadsheetGenerator
   def check_headings
     if @first
       @headings.flatten!
+      @current_row.flatten!
       unless @current_row.length == @headings.length
         raise Exception, "Bad number of entries in the row for code #{@current_row[0].inspect}: headings #{@headings.length} results #{@current_row.length}"
       end

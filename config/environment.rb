@@ -62,7 +62,7 @@ Rails::Initializer.run do |config|
   # Commented out so I can it on reefedge
   #config.gem "wwood-rsruby", :source => "http://gems.github.com", :lib => 'rsruby' 
   config.gem "fastercsv"
-  config.gem 'wwood-rarff', :source => "http://gems.github.com", :lib => 'rarff', :version => '0.2.3'
+#  config.gem 'wwood-rarff', :source => "http://gems.github.com", :lib => 'rarff', :version => '0.2.3'
 #  config.gem 'wwood-bioruby', :source => "http://gems.github.com", :lib => 'bio'
   config.gem 'schleyfox-peach', :source => "http://gems.github.com", :lib => 'peach'
 end
