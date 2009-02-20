@@ -131,6 +131,39 @@ class ApiDbVivaxFasta5p5 < FastaParser
   end
 end
 
+# Looks like EuPathDB databases have settled on something like
+# >gb|TGME49_000380 | organism=Toxoplasma_gondii_ME49 | product=myb-like DNA binding domain-containing protein | location=TGME49_chrVIII:6835359-6840923(-) | length=1528
+# where the species name differs but the rest is mostly constant
+class EuPathDb2009 < FastaParser
+  attr_accessor :species_name
+  
+  # The species name is what should show up in the 2nd bracket, so something
+  # like 'Toxoplasma_gondii_ME49' for
+  # >gb|TGME49_000380 | organism=Toxoplasma_gondii_ME49 | product=myb-like DNA binding domain-containing protein | location=TGME49_chrVIII:6835359-6840923(-) | length=1528
+  # for instance
+  def initialize(species_name)
+    @species_name = species_name
+  end
+  
+  def parse_name(definition)
+    s = FastaAnnotation.new
+
+    matches = definition.match(/^gb\|(.*?) \| organism=#{@species_name} \| product=(.*?) \| location=(.*) \| length=\d+$/)
+    if !matches
+      raise Exception, "Definition line has unexpected format: #{definition}"
+    end
+
+    matches2 = matches[3].match(/^(.+?)\:/)
+    if !matches2
+      raise Exception, "Definition line has unexpected scaffold format: #{matches[4]}"
+    end
+    s.scaffold = matches2[1]
+    s.name = matches[1]
+    s.annotation = matches[2]
+    return s
+  end
+end
+
 class CryptoDbFasta4p0 < FastaParser
   def parse_name(definition)
     s = FastaAnnotation.new

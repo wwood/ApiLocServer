@@ -226,11 +226,13 @@ class Script < ActiveRecord::Base
   end
   
   def gondii_to_database
-    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
+#    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
+    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49_ToxoDB-5.0.gff"
   end
   
   def gondii_fasta_to_database
-    fa = ToxoDbFasta4p3.new.load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta")
+#    fa = ToxoDbFasta4p3.new.load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta")
+    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49AnnotatedProteins_ToxoDB-5.0.fasta")
     sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
     upload_fasta_general!(fa, sp)
   end

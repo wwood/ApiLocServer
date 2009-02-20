@@ -31,7 +31,7 @@ class CodingRegionGoTerm < ActiveRecord::Base
   )
   
   validates_each :evidence_code do |record, attr, value|
-    record.errors.add attr, 'invalid evidence code' unless EVIDENCE_CODES.include?(value)
+    record.errors.add attr, 'invalid evidence code' unless value.nil? or EVIDENCE_CODES.include?(value)
   end
   
   belongs_to :coding_region
