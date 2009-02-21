@@ -226,12 +226,12 @@ class Script < ActiveRecord::Base
   end
   
   def gondii_to_database
-#    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
+    #    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
     apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49_ToxoDB-5.0.gff"
   end
   
   def gondii_fasta_to_database
-#    fa = ToxoDbFasta4p3.new.load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta")
+    #    fa = ToxoDbFasta4p3.new.load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta")
     fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49AnnotatedProteins_ToxoDB-5.0.fasta")
     sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
     upload_fasta_general!(fa, sp)
@@ -7483,5 +7483,38 @@ PFL2395c
     return true if @master_go_id == primaree
     #    @subsumer_offspring_hash.key?.include?(primaree)
     @subsumer_offspring_hash.key?(primaree)
+  end
+  
+  # For each GO term, work out how many genes associated with that go term
+  # are lethal vs all genes with that go term. The idea is to find go terms that
+  # are more lethal than others.
+  def go_terms_predict_lethality
+    
+    [Species::YEAST_NAME, Species::ELEGANS_NAME].each do |name|
+      GoTerm.find_all_by_aspect('cellular_component').each do |go_term|
+        go_identifier = go_term.go_identifier
+        
+        lethal_total = 0
+        all_total = 0
+        
+        # What does each coding region tell us?
+        CodingRegion.s(name).all(:include => :go_terms).each do |code|
+          classified = code.go_term?(go_identifier, true, false)
+          next unless classified
+          
+          all_total += 1
+          if code.lethal?
+            lethal_total += 1
+          end
+        end
+      
+        puts [
+          name,
+          go_identifier,
+          lethal_total,
+          all_total
+        ].join(",")
+      end
+    end
   end
 end

@@ -122,8 +122,8 @@ module Bio
       return go_offspring(primarer).include?(primaree)
     end
     
-    def subsume_tester(subsumer_go_id)
-      Go::SubsumeTester.new(self, subsumer_go_id)
+    def subsume_tester(subsumer_go_id, check_for_synonym=true)
+      Go::SubsumeTester.new(self, subsumer_go_id, check_for_synonym)
     end
   
     # Return 'MF', 'CC' or 'BP' corresponding to the
@@ -134,11 +134,16 @@ module Bio
     class SubsumeTester
       attr_reader :subsumer_offspring, :master_go_id
     
-      def initialize(go_object, subsumer_go_id)
+      def initialize(go_object, subsumer_go_id, check_for_synonym=true)
         @go = go_object
       
-        @master_go_id = @go.primary_go_id(subsumer_go_id)
+        if check_for_synonym
+          @master_go_id = @go.primary_go_id(subsumer_go_id)
+        else
+          @master_go_id = subsumer_go_id
+        end
         @subsumer_offspring = @go.go_offspring(@master_go_id)
+        @subsumer_offspring_hash = [@subsumer_offspring].flatten.to_hash
       end
     
       def subsume?(subsumer_go_id, check_for_synonym=true)
@@ -146,7 +151,7 @@ module Bio
           @go.primary_go_id(subsumer_go_id) :
           subsumer_go_id
         return true if @master_go_id == primaree
-        @subsumer_offspring.include?(primaree)
+        @subsumer_offspring_hash.has_key?(primaree)
       end
     end
   end

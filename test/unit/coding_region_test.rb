@@ -130,6 +130,17 @@ class CodingRegionTest < ActiveSupport::TestCase
       code.is_gpcr?(false)
     end
   end
+  
+  def test_go_term?
+    # plain gpcr
+    assert CodingRegion.find(3).go_term?(GoTerm::GPCR_GO_TERM)
+
+    # gpcr offspring
+    assert CodingRegion.find(4).go_term?(GoTerm::GPCR_GO_TERM)
+
+    # false
+    assert_equal false, CodingRegion.find(2).go_term?(GoTerm::GPCR_GO_TERM)
+  end
 
   def test_enzyme_then_gpcr_bug
     assert CodingRegion.find(3).is_gpcr?
