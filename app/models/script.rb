@@ -7489,16 +7489,17 @@ PFL2395c
   # are lethal vs all genes with that go term. The idea is to find go terms that
   # are more lethal than others.
   def go_terms_predict_lethality
+    go_terms = GoTerm.find_all_by_aspect('cellular_component', :limit => 2)
+    go_identifiers = go_terms.reach.go_identifier.retract
     
     [Species::YEAST_NAME, Species::ELEGANS_NAME].each do |name|
-      GoTerm.find_all_by_aspect('cellular_component').each do |go_term|
-        go_identifier = go_term.go_identifier
-        
+      coding_regions = CodingRegion.s(name).all(:include => :go_terms)
+      go_identifiers.each do |go_identifier|
         lethal_total = 0
         all_total = 0
         
         # What does each coding region tell us?
-        CodingRegion.s(name).all(:include => :go_terms).each do |code|
+        coding_regions.each do |code|
           classified = code.go_term?(go_identifier, true, false)
           next unless classified
           

@@ -728,7 +728,13 @@ class CodingRegion < ActiveRecord::Base
     @@go_subsumers ||= {}
     @@go_subsumers[go_identifier] ||= @@go_object.subsume_tester(go_identifier, check_for_synonym)
     
-    subsume_tester = @@go_subsumers[go_identifier]
+    subsume_tester = nil
+    begin
+      subsume_tester = @@go_subsumers[go_identifier]
+    rescue RException => e
+      raise e unless safe
+      return false
+    end
     
     go_terms.all.reach.go_identifier.each do |go_id|
       begin
