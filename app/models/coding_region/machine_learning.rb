@@ -108,4 +108,16 @@ class CodingRegion < ActiveRecord::Base
       return cds.first(:order => 'start desc').length % 3
     end
   end
+  
+  def start_of_transcription
+    if positive_orientation?
+      return cds.first(:order => 'start').start
+    else
+      return cds.first(:order => 'start desc').stop
+    end
+  end
+  
+  def jiangs
+    gene.scaffold.jiang_bin_sfp_counts(start_of_transcription)
+  end
 end

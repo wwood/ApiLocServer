@@ -1224,7 +1224,11 @@ class WScript
         
         raise Exception, "Violated assumption" if ogeez.length != 1
         ogeez.each do |orthomcl_gene|
-          lethal = true if orthomcl_gene.single_code.lethal?
+          begin
+            lethal = true if orthomcl_gene.single_code.lethal?
+          rescue OrthomclGene::UnexpectedCodingRegionCount => e
+            # ignore
+          end
         end
         !lethal
       }

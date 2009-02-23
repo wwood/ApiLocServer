@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090223024035) do
+ActiveRecord::Schema.define(:version => 20090223043217) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -441,6 +441,7 @@ ActiveRecord::Schema.define(:version => 20090223024035) do
   end
 
   add_index "microarray_measurements", ["coding_region_id", "measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_co"
+  add_index "microarray_measurements", ["coding_region_id", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_coding_region_id_and_microarra"
   add_index "microarray_measurements", ["coding_region_id"], :name => "index_microarray_measurements_on_coding_region_id"
   add_index "microarray_measurements", ["measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_me"
   add_index "microarray_measurements", ["microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id"

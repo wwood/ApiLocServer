@@ -7,6 +7,17 @@ class SpreadsheetGenerator
   require 'microarray_timepoint' #include the constants for less typing
   include MicroarrayTimepointNames
   
+  def prepare
+    s = Script.new
+    OrthomclGene.new.link_orthomcl_and_coding_regions(['pfa'])
+    s.seven_species_orthomcl_upload
+    s.upload_snp_data_jeffares
+    s.upload_neafsey_2008_snp_data
+    s.upload_mu_et_al_snps
+    s.upload_jiang_chromosomal_features
+    s.derisi_microarray_to_database2
+  end
+  
   def arff
     # headings
     @headings = []
@@ -308,18 +319,24 @@ class SpreadsheetGenerator
       #        headings.push node.name if first
       #        results.push node.normalised_value
       #      end
-
+      
+      @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "Jiang et al #{s} 10kb SFP Count"} if @first
+      @current_row.push code.jiangs
+      check_headings
+      
+      @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "log of Jiang et al #{s} 10kb SFP Count"} if @first
+      @current_row.push code.jiangs.collect{|j| j == 0.0 ? -1 : Math.log(j)}
+      check_headings
+      
       # Localisation is last because WEKA's default is to predict the
       # last attribute
       @headings.push 'Localisation' if @first
       @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
       check_headings
       
-      all_data.push(@current_row)
-      #      break
-      #      puts results.join(sep)
+      all_data.push(@current_row.flatten)
       
-      break unless @first
+      #      break unless @first
       @first = false if @first
     end
     
