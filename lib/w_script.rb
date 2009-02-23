@@ -407,9 +407,9 @@ class WScript
     
     overlaps = [
       [['cel'],['cel']],
-      #[['mmu'],['mmu']],
-      #[['dme'],['dme']],
-      #[['sce'],['sce']]   
+      [['mmu'],['mmu']],
+      [['dme'],['dme']],
+      [['sce'],['sce']]   
     ]
     overlaps.each do |arrays|
       nopara = Array.new
@@ -432,6 +432,40 @@ class WScript
     end    
   end
     
+  def lethal_no_paralogues_excluding_mammalian
+    
+    overlaps = [
+      [['cel'],['cel']],
+      # [['mmu'],['mmu']],
+      #[['dme'],['dme']],
+      #[['sce'],['sce']]   
+    ]
+    overlaps.each do |arrays|
+      nopara = Array.new
+      p arrays
+      groups = OrthomclGroup.all_overlapping_groups(arrays[0])
+      puts "Found #{groups.length} orthomcl groups with at least one #{arrays[0]} gene in them"
+      groups.each do |g|
+        #get all genes without paralogues
+        if g.orthomcl_genes.code(arrays[1]).official.count ==1
+          nopara << g
+        end
+      end
+      
+      #find groups without mammalian orthologues
+      nopara.reject! do |g|
+        g.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0
+      end
+      
+      #count the lethal ones
+      lethal_count = compute_lethal_count(nopara, arrays[1])
+      puts "LethalCount of genes with an orthomcl group: #{lethal_count}"
+      OrthomclGene.code(arrays[1]).no_group.all.each do |orthomcl_gene|
+        add_orthomcl_gene_to_lethal_count(orthomcl_gene, lethal_count)
+      end
+      puts "LethalCount of genes with and without an orthomcl group: #{lethal_count}"
+    end    
+  end
  
   
   def lethal_no_paralogues_multiple_spp
@@ -1187,7 +1221,7 @@ class WScript
   end
   
 
-  def comparisons_of_presence_and_essenitality_of_orthologues_for_model_organisms
+  def comparisons_of_presence_and_essentiality_of_orthologues_for_model_organisms
    
     overlaps = [  
       [['cel','dme'],['dme'],['cel']],       
