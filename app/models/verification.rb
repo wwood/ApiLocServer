@@ -96,8 +96,9 @@ class Verification < ActiveRecord::Base
     # ben@ben:~/phd/data/falciparum/genome/plasmodb/5.4$ grep '>' PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta |wc -l
     # 5460
     count = CodingRegion.species_name(Species.falciparum_name).count
+    expected = 5532
     if count  != 5532
-      p "Unexpected number of falciparum genes found uploaded: #{count}"
+      p "Unexpected number of falciparum genes found uploaded: #{count}, expected #{expected}"
     end
     
     # a troublesome one
@@ -106,6 +107,17 @@ class Verification < ActiveRecord::Base
     
     raise if CodingRegion.ff('PF14_0043').amino_acid_sequence.sequence != 'MEENLMKLGTLMLLGFGEAGAKIISKNINEQERVNLLINGEIVYSVFSFCDIRNFTEITEVLKEKIMIFINLIAEIIHECCDFYGGTINKNIGDAFLLVWKYQKKEYSNKKMNMFKSPNNNYDEYSEKENINRICDLAFLSTVQTLIKLRKSEKIHIFLNNENMDELIKNNILELSFGLHFGWAIEGAIGSSYKIDLSYLSENVNIASRLQDISKIYKNNIVISGDFYDNMSEKFKVFDDIKKKAERKKRKKEVLNLSYNLYEEYAKNDDIKFIKIHYPKDYLEQFKIALESYLIGKWNESKNILEYLKRNNIFEDEILNQLWNFLSMNNFIAPSDWCGYRKFLQKS'
     raise if CodingRegion.ff('MAL13P1.385').amino_acid_sequence.sequence != 'MKIGDVLHDYKLYDNTKKKSSEMVINENDNKERLLEEFEIRSKVRKVCLGIPTQDIDVKNILRLLKEPICLFGEDSYDKRKRLKNILITKYDRLIIKKKIEEEDDVEEFKNILKRYYIDFSDLYPSGLSEANKINEVHDKHKLKDVHDTKEEQNVHMKTVREEDKDILKEKCYTEGTKDLKKSRIEITIKTLPRIFLYKEMINKFQNGYSKKEYENYITSFNEHIKKESDLYVSQLGDDRPLTMGKFSPDNSVFAISSFNSYINIFNYRNDDYNLIKTLKNGHEEKINCIEWNYPNNYSYYSTMNYKDLSKHDLLLASCSSDKSFCIWKPFYDEYDDTNDNINDNINEYINENINENINENINENINDNISDNTSDTISDNINDNINDNISDSISDNISDNKNNNSHKVDKYNSNKNKLSAQNKNYLLCKVNAHDDRINKICFHPLNKYVLTCSDDETIKMFDIETQQELFYQEGHNTTVYSIAFNPYGNLYISGDSKGGLMLWDIRTGKNVEQIKMAHNNSIMNINFNPFLANMFCTCSTDNTIKIFDLRKFQISCNILAHNKIVTDALFEPTYGRYIVSSSFDTFIKIWDSVNFYCTKILCNNNNKVRNVDIAPDGSFISSTSFDRTWKLYKNKEYTQDNILSHFM'
+
+    # From the GFF file, and confirmed by looking at the genome browser
+    # apidb|MAL12	ApiDB	supercontig	1	2271478
+    # apidb|MAL13	ApiDB	supercontig	1	2895605
+    falciparum = Species.find_by_name(Species::FALCIPARUM_NAME)
+    {'apidb|MAL12' => 2271478, 'apidb|MAL13' => 2895605}.each do |scaffold, expected_length|
+      l = Scaffold.find_by_name_and_species_id(scaffold, falciparum.id).length
+      unless l == expected_length
+        $stderr.puts "Scaffold length - found #{l}, expected #{expected_length}"
+      end
+    end
   end
   
   def gene_lists
@@ -616,7 +628,25 @@ class Verification < ActiveRecord::Base
     raise if ItSynonymousSnp.count != ItNonSynonymousSnp.count
     raise if PfClinSynonymousSnp.count != PfClinNonSynonymousSnp.count
     raise if CodingRegion.ff('MAL13P1.107').pf_clin_non_synonymous_snp.value != 2.89
+    raise if CodingRegion.ff('MAL13P1.100').reichenowi_dnds.value != 0.19
+    raise if CodingRegion.ff('MAL13P1.100').reichenowi_non_synonymous_snp.value != 9.58
+    raise if CodingRegion.ff('MAL13P1.100').reichenowi_synonymous_snp.value != 8.83
+    
+    # 0.07	561	1.02	4.1
+    raise if CodingRegion.ff('MAL13P1.111').reichenowi_dnds.value != 0.07
+    raise if CodingRegion.ff('MAL13P1.111').reichenowi_non_synonymous_snp.value != 1.02
+    raise if CodingRegion.ff('MAL13P1.111').reichenowi_synonymous_snp.value != 4.1
+
+    #ben@ben:~/phd/gnr$ awk -F'      ' '{print $16,$15}' /home/ben/phd/data/falciparum/polymorphism/Jeffares2007/ng1931-S4.csv |grep . |grep -v REICH |grep -v 'NA NA' | grep -v '^ $' |wc -l
+    #3024
+    # There are no entries that have a reich value and a coding region that no longer exists, however there is
+    # genes that have 2 measurements for the same - ignoring those so I can keep the coding_region has_one reichenowi_dnds
+    # thing going
+    raise unless ReichenowiNonSynonymousSnp.count == 3024
+    raise unless ReichenowiSynonymousSnp.count == 3024
+    raise unless ReichenowiDnds.count == 3024
   end
+
   
   def nucleo
     raise if NucleoNls.count != NucleoNonNls.count
@@ -659,6 +689,18 @@ class Verification < ActiveRecord::Base
   def vivax
     raise if !CodingRegion.fs('Pv085115', Species.vivax_name)
     raise if !CodingRegion.fs('Pv085115', Species.vivax_name).amino_acid_sequence
+  end
+
+  def crypto
+    # ben@ben:~/phd/data/Cryptosporidium hominis/genome/cryptoDB/4.0$ grep '  CDS     ' c_hominis_tu502.gff |wc -l
+    # 3886
+    raise unless CodingRegion.s(Species::CYRYPTOSPORIDIUM_HOMINIS_NAME).count == 3886
+    # ben@ben:~/phd/data/Cryptosporidium hominis/genome/cryptoDB/4.0$ grep '>' /home/ben/phd/data/Cryptosporidium\ parvum/genome/cryptoDB/4.0/CparvumAnnotatedProteins_CryptoDB-4.0.fasta |wc -l
+    # 3805
+    raise unless CodingRegion.s(Species::CYRYPTOSPORIDIUM_PARVUM_NAME).count == 3805
+
+    raise unless AminoAcidSequence.count(:joins => {:coding_region => {:gene => {:scaffold => :species}}}, :conditions => ['species.name = ?', Species::CYRYPTOSPORIDIUM_HOMINIS_NAME]) == 3886
+    raise unless AminoAcidSequence.count(:joins => {:coding_region => {:gene => {:scaffold => :species}}}, :conditions => ['species.name = ?', Species::CYRYPTOSPORIDIUM_PARVUM_NAME]) == 3805
   end
   
   def winzeler_2003_microarray

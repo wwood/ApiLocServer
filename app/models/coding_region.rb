@@ -8,8 +8,7 @@ class CodingRegion < ActiveRecord::Base
   #  validates_presence_of :orientation
   
   has_many :coding_region_go_terms, :dependent => :destroy
-  has_many :go_terms, 
-    {:through => :coding_region_go_terms}
+  has_many :go_terms, :through => :coding_region_go_terms
   belongs_to :gene
   has_many :cds, :dependent => :destroy
   has_many :coding_region_alternate_string_ids, :dependent => :destroy
@@ -59,6 +58,9 @@ class CodingRegion < ActiveRecord::Base
   has_one :it_non_synonymous_snp
   has_one :pf_clin_synonymous_snp
   has_one :pf_clin_non_synonymous_snp
+  has_one :reichenowi_dnds
+  has_one :reichenowi_non_synonymous_snp
+  has_one :reichenowi_synonymous_snp
   has_one :neafsey_intronic_snp
   has_one :neafsey_synonymous_snp
   has_one :neafsey_non_synonymous_snp
@@ -68,6 +70,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :mu_non_synonymous_snp
   has_one :mu_pi
   has_one :mu_theta
+
 
   # Worm project
   # elegans
@@ -710,26 +713,41 @@ class CodingRegion < ActiveRecord::Base
   # according to the associated GO terms.
   # WARNING: This method is not thread-safe due
   # to the static variables
-  def is_enzyme?
-    @@go_object ||= Bio::Go.new
-    @@go_enzyme_subsumer ||= @@go_object.subsume_tester(GoTerm::ENZYME_GO_TERM)
-    
-    go_terms.all.reach.go_identifier.select{|go_id| 
-      @@go_enzyme_subsumer.subsume?(go_id)
-    }.length > 0
+  # if safe is true, then don't pass on RExceptions that are raised when
+  # the go_identifier is not in the database, just ignore that entry
+  def is_enzyme?(safe=false, check_for_synonym=true)
+    go_term?(GoTerm::ENZYME_GO_TERM, safe, check_for_synonym)
   end
   
-  # determine whether this coding region is classified as gpcr 
-  # according to the associated GO terms.
-  # WARNING: This method is not thread-safe due
-  # to the static variables
-  def is_gpcr?
+  def is_gpcr?(safe=false, check_for_synonym=true)
+    go_term?(GoTerm::GPCR_GO_TERM, safe, check_for_synonym)
+  end
+
+  def go_term?(go_identifier, safe=false, check_for_synonym=true)
     @@go_object ||= Bio::Go.new
-    @@go_gpcr_subsumer ||= @@go_object.subsume_tester(GoTerm::GPCR_GO_TERM)
+    @@go_subsumers ||= {}
+    @@go_subsumers[go_identifier] ||= @@go_object.subsume_tester(go_identifier, check_for_synonym)
     
-    go_terms.all.reach.go_identifier.select{|go_id|
-      @@go_gpcr_subsumer.subsume?(go_id)
-    }.length > 0
+    subsume_tester = nil
+    begin
+      subsume_tester = @@go_subsumers[go_identifier]
+    rescue RException => e
+      raise e unless safe
+      return false
+    end
+    
+    go_terms.all.reach.go_identifier.each do |go_id|
+      begin
+        if subsume_tester.subsume?(go_id, check_for_synonym)
+          return true
+        end
+      rescue RException => e
+        raise e unless safe
+        false
+      end
+    end
+    
+    return false
   end
   
   def aaseq

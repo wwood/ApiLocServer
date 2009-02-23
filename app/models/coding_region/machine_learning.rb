@@ -61,4 +61,51 @@ class CodingRegion < ActiveRecord::Base
     logger.debug "Finished running gMARS for #{string_id} (#{(t-Time.now)*1000.0}ms)"
     return to_return
   end
+
+  def length_from_chromosome_end_percent
+    l = length_from_chromosome_end
+    l.nil? ? nil : l.to_f / gene.scaffold.length.to_f
+  end
+
+  def length_from_chromosome_end
+    scaffold = gene.scaffold
+    return nil unless scaffold and scaffold.length
+
+    return nil if cds.empty?
+
+    # position from start is relative to the 1 position on the scaffold,
+    # but the positiion is dependent on the orientation of the gene
+    position_from_start = nil
+    if positive_orientation?
+      position_from_start = cds.first(:order => 'start').start
+    else
+      position_from_start = cds.first(:order => 'start desc').stop
+    end
+
+    position_from_end = scaffold.length - position_from_start
+
+    winner = position_from_start
+    if position_from_end < position_from_start
+      winner = position_from_end
+    end
+    return winner
+  end
+
+  def chromosome_name
+    big = gene.scaffold.name
+    if matches = big.match(/apidb\|(.+)/)
+      return matches[1]
+    else
+      return nil
+    end
+  end
+
+  def second_exon_splice_offset
+    return nil unless cds.count > 1
+    if positive_orientation?
+      return cds.first(:order => 'start').length % 3
+    else
+      return cds.first(:order => 'start desc').length % 3
+    end
+  end
 end

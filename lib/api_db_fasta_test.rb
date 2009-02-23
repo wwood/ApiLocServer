@@ -141,4 +141,12 @@ class ApiDbFastaTest < Test::Unit::TestCase
     seq = 'MEENLMKLGTLMLLGFGEAGAKIISKNINEQERVNLLINGEIVYSVFSFCDIRNFTEITEVLKEKIMIFINLIAEIIHECCDFYGGTINKNIGDAFLLVWKYQKKEYSNKKMNMFKSPNNNYDEYSEKENINRICDLAFLSTVQTLIKLRKSEKIHIFLNNENMDELIKNNILELSFGLHFGWAIEGAIGSSYKIDLSYLSENVNIASRLQDISKIYKNNIVISGDFYDNMSEKFKVFDDIKKKAERKKRKKEVLNLSYNLYEEYAKNDDIKFIKIHYPKDYLEQFKIALESYLIGKWNESKNILEYLKRNNIFEDEILNQLWNFLSMNNFIAPSDWCGYRKFLQKS'
     assert_equal seq, fa.next_entry.sequence
   end
+
+  def test_crypto4p0
+    fa = CryptoDbFasta4p0.new
+    p = fa.parse_name('gb|Chro.80234 | organism=Cryptosporidium_hominis | product=hypothetical protein | location=AAEL01000108:8398-11373(-) | length=991')
+    assert_equal 'Chro.80234', p.name
+    assert_equal 'AAEL01000108', p.scaffold
+    assert_equal 'hypothetical protein', p.annotation
+  end
 end

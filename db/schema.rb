@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090216052036) do
+ActiveRecord::Schema.define(:version => 20090219023354) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -95,9 +95,11 @@ ActiveRecord::Schema.define(:version => 20090216052036) do
   create_table "coding_region_go_terms", :force => true do |t|
     t.integer "coding_region_id"
     t.integer "go_term_id"
+    t.string  "evidence_code"
   end
 
-  add_index "coding_region_go_terms", ["coding_region_id", "go_term_id"], :name => "index_coding_region_go_terms_on_coding_region_id_and_go_term_id", :unique => true
+  add_index "coding_region_go_terms", ["coding_region_id", "evidence_code", "go_term_id"], :name => "index_coding_region_go_terms_on_coding_region_id_and_go_term_id", :unique => true
+  add_index "coding_region_go_terms", ["coding_region_id", "go_term_id"], :name => "code_go"
 
   create_table "coding_region_localisations", :force => true do |t|
     t.integer  "coding_region_id",       :null => false
@@ -128,8 +130,6 @@ ActiveRecord::Schema.define(:version => 20090216052036) do
     t.datetime "updated_at"
   end
 
-  add_index "coding_region_network_edges", ["coding_region_id_first", "coding_region_id_second", "network_id"], :name => "index_coding_region_network_edges_on_network_id_and_coding_regi", :unique => true
-
   create_table "coding_region_phenotype_informations", :force => true do |t|
     t.integer  "coding_region_id"
     t.integer  "phenotype_information_id"
@@ -138,6 +138,7 @@ ActiveRecord::Schema.define(:version => 20090216052036) do
   end
 
   add_index "coding_region_phenotype_informations", ["coding_region_id", "phenotype_information_id"], :name => "index_coding_region_phenotype_informations_on_coding_region_id_", :unique => true
+  add_index "coding_region_phenotype_informations", ["coding_region_id"], :name => "index_coding_region_phenotype_informations_on_coding_region_id"
   add_index "coding_region_phenotype_informations", ["phenotype_information_id"], :name => "index_coding_region_phenotype_informations_on_phenotype_informa"
 
   create_table "coding_region_phenotype_observeds", :force => true do |t|
@@ -210,10 +211,12 @@ ActiveRecord::Schema.define(:version => 20090216052036) do
 
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
-    t.string   "name"
+    t.string   "name",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "developmental_stages", ["name"], :name => "index_developmental_stages_on_name"
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false
@@ -610,6 +613,7 @@ ActiveRecord::Schema.define(:version => 20090216052036) do
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "length"
   end
 
   add_index "scaffolds", ["species_id"], :name => "index_scaffolds_on_species_id"

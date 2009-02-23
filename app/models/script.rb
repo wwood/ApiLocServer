@@ -5,6 +5,7 @@ require 'api_db_genes'
 require 'yeast_genome_genes'
 require 'signalp'
 require 'api_db_fasta'
+require 'gff3_genes'
 require 'tm_hmm_wrapper'
 require 'rubygems'
 require 'csv'
@@ -76,7 +77,7 @@ class Script < ActiveRecord::Base
     GoTerm.destroy_all
     
 
-    sg = SimpleGo.new("#{DATA_DIR}/GO/20080321/gene_ontology_edit.obo")
+    sg = SimpleGo.new("#{DATA_DIR}/GO/cvs/go/ontology/gene_ontology_edit.obo")
     while (e = sg.next_go)
       go = GoTerm.find_or_create_by_go_identifier_and_term_and_aspect(
         e.go_id,
@@ -216,101 +217,7 @@ class Script < ActiveRecord::Base
     }
   end
   
-  def apidb_species_to_database(species_name, gff_file_path=nil, iter=nil)
-    
-    sp = Species.find_or_create_by_name species_name
-    #        sp.scaffolds.each do |scaff|
-    #          scaff.destroy
-    #        end
-    
-    # recreate iter if it does not already exist
-    iter ||= ApiDbGenes.new(gff_file_path)
-
-    puts "Inserting..."
-    
-    gene = iter.next_gene
-    
-    while gene
-      
-      # Create scaffold if not done already
-      if !gene.seqname
-        raise Exception, "No seqname in gene: #{gene}"
-      end
-      scaff = Scaffold.find_or_create_by_name_and_species_id(
-        gene.seqname,
-        sp.id
-      )
-      
-      g = Gene.find_or_create_by_scaffold_id_and_name(
-        scaff.id,
-        gene.name
-      )
-      
-      code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
-        gene.name,
-        g.id,
-        gene.strand
-      )
-      
-      gene.cds.each {|cd|
-        Cd.find_or_create_by_coding_region_id_and_start_and_stop(
-          code.id,
-          cd.from,
-          cd.to
-        )
-      }
-      
-      Annotation.find_or_create_by_coding_region_id_and_annotation(
-        code.id,
-        gene.description
-      )
-      
-      if gene.go_identifiers
-        gene.go_identifiers.each do |goid|
-          go = GoTerm.find_by_go_identifier_or_alternate goid
-          if !go
-            raise Exception, "No go term found for #{goid}"
-          end
-          
-          # This should get rid of alternate+real GO term being attributed
-          # to the same gene, and therefore causing a duplicate.
-          if !CodingRegionGoTerm.find_by_go_term_id_and_coding_region_id(
-              go.id, code.id)
-            
-            CodingRegionGoTerm.create!(
-              :go_term_id => go.id,
-              :coding_region_id => code.id
-            )
-          end
-        end
-      end
-      
-      
-      if gene.alternate_ids
-        gene.alternate_ids.each do |alt|
-          
-          if !code
-            raise Exception, "No coding region still alive to attach an alternate to"
-          end
-          
-          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
-            code.id,
-            alt
-          )
-        end
-      end
-      
-      old_gene = gene
-      begin
-        gene = iter.next_gene
-      rescue Exception => e
-        $stderr.puts "Failed on the gene after #{old_gene}"
-        raise e
-      end
-    end
-
-    puts "finished."
-  end
+  
   
   def falciparum_to_database
     # abstraction!
@@ -319,11 +226,13 @@ class Script < ActiveRecord::Base
   end
   
   def gondii_to_database
-    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
+    #    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
+    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49_ToxoDB-5.0.gff"
   end
   
   def gondii_fasta_to_database
-    fa = ToxoDbFasta4p3.new.load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta")
+    #    fa = ToxoDbFasta4p3.new.load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta")
+    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49AnnotatedProteins_ToxoDB-5.0.fasta")
     sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
     upload_fasta_general!(fa, sp)
   end
@@ -1878,11 +1787,11 @@ class Script < ActiveRecord::Base
   
   
   def crypto_fasta_to_database
-    fa = ApiDbFasta.new.load("#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/3.4/CparvumAnnotatedProtein.fsa")
+    fa = CryptoDbFasta4p0.new.load("#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/4.0/CparvumAnnotatedProteins_CryptoDB-4.0.fasta")
     sp = Species.find_by_name(Species.cryptosporidium_parvum_name)
     upload_fasta_general(fa, sp)
     
-    fa = ApiDbFasta.new.load("#{DATA_DIR}/Cryptosporidium hominis/genome/cryptoDB/3.4/ChominisAnnotatedProtein.fsa")
+    fa = CryptoDbFasta4p0.new.load("#{DATA_DIR}/Cryptosporidium hominis/genome/cryptoDB/4.0/ChominisAnnotatedProteins_CryptoDB-4.0.fasta")
     sp = Species.find_by_name(Species.cryptosporidium_hominis_name)
     upload_fasta_general(fa, sp)
   end
@@ -4450,7 +4359,7 @@ class Script < ActiveRecord::Base
     # http://www.nature.com.ezproxy.lib.unimelb.edu.au/ng/journal/v39/n1/suppinfo/ng1931_S1.html
     # Supplementary Table 1, saved as csv using tab separation and no text delimiter
     good_stuff = 0
-    CSV.open("#{DATA_DIR}/falciparum/polymorphism/ng1931-S4.csv", 'r', "\t") do |row|
+    CSV.open("#{DATA_DIR}/falciparum/polymorphism/Jeffares2007/ng1931-S4.csv", 'r', "\t") do |row|
       # skip until the useful bit
       if good_stuff == 0
         if row[0] === '#Data'
@@ -4467,6 +4376,9 @@ class Script < ActiveRecord::Base
       it_non_syn = row[6]
       pf_clin_syn = row[11]
       pf_clin_non_syn = row[10]
+      reich_dnds = row[12]
+      reich_syn = row[15]
+      reich_non_syn = row[14]
       
       code = CodingRegion.ff(gene)
       if !code
@@ -4483,12 +4395,13 @@ class Script < ActiveRecord::Base
         PfClinSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, pf_clin_syn) or raise
         PfClinNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, pf_clin_non_syn) or raise
       end
-    end
-  end
-  
-  def upload_snp_data_mu
-    CSV.open("#{DATA_DIR}/falciparum/polymorphism/ng1931-S4.csv", 'r', "\t") do |row|
       
+      if reich_dnds != 'NA' and reich_syn != 'NA' and reich_non_syn != 'NA'
+        puts "#{gene},#{code.string_id}"
+        ReichenowiDnds.find_or_create_by_coding_region_id_and_value(code.id, reich_dnds) or raise
+        ReichenowiNonSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, reich_non_syn) or raise
+        ReichenowiSynonymousSnp.find_or_create_by_coding_region_id_and_value(code.id, reich_syn) or raise
+      end
     end
   end
   
@@ -4753,8 +4666,15 @@ class Script < ActiveRecord::Base
   end
   
   
-  def crypto_gff_to_database
-    apidb_species_to_database(Species.cryptosporidium_hominis_name, "#{DATA_DIR}/Cryptosporidium homonis/genome/cryptoDB/3.4/c_hominis_tu502.gff")
+  def crypto_to_database
+    #    apidb_species_to_database(Species.cryptosporidium_hominis_name, "#{DATA_DIR}/Cryptosporidium homonis/genome/cryptoDB/3.4/c_hominis_tu502.gff")
+    #    puts "Uploading hominis GFF"
+    #    apidb_species_to_database(Species.cryptosporidium_hominis_name, "#{DATA_DIR}/Cryptosporidium homonis/genome/cryptoDB/4.0/c_hominis_tu502.gff")
+    #    puts "Uploading parvum GFF"
+    #    apidb_species_to_database(Species.cryptosporidium_parvum_name, "#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/4.0/c_parvum_iowa_ii.gff")
+
+    puts "Uploading FASTA files"
+    crypto_fasta_to_database
   end
   
   def previous_signalp
@@ -5366,8 +5286,8 @@ class Script < ActiveRecord::Base
       CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(cd.id, gene.gene_name)
       gene.go_identifiers.each do |go_id|
         g = GoTerm.find_or_create_by_go_identifier(go_id)
-        CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id(
-          g.id, cd.id
+        CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id_and_evidence_code(
+          g.id, cd.id, go_id
         )
       end
     end
@@ -7349,6 +7269,253 @@ PFL2395c
       MuTheta.find_or_create_by_coding_region_id_and_value(
         code.id, mu_theta
       ) or raise
+    end
+  end
+
+  def add_lengths_to_scaffolds(species_name, gff_file_path=nil)
+    require 'gff3_genes'
+    sp = Species.find_or_create_by_name species_name
+    GFF3ParserLight.new(File.open(gff_file_path)).each_feature('supercontig') do |feature|
+      scaff = Scaffold.find_by_name_and_species_id(
+        feature.seqname,
+        sp.id
+      )
+      unless scaff
+        $stderr.puts "Couldn't find scaffold #{feature.seqname} - ignoring"
+        next
+      end
+      
+      scaff.length = feature.end
+      scaff.save!
+    end
+  end
+
+  def apidb_species_to_database(species_name, gff_file_path=nil, iter=nil)
+
+
+    sp = Species.find_or_create_by_name species_name
+    #        sp.scaffolds.each do |scaff|
+    #          scaff.destroy
+    #        end
+
+    # Create all the scaffolds, which are specified as supercontig
+    # The length is needed so I can work out the length to the end
+    # of the chromosome
+    #    raise Exception, "needs updating to include scaffold length - see add_lengths_to_scaffolds for an example. I s half implemented already."
+    GFF3ParserLight.new(File.open(gff_file_path)).each_feature('supercontig') do |feature|
+      scaff = Scaffold.find_or_create_by_name_and_species_id_and_length(
+        feature.seqname,
+        sp.id,
+        feature.end
+      )
+    end
+
+    # recreate iter if it does not already exist
+    iter ||= ApiDbGenes.new(gff_file_path)
+
+    puts "Inserting..."
+
+    gene = iter.next_gene
+
+    while gene
+
+      # Create scaffold if not done already
+      if !gene.seqname
+        raise Exception, "No seqname in gene: #{gene}"
+      end
+      scaff = Scaffold.find_by_name_and_species_id(
+        gene.seqname,
+        sp.id
+      )
+
+      g = Gene.find_or_create_by_scaffold_id_and_name(
+        scaff.id,
+        gene.name
+      )
+
+      code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
+        gene.name,
+        g.id,
+        gene.strand
+      )
+
+      gene.cds.each {|cd|
+        if cd.from.to_i < 1 or cd.to.to_i > scaff.length
+          $stderr.puts "Unexpected placement of CDS on scaffold: #{cd.inspect}"
+        end
+
+        Cd.find_or_create_by_coding_region_id_and_start_and_stop(
+          code.id,
+          cd.from,
+          cd.to
+        )
+      }
+
+      Annotation.find_or_create_by_coding_region_id_and_annotation(
+        code.id,
+        gene.description
+      )
+
+      if gene.go_identifiers
+        gene.go_identifiers.each do |goid|
+          go = GoTerm.find_by_go_identifier_or_alternate goid
+          if !go
+            raise Exception, "No go term found for #{goid}"
+          end
+
+          # This should get rid of alternate+real GO term being attributed
+          # to the same gene, and therefore causing a duplicate.
+          if !CodingRegionGoTerm.find_by_go_term_id_and_coding_region_id(
+              go.id, code.id)
+
+            CodingRegionGoTerm.create!(
+              :go_term_id => go.id,
+              :coding_region_id => code.id
+            )
+          end
+        end
+      end
+
+
+      if gene.alternate_ids
+        gene.alternate_ids.each do |alt|
+
+          if !code
+            raise Exception, "No coding region still alive to attach an alternate to"
+          end
+
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
+            code.id,
+            alt
+          )
+        end
+      end
+
+      old_gene = gene
+      begin
+        gene = iter.next_gene
+      rescue Exception => e
+        $stderr.puts "Failed on the gene after #{old_gene}"
+        raise e
+      end
+    end
+
+    puts "finished."
+  end
+
+  def yeast_gene_ontology_to_database(filename = "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.sgd")
+    gene_ontology_to_database Species::YEAST_NAME, filename
+  end
+
+  def elegans_gene_ontology_to_database
+    gene_ontology_to_database Species::ELEGANS_NAME, "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.wb"
+  end
+
+  # Upload the GO annotations for a given species
+  def gene_ontology_to_database(species_name, gene_association_filename)
+    require 'gene_association'
+    goods = 0
+    bads = 0
+    Bio::GeneAssociation.new(File.open(gene_association_filename).read).entries.each do |entry|
+      names = [
+        entry.primary_id,
+        entry.gene_name,
+        entry.alternate_gene_ids,
+      ].flatten
+
+      code = nil
+      names.each do |name|
+        code = CodingRegion.fs(
+          name,
+          species_name
+        )
+        break unless code.nil?
+      end
+      unless code
+        puts "Couldn't find coding region called #{names.join(',')}"
+        bads += 1
+        next
+      end
+
+      # GO terms should already be there
+      go_term = GoTerm.find_by_go_identifier_or_alternate(entry.go_identifier)
+
+      unless go_term
+        puts "Couldn't find GO term #{entry.go_identifier}"
+        bads += 1
+        next
+      end
+
+      raise unless CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
+        code.id, go_term.id, entry.evidence_code
+      )
+      goods += 1
+    end
+
+    puts "Uploaded #{goods}, failed to upload #{bads}."
+  end
+
+  # Attempting to improve the speed of the subsumer by using Hash#key? instead
+  # of Array#include? - it didn't work very well. Meh.
+  # However, using
+  #     primaree = subsumer_go_id
+  # instead of
+  #    primaree = @go.primary_go_id(subsumer_go_id)
+  # made things much faster
+  def test_subsume_speed
+    code = CodingRegion.first(:joins => :go_terms)
+
+    id = code.go_terms.first.go_identifier
+
+    @go = Bio::Go.new
+    @master_go_id = @go.primary_go_id(id)
+    @subsumer_offspring = @go.go_offspring(@master_go_id)
+    @subsumer_offspring_hash = @go.go_offspring(@master_go_id).to_hash
+
+    200.times do
+      subsume?(id)
+    end
+  end
+
+  def subsume?(subsumer_go_id)
+    primaree = subsumer_go_id
+    #    primaree = @go.primary_go_id(subsumer_go_id)
+    return true if @master_go_id == primaree
+    #    @subsumer_offspring_hash.key?.include?(primaree)
+    @subsumer_offspring_hash.key?(primaree)
+  end
+  
+  # For each GO term, work out how many genes associated with that go term
+  # are lethal vs all genes with that go term. The idea is to find go terms that
+  # are more lethal than others.
+  def go_terms_predict_lethality
+    go_terms = GoTerm.find_all_by_aspect('cellular_component', :limit => 2)
+    go_identifiers = go_terms.reach.go_identifier.retract
+    
+    [Species::YEAST_NAME, Species::ELEGANS_NAME].each do |name|
+      coding_regions = CodingRegion.s(name).all(:include => :go_terms)
+      go_identifiers.each do |go_identifier|
+        lethal_total = 0
+        all_total = 0
+        
+        # What does each coding region tell us?
+        coding_regions.each do |code|
+          classified = code.go_term?(go_identifier, true, false)
+          next unless classified
+          
+          all_total += 1
+          if code.lethal?
+            lethal_total += 1
+          end
+        end
+      
+        puts [
+          name,
+          go_identifier,
+          lethal_total,
+          all_total
+        ].join(",")
+      end
     end
   end
 end

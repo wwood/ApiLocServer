@@ -11,6 +11,8 @@ class Species < ActiveRecord::Base
   YEAST_NAME= 'yeast'
   MOUSE_NAME = 'mouse'
   DROSOPHILA_NAME= 'fly'
+  CYRYPTOSPORIDIUM_HOMINIS_NAME = 'Cryptosporidium hominis'
+  CYRYPTOSPORIDIUM_PARVUM_NAME = 'Cryptosporidium parvum'
   
   has_many :scaffolds, :dependent => :destroy
   
@@ -53,11 +55,11 @@ class Species < ActiveRecord::Base
   end
   
   def self.cryptosporidium_parvum_name
-    'Cryptosporidium parvum'
+    CYRYPTOSPORIDIUM_PARVUM_NAME
   end
   
   def self.cryptosporidium_hominis_name
-    'Cryptosporidium hominis'
+    CYRYPTOSPORIDIUM_HOMINIS_NAME
   end
   
   def self.arabidopsis_name

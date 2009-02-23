@@ -1,0 +1,2 @@
+class ReichenowiSynonymousSnp < FloatCodingRegionMeasurement
+end

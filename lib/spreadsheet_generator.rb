@@ -6,6 +6,7 @@ require 'rarff'
 class SpreadsheetGenerator
   require 'microarray_timepoint' #include the constants for less typing
   include MicroarrayTimepointNames
+  
   def arff
     # headings
     @headings = []
@@ -14,7 +15,6 @@ class SpreadsheetGenerator
     @first = true
     #String attributes aren't useful in arff files, because many classifiers and visualisations don't handle them
     # So make a list of outputs so they can be made nominal in the end.
-    wolf_psort_outputs = {} 
     amino_acids = Bio::AminoAcid.names.keys.select{|code| code.length == 1}
     derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
     
@@ -35,24 +35,14 @@ class SpreadsheetGenerator
       #    ).each do |code|
       next unless code.uniq_top?
       
-      @headings.push 'PlasmoDB ID' if @first
+      #      @headings.push 'PlasmoDB ID' if @first
       #      'Annotation',
       @current_row = [
-        code.string_id,
+        #        code.string_id,
         #        code.annotation.annotation
       ]
       check_headings
       
-      @headings.push 'Top Level Localisations' if @first
-      #      'Amino Acid Sequence',
-      #      if code.tops[0].name == 'exported'
-      #        results.push 'exported'
-      #      else
-      #        results.push 'not_exported'
-      #      end
-      @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
-      check_headings
-
       #      results.push code.amino_acid_sequence.sequence,
       
       
@@ -73,7 +63,6 @@ class SpreadsheetGenerator
       ['plant','animal','fungi'].each do |organism|
         c = code.wolf_psort_localisation(organism)
         @current_row.push c
-        wolf_psort_outputs[c] ||= true
       end
       check_headings
       
@@ -151,6 +140,9 @@ class SpreadsheetGenerator
         'Number of Non-Synonymous IT SNPs according to Jeffares et al',
         'Number of Synonymous Clinical SNPs according to Jeffares et al',
         'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+        'dNdS for Reichenowi SNPs according to Jeffares et al',
+        'Number of Synonymous Reichenowi SNPs according to Jeffares et al',
+        'Number of Non-Synonymous Reichenowi SNPs according to Jeffares et al',
         'Number of Synonymous SNPs according to Neafsey et al',
         'Number of Non-Synonymous SNPs according to Neafsey et al',
         'Number of Intronic SNPs according to Neafsey et al',
@@ -164,6 +156,9 @@ class SpreadsheetGenerator
         :it_non_synonymous_snp, 
         :pf_clin_synonymous_snp, 
         :pf_clin_non_synonymous_snp,
+        :reichenowi_dnds,
+        :reichenowi_synonymous_snp,
+        :reichenowi_non_synonymous_snp,
         :neafsey_synonymous_snp,
         :neafsey_non_synonymous_snp,
         :neafsey_intronic_snp,
@@ -200,7 +195,49 @@ class SpreadsheetGenerator
       @headings.push 'Length of Protein' if @first
       @current_row.push code.amino_acid_sequence.sequence.length
       check_headings
+
+      @headings.push 'Chromosome' if @first
+      name = code.chromosome_name
+      @current_row.push name
+      check_headings
       
+      @headings.push 'Distance from chromosome end' if @first
+      @current_row.push code.length_from_chromosome_end
+      check_headings
+
+      @headings.push 'Percentage from chromosome end' if @first
+      @current_row.push code.length_from_chromosome_end_percent
+      check_headings
+
+      @headings.push 'Number of Exons' if @first
+      @current_row.push code.cds.count
+      check_headings
+
+      @headings.push 'Offset of 2nd Exon' if @first
+      @current_row.push code.second_exon_splice_offset
+      check_headings
+
+      @headings.push 'Orientation' if @first
+      # pretty stupid really
+      @current_row.push code.positive_orientation? ? '+' : '-'
+      check_headings
+
+      # predicted = code.send(predictor)
+      #          if predicted.transmembrane_type_1? or predicted.transmembrane_type_2?
+      @headings.push 'Number of transmembrane domains' if @first
+      @headings.push 'Type 1 transmembrane domain?' if @first
+      # pretty stupid really
+      tmhmm = code.tmhmm
+      @current_row.push [
+        tmhmm.transmembrane_domains.length,
+        tmhmm.transmembrane_type_1?
+      ]
+      check_headings
+
+      @headings.push 'Random number as noise cutoff' if @first
+      # pretty stupid really
+      @current_row.push rand
+      check_headings
       
       # Microarray DeRisi
       if @first
@@ -271,17 +308,19 @@ class SpreadsheetGenerator
       #        headings.push node.name if first
       #        results.push node.normalised_value
       #      end
+
+      # Localisation is last because WEKA's default is to predict the
+      # last attribute
+      @headings.push 'Localisation' if @first
+      @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
+      check_headings
       
-      @first = false if @first
-      
-      # Check to make sure that all the rows have the same number of entries as a debug thing
-      @headings.flatten!
-      if @current_row.length != @headings.length
-        
-      end
       all_data.push(@current_row)
       #      break
       #      puts results.join(sep)
+      
+      break unless @first
+      @first = false if @first
     end
     
     rarff_relation = Rarff::Relation.new('PfalciparumLocalisation')
@@ -291,19 +330,16 @@ class SpreadsheetGenerator
     end
     
     # Make some attributes noiminal instead of String
-    # Localisation
-    rarff_relation.attributes[1].type = "{#{TopLevelLocalisation.all.reach.name.join(',').gsub(/[\ \(\)]/,'_')}}"
-    # Wolf_PSORTs
-    [4,5,6].each do |i|
-      rarff_relation.attributes[i].type = "{#{wolf_psort_outputs.keys.join(',').gsub(' ','_')}}"
-    end
+    rarff_relation.set_string_attributes_to_nominal
     
     puts rarff_relation.to_arff
   end
   
+  private
   def check_headings
     if @first
       @headings.flatten!
+      @current_row.flatten!
       unless @current_row.length == @headings.length
         raise Exception, "Bad number of entries in the row for code #{@current_row[0].inspect}: headings #{@headings.length} results #{@current_row.length}"
       end
