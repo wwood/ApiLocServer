@@ -47,6 +47,7 @@ class WScript
   end
   
   def compute_lethal_count_using_essential_orthologues(orthomcl_groups, species_orthomcl_code)
+    #this method doesn't work yet, just testing
     lc = LethalCount.new
     lc.groups_count += orthomcl_groups.length
 
@@ -1217,6 +1218,7 @@ class WScript
 
       #test whether ESSENTIAL orthologue predicts essentiality - get groups that have lethal genes for query species i.e. species in arrays[1]
       puts 'Excluding mammalian, with essential orthologue and without paralogues in all species:'
+
       # narrow down the genes to those that are lethal in the species arrays[1]
       first_lethal_groups = lethal_count.lethal_genes.select{|gene| gene.single_code.lethal?}
       puts compute_lethal_count(first_lethal_groups, arrays[2])
