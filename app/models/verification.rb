@@ -867,4 +867,20 @@ SRRKRRMPEGLDN*).join('')
     raise unless MuSynonymousSnp.count != 7399-5
     raise unless MuTheta.count != 7399-5
   end
+  
+  def jiang_chromosomal_features
+    scaff1 = Scaffold.find_falciparum_chromosome(1)
+    raise unless Jiang7G8TenKbBinSfpCount.find_all_by_scaffold_id_and_start(scaff1.id, 0).length == 1
+    raise unless Jiang7G8TenKbBinSfpCount.find_by_scaffold_id_and_start(scaff1.id, 0).value == 69.0
+    raise unless JiangDd2TenKbBinSfpCount.find_by_scaffold_id_and_start(scaff1.id, 0).value == 103.0
+    raise unless JiangDd2TenKbBinSfpCount.find_by_scaffold_id_and_start(scaff1.id, 10000).value == 15.0
+    
+    scaff1 = Scaffold.find_falciparum_chromosome(12)
+    raise unless JiangFCR3TenKbBinSfpCount.find_by_scaffold_id_and_start(scaff1.id, 20000).value == 383
+    raise unless JiangFCR3TenKbBinSfpCount.find_by_scaffold_id_and_start(scaff1.id, 20000).stop == 29999
+    
+    # ben@uyen:~/phd/data/falciparum/polymorphism/Jiang2008$ cat *.csv |grep -v FCR |grep -v Additiona |wc -l
+    # 2333
+    raise unless JiangHB3TenKbBinSfpCount.count == 2333
+  end
 end
