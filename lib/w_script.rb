@@ -75,7 +75,7 @@ class WScript
       if lethal
         lethal_count.phenotype_count += 1
         lethal_count.lethal_count += 1
-        lethal.lethal_genes.push orthomcl_gene
+        lethal_count.lethal_genes.push orthomcl_gene
       elsif lethal.nil?
       else
         lethal_count.phenotype_count += 1
@@ -1185,7 +1185,81 @@ class WScript
       end    
     end
   end
+  
+
+  def comparisons_of_presence_and_essenitality_of_orthologues_for_model_organisms
+   
+    overlaps = [  
+      [['cel','dme'],['dme'],['cel']],       
+      [['cel','mmu'],['mmu'],['cel']],  
+      [['cel','sce'],['sce'],['cel']],   
+      [['cel','dme','mmu'],['dme','mmu'],['cel']],
+      [['cel','dme','sce'],['dme','sce'],['cel']], 
+      [['cel','mmu','sce'],['mmu','sce'],['cel']],
+      [['cel','dme','mmu','sce'],['dme','mmu','sce'],['cel']],
+      [['dme','cel'],['cel'],['dme']],
+      [['dme','mmu'],['mmu'],['dme']],
+      [['dme','sce'],['sce'],['dme']],
+      [['dme','mmu','sce'],['mmu','sce'],['dme']],
+      [['dme','sce','cel'],['sce','cel'],['dme']],
+      [['dme','mmu','cel'],['mmu','cel'],['dme']],
+      [['dme','mmu','sce','cel'],['mmu','sce','cel'],['dme']],
+      [['mmu','cel'],['cel'],['mmu']],
+      [['mmu','dme'],['dme'],['mmu']],
+      [['mmu','sce'],['sce'],['mmu']],
+      [['mmu','dme','sce'],['dme','sce'],['mmu']],
+      [['mmu','sce','cel'],['sce','cel'],['mmu']],
+      [['mmu','dme','cel'],['dme','cel'],['mmu']],
+      [['mmu','dme','sce','cel'],['dme','sce','cel'],['mmu']],
+      [['sce','cel'],['cel'],['sce']],
+      [['sce','dme'],['dme'],['sce']],
+      [['sce','mmu'],['mmu'],['sce']],
+      [['sce','dme','mmu'],['dme','mmu'],['sce']],
+      [['sce','mmu','cel'],['mmu','cel'],['sce']],
+      [['sce','dme','cel'],['dme','cel'],['sce']],
+      [['sce','dme','mmu','cel'],['dme','mmu','cel'],['sce']]             
+    ]
+  
+    #find the groups with genes from all species
+    overlaps.each do |arrays|
+      p arrays
+      groups = OrthomclGroup.all_overlapping_groups(arrays[0])
+      
+           
+      #find groups with no paralogues in all species
+      puts 'Effect of presence of orthologue (no paralogues in all species):'
+      arrays[0].each do |species_code|
+        groups.reject! do |g|
+          g.orthomcl_genes.code(species_code).count > 1
+        end
+      end
+      puts compute_lethal_count(groups, arrays[2]).to_s 
+
+      #test whether ESSENTIAL orthologue predicts essentiality - get groups that have lethal genes for query species i.e. species in arrays[1]
+      puts 'Effect of presence of ESSENTIAL orthologue (no paralogues in all species):'
+
+      # narrow down the genes to those that are lethal in the species arrays[1]
+      arrays[1].each do |species_code|
+        groups.reject! {|group|
+          lethal = false
+          ogeez = group.orthomcl_genes.codes(species_code)
+          raise Exception, "Violated assumption" if ogeez.length != 1
+          ogeez.each do |orthomcl_gene|
+            begin
+              lethal = true if orthomcl_gene.single_code.lethal?
+            rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
+              $stderr.puts "Couldn't find coding region for orthomcl gene: #{OrthomclGene.find(orthomcl_gene.id).orthomcl_name}"
+            end
+          end
+          !lethal
+         
+        }
+      end
+      puts compute_lethal_count(groups, arrays[2])
+    end
     
+  end
+  
   
   def elegans_essentiality_after_excluding_mammalian
    
@@ -1205,7 +1279,7 @@ class WScript
         g.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0
       end
            
-      #find groups without human orthologues AND without paralogues in all species
+      #find groups without mammalian orthologues AND without paralogues in all species
       puts 'Excluding mammalian and without paralogues in all species:'
       arrays[0].each do |species_code|
         groups.reject! do |g|
@@ -1218,21 +1292,28 @@ class WScript
       puts 'Excluding mammalian, with essential orthologue and without paralogues in all species:'
 
       # narrow down the genes to those that are lethal in the species arrays[1]
-      groups.reject {|group|
-        lethal = false
-        ogeez = group.orthomcl_genes.codes(arrays[1])
-        
-        raise Exception, "Violated assumption" if ogeez.length != 1
-        ogeez.each do |orthomcl_gene|
-          lethal = true if orthomcl_gene.single_code.lethal?
-        end
-        !lethal
-      }
+      arrays[1].each do |species_code|
+        groups.reject! {|group|
+          lethal = false
+          ogeez = group.orthomcl_genes.codes(species_code)
+          raise Exception, "Violated assumption" if ogeez.length != 1
+          ogeez.each do |orthomcl_gene|
+            begin
+              lethal = true if orthomcl_gene.single_code.lethal?
+            rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
+              $stderr.puts "Couldn't find coding region for orthomcl gene: #{OrthomclGene.find(orthomcl_gene.id).orthomcl_name}"
+            end
+          end
+          !lethal
+         
+        }
+      end
       puts compute_lethal_count(groups, arrays[2])
     end
     
   end
 
+  
   
   
 end
