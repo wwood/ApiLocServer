@@ -105,9 +105,6 @@ class Mverification < ActiveRecord::Base
       end
     end
     
-    
-    
-    
   end
   
   
@@ -136,6 +133,13 @@ class Mverification < ActiveRecord::Base
     if code.phenotype_observeds.pick(:phenotype).sort[0] != 'germ_cell_hypersensitive_ionizing_radiation'
       puts "Bad phenotype phenotype name: #{code.phenotype_observeds.pick(:phenotype).sort[0]}"
     end
+    
+      #check an elegans gene in Orthomcl no_group is correctly linked to lethal phenotype
+    name = 'cel|WBGene00000461'
+      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+      puts "Bad lethal phenotype association for gene in orthomcl no_group, should be true for lethal phenotype: #{name}"
+    end  
+    
   end
   
   
@@ -209,7 +213,7 @@ class Mverification < ActiveRecord::Base
       puts "Bad lethal phenotype association, should be nil as incorrect expt type: #{name}"
     end
     
-    #check a mouse gene in Orthomcl no_group that it is correctly linked to lethal phenotype
+    #check a mouse gene in Orthomcl no_group is correctly linked to lethal phenotype
     name = 'mmu|ENSMUSP00000000031'
       if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene in orthomcl no_group, should be true for lethal phenotype: #{name}"
@@ -241,6 +245,20 @@ class Mverification < ActiveRecord::Base
     #ben@ben:~/phd/data/Essentiality/Drosophila$ grep -v '\#' allele_phenotypic_data_fb_2008_06.tsv |wc -l
     #215805
     raise if DrosophilaAllelePhenotype.count != 24321
+    
+    
+    # check gene with known lethal phenotype is linked correctly
+    name = 'dme|CG3095-PA'
+      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+      puts "Bad lethal phenotype association for gene, should be true for lethal phenotype: #{name}"
+      end
+    
+     #check a drosophila gene in Orthomcl no_group is correctly linked to lethal phenotype
+    name = 'dme|CG3096-PA'
+      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+      puts "Bad lethal phenotype association for gene in orthomcl no_group, should be true for lethal phenotype: #{name}"
+    end 
+    
   end
   
   def yeast_pheno_info
@@ -308,8 +326,11 @@ class Mverification < ActiveRecord::Base
       puts "Bad phenotype inclusion, should be nil as not correct expt type #{name}"
     end
       
-      
-    
+      #check a yeast gene in Orthomcl no_group is correctly linked to lethal phenotype
+    name = 'sce|YPR177C'
+      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+      puts "Bad lethal phenotype association for gene in orthomcl no_group, should be true for lethal phenotype: #{name}"
+    end  
   end
   
 end

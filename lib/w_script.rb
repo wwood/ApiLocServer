@@ -46,6 +46,23 @@ class WScript
     return lc
   end
   
+   def compute_lethal_count_using_essential_orthologues(orthomcl_groups, species_orthomcl_code)
+    lc = LethalCount.new
+    lc.groups_count += orthomcl_groups.length
+
+    orthomcl_groups.each do |group|
+
+#identify the groups that have essential orthologues for the query species       
+       
+      # for each cel gene in the group, count if it is lethal or not
+   # We exclude genes don't correspond between othomcl and our IDs
+      group.orthomcl_genes.code(species_orthomcl_code).all(:select => 'distinct(orthomcl_genes.id)').each do |og|
+        add_orthomcl_gene_to_lethal_count(og, lc)
+      end
+    end
+    return lc
+   end
+  
   
   def add_orthomcl_gene_to_lethal_count(orthomcl_gene, lethal_count)
     begin
@@ -1167,6 +1184,47 @@ class WScript
     end
   end
     
+  
+  def elegans_essentiality_after_excluding_mammalian
+   
+    overlaps = [ 
+      [['cel','sce'],['sce'],['cel']],  
+      [['cel','dme'],['dme'],['cel']],      
+      [['cel','dme','sce'],['sce','dme'],['cel']]  
+    ]
+  
+    #find the groups with genes from all species
+    overlaps.each do |arrays|
+      p arrays
+      groups = OrthomclGroup.all_overlapping_groups(arrays[0])
+      
+      #find groups without mammalian orthologues
+      groups.reject! do |g|
+        g.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0
+      end
+           
+      #find groups without human orthologues AND without paralogues in all species
+      puts 'Excluding mammalian and without paralogues in all species:'
+      arrays[0].each do |species_code|
+        groups.reject! do |g|
+          g.orthomcl_genes.code(species_code).count > 1
+        end
+      end 
+    
+      puts compute_lethal_count(groups, arrays[2]).to_s  
+
+      #test whether ESSENTIAL orthologue predicts essentiality - get groups that have lethal genes for query species i.e. species in arrays[1]
+         puts 'Excluding mammalian, with essential orthologue and without paralogues in all species:'
+        arrays[1].each do |species_code|
+          
+        end
+            
+    end
+    
+  end
+
+  
+  
 end
 
 class LethalCount
