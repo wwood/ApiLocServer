@@ -7525,6 +7525,30 @@ PFL2395c
   end
   
   def upload_jiang_chromosomal_features
+    bin_size = 10000 #10kb
     
+    (1..14).each do |chromosome_number|
+      start = 0
+      stop = bin_size-1
+      FasterCSV.foreach("#{DATA_DIR}/falciparum/polymorphism/Jiang2008/1471-2164-9-398-s8-chromosome#{chromosome_number}.csv") do |row|
+        # "7G8","Dd2","FCR3","HB3"
+        
+        # ignore heading lines
+        next if row[0].match(/^Additional file/) or row[0] == '7G8'
+        
+        raise Exception unless row.length == 4
+        
+        scaff = Scaffold.find_falciparum_chromosome(chromosome_number)
+        raise unless scaff
+        
+        Jiang7G8TenKbBinSfpCount.find_or_create_by_scaffold_id_and_value_and_start_and_stop(scaff.id, row[0].to_f, start, stop)
+        JiangDd2TenKbBinSfpCount.find_or_create_by_scaffold_id_and_value_and_start_and_stop(scaff.id, row[1].to_f, start, stop)
+        JiangFCR3TenKbBinSfpCount.find_or_create_by_scaffold_id_and_value_and_start_and_stop(scaff.id, row[2].to_f, start, stop)
+        JiangHB3TenKbBinSfpCount.find_or_create_by_scaffold_id_and_value_and_start_and_stop(scaff.id, row[3].to_f, start, stop)
+        
+        start += bin_size
+        stop += bin_size
+      end
+    end
   end
 end
