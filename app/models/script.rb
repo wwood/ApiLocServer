@@ -992,6 +992,11 @@ class Script < ActiveRecord::Base
     rio('../nilushi/PF10_0149.csv') < lines
   end
   
+  def orthomcl_to_database
+    orthomcl_groups_to_database
+    upload_orthomcl_official_sequences
+  end
+  
   
   # Load the data from the groups file alone - upload all genes and groups
   # in the process

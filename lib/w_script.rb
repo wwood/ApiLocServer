@@ -1211,17 +1211,24 @@ class WScript
         groups.reject! do |g|
           g.orthomcl_genes.code(species_code).count > 1
         end
-      end 
-    
-      lethal_count = compute_lethal_count(groups, arrays[2]).to_s
-      puts lethal_count
+      end
+      puts compute_lethal_count(groups, arrays[2]).to_s 
 
       #test whether ESSENTIAL orthologue predicts essentiality - get groups that have lethal genes for query species i.e. species in arrays[1]
       puts 'Excluding mammalian, with essential orthologue and without paralogues in all species:'
 
       # narrow down the genes to those that are lethal in the species arrays[1]
-      first_lethal_groups = lethal_count.lethal_genes.select{|gene| gene.single_code.lethal?}
-      puts compute_lethal_count(first_lethal_groups, arrays[2])
+      groups.reject {|group|
+        lethal = false
+        ogeez = group.orthomcl_genes.codes(arrays[1])
+        
+        raise Exception, "Violated assumption" if ogeez.length != 1
+        ogeez.each do |orthomcl_gene|
+          lethal = true if orthomcl_gene.single_code.lethal?
+        end
+        !lethal
+      }
+      puts compute_lethal_count(groups, arrays[2])
     end
     
   end

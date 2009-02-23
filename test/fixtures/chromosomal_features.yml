@@ -4,8 +4,11 @@ one:
   start: 1
   stop: 1
   scaffold_id: 1
-
+  type: JiangChromosomalFeature
+  value: 105
 two:
   start: 1
   stop: 1
   scaffold_id: 1
+  type: JiangChromosomalFeature
+  value: 106
