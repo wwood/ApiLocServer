@@ -46,22 +46,23 @@ class WScript
     return lc
   end
   
-   def compute_lethal_count_using_essential_orthologues(orthomcl_groups, species_orthomcl_code)
+  def compute_lethal_count_using_essential_orthologues(orthomcl_groups, species_orthomcl_code)
+    #this method doesn't work yet, just testing
     lc = LethalCount.new
     lc.groups_count += orthomcl_groups.length
 
     orthomcl_groups.each do |group|
 
-#identify the groups that have essential orthologues for the query species       
+      #identify the groups that have essential orthologues for the query species       
        
       # for each cel gene in the group, count if it is lethal or not
-   # We exclude genes don't correspond between othomcl and our IDs
+      # We exclude genes don't correspond between othomcl and our IDs
       group.orthomcl_genes.code(species_orthomcl_code).all(:select => 'distinct(orthomcl_genes.id)').each do |og|
         add_orthomcl_gene_to_lethal_count(og, lc)
       end
     end
     return lc
-   end
+  end
   
   
   def add_orthomcl_gene_to_lethal_count(orthomcl_gene, lethal_count)
@@ -1214,10 +1215,10 @@ class WScript
       puts compute_lethal_count(groups, arrays[2]).to_s  
 
       #test whether ESSENTIAL orthologue predicts essentiality - get groups that have lethal genes for query species i.e. species in arrays[1]
-         puts 'Excluding mammalian, with essential orthologue and without paralogues in all species:'
-        arrays[1].each do |species_code|
+      puts 'Excluding mammalian, with essential orthologue and without paralogues in all species:'
+      arrays[1].each do |species_code|
           
-        end
+      end
             
     end
     
