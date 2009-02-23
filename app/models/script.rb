@@ -7518,4 +7518,8 @@ PFL2395c
       end
     end
   end
+  
+  def upload_jiang_chromosomal_features
+    
+  end
 end

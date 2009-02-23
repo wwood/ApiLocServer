@@ -46,22 +46,22 @@ class WScript
     return lc
   end
   
-   def compute_lethal_count_using_essential_orthologues(orthomcl_groups, species_orthomcl_code)
+  def compute_lethal_count_using_essential_orthologues(orthomcl_groups, species_orthomcl_code)
     lc = LethalCount.new
     lc.groups_count += orthomcl_groups.length
 
     orthomcl_groups.each do |group|
 
-#identify the groups that have essential orthologues for the query species       
+      #identify the groups that have essential orthologues for the query species       
        
       # for each cel gene in the group, count if it is lethal or not
-   # We exclude genes don't correspond between othomcl and our IDs
+      # We exclude genes don't correspond between othomcl and our IDs
       group.orthomcl_genes.code(species_orthomcl_code).all(:select => 'distinct(orthomcl_genes.id)').each do |og|
         add_orthomcl_gene_to_lethal_count(og, lc)
       end
     end
     return lc
-   end
+  end
   
   
   def add_orthomcl_gene_to_lethal_count(orthomcl_gene, lethal_count)
@@ -74,6 +74,7 @@ class WScript
       if lethal
         lethal_count.phenotype_count += 1
         lethal_count.lethal_count += 1
+        lethal.lethal_genes.push orthomcl_gene
       elsif lethal.nil?
       else
         lethal_count.phenotype_count += 1
@@ -1211,14 +1212,14 @@ class WScript
         end
       end 
     
-      puts compute_lethal_count(groups, arrays[2]).to_s  
+      lethal_count = compute_lethal_count(groups, arrays[2]).to_s
+      puts lethal_count
 
       #test whether ESSENTIAL orthologue predicts essentiality - get groups that have lethal genes for query species i.e. species in arrays[1]
-         puts 'Excluding mammalian, with essential orthologue and without paralogues in all species:'
-        arrays[1].each do |species_code|
-          
-        end
-            
+      puts 'Excluding mammalian, with essential orthologue and without paralogues in all species:'
+      # narrow down the genes to those that are lethal in the species arrays[1]
+      first_lethal_groups = lethal_count.lethal_genes.select{|gene| gene.single_code.lethal?}
+      puts compute_lethal_count(first_lethal_groups, arrays[2])
     end
     
   end
@@ -1228,7 +1229,7 @@ class WScript
 end
 
 class LethalCount
-  attr_accessor :lethal_count, :total_count, :phenotype_count, :groups_count, :missing_count
+  attr_accessor :lethal_count, :total_count, :phenotype_count, :groups_count, :missing_count, :lethal_genes
   
   def initialize
     @lethal_count = 0
@@ -1236,6 +1237,7 @@ class LethalCount
     @phenotype_count = 0
     @groups_count = 0
     @missing_count = 0
+    @lethal_genes = []
   end
   
   def to_s

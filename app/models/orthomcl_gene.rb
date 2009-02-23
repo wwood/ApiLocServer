@@ -296,6 +296,12 @@ class OrthomclGene < ActiveRecord::Base
     end  
     puts "Properly linked #{goods} coding regions"
   end
+  
+  def code?(official_orthomcl_species_code)
+    s = official_split(orthomcl_name)
+    return nil if s.nil?
+    return official_orthomcl_species_code == s[0]
+  end
 
   class UnexpectedCodingRegionCount < StandardError; end
 end

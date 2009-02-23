@@ -29,4 +29,10 @@ class OrthomclGeneTest < ActiveSupport::TestCase
     assert_equal 3, OrthomclGene.codes(['two']).count
     assert_equal 4, OrthomclGene.codes(['two','one']).count
   end
+  
+  def test_code?
+    assert_equal true, OrthomclGene.find(1).code?('pfa')
+    assert_equal false, OrthomclGene.find(2).code?('tgo')
+    assert_equal nil, OrthomclGene.find(13).code?('tgo')
+  end
 end

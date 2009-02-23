@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090219023354) do
+ActiveRecord::Schema.define(:version => 20090223001922) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -48,6 +48,18 @@ ActiveRecord::Schema.define(:version => 20090219023354) do
   end
 
   add_index "cds", ["coding_region_id"], :name => "index_cds_on_coding_region_id"
+
+  create_table "chromosomal_features", :force => true do |t|
+    t.integer  "start",       :null => false
+    t.integer  "stop",        :null => false
+    t.integer  "scaffold_id", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "type",        :null => false
+    t.integer  "value",       :null => false
+  end
+
+  add_index "chromosomal_features", ["scaffold_id"], :name => "index_chromosomal_features_on_scaffold_id"
 
   create_table "cluster_entries", :force => true do |t|
     t.integer  "coding_region_id"
@@ -130,6 +142,8 @@ ActiveRecord::Schema.define(:version => 20090219023354) do
     t.datetime "updated_at"
   end
 
+  add_index "coding_region_network_edges", ["coding_region_id_first", "coding_region_id_second", "network_id"], :name => "index_coding_region_network_edges_on_network_id_and_coding_regi", :unique => true
+
   create_table "coding_region_phenotype_informations", :force => true do |t|
     t.integer  "coding_region_id"
     t.integer  "phenotype_information_id"
@@ -211,12 +225,10 @@ ActiveRecord::Schema.define(:version => 20090219023354) do
 
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
-    t.string   "name",       :null => false
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
-
-  add_index "developmental_stages", ["name"], :name => "index_developmental_stages_on_name"
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false

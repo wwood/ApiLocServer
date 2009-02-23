@@ -36,3 +36,6 @@ seven:
 compute_test:
   id: 12
   orthomcl_name: pfa|PF1
+non_orthomcl:
+  id: 13
+  orthomcl_name: five
