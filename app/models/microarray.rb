@@ -3,6 +3,7 @@ class Microarray < ActiveRecord::Base
   
   WINZELER_2003_NAME = "Winzeler Cell Cycle 2003"
   WINZELER_2005_GAMETOCYTE_NAME = "Winzeler Gametocyte 2005"
+  WINZELER_2009_TILING_NAME = "Winzeler Tiling Array 2009"
   
   def self.yeast_alpha_arrest_name
     'Yeast Spellman Alpha Arrest'

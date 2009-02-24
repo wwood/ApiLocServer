@@ -7551,4 +7551,14 @@ PFL2395c
       end
     end
   end
+
+  def winzeler_tiling_array_probes_to_database
+    microarray = Microarray.find_or_create_by_description(Microarray::WINZELER_2009_TILING_NAME)
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/microarray/Winzeler2009/Pftiling_tile-3.bpmap.txt",
+      :headers => true, :col_sep => "\t") do |row|
+
+      probe = row[6]
+      MicroarrayProbe.find_or_create_by_microarray_id_and_probe(microarray.id, probe)
+    end
+  end
 end

@@ -1,0 +1,9 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  microarray_id: 1
+  probe: MyString
+
+two:
+  microarray_id: 1
+  probe: MyString
