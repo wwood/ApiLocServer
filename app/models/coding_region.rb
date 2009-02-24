@@ -849,6 +849,25 @@ class CodingRegion < ActiveRecord::Base
   def to_param
     "#{string_id}"
   end
+
+  # Return an array of probes
+  def winzeler_tiling_array_probes(nucleotide_sequence = nucleotide_sequence.sequence)
+    hits = []
+    TempFile.open do |tempfile|
+      tempfile.puts ">input"
+      tempfile.puts nucleotide_sequence
+      tempfile.flush
+      system(
+        "exonerate -m ungapped --ryo '%ti %tl %tal\n' --showalignment no --showvulgar no --verbose no /tmp/ta WinzelerTilingArrayProbes2009 >#{tempfile.path}"
+      )
+      tempfile.read.each_line do |line|
+        splits = line.strip.split(' ')
+        raise Exception, "Couldn't parse line '#{line}'" unless splits.length == 3
+        hits.push splits[0] if splits[2] == splits[1] #only accept ones that matched the whole of the probe
+      end
+    end
+    return hits
+  end
 end
 
 
