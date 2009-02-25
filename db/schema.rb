@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090223234516) do
+ActiveRecord::Schema.define(:version => 20090225050722) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -446,17 +446,6 @@ ActiveRecord::Schema.define(:version => 20090223234516) do
   add_index "microarray_measurements", ["measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_me"
   add_index "microarray_measurements", ["microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id"
 
-  create_table "microarray_probes", :force => true do |t|
-    t.integer  "microarray_id", :null => false
-    t.string   "probe",         :null => false
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "microarray_probes", ["microarray_id", "probe"], :name => "index_microarray_probes_on_probe_and_microarray_id"
-  add_index "microarray_probes", ["microarray_id"], :name => "index_microarray_probes_on_microarray_id"
-  add_index "microarray_probes", ["probe"], :name => "index_microarray_probes_on_probe"
-
   create_table "microarray_timepoints", :force => true do |t|
     t.integer  "microarray_id"
     t.string   "name"
@@ -568,6 +557,22 @@ ActiveRecord::Schema.define(:version => 20090223234516) do
   end
 
   add_index "orthomcl_runs", ["name"], :name => "index_orthomcl_runs_on_name", :unique => true
+
+  create_table "pfalciparum_tiling_arrays", :force => true do |t|
+    t.string  "probe",      :null => false
+    t.string  "sequence",   :null => false
+    t.decimal "HB3_1",      :null => false
+    t.decimal "HB3_2",      :null => false
+    t.decimal "ThreeD7_1",  :null => false
+    t.decimal "ThreeD7_2",  :null => false
+    t.decimal "Dd2_1",      :null => false
+    t.decimal "Dd2_2",      :null => false
+    t.decimal "Dd2_FosR_1", :null => false
+    t.decimal "Dd2_FosR_2", :null => false
+  end
+
+  add_index "pfalciparum_tiling_arrays", ["probe"], :name => "index_pfalciparum_tiling_arrays_on_probe", :unique => true
+  add_index "pfalciparum_tiling_arrays", ["sequence"], :name => "index_pfalciparum_tiling_arrays_on_sequence"
 
   create_table "phenotype_informations", :force => true do |t|
     t.string   "dbxref"

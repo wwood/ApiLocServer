@@ -7561,4 +7561,23 @@ PFL2395c
       MicroarrayProbe.find_or_create_by_microarray_id_and_probe(microarray.id, probe)
     end
   end
+
+  def trna_tiling_explore
+    ['apicoplast','cytosol'].each do |loc|
+      seq = File.open("#{PHD_DIR}/tiling_array/cysteine tRNA synthetase/#{loc}.seq").read
+      File.open("#{PHD_DIR}/tiling_array/cysteine tRNA synthetase/#{loc}.probes", 'w') do |f|
+        CodingRegion.new.winzeler_tiling_array_probes(seq).each do |probe|
+          p = Hb3Probe.find_by_probe(probe.strip)
+          unless p
+            $stderr.puts "Couldn't find #{p} from #{loc}"
+            next
+          end
+          f.puts [
+            probe, p.sequence, p.HB3_1
+          ].join("\t")
+        end
+      end
+    end
+  end
+
 end
