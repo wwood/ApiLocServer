@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090225050722) do
+ActiveRecord::Schema.define(:version => 20090225091545) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -559,16 +559,17 @@ ActiveRecord::Schema.define(:version => 20090225050722) do
   add_index "orthomcl_runs", ["name"], :name => "index_orthomcl_runs_on_name", :unique => true
 
   create_table "pfalciparum_tiling_arrays", :force => true do |t|
-    t.string  "probe",      :null => false
-    t.string  "sequence",   :null => false
-    t.decimal "HB3_1",      :null => false
-    t.decimal "HB3_2",      :null => false
-    t.decimal "ThreeD7_1",  :null => false
-    t.decimal "ThreeD7_2",  :null => false
-    t.decimal "Dd2_1",      :null => false
-    t.decimal "Dd2_2",      :null => false
-    t.decimal "Dd2_FosR_1", :null => false
-    t.decimal "Dd2_FosR_2", :null => false
+    t.string  "probe",         :null => false
+    t.string  "sequence",      :null => false
+    t.decimal "hb3_1",         :null => false
+    t.decimal "hb3_2",         :null => false
+    t.decimal "three_d7_1",    :null => false
+    t.decimal "three_d7_2",    :null => false
+    t.decimal "dd2_1",         :null => false
+    t.decimal "dd2_2",         :null => false
+    t.decimal "dd2_fosr_1",    :null => false
+    t.decimal "dd2_fosr_2",    :null => false
+    t.decimal "three_d7_attb", :null => false
   end
 
   add_index "pfalciparum_tiling_arrays", ["probe"], :name => "index_pfalciparum_tiling_arrays_on_probe", :unique => true
