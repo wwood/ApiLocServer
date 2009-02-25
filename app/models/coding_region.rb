@@ -2,6 +2,7 @@ require 'bio'
 require 'gmars'
 require 'n_c_b_i'
 require 'go'
+require 'tempfile'
 
 class CodingRegion < ActiveRecord::Base
   
@@ -853,17 +854,19 @@ class CodingRegion < ActiveRecord::Base
   # Return an array of probes
   def winzeler_tiling_array_probes(nucleotide_sequence = nucleotide_sequence.sequence)
     hits = []
-    TempFile.open do |tempfile|
+    Tempfile.open('winzeler') do |tempfile|
       tempfile.puts ">input"
       tempfile.puts nucleotide_sequence
       tempfile.flush
-      system(
-        "exonerate -m ungapped --ryo '%ti %tl %tal\n' --showalignment no --showvulgar no --verbose no /tmp/ta WinzelerTilingArrayProbes2009 >#{tempfile.path}"
-      )
-      tempfile.read.each_line do |line|
-        splits = line.strip.split(' ')
-        raise Exception, "Couldn't parse line '#{line}'" unless splits.length == 3
-        hits.push splits[0] if splits[2] == splits[1] #only accept ones that matched the whole of the probe
+      Tempfile.open('winzelerOut') do |outfile|
+        system(
+          "exonerate -m ungapped --ryo '%ti %tl %tal\n' --showalignment no --showvulgar no --verbose no #{tempfile.path} /blastdb/WinzelerTilingArrayProbes2009 >#{outfile.path}"
+        )
+        outfile.read.each_line do |line|
+          splits = line.strip.split(' ')
+          raise Exception, "Couldn't parse line '#{line}'" unless splits.length == 3
+          hits.push splits[0] if splits[2] == splits[1] #only accept ones that matched the whole of the probe
+        end
       end
     end
     return hits
