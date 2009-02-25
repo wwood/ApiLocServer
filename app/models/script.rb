@@ -7564,16 +7564,18 @@ PFL2395c
 
   def trna_tiling_explore
     ['apicoplast','cytosol'].each do |loc|
-      seq = File.open("#{PHD_DIR}/tiling_array/cysteine tRNA synthetase/#{loc}.seq").read
-      File.open("#{PHD_DIR}/tiling_array/cysteine tRNA synthetase/#{loc}.probes", 'w') do |f|
+      #seq = File.open("#{PHD_DIR}/tiling_array/cysteine tRNA synthetase/#{loc}.seq").read
+      seq = File.open("#{PHD_DIR}/tiling_array/trna/#{loc}.seq").read
+      #File.open("#{PHD_DIR}/tiling_array/cysteine tRNA synthetase/#{loc}.probes", 'w') do |f|
+      File.open("#{PHD_DIR}/tiling_array/trna/#{loc}.probes", 'w') do |f|
         CodingRegion.new.winzeler_tiling_array_probes(seq).each do |probe|
-          p = Hb3Probe.find_by_probe(probe.strip)
+          p = PfalciparumTilingArray.find_by_probe(probe.strip)
           unless p
             $stderr.puts "Couldn't find #{p} from #{loc}"
             next
           end
           f.puts [
-            probe, p.sequence, p.HB3_1
+            probe, p.sequence, p.average
           ].join("\t")
         end
       end
