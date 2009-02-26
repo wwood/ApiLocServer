@@ -7577,9 +7577,11 @@ PFL2395c
             $stderr.puts "Couldn't find #{p} from #{loc}"
             next
           end
-          f.puts [
-            probe, p.sequence, p.average
-          ].join("\t")
+          PfalciparumTilingArray::MEASUREMENT_COLUMNS.each do |col|
+            f.puts [
+              probe, p.sequence, p.send(col)
+            ].join("\t")
+          end
         end
       end
     end
