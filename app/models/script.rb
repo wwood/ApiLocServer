@@ -791,9 +791,11 @@ class Script < ActiveRecord::Base
   # tiddlywiki:[[Re-annotating Winzeler]]
   def generate_winzeler_probe_map
     #Read in a single line of the file
-    f = File.open("#{ENV['HOME']}/phd/winzeler/probesVtranscripts.vulgar")
+    #    f = File.open("#{ENV['HOME']}/phd/winzeler/probesVtranscripts.vulgar")
+    f = File.open("#{ENV['HOME']}/phd/winzeler/5.5/probesVtranscripts.vulgar")
     
-    map_name = 'Winzeler 2003 PlasmoDB 5.4'
+    #    map_name = 'Winzeler 2003 PlasmoDB 5.4'
+    map_name = 'Winzeler 2003 PlasmoDB 5.5'
     map = ProbeMap.find_or_create_by_name map_name
     map.destroy
     map = ProbeMap.find_or_create_by_name map_name
@@ -808,6 +810,7 @@ class Script < ActiveRecord::Base
       end
       
       # make sure it is really a vulgar file
+      # vulgar: seq24259 0 25 + psu|PFC1125w 1425 1450 + 125 M 25 25
       splits = line.split ' '
       if splits[0] != 'vulgar:'
         raise Exception, "Unexpected line: #{line}"
@@ -818,9 +821,9 @@ class Script < ActiveRecord::Base
       
       seqname = seqname.sub 'seq',''
       tsplits = transcript_name.split '|'
-      plasmodbid = tsplits[2]
+      plasmodbid = tsplits[1]
       
-      code = CodingRegion.find_by_name_or_alternate(plasmodbid)
+      code = CodingRegion.ff(plasmodbid)
       if !code
         $stderr.puts "No coding region #{plasmodbid} found"
         next
@@ -7582,4 +7585,44 @@ PFL2395c
     end
   end
 
+  # Generate the names of
+  def generate_winzeler_purdom_tab
+    # Probe_ID		X	Y	Probe_Sequence	Group_ID		Unit_ID
+    #15	14	0	TCTCCAGTGAAGTGCACATTGCTCA	3029044	ENSG00000106144
+    #17	16	0	TGATCGCCTGTCTGCAGATAGGGCA	2400195	ENSG00000090432
+
+    # lines up with how the sequence names are created in sequenceNamer.pl
+    index = 1
+
+    map = ProbeMap.find_by_name 'Winzeler 2003 Original'
+
+    File.open("#{PHD_DIR}/winzeler/5.5/MalariaChipProbes.Purdom.tab",'w') do |f|
+
+      f.puts %w(Probe_ID		X	Y	Probe_Sequence	Group_ID		Unit_ID).join("\t")
+      
+      FasterCSV.foreach('/home/ben/phd/data/falciparum/microarray/Winzeler2003/MalariaChipProbes.csv',
+        :header => true
+      ) do |row|
+        # skip rows without sequence, because I don't care about them
+        next unless row.length == 4
+
+        x = row[1]
+        y = row[2]
+        sequence = row[3]
+
+        probe = ProbeMapEntry.find_by_probe_map_id_and_probe_id(map.id, index)
+
+        f.puts [
+          index,
+          x,
+          y,
+          sequence,
+          probe.coding_region.id,
+          probe.coding_region.string_id
+        ].join("\t")
+
+        index += 1
+      end
+    end
+  end
 end
