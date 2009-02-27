@@ -7574,7 +7574,7 @@ PFL2395c
         CodingRegion.new.winzeler_tiling_array_probes(seq).each do |probe|
           p = PfalciparumTilingArray.find_by_probe(probe.strip)
           unless p
-            $stderr.puts "Couldn't find #{p} from #{loc}"
+            $stderr.puts "Couldn't find '#{probe}' from #{loc}"
             next
           end
           PfalciparumTilingArray::MEASUREMENT_COLUMNS.each do |col|
