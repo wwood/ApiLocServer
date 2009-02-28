@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090225091545) do
+ActiveRecord::Schema.define(:version => 20090227045654) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -626,6 +626,8 @@ ActiveRecord::Schema.define(:version => 20090225091545) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "probe_map_entries", ["probe_id", "probe_map_id"], :name => "index_probe_map_entries_on_probe_map_id_and_probe_id"
 
   create_table "probe_maps", :force => true do |t|
     t.string   "name",       :null => false

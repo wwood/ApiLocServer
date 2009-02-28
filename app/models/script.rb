@@ -7574,12 +7574,14 @@ PFL2395c
         CodingRegion.new.winzeler_tiling_array_probes(seq).each do |probe|
           p = PfalciparumTilingArray.find_by_probe(probe.strip)
           unless p
-            $stderr.puts "Couldn't find #{p} from #{loc}"
+            $stderr.puts "Couldn't find '#{probe}' from #{loc}"
             next
           end
-          f.puts [
-            probe, p.sequence, p.average
-          ].join("\t")
+          PfalciparumTilingArray::MEASUREMENT_COLUMNS.each do |col|
+            f.puts [
+              probe, p.sequence, p.send(col)
+            ].join("\t")
+          end
         end
       end
     end
@@ -7594,34 +7596,47 @@ PFL2395c
     # lines up with how the sequence names are created in sequenceNamer.pl
     index = 1
 
-    map = ProbeMap.find_by_name 'Winzeler 2003 Original'
+    map = ProbeMap.find_by_name 'Winzeler 2003 PlasmoDB 5.5'
 
     File.open("#{PHD_DIR}/winzeler/5.5/MalariaChipProbes.Purdom.tab",'w') do |f|
 
       f.puts %w(Probe_ID		X	Y	Probe_Sequence	Group_ID		Unit_ID).join("\t")
       
+      #Gene,X,Y,ProbeSequence
+      #AFFX-18SRNAMur/X00686_3_at,26,3,
+      #AFFX-18SRNAMur/X00686_3_at,104,9,
       FasterCSV.foreach('/home/ben/phd/data/falciparum/microarray/Winzeler2003/MalariaChipProbes.csv',
-        :header => true
+        :headers => true
       ) do |row|
-        # skip rows without sequence, because I don't care about them
-        next unless row.length == 4
-
         x = row[1]
         y = row[2]
         sequence = row[3]
 
-        probe = ProbeMapEntry.find_by_probe_map_id_and_probe_id(map.id, index)
+        probes = ProbeMapEntry.find_all_by_probe_map_id_and_probe_id(map.id, index)
+        #ignore probes that have no genes or multiple transcripts
+        if probes.length == 1
+          probe = probes[0]
 
-        f.puts [
-          index,
-          x,
-          y,
-          sequence,
-          probe.coding_region.id,
-          probe.coding_region.string_id
-        ].join("\t")
+          f.puts [
+            index,
+            x,
+            y,
+            sequence,
+            probe.coding_region.id,
+            probe.coding_region.string_id
+          ].join("\t")
+        else
+          f.puts [
+            index,
+            x,
+            y,
+            sequence,
+            1,
+            'nothn'
+          ].join("\t")
+        end
 
-        index += 1
+        index += 1 if sequence
       end
     end
   end
