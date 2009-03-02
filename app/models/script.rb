@@ -7497,7 +7497,7 @@ PFL2395c
   # are lethal vs all genes with that go term. The idea is to find go terms that
   # are more lethal than others.
   def go_terms_predict_lethality
-    go_terms = GoTerm.find_all_by_aspect('cellular_component', :limit => 2)
+    go_terms = GoTerm.find_all_by_aspect('cellular_component')
     go_identifiers = go_terms.reach.go_identifier.retract
     
     [Species::YEAST_NAME, Species::ELEGANS_NAME].each do |name|
@@ -7639,5 +7639,9 @@ PFL2395c
         index += 1 if sequence
       end
     end
+  end
+
+  def upload_conserved_domains
+    ConservedDomain.new.upload_from_eupathdb("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumInterpro_PlasmoDB-5.5.txt", Species::FALCIPARUM_NAME)
   end
 end

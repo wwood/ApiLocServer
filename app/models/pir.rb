@@ -1,0 +1,2 @@
+class Pir < ConservedDomain
+end

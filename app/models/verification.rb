@@ -118,6 +118,15 @@ class Verification < ActiveRecord::Base
         $stderr.puts "Scaffold length - found #{l}, expected #{expected_length}"
       end
     end
+
+    # Conserved Domains
+    raise unless CodingRegion.ff('PFC1120c').conserved_domains.reach.identifier.uniq.sort ==
+      %w(PFC1120c PF05424 SSF46689).sort
+    raise unless CodingRegion.ff('PFC1045c').conserved_domains.count == 18
+
+    # PFC1060c	PFAM	PF03343	SART-1	1	669	   .0E+00
+    raise unless CodingRegion.ff('PFC1060c').conserved_domains.first.pick(:identifier, :name, :start, :stop, :score) ==
+      ['PF03343', 'SART-1', 1, 669, 0.0]
   end
   
   def gene_lists
@@ -225,15 +234,15 @@ class Verification < ActiveRecord::Base
     if ! method
       p "No Yeast GFP localisation method found"
     end
-    codes = CodingRegion.s(Species.yeast_name).count(:select => 'coding_region_locaisations.id',
+    codes = CodingRegion.s(Species.yeast_name).count(:select => 'coding_region_localisations.id',
       :conditions => "localisation_method_id=#{method.id}",
       :joins => :localisations
     )
     expected = 4152
-    if codes.length != expected
+    if codes != expected
       # not 4160 (the simple count) because some of them are duplicates of the same
       # ORF
-      puts "number of coding_region_localisations, #{codes.length} vs expected #{expected}"
+      puts "number of coding_region_localisations, #{codes} vs expected #{expected}"
     end
     
     locs = Localisation.find(:all,

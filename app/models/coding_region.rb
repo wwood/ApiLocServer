@@ -28,7 +28,17 @@ class CodingRegion < ActiveRecord::Base
   has_many :expression_contexts, :dependent => :destroy
   has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation
   has_many :integer_coding_region_measurements, :dependent => :destroy
-  
+
+  # Conserved domains
+  has_many :conserved_domains, :dependent => :destroy
+  has_many :pfams
+  has_many :smarts
+  has_many :profiles
+  has_many :superfamilies
+  has_many :prodoms
+  has_many :pirs
+  has_many :prints
+  has_many :tigrfams
   
   # transmembrane domain things
   has_many :transmembrane_domain_measurements, :dependent => :destroy

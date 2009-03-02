@@ -1,0 +1,2 @@
+class Pfam < ConservedDomain
+end
