@@ -1,6 +1,16 @@
 class ConservedDomain < ActiveRecord::Base
   belongs_to :coding_region
 
+  TYPES = %w(PFAM
+PIR
+PRINTS
+PRODOM
+PROFILE
+SMART
+SUPERFAMILY
+TIGRFAMs
+  ).slap.capitalize.constantize.retract
+
   def upload_from_eupathdb(filename, species_common_name)
     FasterCSV.foreach(filename, :col_sep => "\t") do |row|
       code = CodingRegion.find_by_name_or_alternate_and_organism(row[0], species_common_name)

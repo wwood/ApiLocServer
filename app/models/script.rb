@@ -7644,4 +7644,78 @@ PFL2395c
   def upload_conserved_domains
     ConservedDomain.new.upload_from_eupathdb("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumInterpro_PlasmoDB-5.5.txt", Species::FALCIPARUM_NAME)
   end
+
+  def conserved_domains_explore
+    ConservedDomain::TYPES.each do |domain_type|
+      collected = []
+      domain_type.all(:select => 'distinct(identifier)', :joins => {:coding_region => :expressed_localisations}).each do |domain|
+        d = domain_type.find_by_identifier(domain.identifier)
+        block = [
+          CodingRegion.falciparum.count(:select => 'distinct(coding_regions.id)',
+            :joins => [:conserved_domains, :expressed_localisations],
+            :conditions => {:conserved_domains => {:identifier => domain.identifier}}),
+          CodingRegion.falciparum.count(:select => 'distinct(coding_regions.id)',
+            :joins => :conserved_domains,
+            :conditions => {:conserved_domains => {:identifier => domain.identifier}}),
+          domain.identifier,
+          d.name,
+          CodingRegion.falciparum.all(:select => 'distinct(coding_regions.id)',
+            :joins => [:conserved_domains, :expressed_localisations],
+            :conditions => {:conserved_domains => {:identifier => domain.identifier}}
+          ).collect{|c| "#{c.annotation.annotation}: #{c.tops.uniq.reach.name.join('|')}"},
+        ]
+        collected.push block
+      end
+
+      File.open("#{PHD_DIR}/domains/explore_#{domain_type}.csv",'w') do |f|
+        f.puts collected.sort{|a,b| b[0].to_i <=> a[0].to_i}.collect{|a| a.join("\t")}.join("\n")
+      end
+    end
+  end
+
+  def food_vacuole_proteome_to_database
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/FoodVacuole2008/FoodVacuoleProteome.csv",
+      :col_sep => "\t"
+    ) do |row|
+      next unless row[0] and row[0].strip.length > 0
+
+      plasmo = row[1].strip
+      peptides = row[4].strip.to_i
+      code = CodingRegion.ff(plasmo)
+      if code
+        FvProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides(
+          code.id,
+          peptides
+        )
+      else
+        $stderr.puts "Cmon #{plasmo} from #{row.inspect}"
+      end
+    end
+  end
+
+  def whole_cell_proteome_to_database
+    header = true
+    finished = true #finished a protein block?
+    peptide_count = 0
+    
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/WholeCell2002/FoodVacuoleProteome.csv",
+      :col_sep => "\t"
+    ) do |row|
+      if header
+        next unless row[0] == "Locus (a)"
+        header = false
+        next
+      end
+
+      break if row[0] == 'Summary'
+
+      if row[0].strip.length > 0 #blank lines indicate the end of a protein block
+        finished = true
+
+      else
+
+      end
+      
+    end
+  end
 end
