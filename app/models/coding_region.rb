@@ -28,6 +28,7 @@ class CodingRegion < ActiveRecord::Base
   has_many :expression_contexts, :dependent => :destroy
   has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation
   has_many :integer_coding_region_measurements, :dependent => :destroy
+  has_many :proteomic_experiment_results, :dependent => :destroy
 
   # Conserved domains
   has_many :conserved_domains, :dependent => :destroy

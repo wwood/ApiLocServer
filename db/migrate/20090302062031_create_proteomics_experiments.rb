@@ -1,6 +1,6 @@
 class CreateProteomicsExperiments < ActiveRecord::Migration
   def self.up
-    create_table :proteomics_experiments do |t|
+    create_table :proteomic_experiments do |t|
       t.string :name, :null => false
 
       t.timestamps

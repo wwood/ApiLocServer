@@ -7674,6 +7674,8 @@ PFL2395c
   end
 
   def food_vacuole_proteome_to_database
+    exp = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME)
+
     FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/FoodVacuole2008/FoodVacuoleProteome.csv",
       :col_sep => "\t"
     ) do |row|
@@ -7683,9 +7685,10 @@ PFL2395c
       peptides = row[4].strip.to_i
       code = CodingRegion.ff(plasmo)
       if code
-        FvProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides(
+        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_proteomic_experiment_id(
           code.id,
-          peptides
+          peptides,
+          exp.id
         )
       else
         $stderr.puts "Cmon #{plasmo} from #{row.inspect}"
@@ -7694,11 +7697,29 @@ PFL2395c
   end
 
   def whole_cell_proteome_to_database
-    header = true
-    finished = true #finished a protein block?
-    peptide_count = 0
+    header = true #still in the top crap?
+    finished = false
+    code = nil
+    first = true
+    skipping = false
+
+    sp = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_SPOROZOITE_NAME)
+    mero = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME)
+    troph = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME)
+    game = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME)
+
+    #how many peptides per coding region given
+    sp_count = 0
+    mero_count = 0
+    troph_count = 0
+    game_count = 0
+
+    sp_percent = nil
+    mero_percent = nil
+    troph_percent = nil
+    game_percent = nil
     
-    FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/WholeCell2002/FoodVacuoleProteome.csv",
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/WholeCell2002/nature01107-s1.csv",
       :col_sep => "\t"
     ) do |row|
       if header
@@ -7707,13 +7728,55 @@ PFL2395c
         next
       end
 
+      # What is this rubbish?
+      next if row[1] == 'X' or row[2] == 'X' or row[3] == 'X' or row[4] == 'X'
       break if row[0] == 'Summary'
 
-      if row[0].strip.length > 0 #blank lines indicate the end of a protein block
+      unless row[0] and row[0].strip.length > 0 #blank lines indicate the end of a protein block
         finished = true
-
+        skipping = false
       else
+        next if skipping
+        
+        if finished
+          # start a new block of hits for a gene
+          plasmo = row[0].strip
+          # skip some
+          if %w(PFD0845w PFD0965w PFD0510c).include?(plasmo)
+            $stderr.puts "Ignoring #{plasmo} as expected."
+            skipping = true
+            next
+          end
+          code = CodingRegion.ff(plasmo) or raise Exception, "Couldn't find #{row[0].strip} in #{row.inspect}"
 
+          if first
+            first = false
+          else
+            # upload the coding region from last time
+            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, sp_count, sp_percent, sp.id) if sp_count > 0
+            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, mero_count, mero_percent, mero.id) if mero_count > 0
+            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, troph_count, troph_percent, troph.id) if troph_count > 0
+            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, game_count, game_percent, game.id) if game_count > 0
+          end
+          # reset the stuff
+          sp_count = 0
+          mero_count = 0
+          troph_count = 0
+          game_count = 0
+
+          sp_percent = row[1]
+          mero_percent = row[2]
+          troph_percent = row[3]
+          game_percent = row[4]
+
+          finished = false
+        else
+          # a row containing info on 1 peptide
+          sp_count += 1 if row[1] and row[1].strip.length > 0
+          mero_count += 1 if row[2] and row[2].strip.length > 0
+          troph_count += 1 if row[3] and row[3].strip.length > 0
+          game_count += 1 if row[4] and row[4].strip.length > 0
+        end
       end
       
     end

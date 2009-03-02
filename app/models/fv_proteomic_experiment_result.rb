@@ -1,2 +1,0 @@
-class FvProteomicExperimentResult < ProteomicExperimentResult
-end

@@ -669,7 +669,7 @@ ActiveRecord::Schema.define(:version => 20090302062031) do
     t.integer  "proteomic_experiment_id", :null => false
   end
 
-  create_table "proteomics_experiments", :force => true do |t|
+  create_table "proteomic_experiments", :force => true do |t|
     t.string   "name",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
