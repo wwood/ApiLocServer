@@ -133,6 +133,9 @@ class Verification < ActiveRecord::Base
     #    ben@ben:~/phd/gnr$ awk '{print $1}' /home/ben/phd/data/falciparum/proteomics/FoodVacuole2008/FoodVacuoleProteome.csv |grep '^[PQO][01-9]' |wc -l
     #116
     $stderr.puts "Food Vacuole Proteomics no good" unless FvProteomicExperimentResult.count == 116
+
+    # Whole Cell Proteomics
+    
   end
   
   def gene_lists
