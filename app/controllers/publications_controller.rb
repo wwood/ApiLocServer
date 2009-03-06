@@ -23,6 +23,21 @@ class PublicationsController < ApplicationController
     end
   end
 
+  def fulltext
+    if params[:pmid]
+      require 'bio'
+      pmid = params[:pmid]
+      entry = Bio::PubMed.pmfetch(pmid)
+      medline = Bio::MEDLINE.new(entry)
+      doi = medline.doi
+      if doi and doi.length > 0
+        redirect_to "http://ezp.lib.unimelb.edu.au/login?url=http://dx.doi.org/#{doi}"
+      else
+        redirect_to "http://ezp.lib.unimelb.edu.au/login?url=http://www.ncbi.nlm.nih.gov/PubMed?term=#{pmid}"
+      end
+    end
+  end
+
   # GET /publications/new
   # GET /publications/new.xml
   def new

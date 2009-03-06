@@ -1,0 +1,2 @@
+class Profile < ConservedDomain
+end

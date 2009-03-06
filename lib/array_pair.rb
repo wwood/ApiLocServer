@@ -1,3 +1,10 @@
+class Object
+  def pick(*method_symbols)
+    method_symbols.collect do |symbol|
+      self.send(symbol)
+    end
+  end
+end
 
 # An added method for an array class that return the pairs of classes
 class Array

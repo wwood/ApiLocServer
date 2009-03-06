@@ -1,0 +1,25 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  probe: MyString
+  sequence: MyString
+  HB3_1: 9.99
+  HB3_2: 9.99
+  3D7_1: 9.99
+  3D7_2: 9.99
+  Dd2_1: 9.99
+  Dd2_2: 9.99
+  Dd2_FosR_1: 9.99
+  Dd2_FosR_2: 9.99
+
+two:
+  probe: MyString
+  sequence: MyString
+  HB3_1: 9.99
+  HB3_2: 9.99
+  3D7_1: 9.99
+  3D7_2: 9.99
+  Dd2_1: 9.99
+  Dd2_2: 9.99
+  Dd2_FosR_1: 9.99
+  Dd2_FosR_2: 9.99

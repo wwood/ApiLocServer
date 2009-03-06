@@ -1,0 +1,2 @@
+class Superfamily < ConservedDomain
+end

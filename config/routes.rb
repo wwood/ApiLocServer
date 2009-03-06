@@ -1,5 +1,6 @@
 ActionController::Routing::Routes.draw do |map|
-  map.resources :publications
+  map.connect 'publications/fulltext/:pmid', :controller => 'publications', :action => 'fulltext'
+  map.resources :publications, {:fulltext => :put}
 
   map.resources :expression_contexts
 

@@ -1,0 +1,2 @@
+class Prints < ConservedDomain
+end

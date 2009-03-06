@@ -2,6 +2,7 @@ require 'bio'
 require 'gmars'
 require 'n_c_b_i'
 require 'go'
+require 'tempfile'
 
 class CodingRegion < ActiveRecord::Base
   
@@ -27,7 +28,18 @@ class CodingRegion < ActiveRecord::Base
   has_many :expression_contexts, :dependent => :destroy
   has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation
   has_many :integer_coding_region_measurements, :dependent => :destroy
-  
+  has_many :proteomic_experiment_results, :dependent => :destroy
+
+  # Conserved domains
+  has_many :conserved_domains, :dependent => :destroy
+  has_many :pfams
+  has_many :smarts
+  has_many :profiles
+  has_many :superfamilies
+  has_many :prodoms
+  has_many :pirs
+  has_many :prints
+  has_many :tigrfams
   
   # transmembrane domain things
   has_many :transmembrane_domain_measurements, :dependent => :destroy
@@ -848,6 +860,27 @@ class CodingRegion < ActiveRecord::Base
   # is called from a controller or action.
   def to_param
     "#{string_id}"
+  end
+
+  # Return an array of probes
+  def winzeler_tiling_array_probes(nucleotide_sequence = nucleotide_sequence.sequence)
+    hits = []
+    Tempfile.open('winzeler') do |tempfile|
+      tempfile.puts ">input"
+      tempfile.puts nucleotide_sequence
+      tempfile.flush
+      Tempfile.open('winzelerOut') do |outfile|
+        system(
+          "exonerate -m ungapped --ryo '%ti %tl %tal\n' --showalignment no --showvulgar no --verbose no #{tempfile.path} /blastdb/WinzelerTilingArrayProbes2009 >#{outfile.path}"
+        )
+        outfile.read.each_line do |line|
+          splits = line.strip.split(' ')
+          raise Exception, "Couldn't parse line '#{line}'" unless splits.length == 3
+          hits.push splits[0] if splits[2] == splits[1] #only accept ones that matched the whole of the probe
+        end
+      end
+    end
+    return hits
   end
 end
 

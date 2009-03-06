@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090223043217) do
+ActiveRecord::Schema.define(:version => 20090302062031) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -142,6 +142,8 @@ ActiveRecord::Schema.define(:version => 20090223043217) do
     t.datetime "updated_at"
   end
 
+  add_index "coding_region_network_edges", ["coding_region_id_first", "coding_region_id_second", "network_id"], :name => "index_coding_region_network_edges_on_network_id_and_coding_regi", :unique => true
+
   create_table "coding_region_phenotype_informations", :force => true do |t|
     t.integer  "coding_region_id"
     t.integer  "phenotype_information_id"
@@ -206,6 +208,20 @@ ActiveRecord::Schema.define(:version => 20090223043217) do
     t.datetime "updated_at"
   end
 
+  create_table "conserved_domains", :force => true do |t|
+    t.integer  "coding_region_id", :null => false
+    t.string   "type",             :null => false
+    t.string   "identifier",       :null => false
+    t.integer  "start",            :null => false
+    t.integer  "stop",             :null => false
+    t.float    "score",            :null => false
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "conserved_domains", ["coding_region_id", "type"], :name => "index_conserved_domains_on_coding_region_id_and_type"
+
   create_table "derisi20063d7logmean", :force => true do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -223,12 +239,10 @@ ActiveRecord::Schema.define(:version => 20090223043217) do
 
   create_table "developmental_stages", :force => true do |t|
     t.string   "type"
-    t.string   "name",       :null => false
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
-
-  add_index "developmental_stages", ["name"], :name => "index_developmental_stages_on_name"
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false
@@ -367,6 +381,16 @@ ActiveRecord::Schema.define(:version => 20090223043217) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "go_term_offsprings", :force => true do |t|
+    t.integer  "go_term_id",           :null => false
+    t.integer  "offspring_go_term_id", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "go_term_offsprings", ["go_term_id", "offspring_go_term_id"], :name => "index_go_term_offsprings_on_go_term_id_and_offspring_go_term_id", :unique => true
+  add_index "go_term_offsprings", ["go_term_id"], :name => "index_go_term_offsprings_on_go_term_id"
 
   create_table "go_terms", :force => true do |t|
     t.string   "go_identifier"
@@ -558,6 +582,23 @@ ActiveRecord::Schema.define(:version => 20090223043217) do
 
   add_index "orthomcl_runs", ["name"], :name => "index_orthomcl_runs_on_name", :unique => true
 
+  create_table "pfalciparum_tiling_arrays", :force => true do |t|
+    t.string  "probe",         :null => false
+    t.string  "sequence",      :null => false
+    t.decimal "hb3_1",         :null => false
+    t.decimal "hb3_2",         :null => false
+    t.decimal "three_d7_1",    :null => false
+    t.decimal "three_d7_2",    :null => false
+    t.decimal "dd2_1",         :null => false
+    t.decimal "dd2_2",         :null => false
+    t.decimal "dd2_fosr_1",    :null => false
+    t.decimal "dd2_fosr_2",    :null => false
+    t.decimal "three_d7_attb", :null => false
+  end
+
+  add_index "pfalciparum_tiling_arrays", ["probe"], :name => "index_pfalciparum_tiling_arrays_on_probe", :unique => true
+  add_index "pfalciparum_tiling_arrays", ["sequence"], :name => "index_pfalciparum_tiling_arrays_on_sequence"
+
   create_table "phenotype_informations", :force => true do |t|
     t.string   "dbxref"
     t.string   "phenotype"
@@ -610,7 +651,25 @@ ActiveRecord::Schema.define(:version => 20090223043217) do
     t.datetime "updated_at"
   end
 
+  add_index "probe_map_entries", ["probe_id", "probe_map_id"], :name => "index_probe_map_entries_on_probe_map_id_and_probe_id"
+
   create_table "probe_maps", :force => true do |t|
+    t.string   "name",       :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "proteomic_experiment_results", :force => true do |t|
+    t.integer  "coding_region_id",        :null => false
+    t.integer  "number_of_peptides"
+    t.float    "spectrum"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.float    "percentage"
+    t.integer  "proteomic_experiment_id", :null => false
+  end
+
+  create_table "proteomic_experiments", :force => true do |t|
     t.string   "name",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"

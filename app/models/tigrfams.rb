@@ -1,0 +1,2 @@
+class Tigrfams < ConservedDomain
+end
