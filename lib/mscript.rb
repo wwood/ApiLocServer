@@ -478,8 +478,10 @@ class Mscript
     end
   end
   
-  def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
-    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups")
+  def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups_first9000")
+   #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups_last8411")
+     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups")
+    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Celegans_database_analysis/Checking_the_approx_500genes_in_ortho_not_in_db/genes_in_orthomcl_not_in_dbresults.with_species_code")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Method_used_seqclean_repeatmasker_WITHOUT_CAP3/Database_Queries/22_cel_gene.ids_with_species_code")
     # def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
@@ -493,14 +495,14 @@ class Mscript
     puts [
       "gene id",
       "is lethal",
-      #"is enzyme",
-      #"is gpcr",
+      "is enzyme",
+      "is gpcr",
       "wormnet_core_no._interactions",
       "wormnet_core_total_score",
       "wormnet_full_no._interactions",
       "wormnet_full_total_score",
-      #"has mammalian orthologue",
-      #"no. of elegans genes in group"
+      "has mammalian orthologue",
+     "no. of elegans genes in group"
     ].join("\t")
     
     badness_count1 = 0
@@ -514,16 +516,16 @@ class Mscript
         puts [
           code.gene.name,
           code.lethal?,
-          #code.is_enzyme?,
-          #code.is_gpcr?,
+          code.is_enzyme?,
+          code.is_gpcr?,
           code.wormnet_core_number_interactions,
           code.wormnet_core_total_linkage_scores,
           code.wormnet_full_number_interactions,
           code.wormnet_full_total_linkage_scores,
           #for genes not in orthomcl groups need to comment out the next couple of lines
-          #code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
-          #true : false,
-          #code.single_orthomcl.orthomcl_group.orthomcl_genes.codes('cel').count
+         code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
+          true : false,
+          code.single_orthomcl.orthomcl_group.orthomcl_genes.codes('cel').count
         ].join("\t")
       rescue OrthomclGene::UnexpectedCodingRegionCount
         badness_count1 += 1
