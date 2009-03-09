@@ -511,6 +511,7 @@ class Mscript
     
     CSV.open(filename, 'r') do |gene|
       begin
+        $stderr.puts gene.inspect
         code = OrthomclGene.find_by_orthomcl_name(gene).single_code
         $stderr.print "#{code.string_id}.."
         puts [
@@ -528,8 +529,10 @@ class Mscript
           code.single_orthomcl.orthomcl_group.orthomcl_genes.codes('cel').count
         ].join("\t")
       rescue OrthomclGene::UnexpectedCodingRegionCount
+        $stderr.puts "No coding region"
         badness_count1 += 1
       rescue RException
+        $stderr.puts "RException"
         badness_count2 += 1
           
       end
