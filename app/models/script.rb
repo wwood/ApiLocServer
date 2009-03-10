@@ -7781,4 +7781,10 @@ PFL2395c
       
     end
   end
+
+  def bug_test
+#    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_first9000")
+#    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_last8411")
+    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_NOT_in_groups")
+  end
 end
