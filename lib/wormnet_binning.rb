@@ -22,7 +22,12 @@ FasterCSV.foreach(ARGV[0], :headers => true, :col_sep => "\t") do |splits|
   lethal =  splits[1]
 
   # split data into bins, bins will be e.g. scores = 0, 1-10, 11-20
-  bin_number = (score/bin_size).to_i
+  # scores of exactly 0 are kept in a separate bin
+  bin_number = 0
+  if score > 0
+    bin_number = (score/bin_size).to_i+1
+  end
+  
   bins[bin_number] ||= [] #if that bin is a new bin (ie. bins[bin_number]==nil), then initialize as an empty array
   if lethal == 'true'
     bins[bin_number].push 1
@@ -33,8 +38,15 @@ end
   
 # Then, after reading the whole file, analyze each of the bins
 bins.each_with_index do |bin, index|
+  bin_range = nil
+  if index == 0
+    bin_range =  0
+  else
+    bin_range = "#{(index-1)*bin_size}-#{index*bin_size}"
+  end
+  
   puts [
-    "#{index*bin_size}-#{(index+1)*bin_size}",
+    bin_range,
     (bin.average*100).round
   ].join("\t")
 end
