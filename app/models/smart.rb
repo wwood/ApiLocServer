@@ -1,0 +1,2 @@
+class Smart < ConservedDomain
+end

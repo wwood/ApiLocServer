@@ -1,5 +1,6 @@
 ActionController::Routing::Routes.draw do |map|
-  map.resources :publications
+  map.connect 'publications/fulltext/:pmid', :controller => 'publications', :action => 'fulltext'
+  map.resources :publications, {:fulltext => :put}
 
   map.resources :expression_contexts
 
@@ -55,6 +56,7 @@ ActionController::Routing::Routes.draw do |map|
 
   map.connect 'coding_regions/export/:strings', :controller => 'coding_regions', :action => 'export'
   map.connect 'coding_regions/export', :controller => 'coding_regions', :action => 'export'
+  map.connect 'coding_regions/show', :controller => 'coding_regions', :action => 'show'
   map.resources :coding_regions, :member =>  {:annotate => :put, :comment => :get}
 
   map.resources :genes
@@ -62,7 +64,8 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :taxons
 
   map.resources :taxon_names
-  
+
+  map.connect 'expression_contexts/show', :controller => 'expression_contexts', :action => 'show'
   map.resources :expression_contexts
 
   # The priority is based upon order of creation: first created -> highest priority.

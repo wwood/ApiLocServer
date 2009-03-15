@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090227045654) do
+ActiveRecord::Schema.define(:version => 20090302062031) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -208,6 +208,20 @@ ActiveRecord::Schema.define(:version => 20090227045654) do
     t.datetime "updated_at"
   end
 
+  create_table "conserved_domains", :force => true do |t|
+    t.integer  "coding_region_id", :null => false
+    t.string   "type",             :null => false
+    t.string   "identifier",       :null => false
+    t.integer  "start",            :null => false
+    t.integer  "stop",             :null => false
+    t.float    "score",            :null => false
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "conserved_domains", ["coding_region_id", "type"], :name => "index_conserved_domains_on_coding_region_id_and_type"
+
   create_table "derisi20063d7logmean", :force => true do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -367,6 +381,16 @@ ActiveRecord::Schema.define(:version => 20090227045654) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "go_term_offsprings", :force => true do |t|
+    t.integer  "go_term_id",           :null => false
+    t.integer  "offspring_go_term_id", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "go_term_offsprings", ["go_term_id", "offspring_go_term_id"], :name => "index_go_term_offsprings_on_go_term_id_and_offspring_go_term_id", :unique => true
+  add_index "go_term_offsprings", ["go_term_id"], :name => "index_go_term_offsprings_on_go_term_id"
 
   create_table "go_terms", :force => true do |t|
     t.string   "go_identifier"
@@ -630,6 +654,22 @@ ActiveRecord::Schema.define(:version => 20090227045654) do
   add_index "probe_map_entries", ["probe_id", "probe_map_id"], :name => "index_probe_map_entries_on_probe_map_id_and_probe_id"
 
   create_table "probe_maps", :force => true do |t|
+    t.string   "name",       :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "proteomic_experiment_results", :force => true do |t|
+    t.integer  "coding_region_id",        :null => false
+    t.integer  "number_of_peptides"
+    t.float    "spectrum"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.float    "percentage"
+    t.integer  "proteomic_experiment_id", :null => false
+  end
+
+  create_table "proteomic_experiments", :force => true do |t|
     t.string   "name",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"

@@ -1,0 +1,17 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  coding_region_id: 1
+  type: MyString
+  identifier: MyString
+  start: 1
+  stop: 1
+  score: 1.5
+
+two:
+  coding_region_id: 1
+  type: MyString
+  identifier: MyString
+  start: 1
+  stop: 1
+  score: 1.5

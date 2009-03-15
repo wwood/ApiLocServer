@@ -118,6 +118,24 @@ class Verification < ActiveRecord::Base
         $stderr.puts "Scaffold length - found #{l}, expected #{expected_length}"
       end
     end
+
+    # Conserved Domains
+    unless CodingRegion.ff('PFC1120c').conserved_domains.reach.identifier.uniq.sort ==
+        %w(PF03011 PF05424 SSF46689).sort
+      $stderr.puts "Conserved domains: #{CodingRegion.ff('PFC1120c').conserved_domains.reach.identifier.uniq.sort}"
+    end
+    raise unless CodingRegion.ff('PFC1045c').conserved_domains.count == 18
+
+    # PFC1060c	PFAM	PF03343	SART-1	1	669	   .0E+00
+    raise unless CodingRegion.ff('PFC1060c').conserved_domains.first.pick(:identifier, :name, :start, :stop, :score) ==
+      ['PF03343', 'SART-1', 1, 669, 0.0]
+
+    #    ben@ben:~/phd/gnr$ awk '{print $1}' /home/ben/phd/data/falciparum/proteomics/FoodVacuole2008/FoodVacuoleProteome.csv |grep '^[PQO][01-9]' |wc -l
+    #116
+    $stderr.puts "Food Vacuole Proteomics no good" unless FvProteomicExperimentResult.count == 116
+
+    # Whole Cell Proteomics
+    
   end
   
   def gene_lists
@@ -225,15 +243,15 @@ class Verification < ActiveRecord::Base
     if ! method
       p "No Yeast GFP localisation method found"
     end
-    codes = CodingRegion.s(Species.yeast_name).count(:select => 'coding_region_locaisations.id',
+    codes = CodingRegion.s(Species.yeast_name).count(:select => 'coding_region_localisations.id',
       :conditions => "localisation_method_id=#{method.id}",
       :joins => :localisations
     )
     expected = 4152
-    if codes.length != expected
+    if codes != expected
       # not 4160 (the simple count) because some of them are duplicates of the same
       # ORF
-      puts "number of coding_region_localisations, #{codes.length} vs expected #{expected}"
+      puts "number of coding_region_localisations, #{codes} vs expected #{expected}"
     end
     
     locs = Localisation.find(:all,

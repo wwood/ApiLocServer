@@ -7,7 +7,7 @@
 <% for coding_region in @coding_regions %>
   <tr>
     <td><%= link_to coding_region.species.name, :controller => :species, :action => :show, :id => coding_region.species %></td>
-    <td><%= link_to coding_region.names.join(', '), :action => :show, :id => coding_region %></td>
+    <td><%= link_to coding_region.names.join(', '), :action => :show, :params => {:id => coding_region} %></td>
     <td><%= coding_region.annotation.nil? ? 'no annotation' : coding_region.annotation.annotation %></td>
   </tr>
 <% end %>

@@ -241,39 +241,43 @@ class WScript
   end
   
   def all_genes_including_genes_not_in_orthomclgroups
-    species = [
+    arrays = [
       ['cel']  
       #['mmu'] 
       #['dme']
       #['sce']
     ]
-    #made new LethalCount class for genes not in groups as the other LethalCount class prints out info for groups
-    lc = LethalCount2.new
-    lc.total_count = OrthomclGene.code(species).count
-         
-    lethal_count = 0
-    phenotype_count = 0
-    missing_count = 0
-    OrthomclGene.code(species).each do |og|       
-          
-      begin
-        lethal = og.single_code.lethal?
-        if lethal
-          phenotype_count += 1
-          lethal_count += 1
-        elsif lethal.nil?
-        else
-          phenotype_count += 1
-        end
-      rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
-        missing_count += 1
-      end
-    end
     
-    lc.lethal_count = lethal_count
-    lc.phenotype_count = phenotype_count
-    lc.missing_count = missing_count
-    puts lc.to_s
+    arrays.each do |species|
+      #made new LethalCount class for genes not in groups as the other LethalCount class prints out info for groups
+      lc = LethalCount2.new
+      lc.total_count = OrthomclGene.code(species).count
+         
+      lethal_count = 0
+      phenotype_count = 0
+      missing_count = 0
+      OrthomclGene.code(species).each do |og|       
+          
+        begin
+          lethal = og.single_code.lethal?
+          if lethal
+            phenotype_count += 1
+            lethal_count += 1
+          elsif lethal.nil?
+          else
+            phenotype_count += 1
+          end
+        rescue OrthomclGene::UnexpectedCodingRegionCount => e #if it doesn't match to a single coding region then count - other errors will filter through
+          puts e
+          missing_count += 1
+        end
+      end
+    
+      lc.lethal_count = lethal_count
+      lc.phenotype_count = phenotype_count
+      lc.missing_count = missing_count
+      puts lc.to_s
+    end
   end
     
   

@@ -72,6 +72,10 @@ class CodingRegionsController < ApplicationController
   # GET /coding_regions/1.xml
   def show
     @coding_region = CodingRegion.f(params[:id])
+    render :action => :show, :format => :html
+#    respond_to do |format|
+#      format.html # new.html.erb
+#    end
   end
 
   # GET /coding_regions/new

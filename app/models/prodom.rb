@@ -1,0 +1,2 @@
+class Prodom < ConservedDomain
+end

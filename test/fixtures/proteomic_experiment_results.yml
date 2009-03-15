@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  coding_region_id: 1
+  number_of_peptides: 1
+  spectrum: 1.5
+
+two:
+  coding_region_id: 1
+  number_of_peptides: 1
+  spectrum: 1.5

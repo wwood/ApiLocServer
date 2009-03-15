@@ -7497,7 +7497,7 @@ PFL2395c
   # are lethal vs all genes with that go term. The idea is to find go terms that
   # are more lethal than others.
   def go_terms_predict_lethality
-    go_terms = GoTerm.find_all_by_aspect('cellular_component', :limit => 2)
+    go_terms = GoTerm.find_all_by_aspect('cellular_component')
     go_identifiers = go_terms.reach.go_identifier.retract
     
     [Species::YEAST_NAME, Species::ELEGANS_NAME].each do |name|
@@ -7639,5 +7639,152 @@ PFL2395c
         index += 1 if sequence
       end
     end
+  end
+
+  def upload_conserved_domains
+    ConservedDomain.new.upload_from_eupathdb("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumInterpro_PlasmoDB-5.5.txt", Species::FALCIPARUM_NAME)
+  end
+
+  def conserved_domains_explore
+    ConservedDomain::TYPES.each do |domain_type|
+      collected = []
+      domain_type.all(:select => 'distinct(identifier)', :joins => {:coding_region => :expressed_localisations}).each do |domain|
+        d = domain_type.find_by_identifier(domain.identifier)
+        block = [
+          CodingRegion.falciparum.count(:select => 'distinct(coding_regions.id)',
+            :joins => [:conserved_domains, :expressed_localisations],
+            :conditions => {:conserved_domains => {:identifier => domain.identifier}}),
+          CodingRegion.falciparum.count(:select => 'distinct(coding_regions.id)',
+            :joins => :conserved_domains,
+            :conditions => {:conserved_domains => {:identifier => domain.identifier}}),
+          domain.identifier,
+          d.name,
+          CodingRegion.falciparum.all(:select => 'distinct(coding_regions.id)',
+            :joins => [:conserved_domains, :expressed_localisations],
+            :conditions => {:conserved_domains => {:identifier => domain.identifier}}
+          ).collect{|c| "#{c.annotation.annotation}: #{c.tops.uniq.reach.name.join('|')}"},
+        ]
+        collected.push block
+      end
+
+      File.open("#{PHD_DIR}/domains/explore_#{domain_type}.csv",'w') do |f|
+        f.puts collected.sort{|a,b| b[0].to_i <=> a[0].to_i}.collect{|a| a.join("\t")}.join("\n")
+      end
+    end
+  end
+
+  def food_vacuole_proteome_to_database
+    exp = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME)
+
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/FoodVacuole2008/FoodVacuoleProteome.csv",
+      :col_sep => "\t"
+    ) do |row|
+      next unless row[0] and row[0].strip.length > 0
+
+      plasmo = row[1].strip
+      peptides = row[4].strip.to_i
+      code = CodingRegion.ff(plasmo)
+      if code
+        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_proteomic_experiment_id(
+          code.id,
+          peptides,
+          exp.id
+        )
+      else
+        $stderr.puts "Cmon #{plasmo} from #{row.inspect}"
+      end
+    end
+  end
+
+  def whole_cell_proteome_to_database
+    header = true #still in the top crap?
+    finished = false
+    code = nil
+    first = true
+    skipping = false
+
+    sp = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_SPOROZOITE_NAME)
+    mero = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME)
+    troph = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME)
+    game = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME)
+
+    #how many peptides per coding region given
+    sp_count = 0
+    mero_count = 0
+    troph_count = 0
+    game_count = 0
+
+    sp_percent = nil
+    mero_percent = nil
+    troph_percent = nil
+    game_percent = nil
+    
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/WholeCell2002/nature01107-s1.csv",
+      :col_sep => "\t"
+    ) do |row|
+      if header
+        next unless row[0] == "Locus (a)"
+        header = false
+        next
+      end
+
+      # What is this rubbish?
+      next if row[1] == 'X' or row[2] == 'X' or row[3] == 'X' or row[4] == 'X'
+      break if row[0] == 'Summary'
+
+      unless row[0] and row[0].strip.length > 0 #blank lines indicate the end of a protein block
+        finished = true
+        skipping = false
+      else
+        next if skipping
+        
+        if finished
+          # start a new block of hits for a gene
+          plasmo = row[0].strip
+          # skip some
+          if %w(PFD0845w PFD0965w PFD0510c).include?(plasmo)
+            $stderr.puts "Ignoring #{plasmo} as expected."
+            skipping = true
+            next
+          end
+          code = CodingRegion.ff(plasmo) or raise Exception, "Couldn't find #{row[0].strip} in #{row.inspect}"
+
+          if first
+            first = false
+          else
+            # upload the coding region from last time
+            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, sp_count, sp_percent, sp.id) if sp_count > 0
+            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, mero_count, mero_percent, mero.id) if mero_count > 0
+            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, troph_count, troph_percent, troph.id) if troph_count > 0
+            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, game_count, game_percent, game.id) if game_count > 0
+          end
+          # reset the stuff
+          sp_count = 0
+          mero_count = 0
+          troph_count = 0
+          game_count = 0
+
+          sp_percent = row[1]
+          mero_percent = row[2]
+          troph_percent = row[3]
+          game_percent = row[4]
+
+          finished = false
+        else
+          # a row containing info on 1 peptide
+          sp_count += 1 if row[1] and row[1].strip.length > 0
+          mero_count += 1 if row[2] and row[2].strip.length > 0
+          troph_count += 1 if row[3] and row[3].strip.length > 0
+          game_count += 1 if row[4] and row[4].strip.length > 0
+        end
+      end
+      
+    end
+  end
+
+  def bug_test
+#    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_first9000")
+#    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_last8411")
+    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_NOT_in_groups")
   end
 end

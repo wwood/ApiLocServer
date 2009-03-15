@@ -1,3 +1,10 @@
+class Object
+  def pick(*method_symbols)
+    method_symbols.collect do |symbol|
+      self.send(symbol)
+    end
+  end
+end
 
 # An added method for an array class that return the pairs of classes
 class Array
@@ -33,7 +40,12 @@ class Array
   #  def sum; inject( nil ) { |sum,x| sum ? sum+x : x }; end;
   
   def average
-    sum.to_f / length.to_f
+    if Array.new.respond_to?(:sum)
+      sum.to_f / length.to_f
+    else
+      total = 0.0; each{|e| total+=e}
+      total / length.to_f
+    end
   end
   
   #  Run the method given on each member of the array, then
