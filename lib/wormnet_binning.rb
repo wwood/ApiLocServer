@@ -47,6 +47,6 @@ bins.each_with_index do |bin, index|
   
   puts [
     bin_range,
-    (bin.average*100).round
+    bin.nil? ? 0 : (bin.average*100).round
   ].join("\t")
 end
