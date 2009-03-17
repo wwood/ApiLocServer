@@ -7787,4 +7787,16 @@ PFL2395c
 #    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_last8411")
     Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_NOT_in_groups")
   end
+
+  def yeast_mrna_decay_fasta
+    File.open("#{PHD_DIR}/mRNA_degradation/yeast.GO0000184.txt").each do |line|
+      line.strip!
+      code = CodingRegion.fs(line, 'yeast')
+      if code
+        puts code.amino_acid_sequence.fasta
+      else
+        $stderr.puts "Couldn't find #{line}"
+      end
+    end
+  end
 end
