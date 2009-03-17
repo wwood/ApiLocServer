@@ -51,6 +51,7 @@ end
 puts [
   "Score range",
   "No. genes",
+  "Lethal Gene",
   "Lethal(%)"
 ].join("\t")
 
@@ -74,6 +75,7 @@ bins.each_with_index do |bin, index|
   puts [
     bin_range,
     numgen,
+    (bin.nil? ? 0 : bin.sum),
     wscore
   ].join("\t")
 end
