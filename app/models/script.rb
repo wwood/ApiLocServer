@@ -2247,7 +2247,10 @@ class Script < ActiveRecord::Base
         name = yield f.name
       end
       code = CodingRegion.fs(name, species.name)
-      raise Exception, "No coding region found to attach a sequence/annotation to: #{f.name}" if !code
+      unless code
+        $stderr.puts "No coding region found to attach a sequence/annotation to: #{f.name}. Ignored."
+        next
+      end
       TranscriptSequence.find_or_create_by_coding_region_id_and_sequence(
         code.id,
         f.sequence
@@ -4199,7 +4202,7 @@ class Script < ActiveRecord::Base
     DevelopmentalStage.new.upload_known_falciparum_developmental_stages
     Localisation.new.upload_known_localisations
     Localisation.new.upload_localisation_synonyms
-    Localisation.new.upload_other_falciparum_list
+    Localisation.new.upload_falciparum_list
     TopLevelLocalisation.new.upload_localisations
   end
   

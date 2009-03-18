@@ -327,6 +327,10 @@ class SpreadsheetGenerator
       @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "log of Jiang et al #{s} 10kb SFP Count"} if @first
       @current_row.push code.jiangs.collect{|j| j == 0.0 ? -1 : Math.log(j)}
       check_headings
+
+      @headings.push 'AT content' if @first
+      @current_row.push code.at_content
+      check_headings
       
       # Localisation is last because WEKA's default is to predict the
       # last attribute

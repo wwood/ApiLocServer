@@ -136,6 +136,12 @@ class ApiDbFastaTest < Test::Unit::TestCase
     assert_equal 'PF14_0043', p.name
     assert_equal 'MAL14', p.scaffold
     assert_equal 'hypothetical protein', p.annotation
+
+    # test empty product annoying one
+    p = fa.parse_name('psu|PF08_tmp2 | organism=Plasmodium_falciparum_3D7 | product= | location=MAL8:100014-100175(-) | length=162')
+    assert_equal 'PF08_tmp2', p.name
+    assert_equal 'MAL8', p.scaffold
+    assert_equal '', p.annotation
     
     fa = ApiDbFasta5p5.new.load('lib/testFiles/falciparum5.5.extract.fa')
     seq = 'MEENLMKLGTLMLLGFGEAGAKIISKNINEQERVNLLINGEIVYSVFSFCDIRNFTEITEVLKEKIMIFINLIAEIIHECCDFYGGTINKNIGDAFLLVWKYQKKEYSNKKMNMFKSPNNNYDEYSEKENINRICDLAFLSTVQTLIKLRKSEKIHIFLNNENMDELIKNNILELSFGLHFGWAIEGAIGSSYKIDLSYLSENVNIASRLQDISKIYKNNIVISGDFYDNMSEKFKVFDDIKKKAERKKRKKEVLNLSYNLYEEYAKNDDIKFIKIHYPKDYLEQFKIALESYLIGKWNESKNILEYLKRNNIFEDEILNQLWNFLSMNNFIAPSDWCGYRKFLQKS'

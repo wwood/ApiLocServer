@@ -11,3 +11,9 @@
    coding_region_id: 2
    type: AminoAcidSequence
    sequence: TSPFIIIINIIDIFHHSYLLYFIFSFNFITIIFFYYYVEKSIFIFIFIIKYTFSYHIIIF
+
+ transcript:
+   id: 3
+   coding_region_id: 2
+   type: TranscriptSequence
+   sequence: ATAGA

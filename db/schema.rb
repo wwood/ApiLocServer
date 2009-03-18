@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090302062031) do
+ActiveRecord::Schema.define(:version => 20090318050322) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -191,7 +191,7 @@ ActiveRecord::Schema.define(:version => 20090302062031) do
 
   create_table "comments", :force => true do |t|
     t.integer  "expression_context_id", :null => false
-    t.string   "comment",               :null => false
+    t.text     "comment",               :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
