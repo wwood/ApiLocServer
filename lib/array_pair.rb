@@ -37,7 +37,7 @@ class Array
   # is this included in Ruby 1.8.5, which is on reefedge?
   # Defining this method seems to make rails fail. Is it defined in Rails
   # somehow as well?
-  def sum; inject( nil ) { |sum,x| sum ? sum+x : x }; end;
+#  def sum; inject( nil ) { |sum,x| sum ? sum+x : x }; end;
   
   def average
     if Array.new.respond_to?(:sum)

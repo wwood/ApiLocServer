@@ -509,7 +509,7 @@ class CodingRegion < ActiveRecord::Base
       end
       return false
     elsif get_species.name == Species.fly_name
-      obs = drosophila_allele_genes.pick(:drosophila_allele_phenotypes).flatten
+      obs = drosophila_allele_genes.reach.drosophila_allele_phenotypes.flatten
       raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
       obs.each do |ob|
         return true if ob.lethal?
@@ -531,7 +531,7 @@ class CodingRegion < ActiveRecord::Base
     elsif get_species.name == Species.yeast_name
       return yeast_pheno_infos.trusted.count > 0
     elsif get_species.name == Species.fly_name
-      return !drosophila_allele_genes.pick(:drosophila_allele_phenotypes).flatten.empty?
+      return !(drosophila_allele_genes.collect{|g| g.drosophila_allele_phenotypes}.flatten.empty?)
     else
       raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
     end

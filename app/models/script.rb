@@ -7783,8 +7783,8 @@ PFL2395c
   end
 
   def bug_test
-#    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_first9000")
-#    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_last8411")
+    #    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_first9000")
+    #    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_last8411")
     Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_NOT_in_groups")
   end
 
@@ -7798,5 +7798,48 @@ PFL2395c
         $stderr.puts "Couldn't find #{line}"
       end
     end
+  end
+
+  def lineage_specific_essentiality
+    puts [
+      "Species",
+      'lethal',
+      'total',
+      'percent'
+    ].join("\t")
+
+    [
+      Species::DROSOPHILA_NAME,
+      Species::YEAST_NAME,
+      Species::ELEGANS_NAME,
+      Species::MOUSE_NAME
+    ].each do |species_name|
+      species = Species.find_by_name(species_name)
+      lethal_count = 0
+      total_count = 0
+
+      OrthomclGene.official.no_group.code(species.orthomcl_three_letter).all.each do |og|
+        begin
+          lethal = og.single_code.lethal?
+          if lethal
+            lethal_count += 1
+            total_count += 1
+          elsif lethal.nil?
+          else
+            total_count += 1
+          end
+        
+        rescue OrthomclGene::UnexpectedCodingRegionCount
+        end
+      end
+
+      puts [
+        species.name,
+        lethal_count,
+        total_count,
+        lethal_count.to_f/total_count.to_f*100
+      ].join("\t")
+    end
+
   end
 end

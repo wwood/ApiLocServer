@@ -6,4 +6,4 @@ one:
 
 two:
   go_term_id: 1
-  offspring_go_term_id: 1
+  offspring_go_term_id: 2
