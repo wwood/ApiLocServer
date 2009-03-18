@@ -26,6 +26,7 @@ module Bio
                 raise Exception, "Running tandem repeat finder program failed. See $? for details."
               end
               output = File.open("#{tempfilein.path}.dat").read
+              puts output
             end
           end
         }
@@ -34,7 +35,7 @@ module Bio
     end
     class TandemRepeatFinderResult < Array
       def self.create_from_dat_file(dat_file_read)
-        raise
+        r = self.new
       end
     end
   end

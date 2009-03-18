@@ -124,4 +124,9 @@ class CodingRegion < ActiveRecord::Base
   def at_content
     transcript_sequence.at_content
   end
+  
+  def tandem_repeats
+    require 'tandem_repeat_finder'
+    Bio::Tande
+  end
 end
