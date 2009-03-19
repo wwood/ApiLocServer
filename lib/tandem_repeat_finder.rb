@@ -4,7 +4,7 @@ require 'tempdir'
 module Bio
   class TandemRepeatFinder
     class Wrapper
-      # Run TRF (Tandem Repeat Finder) and return a TandemRepeatFinderResult
+      # Run TRF (Tandem Repeat Finder) and return a TandemRepeatFinder::Result
       # object on the (purely sequence, not fasta) string
       def run(sequence)
         output = nil
@@ -30,11 +30,11 @@ module Bio
             output = File.open("#{tempfilein.path}.2.7.7.80.10.50.500.dat").read
           end
         end
-        return TandemRepeatFinderResult.create_from_dat_file(output)
+        return Result.create_from_dat_file(output)
       end
     end
     
-    class TandemRepeatFinderResult < Array
+    class Result < Array
       def self.create_from_dat_file(dat_file_read)
         splits = dat_file_read.split("\n")
 
@@ -54,6 +54,18 @@ module Bio
         end
 
         r
+      end
+
+      # the total number of nucleotides covered. Some repeats can be overlapping
+      # and this is accounted for
+      def length_covered
+        nukes = []
+        each do |repeat|
+          (repeat.start..repeat.stop).each do |position|
+            nukes.push position
+          end
+        end
+        return nukes.uniq.length
       end
     end
 

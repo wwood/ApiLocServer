@@ -6,6 +6,7 @@ require 'plasmo_a_p'
 require 'export_pred'
 require 'bl2seq_report_shuffling'
 require 'signalp'
+require 'radar'
 
 class AminoAcidSequence < Sequence
   belongs_to :coding_region
@@ -93,5 +94,9 @@ class AminoAcidSequence < Sequence
   def tmhmm_minus_signal_peptide
     sp = signal_p.cleave(sequence)
     tmhmm(sp)
+  end
+
+  def radar_repeats
+    Bio::Radar::Wrapper.new.run(sequence)
   end
 end

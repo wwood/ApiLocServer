@@ -1,3 +1,4 @@
+require 'tandem_repeat_finder'
 
 # A transcript
 class TranscriptSequence < Sequence
@@ -13,5 +14,10 @@ class TranscriptSequence < Sequence
     to_return = Bio::Sequence.auto(Bio::Sequence::NA.new(sequence))
     to_return.entry_id = coding_region.string_id
     return to_return
+  end
+
+  def tandem_repeats
+    return nil unless sequence and sequence.length > 0
+    Bio::TandemRepeatFinder::Wrapper.new.run(sequence)
   end
 end

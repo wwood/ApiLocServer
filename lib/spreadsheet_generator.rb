@@ -331,6 +331,17 @@ class SpreadsheetGenerator
       @headings.push 'AT content' if @first
       @current_row.push code.at_content
       check_headings
+
+      @headings.push 'Number of tandem repeats' if @first
+      @headings.push 'Nucleotides covered length' if @first
+      repeats = code.transcript_sequence.tandem_repeats
+      @current_row.push repeats.length
+      @current_row.push repeats.length_covered
+      check_headings
+
+      @headings.push 'Number of repeats (by radar)' if @first
+      @current_row.push code.amino_acid_sequence.radar_repeats.length
+      check_headings
       
       # Localisation is last because WEKA's default is to predict the
       # last attribute
