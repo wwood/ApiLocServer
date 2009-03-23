@@ -111,8 +111,7 @@ bins1.each_with_index do |bin1, index|
     (bin1.nil? ? 0 : bin1.total),
     wscore,
     nomamnumgen,
-    nomamscore,
-    (bin2.nil? ? 0 : bin2.total)
-
+    (bin2.nil? ? 0 : bin2.total),
+    nomamscore
   ].join("\t")
 end
