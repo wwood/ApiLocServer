@@ -9,7 +9,7 @@ class SpreadsheetGenerator
   
   def prepare
     s = Script.new
-    OrthomclGene.new.link_orthomcl_and_coding_regions(['pfa'])
+#    OrthomclGene.new.link_orthomcl_and_coding_regions(['pfa'])
     s.seven_species_orthomcl_upload
     s.upload_snp_data_jeffares
     s.upload_neafsey_2008_snp_data
@@ -19,6 +19,14 @@ class SpreadsheetGenerator
   end
   
   def arff
+    puts generate_spreadsheet(
+      PlasmodbGeneList.find_by_description(
+        PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+      ).coding_regions
+    ).to_arff
+  end
+
+  def generate_spreadsheet(coding_regions)
     # headings
     @headings = []
 
@@ -37,9 +45,7 @@ class SpreadsheetGenerator
     merged_genes = ['PFD0100c']
     
     # For all genes that only have 1 localisation and that are non-redundant
-    PlasmodbGeneList.find_by_description(
-      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
-    ).coding_regions.each do |code|
+    coding_regions.each do |code|
       #    CodingRegion.species_name(Species.falciparum_name).all(
       #      :select => 'distinct(coding_regions.*)',
       #      :joins => {:expressed_localisations => :malaria_top_level_localisation}
@@ -364,7 +370,7 @@ class SpreadsheetGenerator
     # Make some attributes noiminal instead of String
     rarff_relation.set_string_attributes_to_nominal
     
-    puts rarff_relation.to_arff
+    return rarff_relation
   end
   
   private
