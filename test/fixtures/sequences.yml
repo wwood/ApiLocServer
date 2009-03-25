@@ -22,4 +22,9 @@ tandem:
    coding_region_id: 3
    type: TranscriptSequence
    sequence: AGGGGTTTGGGGGAGGGGTTTGGGGGAGGGGTTTGGGGG
+signal_peptide_and_tmhmm:
+   id: 5
+   coding_region_id: 2
+   type: AminoAcidSequence
+   sequence: AAAAAAAAAAAAAAAAAAEEEEEETSPFIIIINIIDIFHHSYLLYFIFSFNFITIIFFYYYVEKSIFIFIFIIKYTFSYHIIIF
 

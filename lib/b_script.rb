@@ -34,7 +34,7 @@ WORK_DIR = "#{ENV['HOME']}/Workspace"
 
 
 
-class Script < ActiveRecord::Base  
+class BScript
   PHD_DIR = "#{ENV['HOME']}/phd"
   DATA_DIR = "#{ENV['HOME']}/phd/data"
   
@@ -7725,5 +7725,29 @@ PFL2395c
       ].join("\t")
     end
 
+  end
+
+  # make a spreadsheet for florian so that we can compare the different
+  # localisations.
+  # manualXX.csv was created by copying from the spreadsheets florian gave me in
+  # https://mail.google.com/mail/?zx=hbp8tycn7jiw&shva=1#inbox/1203ab991564fd7a
+  def florian_manual_tmd_to_spreadsheet
+    FasterCSV.foreach("#{PHD_DIR}/florian manual tmd/manual20090325.csv", :headers => true) do |row|
+      localisation = row[0]
+      plasmo_id = row[1]
+      tmd_string = row[2]
+
+      #parse the tmd bit
+      tmds = tmd_string.split('-')
+      raise unless tmd_string.length == 2
+      tmd = Transmembrane.new
+      tmd.start = tmds[0].strip.to_i
+      tmd.stop = tmds[1].strip.to_i
+
+      code = CodingRegion.ff(plasmo_id)
+      raise unless code
+
+      # make the names of the
+    end
   end
 end

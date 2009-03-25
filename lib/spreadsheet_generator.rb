@@ -1,4 +1,5 @@
 require 'rarff'
+require 'b_script'
 
 # A class to export data from the database to a format of choice. Originally
 # taken out of Script because it was getting big and unweildy and in need
@@ -8,8 +9,8 @@ class SpreadsheetGenerator
   include MicroarrayTimepointNames
   
   def prepare
-    s = Script.new
-#    OrthomclGene.new.link_orthomcl_and_coding_regions(['pfa'])
+    s = BScript.new
+    OrthomclGene.new.link_orthomcl_and_coding_regions(['pfa'])
     s.seven_species_orthomcl_upload
     s.upload_snp_data_jeffares
     s.upload_neafsey_2008_snp_data
