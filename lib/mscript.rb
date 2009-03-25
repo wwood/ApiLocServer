@@ -365,31 +365,31 @@ class Mscript
   
  
  
-  def drosophila_phenotypes_to_db(dir = '/home/maria/Desktop/Essentiality/Drosophila')
+  def drosophila_phenotypes_to_db(dir = "#{DATA_DIR}/Essentiality/Drosophila")
     
     dummy = Gene.new.create_dummy(Species.fly_name)
 
-    #    File.open("#{dir}/fbal_fbgn_annotation_id.txt").each do |row|
-    #      #first 2 lines are headers so skip  
-    #      next if $. <= 2
-    #      splits = row.strip.split("\t")
-    #      
-    #      gene_name = splits[4]
-    #      allele_name = splits[0]
-    #      
-    #      code = CodingRegion.find_by_name_or_alternate_and_organism(gene_name, Species.fly_name)
-    #      if !code
-    #        code = CodingRegion.create(:gene_id => dummy.id, :string_id => gene_name)
-    #      end
-    #      
-    #      #Then create allele gene table with
-    #      ag = DrosophilaAlleleGene.find_or_create_by_allele(allele_name)
-    #      
-    #      CodingRegionDrosophilaAlleleGene.find_or_create_by_coding_region_id_and_drosophila_allele_gene_id(
-    #        code.id,
-    #        ag.id
-    #      )
-    #    end
+        File.open("#{dir}/fbal_fbgn_annotation_id.txt").each do |row|
+          #first 2 lines are headers so skip  
+          next if $. <= 2
+          splits = row.strip.split("\t")
+          
+          gene_name = splits[4]
+          allele_name = splits[0]
+          
+          code = CodingRegion.find_by_name_or_alternate_and_organism(gene_name, Species.fly_name)
+          if !code
+            code = CodingRegion.create(:gene_id => dummy.id, :string_id => gene_name)
+          end
+          
+          #Then create allele gene table with
+          ag = DrosophilaAlleleGene.find_or_create_by_allele(allele_name)
+          
+          CodingRegionDrosophilaAlleleGene.find_or_create_by_coding_region_id_and_drosophila_allele_gene_id(
+            code.id,
+            ag.id
+          )
+        end
 
     #Then create allele phenotype table. The format of the phenotype input file is as follows
     #allele_symbol allele_FBal#    phenotype       FBrf#
@@ -402,7 +402,7 @@ class Mscript
 
       #retrieve id for allele from drosophila_allele_gene_table
       name = splits[1].strip
-      splits[2].split(' | ').each do |phenotype|
+      phenotype = splits[2]
         g = DrosophilaAlleleGene.find_by_allele(name)
         if !g
           $stderr.puts "Couldn't find gene with allele #{name}"
@@ -411,7 +411,6 @@ class Mscript
           DrosophilaAllelePhenotypeDrosophilaAlleleGene.find_or_create_by_drosophila_allele_gene_id_and_drosophila_allele_phenotype_id(
             g.id, ph.id
           )
-        end
       end
     end
   end
