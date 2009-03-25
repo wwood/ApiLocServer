@@ -101,11 +101,14 @@ class AminoAcidSequence < Sequence
   
   def tmhmm_minus_signal_peptide
     result = signal_p
-    sp = result.cleave(sequence)
-    tmhmm(
-      result.cleave(sequence),
-      result.cleavage_site-1
-    )
+    if result.signal?
+      return tmhmm(
+        result.cleave(sequence),
+        result.cleavage_site-1
+      )
+    else
+      return tmhmm(sequence)
+    end
   end
 
   def radar_repeats
