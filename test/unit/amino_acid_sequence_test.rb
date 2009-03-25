@@ -15,10 +15,34 @@ class AminoAcidSequenceTest < ActiveSupport::TestCase
   end
 
   def test_tmhmm
-    tmd = AminoAcidSequence.find(5)
+    tmd = AminoAcidSequence.find(2)
+
+    # test normal one
     t = tmd.tmhmm
     assert_equal 2, t.transmembrane_domains.length
     assert_equal 15, t.transmembrane_domains[0].start
     assert_equal 59, t.transmembrane_domains[1].stop
+
+    # A more difficult one
+    t = tmd.tmhmm(tmd.sequence, 3)
+    assert_equal 2, t.transmembrane_domains.length
+    assert_equal 15+3, t.transmembrane_domains[0].start
+    assert_equal 59+3, t.transmembrane_domains[1].stop
+  end
+
+  def test_tmhmm_plus_signal_peptide
+    # test normal one
+    tmd = AminoAcidSequence.find(2)
+    t = tmd.tmhmm_minus_signal_peptide
+    assert_equal 2, t.transmembrane_domains.length
+    assert_equal 15, t.transmembrane_domains[0].start
+    assert_equal 59, t.transmembrane_domains[1].stop
+
+    # A more difficult one, that has a SP and 2 TMDs
+    tmd = AminoAcidSequence.find(5)
+    t = tmd.tmhmm_minus_signal_peptide
+    assert_equal 2, t.transmembrane_domains.length
+    assert_equal 24+18, t.transmembrane_domains[0].start
+    assert_equal 65+18, t.transmembrane_domains[1].stop
   end
 end
