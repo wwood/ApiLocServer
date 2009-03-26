@@ -52,6 +52,7 @@ class Localisation < ActiveRecord::Base
     'sporozoite cytoplasm',
     #      'ookinete', #mosquito stage locs - removed because there's no locs here (yet!)
     'ookinete microneme',
+    'ookinete surface',
     'hepatocyte cytoplasm',
     'hepatocyte nucleus',
     'hepatocyte parasitophorous vacuole membrane',
@@ -116,6 +117,7 @@ class Localisation < ActiveRecord::Base
       'limiting membranes' => 'parasite plasma membrane',
       'dense granules' => 'dense granule',
       'rhoptry neck' => 'rhoptry',
+      'rhoptry bulb' => 'rhoptry',
       'hepatocyte pv membrane' => 'hepatocyte parasitophorous vacuole membrane',
       'osmiophilic body' => 'gametocyte osmiophilic body',
       'cytosol diffuse' => 'cytosol',
@@ -124,6 +126,8 @@ class Localisation < ActiveRecord::Base
       'parasite periphery' => 'cytoplasm',
       'nucleoplasm' => 'nucleus',
       'nuclear' => 'nucleus',
+      'perinuclear' => 'nucleus',
+      'nuclear periphery' => 'nucleus',
       'rbc' => 'erythrocyte cytoplasm',
       'red blood cell surface' => 'erythrocyte plasma membrane',
       'er foci' => 'endoplasmic reticulum',
@@ -131,7 +135,8 @@ class Localisation < ActiveRecord::Base
       'erythrocyte cytosol' => 'erythrocyte cytoplasm',
       'erythrocyte cytoplasmic vesicles' => 'erythrocyte cytoplasm',
       'pvm' => 'parasitophorous vacuole membrane',
-      'moving junction' => 'merozoite surface'
+      'moving junction' => 'merozoite surface',
+      'merozoite membrane' => "merozoite surface"
     }.each do |key, value|
       l = value.downcase
       loc = Localisation.find_by_name(l)
@@ -149,7 +154,7 @@ class Localisation < ActiveRecord::Base
   end
   
   # Upload all the data from the localisation list manually collected by ben
-  def upload_other_falciparum_list(filename='/home/ben/phd/gene lists/other/other.csv')
+  def upload_falciparum_list(filename='/home/ben/phd/gene lists/falciparum.csv')
     require 'csv'
     CSV.open(filename, 'r', "\t") do |row|
       p row

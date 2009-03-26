@@ -227,8 +227,8 @@ class Mverification < ActiveRecord::Base
     raise if code.drosophila_allele_genes.count != 42
     dag = code.drosophila_allele_genes.first(:conditions => "allele = 'FBal0000001'")
     raise if !dag
-    raise if dag.drosophila_allele_phenotypes.count != 3
-    raise if !dag.drosophila_allele_phenotypes.pick(:phenotype).include?('lethal')
+    raise if dag.drosophila_allele_phenotypes.count != 1
+    raise if !dag.drosophila_allele_phenotypes.pick(:phenotype).include?('lethal | larval stage | recessive')
     
     dag = DrosophilaAlleleGene.find_by_allele('FBal0216717')
     raise if !dag.coding_regions[0].names.include?('CG14016')
@@ -244,7 +244,7 @@ class Mverification < ActiveRecord::Base
     raise if DrosophilaAlleleGene.count != 86980
     #ben@ben:~/phd/data/Essentiality/Drosophila$ grep -v '\#' allele_phenotypic_data_fb_2008_06.tsv |wc -l
     #215805
-    raise if DrosophilaAllelePhenotype.count != 24321
+    raise if DrosophilaAllelePhenotype.count != 30607
     
     
     # check gene with known lethal phenotype is linked correctly

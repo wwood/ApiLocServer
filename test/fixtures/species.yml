@@ -13,3 +13,6 @@ mouse:
 elegans:
   id: 4
   name: elegans
+one:
+  id: 5
+  name: the one

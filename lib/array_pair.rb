@@ -34,10 +34,13 @@ class Array
     return pairs
   end
   
-  # is this included in Ruby 1.8.5, which is on reefedge?
+  # Array#sum is not included in Ruby, but is in Rails.
+  # Redefining it has problems somehow, so I'm going to
+  # use Array#total instead
   # Defining this method seems to make rails fail. Is it defined in Rails
   # somehow as well?
   #  def sum; inject( nil ) { |sum,x| sum ? sum+x : x }; end;
+  def total; inject( nil ) { |sum,x| sum ? sum+x : x }; end;
   
   def average
     if Array.new.respond_to?(:sum)

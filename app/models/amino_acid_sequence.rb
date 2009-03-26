@@ -6,6 +6,7 @@ require 'plasmo_a_p'
 require 'export_pred'
 require 'bl2seq_report_shuffling'
 require 'signalp'
+require 'radar'
 
 class AminoAcidSequence < Sequence
   belongs_to :coding_region
@@ -85,13 +86,32 @@ class AminoAcidSequence < Sequence
     return other_amino_acid_sequences[max_index], bl2seqs[max_index]
   end
   
-  def tmhmm(seq=nil)
+  def tmhmm(seq=nil, offset=nil)
     seq ||= sequence
-    TmHmmWrapper.new.calculate(seq)
+    result = TmHmmWrapper.new.calculate(seq)
+    
+    if offset
+      result.transmembrane_domains.each do |tmd|
+        tmd.start += offset
+        tmd.stop += offset
+      end
+    end
+    return result
   end
   
   def tmhmm_minus_signal_peptide
-    sp = signal_p.cleave(sequence)
-    tmhmm(sp)
+    result = signal_p
+    if result.signal?
+      return tmhmm(
+        result.cleave(sequence),
+        result.cleavage_site-1
+      )
+    else
+      return tmhmm(sequence)
+    end
+  end
+
+  def radar_repeats
+    Bio::Radar::Wrapper.new.run(sequence)
   end
 end

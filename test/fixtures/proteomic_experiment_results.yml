@@ -4,8 +4,10 @@ one:
   coding_region_id: 1
   number_of_peptides: 1
   spectrum: 1.5
+  proteomic_experiment_id: 1
 
 two:
   coding_region_id: 1
   number_of_peptides: 1
   spectrum: 1.5
+  proteomic_experiment_id: 1

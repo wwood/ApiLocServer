@@ -120,4 +120,13 @@ class CodingRegion < ActiveRecord::Base
   def jiangs
     gene.scaffold.jiang_bin_sfp_counts(start_of_transcription)
   end
+
+  def at_content
+    transcript_sequence.at_content
+  end
+  
+  def tandem_repeats
+    require 'tandem_repeat_finder'
+    Bio::Tande
+  end
 end

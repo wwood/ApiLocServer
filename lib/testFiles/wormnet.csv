@@ -1,5 +1,7 @@
-gene id	is lethal	is enzyme	is gpcr	wormnet_core_no._interactions	wormnet_core_total_score	wormnet_full_no._interactions	wormnet_full_total_score
-WBGene00015325	false	false	false	1	0.655859067705821	9	2.0980845862131609
-WBGene00015428	false	false	false	9	8.010168662698168	28	10.2106885347610299
-WBGene00007213	true	false	false	9	6.499232527453836	55	13.2114238091484661
-WBGene00015348	true	false	false	17	12.53218459042435	121	28.5834576369192093
+gene id	is lethal	is enzyme	is gpcr	wormnet_core_no._interactions	wormnet_core_total_score	wormnet_full_no._interactions	wormnet_full_total_score	has mammalian orthologue	no. of elegans genes in group
+WBGene00002061	true	false	false	0	0	0	0	true	1
+WBGene00015418	false	false	false	6	7.237428418933596	39	11.3852276846856479	true	1
+WBGene00005086	false	false	false	14	10.574266801310317	51	17.1951804117682674	false	1
+WBGene00005086	false	false	false	14	10.574266801310317	51	17.1951804117682674	true	1
+WBGene00005086	true	false	false	14	10.574266801310317	51	17.1951804117682674	false	1
+WBGene00004426	true	false	false	73	113.444038129457949	118	117.281054757016631484	true	1

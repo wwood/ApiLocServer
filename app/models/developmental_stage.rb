@@ -36,6 +36,7 @@ class DevelopmentalStage < ActiveRecord::Base
       'troph' => 'trophozoite',
       'schizonts' => 'schizont',
       'late troph' => 'trophozoite',
+      'early trophozoite' => 'trophozoite',
       'late trophozoite' => 'trophozoite',
       'late schizont' => 'schizont',
       'mature schizont' => 'schizont',

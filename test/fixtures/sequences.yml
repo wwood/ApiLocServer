@@ -1,13 +1,30 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
- one:
+one:
    id: 1
    coding_region_id: 1
    type: AminoAcidSequence
    sequence: TSPFIIIINIIDIFHHSYLLYFIFSFNFITIIFFYYYVEKSIFIFIFIIKYTFSYHIIIF
 
- two:
+two:
    id: 2
    coding_region_id: 2
    type: AminoAcidSequence
    sequence: TSPFIIIINIIDIFHHSYLLYFIFSFNFITIIFFYYYVEKSIFIFIFIIKYTFSYHIIIF
+
+transcript:
+   id: 3
+   coding_region_id: 2
+   type: TranscriptSequence
+   sequence: ATAGA
+tandem:
+   id: 4
+   coding_region_id: 3
+   type: TranscriptSequence
+   sequence: AGGGGTTTGGGGGAGGGGTTTGGGGGAGGGGTTTGGGGG
+signal_peptide_and_tmhmm:
+   id: 5
+   coding_region_id: 3
+   type: AminoAcidSequence
+   sequence: AAAAAAAAAAAAAAAAAAEEEEEETSPFIIIINIIDIFHHSYLLYFIFSFNFITIIFFYYYVEKSIFIFIFIIKYTFSYHIIIF
+

@@ -23,7 +23,7 @@ require 'libsvm_array'
 require 'bl2seq_report_shuffling'
 require 'rarff'
 require 'stdlib'
-
+require 'babesia'
 
 
 MOLECULAR_FUNCTION = 'molecular_function'
@@ -34,7 +34,7 @@ WORK_DIR = "#{ENV['HOME']}/Workspace"
 
 
 
-class Script < ActiveRecord::Base  
+class BScript
   PHD_DIR = "#{ENV['HOME']}/phd"
   DATA_DIR = "#{ENV['HOME']}/phd/data"
   
@@ -1262,126 +1262,7 @@ class Script < ActiveRecord::Base
   end
   
   def seven_species_orthomcl_upload
-    run = OrthomclRun.find_or_create_by_name(OrthomclRun.seven_species_filtering_name)
-    
-    #Setup babesia and TANN genes and scaffs
-    #    babSpecies = Species.find_or_create_by_name('Babesia bovis')
-    #    #babScaff might not be used in the end, because babesia has been uploaded properly.
-    #    babScaff = Scaffold.find_or_create_by_name_and_species_id("Babesia dummy", babSpecies.id)
-    tannSpecies = Species.find_or_create_by_name('Theileria annulata')
-    tannScaff = Scaffold.find_or_create_by_name_and_species_id("Theileria annulata dummy", tannSpecies.id)
-    parvSpecies = Species.find_or_create_by_name('Cryptosporidium parvum')
-    parvScaff = Scaffold.find_or_create_by_name_and_species_id("Cryptosporidium parvum dummy", parvSpecies.id)
-    chomSpecies = Species.find_or_create_by_name('Cryptosporidium hominis')
-    chomScaff = Scaffold.find_or_create_by_name_and_species_id("Cryptosporidium hominis dummy", chomSpecies.id)
-    
-    File.open("#{PHD_DIR}/babesiaApicoplastReAnnotation/Apr_17/all_orthomcl.out").each do |groupline|
-      splits = groupline.split("\t")
-      
-      if splits.length != 2
-        raise Exception, "Badly parsed line"
-      end
-      
-      # eg. 'ORTHOMCL0(161 genes,1 taxa):\t'
-      matches = splits[0].match('(ORTHOMCL\d+)\(.*')
-      group = OrthomclGroup.find_or_create_by_orthomcl_name_and_orthomcl_run_id(
-        matches[1],
-        run.id
-      )
-      
-      splits[1].split(' ').each do |ogene|
-        # eg. TA02955(TANN.GeneDB.pep)
-        matches = ogene.match('^(.+)\((.*)\)$')
-        if !matches
-          raise Exception, "Badly parsed gene: '#{ogene}'"
-        end
-        
-        # Create the gene
-        orthomcl_gene = OrthomclGene.find_or_create_by_orthomcl_name_and_orthomcl_group_id(
-          matches[1],
-          group.id
-        )
-        
-        
-        # Join it up with the rest of the database
-        code = nil
-        
-        case matches[2]
-        when 'BabesiaWGS'
-          # Only create the new gene and database if the coding region doesn't already exist
-          raise if !code = CodingRegion.fs(matches[1], Species.babesia_bovis_name)
-        when 'TANN.GeneDB.pep'
-          # gene won't exist in database. Have to create it
-          g = Gene.find_or_create_by_name_and_scaffold_id(
-            matches[1],
-            tannScaff.id
-          )
-          code = CodingRegion.find_or_create_by_string_id_and_gene_id(
-            matches[1],
-            g.id
-          )
-        when 'ChominisAnnotatedProtein.fsa'
-          # gene won't exist in database. Have to create it
-          ems = matches[1].match('Cryptosporidium_.*?\|.*?\|(.*)\|Annotation\|GenBank|\(protein')
-          if !ems
-            raise Exception, "Unexpected gene name: #{code.string_id}"
-          end
-          
-          g = Gene.find_or_create_by_name_and_scaffold_id(
-            ems[1],
-            chomScaff.id
-          )
-          code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
-            ems[1],
-            g.id,
-            CodingRegion.unknown_orientation_char
-          )
-          
-        when 'CparvumAnnotatedProtein.fsa'
-          ems = matches[1].match('Cryptosporidium_parvum\|.*?\|(.+?)\|Annotation\|.+\|\(protein')
-          if !ems
-            raise Exception, "Badly handled crypto: #{matches[1]}"
-          end
-          
-          if !code = CodingRegion.fs(ems[1], Species.cryptosporidium_parvum_name)
-          
-            # gene won't exist in database. Have to create it
-            g = Gene.find_or_create_by_name_and_scaffold_id(
-              ems[1],
-              parvScaff.id
-            )
-            code = CodingRegion.find_or_create_by_string_id_and_gene_id(
-              ems[1],
-              g.id
-            )
-          end
-        when 'PvivaxAnnotatedProteins_plasmoDB-5.2'
-          #          p 'found a vivax'
-          ems = matches[1].match('Plasmodium_vivax.*?\|.*?\|(.*)\|Pv')
-          code = CodingRegion.fs(ems[1], Species.vivax_name)
-        when 'TPA1.pep'
-          code = CodingRegion.fs(matches[1], Species.theileria_parva_name)
-        else
-          if matches[1].match('^Plasmodium_falciparum_3D7')
-            ems = matches[1].match('Plasmodium_falciparum_3D7\|.*?\|(.*)\|Pf')
-            code = CodingRegion.ff(ems[1])
-          else
-            raise Exception, "Didn't recognize source: '#{matches[2]}', #{matches}"
-          end
-        end
-        
-        if !code
-          # This can be legit, if a model is present in 5.2 but not 5.4 of orthoMCL
-          $stderr.puts "Couldn't find gene model model #{matches[0]}"
-        else
-          #Create the final gene entry in orthomcl
-          OrthomclGeneCodingRegion.find_or_create_by_coding_region_id_and_orthomcl_gene_id(
-            code.id,
-            orthomcl_gene.id
-          )
-        end
-      end
-    end
+    Babesia.new.seven_species_orthomcl_upload
   end
   
   
@@ -2247,7 +2128,10 @@ class Script < ActiveRecord::Base
         name = yield f.name
       end
       code = CodingRegion.fs(name, species.name)
-      raise Exception, "No coding region found to attach a sequence/annotation to: #{f.name}" if !code
+      unless code
+        $stderr.puts "No coding region found to attach a sequence/annotation to: #{f.name}. Ignored."
+        next
+      end
       TranscriptSequence.find_or_create_by_coding_region_id_and_sequence(
         code.id,
         f.sequence
@@ -4199,7 +4083,7 @@ class Script < ActiveRecord::Base
     DevelopmentalStage.new.upload_known_falciparum_developmental_stages
     Localisation.new.upload_known_localisations
     Localisation.new.upload_localisation_synonyms
-    Localisation.new.upload_other_falciparum_list
+    Localisation.new.upload_falciparum_list
     TopLevelLocalisation.new.upload_localisations
   end
   
@@ -7783,8 +7667,87 @@ PFL2395c
   end
 
   def bug_test
-#    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_first9000")
-#    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_last8411")
+    #    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_first9000")
+    #    Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_in_groups_last8411")
     Mscript.new.are_genes_enzymes_or_lethal?("#{PHD_DIR}/essentiality/bug/all_ortho_cel_genes_NOT_in_groups")
+  end
+
+  def yeast_mrna_decay_fasta
+    File.open("#{PHD_DIR}/mRNA_degradation/yeast.GO0000184.txt").each do |line|
+      line.strip!
+      code = CodingRegion.fs(line, 'yeast')
+      if code
+        puts code.amino_acid_sequence.fasta
+      else
+        $stderr.puts "Couldn't find #{line}"
+      end
+    end
+  end
+
+  def lineage_specific_essentiality
+    puts [
+      "Species",
+      'lethal',
+      'total',
+      'percent'
+    ].join("\t")
+
+    [
+      Species::DROSOPHILA_NAME,
+      Species::YEAST_NAME,
+      Species::ELEGANS_NAME,
+      Species::MOUSE_NAME
+    ].each do |species_name|
+      species = Species.find_by_name(species_name)
+      lethal_count = 0
+      total_count = 0
+
+      OrthomclGene.official.no_group.code(species.orthomcl_three_letter).all.each do |og|
+        begin
+          lethal = og.single_code.lethal?
+          if lethal
+            lethal_count += 1
+            total_count += 1
+          elsif lethal.nil?
+          else
+            total_count += 1
+          end
+        
+        rescue OrthomclGene::UnexpectedCodingRegionCount
+        end
+      end
+
+      puts [
+        species.name,
+        lethal_count,
+        total_count,
+        lethal_count.to_f/total_count.to_f*100
+      ].join("\t")
+    end
+
+  end
+
+  # make a spreadsheet for florian so that we can compare the different
+  # localisations.
+  # manualXX.csv was created by copying from the spreadsheets florian gave me in
+  # https://mail.google.com/mail/?zx=hbp8tycn7jiw&shva=1#inbox/1203ab991564fd7a
+  def florian_manual_tmd_to_spreadsheet
+    FasterCSV.foreach("#{PHD_DIR}/florian manual tmd/manual20090325.csv", :headers => true) do |row|
+      localisation = row[0]
+      plasmo_id = row[1]
+      tmd_string = row[2]
+
+      #parse the tmd bit
+      tmds = tmd_string.split('-')
+      raise unless tmd_string.length == 2
+      tmd = Transmembrane.new
+      tmd.start = tmds[0].strip.to_i
+      tmd.stop = tmds[1].strip.to_i
+
+      code = CodingRegion.ff(plasmo_id)
+      raise unless code
+
+      tmhmm = code.tmhmm_minus_signal_peptide
+    end
   end
 end
