@@ -18,7 +18,9 @@ class SpreadsheetGenerator
     s.upload_jiang_chromosomal_features
     s.derisi_microarray_to_database2
   end
-  
+
+  # Generate the full ARFF for all known localisations in P. falciparum. This
+  # is a 10 class problem or something.
   def arff
     data = generate_spreadsheet(
       PlasmodbGeneList.find_by_description(
@@ -39,10 +41,10 @@ class SpreadsheetGenerator
     # Make some attributes noiminal instead of String
     rarff_relation.set_string_attributes_to_nominal
 
-    return rarff_relation.to_arff
+    puts rarff_relation.to_arff
   end
 
-  # Write out an ARFF file for each of the localisations
+  # Write out an ARFF file for each of the top level localisations
   def each_localisation_arff
     MalariaLocalisationTopLevelLocalisation.all.reach.top_level_localisation.uniq.each do |top|
       positives = CodingRegion.top(top.name).all.uniq
@@ -53,18 +55,22 @@ class SpreadsheetGenerator
         positives.include?(neg)
       end
 
-      File.open("#{BScript::PHD_DIR}/weka/each/#{top.name}.arff", 'w') do |f|
-        data = generate_spreadsheet([positives, negatives].flatten) {|code|
+      name = top.name.gsub(' ','_').camelize
+      puts "Writing #{name}, found #{positives.length} positive and #{negatives.length} negatives."
+
+      File.open("#{BScript::PHD_DIR}/weka/each/#{name}.arff", 'w') do |f|
+        data = generate_spreadsheet([positives, negatives].flatten) do |code|
           @headings.push 'Localisation' if @first
-          if code.tops.reach.name.include?(top)
-            @current_row.push top.name.gsub(' ','_')
+          #          p code
+          #          p code.tops.include?(top)
+          if code.tops.include?(top)
+            @current_row.push name
           else
             @current_row.push 'negative'
           end
-          check_headings
-        }
+        end
 
-        rarff_relation = Rarff::Relation.new("Pfalciparum#{top.name}")
+        rarff_relation = Rarff::Relation.new("Pfalciparum#{name}")
         rarff_relation.instances = data
         @headings.each_with_index do |heading, index|
           rarff_relation.attributes[index].name = "\"#{heading}\""
@@ -102,7 +108,10 @@ class SpreadsheetGenerator
       #      :select => 'distinct(coding_regions.*)',
       #      :joins => {:expressed_localisations => :malaria_top_level_localisation}
       #    ).each do |code|
-      next unless code.uniq_top?
+
+      # Commented out below line, because it is too restrictive. This responsibility
+      # is now defered to the parent method.
+      #      next unless code.uniq_top?
       
       #      @headings.push 'PlasmoDB ID' if @first
       #      'Annotation',
@@ -404,6 +413,7 @@ class SpreadsheetGenerator
 
       # Run any additional code as per caller's block
       yield code if block_given?
+      check_headings
       
       all_data.push(@current_row.flatten)
       
