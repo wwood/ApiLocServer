@@ -18,13 +18,70 @@ class SpreadsheetGenerator
     s.upload_jiang_chromosomal_features
     s.derisi_microarray_to_database2
   end
-  
+
+  # Generate the full ARFF for all known localisations in P. falciparum. This
+  # is a 10 class problem or something.
   def arff
-    puts generate_spreadsheet(
+    data = generate_spreadsheet(
       PlasmodbGeneList.find_by_description(
         PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
       ).coding_regions
-    ).to_arff
+    ) do |code|
+      @headings.push 'Localisation' if @first
+      @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
+      check_headings
+    end
+
+    rarff_relation = Rarff::Relation.new('PfalciparumLocalisation')
+    rarff_relation.instances = data
+    @headings.each_with_index do |heading, index|
+      rarff_relation.attributes[index].name = "\"#{heading}\""
+    end
+
+    # Make some attributes noiminal instead of String
+    rarff_relation.set_string_attributes_to_nominal
+
+    puts rarff_relation.to_arff
+  end
+
+  # Write out an ARFF file for each of the top level localisations
+  def each_localisation_arff
+    MalariaLocalisationTopLevelLocalisation.all.reach.top_level_localisation.uniq.each do |top|
+      positives = CodingRegion.top(top.name).all.uniq
+      negatives = CodingRegion.topped.all.uniq
+
+      # if it is in both positive and negative set, it is positive
+      negatives.reject! do |neg|
+        positives.include?(neg)
+      end
+
+      name = top.name.gsub(' ','_').camelize
+      puts "Writing #{name}, found #{positives.length} positive and #{negatives.length} negatives."
+
+      File.open("#{BScript::PHD_DIR}/weka/each/#{name}.arff", 'w') do |f|
+        data = generate_spreadsheet([positives, negatives].flatten) do |code|
+          @headings.push 'Localisation' if @first
+          #          p code
+          #          p code.tops.include?(top)
+          if code.tops.include?(top)
+            @current_row.push name
+          else
+            @current_row.push 'negative'
+          end
+        end
+
+        rarff_relation = Rarff::Relation.new("Pfalciparum#{name}")
+        rarff_relation.instances = data
+        @headings.each_with_index do |heading, index|
+          rarff_relation.attributes[index].name = "\"#{heading}\""
+        end
+
+        # Make some attributes noiminal instead of String
+        rarff_relation.set_string_attributes_to_nominal
+
+        f.puts rarff_relation.to_arff
+      end
+    end
   end
 
   def generate_spreadsheet(coding_regions)
@@ -51,7 +108,10 @@ class SpreadsheetGenerator
       #      :select => 'distinct(coding_regions.*)',
       #      :joins => {:expressed_localisations => :malaria_top_level_localisation}
       #    ).each do |code|
-      next unless code.uniq_top?
+
+      # Commented out below line, because it is too restrictive. This responsibility
+      # is now defered to the parent method.
+      #      next unless code.uniq_top?
       
       #      @headings.push 'PlasmoDB ID' if @first
       #      'Annotation',
@@ -103,8 +163,8 @@ class SpreadsheetGenerator
         group = code.orthomcl_genes[0].orthomcl_group
         interestings.each do |three|
           @current_row.push group.orthomcl_genes.code(three).length
-        end        
-      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
+        end
+      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl
         # Fill with non-empty cells
         group = single.orthomcl_group
         interestings.each do |three|
@@ -113,14 +173,14 @@ class SpreadsheetGenerator
       else
         # fill with empty cells
         1..interestings.length.times do
-          @current_row.push nil 
+          @current_row.push nil
         end
       end
       check_headings
       
       # 7species orthomcl
       @headings.push [      'Number of P. falciparum Genes in 7species Orthomcl Group', #7species orthomcl
-        #      'Number of P. vivax Genes in 7species Orthomcl Group',
+        'Number of P. vivax Genes in 7species Orthomcl Group',
         'Number of Babesia Genes in 7species Orthomcl Group'] if @first
       seven_name_hash = {}
       begin
@@ -144,16 +204,16 @@ class SpreadsheetGenerator
       rescue CodingRegion::UnexpectedOrthomclGeneCount => e
         # This happens for singlet genes
       rescue OrthomclGene::UnexpectedCodingRegionCount => e
-        raise e unless code.species==Species::VIVAX_NAME
+        raise e
       end
-      [Species.falciparum_name, 
-        #        Species.vivax_name, 
+      [Species.falciparum_name,
+        Species.vivax_name,
         Species.babesia_bovis_name].each do |name|
         @current_row.push seven_name_hash[name] ? seven_name_hash[name] : 0
       end
       check_headings
       
-      @headings.push [      
+      @headings.push [
         'Number of Synonymous IT SNPs according to Jeffares et al',
         'Number of Non-Synonymous IT SNPs according to Jeffares et al',
         'Number of Synonymous Clinical SNPs according to Jeffares et al',
@@ -170,9 +230,9 @@ class SpreadsheetGenerator
         'Number of Surveyed by to Mu et al',
         'SNP Theta by to Mu et al',
         'SNP Pi by to Mu et al'] if @first
-      [:it_synonymous_snp, 
-        :it_non_synonymous_snp, 
-        :pf_clin_synonymous_snp, 
+      [:it_synonymous_snp,
+        :it_non_synonymous_snp,
+        :pf_clin_synonymous_snp,
         :pf_clin_non_synonymous_snp,
         :reichenowi_dnds,
         :reichenowi_synonymous_snp,
@@ -200,7 +260,7 @@ class SpreadsheetGenerator
       @headings.push 'Percentage of Amino Acid Sequence Low Complexity according to NCBI Segmasker' if @first
       @current_row.push code.segmasker_low_complexity_percentage_however
       check_headings
-
+      
       # Number of Acidic and basic Residues in the protein
       @headings.push 'Number of Acidic Residues' if @first
       @headings.push 'Number of Basic Residues' if @first
@@ -213,7 +273,7 @@ class SpreadsheetGenerator
       @headings.push 'Length of Protein' if @first
       @current_row.push code.amino_acid_sequence.sequence.length
       check_headings
-
+      
       @headings.push 'Chromosome' if @first
       name = code.chromosome_name
       @current_row.push name
@@ -222,24 +282,24 @@ class SpreadsheetGenerator
       @headings.push 'Distance from chromosome end' if @first
       @current_row.push code.length_from_chromosome_end
       check_headings
-
+      
       @headings.push 'Percentage from chromosome end' if @first
       @current_row.push code.length_from_chromosome_end_percent
       check_headings
-
+      
       @headings.push 'Number of Exons' if @first
       @current_row.push code.cds.count
       check_headings
-
+      
       @headings.push 'Offset of 2nd Exon' if @first
       @current_row.push code.second_exon_splice_offset
       check_headings
-
+      
       @headings.push 'Orientation' if @first
       # pretty stupid really
       @current_row.push code.positive_orientation? ? '+' : '-'
       check_headings
-
+      
       # predicted = code.send(predictor)
       #          if predicted.transmembrane_type_1? or predicted.transmembrane_type_2?
       @headings.push 'Number of transmembrane domains' if @first
@@ -251,7 +311,7 @@ class SpreadsheetGenerator
         tmhmm.transmembrane_type_1?
       ]
       check_headings
-
+      
       @headings.push 'Random number as noise cutoff' if @first
       # pretty stupid really
       @current_row.push rand
@@ -259,7 +319,7 @@ class SpreadsheetGenerator
       
       # Microarray DeRisi
       if @first
-        @headings.push derisi_timepoints.collect{|t| 
+        @headings.push derisi_timepoints.collect{|t|
           'DeRisi 2006 3D7 '+t.name
         }
       end
@@ -281,7 +341,7 @@ class SpreadsheetGenerator
         amino_acids.each do |one|
           @headings.push "Number of AA: #{one}"
         end
-      end      
+      end
       composition = code.amino_acid_sequence.to_bioruby_sequence.composition
       amino_acids.each do |one|
         @current_row.push(composition[one].nil? ? 0 : composition[one])
@@ -320,12 +380,13 @@ class SpreadsheetGenerator
       end
       check_headings
       
-      # gMARS and other headings
-      #      code.gmars_vector(3).each do |node|
-      #        # Push the headings on the fly - easier this way
-      #        headings.push node.name if first
-      #        results.push node.normalised_value
-      #      end
+      #             gMARS and other headings
+      code.gmars_vector(3).each do |node|
+        # Push the headings on the fly - easier this way
+        @headings.push node.name if @first
+        @current_row.push node.normalised_value
+        check_headings
+      end
       
       @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "Jiang et al #{s} 10kb SFP Count"} if @first
       @current_row.push code.jiangs
@@ -334,7 +395,7 @@ class SpreadsheetGenerator
       @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "log of Jiang et al #{s} 10kb SFP Count"} if @first
       @current_row.push code.jiangs.collect{|j| j == 0.0 ? -1 : Math.log(j)}
       check_headings
-
+      
       @headings.push 'AT content' if @first
       @current_row.push code.at_content
       check_headings
@@ -345,15 +406,13 @@ class SpreadsheetGenerator
       @current_row.push repeats.length
       @current_row.push repeats.length_covered
       check_headings
-
+      
       @headings.push 'Number of repeats (by radar)' if @first
       @current_row.push code.amino_acid_sequence.radar_repeats.length
       check_headings
-      
-      # Localisation is last because WEKA's default is to predict the
-      # last attribute
-      @headings.push 'Localisation' if @first
-      @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
+
+      # Run any additional code as per caller's block
+      yield code if block_given?
       check_headings
       
       all_data.push(@current_row.flatten)
@@ -361,17 +420,7 @@ class SpreadsheetGenerator
       #      break unless @first
       @first = false if @first
     end
-    
-    rarff_relation = Rarff::Relation.new('PfalciparumLocalisation')
-    rarff_relation.instances = all_data
-    @headings.each_with_index do |heading, index|
-      rarff_relation.attributes[index].name = "\"#{heading}\""
-    end
-    
-    # Make some attributes noiminal instead of String
-    rarff_relation.set_string_attributes_to_nominal
-    
-    return rarff_relation
+    return all_data
   end
   
   private

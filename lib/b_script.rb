@@ -7747,7 +7747,7 @@ PFL2395c
       code = CodingRegion.ff(plasmo_id)
       raise unless code
 
-      # make the names of the
+      tmhmm = code.tmhmm_minus_signal_peptide
     end
   end
 end
