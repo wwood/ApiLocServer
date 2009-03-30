@@ -242,10 +242,10 @@ class WScript
   
   def all_genes_including_genes_not_in_orthomclgroups
     arrays = [
-      ['cel']  
-      #['mmu'] 
-      #['dme']
-      #['sce']
+      ['cel'],  
+      ['mmu'], 
+      ['dme'],
+      ['sce']
     ]
     
     arrays.each do |species|
@@ -440,9 +440,9 @@ class WScript
     
     overlaps = [
       [['cel'],['cel']],
-      # [['mmu'],['mmu']],
-      #[['dme'],['dme']],
-      #[['sce'],['sce']]   
+      [['mmu'],['mmu']],
+      [['dme'],['dme']],
+      [['sce'],['sce']]   
     ]
     overlaps.each do |arrays|
       nopara = Array.new
