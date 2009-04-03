@@ -7750,4 +7750,84 @@ PFL2395c
       tmhmm = code.tmhmm_minus_signal_peptide
     end
   end
+
+  # create a graph of the median expression of each localisation, so
+  # the comparative ups and downs can be shown on a graph
+  def median_expression_localisation_graphs
+    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)').select do |t|
+      t.name.match(/Timepoint/)
+    end
+    
+    acceptibles = [
+      'parasite plasma membrane',
+      'exported',
+      'mitochondria',
+      'food vacuole',
+      'parasitophorous vacuole',
+      'apicoplast',
+      'cytosol',
+      'nucleus',
+      'golgi',
+      'endoplasmic reticulum',
+      'merozoite surface',
+      'inner membrane complex',
+      'apical'
+    ]
+    
+    # collect the coding regions and measurements
+    codes = PlasmodbGeneList.find_by_description(
+      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+    ).coding_regions.all().collect do |code|
+      name = code.tops[0].name
+      #      puts [name, MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+      #          code.id,
+      #          derisi_timepoints[0].id
+      #        ).nil? ? nil : measurement
+      #      ].join("\t")
+
+      if acceptibles.include?(name)
+
+        derisis = derisi_timepoints.collect do |timepoint|
+          measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+            code.id,
+            timepoint.id
+          )
+          if !measures.nil?
+            measures.measurement
+          else
+            nil
+          end
+        end
+
+        [name, derisis].flatten
+      else
+        nil
+      end
+    end
+
+    # process the coding regions into localisations
+    # {localisation => [timepoint][measurement]}
+    locs = {}
+
+    codes.each do |arr|
+      next if arr.nil?
+      locs[arr[0]] ||= []
+
+      # push each measurement into the hash if it isn't nil
+      arr[1..arr.length-1].each_with_index do |measurement, index|
+        next if measurement.nil?
+        locs[arr[0]][index] ||= []
+        locs[arr[0]][index].push measurement
+      end
+    end
+
+    # for each localisation at each timepoint, print the median value
+    puts ['localisation', derisi_timepoints.reach.name.retract].flatten.join("\t")
+    locs.each do |loc, values|
+      puts [
+        loc,
+        values.collect{|t| t.median}
+      ].flatten.join("\t")
+    end
+  end
 end
