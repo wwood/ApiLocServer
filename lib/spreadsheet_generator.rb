@@ -380,13 +380,13 @@ class SpreadsheetGenerator
       end
       check_headings
       
-      #             gMARS and other headings
-      code.gmars_vector(3).each do |node|
-        # Push the headings on the fly - easier this way
-        @headings.push node.name if @first
-        @current_row.push node.normalised_value
-        check_headings
-      end
+      #      #             gMARS and other headings
+      #      code.gmars_vector(3).each do |node|
+      #        # Push the headings on the fly - easier this way
+      #        @headings.push node.name if @first
+      #        @current_row.push node.normalised_value
+      #        check_headings
+      #      end
       
       @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "Jiang et al #{s} 10kb SFP Count"} if @first
       @current_row.push code.jiangs
@@ -407,8 +407,16 @@ class SpreadsheetGenerator
       @current_row.push repeats.length_covered
       check_headings
       
-      @headings.push 'Number of repeats (by radar)' if @first
-      @current_row.push code.amino_acid_sequence.radar_repeats.length
+      #      @headings.push 'Number of repeats (by radar)' if @first
+      #      @current_row.push code.amino_acid_sequence.radar_repeats.length
+      #      check_headings
+
+      if @first
+        LocalisationMedianMicroarrayMeasurement::LOCALISATIONS.each do |loc|
+          @headings.push "Distance from Median Localisation #{loc}"
+        end
+      end
+      @current_row.push LocalisationMedianMicroarrayMeasurement.pearson_distance_from_localisation_medians(code)
       check_headings
 
       # Run any additional code as per caller's block

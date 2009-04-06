@@ -7753,26 +7753,12 @@ PFL2395c
 
   # create a graph of the median expression of each localisation, so
   # the comparative ups and downs can be shown on a graph
-  def median_expression_localisation_graphs
+  def median_expression_localisations
     derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)').select do |t|
       t.name.match(/Timepoint/)
     end
     
-    acceptibles = [
-      'parasite plasma membrane',
-      'exported',
-      'mitochondria',
-      'food vacuole',
-      'parasitophorous vacuole',
-      'apicoplast',
-      'cytosol',
-      'nucleus',
-      'golgi',
-      'endoplasmic reticulum',
-      'merozoite surface',
-      'inner membrane complex',
-      'apical'
-    ]
+    acceptibles = LocalisationMedianMicroarrayMeasurement::LOCALISATIONS
     
     # collect the coding regions and measurements
     codes = PlasmodbGeneList.find_by_description(
@@ -7820,7 +7806,11 @@ PFL2395c
         locs[arr[0]][index].push measurement
       end
     end
+    return locs
+  end
 
+  def median_expression_localisation_graphs
+    locs = median_expression_localisations
     # for each localisation at each timepoint, print the median value
     puts ['localisation', derisi_timepoints.reach.name.retract].flatten.join("\t")
     locs.each do |loc, values|
@@ -7828,6 +7818,51 @@ PFL2395c
         loc,
         values.collect{|t| t.median}
       ].flatten.join("\t")
+    end
+  end
+
+  # Generate the median localisations for each localisation
+  def generate_median_microarray_timepoints
+    locs = median_expression_localisations
+
+    microarray = Microarray.find_or_create_by_description(Microarray::DERISI_3D7_LOCALISATION_MEDIAN_TIMEPOINTS)
+
+    locs.each do |loc, values|
+      values.each_with_index do |individuals, index|
+        timepoint = MicroarrayTimepoint.find_or_create_by_name_and_microarray_id(
+          MicroarrayTimepoint.get_derisi_3d7_localisation_median_name(loc, index+1),
+          microarray.id
+        )
+        median = individuals.median
+        unless timepoint.localisation_median_microarray_measurements.empty?
+          raise Exception unless timepoint.localisation_median_microarray_measurements.length == 1 and
+            timepoint.localisation_median_microarray_measurements[0].measurement == median
+        else
+          LocalisationMedianMicroarrayMeasurement.find_or_create_by_microarray_timepoint_id_and_measurement(
+            timepoint.id, median
+          ) or raise
+        end
+      end
+    end
+  end
+
+  def exported_derisi_measurements
+    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints.all(
+      :conditions => ['name like ?','%Timepoint%']
+    )
+
+    # Headings
+    puts derisi_timepoints.reach.name.join("\t")
+
+    PlasmodbGeneList.find_by_description(
+      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+    ).coding_regions.each do |code|
+      next unless code.uniq_top? and code.tops[0].name == 'exported'
+
+      puts derisi_timepoints.collect{|dt|
+        m = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(code.id, dt)
+        m.nil? ? 'NA' : m.measurement
+      }.join("\t")
     end
   end
 end
