@@ -507,7 +507,7 @@ class SpreadsheetGenerator
             end
           end
           $stderr.puts winning_loc
-          @current_row.push winning_loc
+          @current_row.push winning_loc.gsub(' ','_')
         end
       end
       check_headings
