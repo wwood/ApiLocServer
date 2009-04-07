@@ -21,6 +21,31 @@ class LocalisationMedianMicroarrayMeasurement < MetaMicroarrayMeasurement
   # order of LocalisationMedianMicroarrayMeasurement::LOCALISATIONS. Return
   # an array of distances from those medians
   def self.pearson_distance_from_localisation_medians(coding_region)
+    self.distance_from_localisation_medians(coding_region) do |codes, medians|
+      GSL::Stats::correlation(
+        GSL::Vector.alloc(codes),
+        GSL::Vector.alloc(medians)
+      )
+    end
+  end
+
+  def self.euclidean_distance_from_localisation_medians(coding_region)
+     self.distance_from_localisation_medians(coding_region) do |codes, medians|
+       # How dare I code this myself.
+      sum = 0
+      codes.each_with_index do |code, index|
+        # have to convert this to a real number for some reason, otherwise I get
+        # 0.0i bits
+        sum += (code-medians[index]).power(2).real
+      end
+      Math.sqrt(sum).real
+    end
+  end
+
+  # Allow calculation the distance from each localisation median, in the
+  # order of LocalisationMedianMicroarrayMeasurement::LOCALISATIONS. Return
+  # an array of distances from those medians
+  def self.distance_from_localisation_medians(coding_region)
     return LOCALISATIONS.collect do |loc|
       timepoints = MicroarrayTimepoint.all(
         :conditions => ['name like ?', MicroarrayTimepoint.get_derisi_3d7_localisation_median_names_sql(loc)],
@@ -62,10 +87,7 @@ class LocalisationMedianMicroarrayMeasurement < MetaMicroarrayMeasurement
         nil
       else
         # Do the final correlation
-        GSL::Stats::correlation(
-          GSL::Vector.alloc(final_code_measures),
-          GSL::Vector.alloc(final_median_measures)
-        )
+        yield final_code_measures, final_median_measures
       end
     end
   end

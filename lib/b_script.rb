@@ -7865,4 +7865,16 @@ PFL2395c
       }.join("\t")
     end
   end
+
+  def iterate_weka_to_choose_localisations
+    require 'gsl'
+    
+    total_number_of_classes = 15
+    (2..total_number_of_classes).each do |nclasses|
+      c = GSL::Combination(total_number_of_classes, nclasses)
+      indices = (1..nclasses).collect{|i| c[i]}
+
+      # test out these combinations - how well does it predict?
+    end
+  end
 end

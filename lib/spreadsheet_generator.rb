@@ -413,10 +413,18 @@ class SpreadsheetGenerator
 
       if @first
         LocalisationMedianMicroarrayMeasurement::LOCALISATIONS.each do |loc|
-          @headings.push "Distance from Median Localisation #{loc}"
+          @headings.push "Pearson Distance from Median Localisation #{loc}"
         end
       end
       @current_row.push LocalisationMedianMicroarrayMeasurement.pearson_distance_from_localisation_medians(code)
+      check_headings
+
+      if @first
+        LocalisationMedianMicroarrayMeasurement::LOCALISATIONS.each do |loc|
+          @headings.push "Euclidean Distance from Median Localisation #{loc}"
+        end
+      end
+      @current_row.push LocalisationMedianMicroarrayMeasurement.euclidean_distance_from_localisation_medians(code)
       check_headings
 
       # Run any additional code as per caller's block
