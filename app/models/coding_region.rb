@@ -887,6 +887,19 @@ class CodingRegion < ActiveRecord::Base
     end
     return hits
   end
+
+  # Return an array of interaction partners in the given network
+  def interaction_partners(network_name)
+    CodingRegionNetworkEdge.network_name(network_name).coding_region_id(id).all.collect do |edge|
+      if edge.coding_region_id_first == id
+        edge.coding_region_2
+      elsif edge.coding_region_id_second == id
+        edge.coding_region_1
+      else
+        raise Exception, "Unexpected that a gene interacts with itself! CodingRegionNetworkEdge #{edge.inspect}"
+      end
+    end
+  end
 end
 
 

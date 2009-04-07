@@ -7877,4 +7877,64 @@ PFL2395c
       # test out these combinations - how well does it predict?
     end
   end
+
+  def upload_lacount_yeast_two_hybrid
+    net = Network.find_or_create_by_name(
+      Network::LACOUNT_2005_NAME
+    )
+    bads = 0
+    goods = 0
+
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/interaction/LaCount2005/nature04104-s6.txt",
+      :col_sep => "\t", :headers => true) do |row|
+
+      code1 = CodingRegion.ff(row[0])
+      code2 = CodingRegion.ff(row[4])
+
+      if code1.nil? or code2.nil?
+        bads += 1
+        next
+      end
+
+      CodingRegionNetworkEdge.find_or_create_by_network_id_and_coding_region_id_first_and_coding_region_id_second(
+        net.id, code1.id, code2.id
+      ) or raise
+      goods += 1
+    end
+
+    puts "#{goods} good, #{bads} bad."
+  end
+
+  def upload_wuchty_gene_network
+    net = Network.find_or_create_by_name(
+      Network::WUCHTY_2009_NAME
+    )
+    bads = 0
+    goods = 0
+
+    first = true
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/interaction/Wuchty2009/sm002.csv",
+      :col_sep => "\t", :headers => true) do |row|
+
+      if first # skip the first 2 lines
+        first = false
+        next
+      end
+
+      code1 = CodingRegion.ff(row[0])
+      code2 = CodingRegion.ff(row[2])
+
+      if code1.nil? or code2.nil?
+        bads += 1
+        next
+      end
+
+      CodingRegionNetworkEdge.find_or_create_by_network_id_and_coding_region_id_first_and_coding_region_id_second(
+        net.id, code1.id, code2.id
+      ) or raise
+      goods += 1
+    end
+
+    puts "#{goods} good, #{bads} bad."
+  end
 end
