@@ -7937,4 +7937,16 @@ PFL2395c
 
     puts "#{goods} good, #{bads} bad."
   end
+  
+  def falciparum_apiloc_counts
+    File.open("#{PHD_DIR}/gene lists/counts/falciparum.tab",'w') do |f|
+      f.puts ['Localisation', 'Count'].join("\t")
+      TopLevelLocalisation.all.sort{|a,b| a.name <=> b.name}.each do |t| 
+        f.puts [
+          t.name, 
+          CodingRegion.falciparum.top(t.name).count(:select =>'distinct(coding_regions.id)')
+        ].join("\t")
+      end
+    end
+  end
 end
