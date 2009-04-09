@@ -876,7 +876,7 @@ class CodingRegion < ActiveRecord::Base
       tempfile.flush
       Tempfile.open('winzelerOut') do |outfile|
         system(
-          "exonerate -m ungapped --ryo '%ti %tl %tal\n' --showalignment no --showvulgar no --verbose no #{tempfile.path} /blastdb/WinzelerTilingArrayProbes2009 >#{outfile.path}"
+          "exonerate --dnawordlen 25 -m ungapped --ryo '%ti %tl %tal\n' --showalignment no --showvulgar no --verbose no #{tempfile.path} /blastdb/WinzelerTilingArrayProbes2009 >#{outfile.path}"
         )
         outfile.read.each_line do |line|
           splits = line.strip.split(' ')
