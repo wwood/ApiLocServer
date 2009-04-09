@@ -162,4 +162,15 @@ class Array
     
     return "('#{join("','")}')"
   end
+
+
+  def median
+    return nil unless length>0
+    a = sort
+    if length%2 == 0
+      return [a[length/2-1],a[length/2]].average
+    else
+      return a[length/2]
+    end
+  end
 end

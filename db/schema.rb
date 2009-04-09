@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090324232636) do
+ActiveRecord::Schema.define(:version => 20090406024312) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -455,6 +455,16 @@ ActiveRecord::Schema.define(:version => 20090324232636) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "meta_microarray_measurements", :force => true do |t|
+    t.string   "type",                    :null => false
+    t.integer  "microarray_timepoint_id", :null => false
+    t.decimal  "measurement",             :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "meta_microarray_measurements", ["microarray_timepoint_id", "type"], :name => "index_meta_microarray_measurements_on_type_and_microarray_timep"
 
   create_table "microarray_measurements", :force => true do |t|
     t.integer  "microarray_timepoint_id", :null => false

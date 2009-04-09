@@ -4,3 +4,6 @@
 [submodule "vendor/plugins/acts_as_signalp"]
 	path = vendor/plugins/acts_as_signalp
 	url = ben@reefedge.sols.uq.edu.au:/data/git/acts_as_signalp
+[submodule "vendor/plugins/ben_bioinformatics"]
+	path = vendor/plugins/ben_bioinformatics
+	url = ben@reefedge.sols.uq.edu.au:/data/git/ben_bioinformatics.git

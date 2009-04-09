@@ -26,6 +26,7 @@ class MousePhenotype < ActiveRecord::Base
     'Spontaneous',
     'Targeted (knock-out)',
     'Targeted (Reporter)',
+    'Targeted (Floxed/Flt)',
     'Transgenic (random, gene disruption)'
   ]
   named_scope :trusted, {

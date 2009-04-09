@@ -7750,4 +7750,203 @@ PFL2395c
       tmhmm = code.tmhmm_minus_signal_peptide
     end
   end
+
+  # create a graph of the median expression of each localisation, so
+  # the comparative ups and downs can be shown on a graph
+  def median_expression_localisations
+    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)').select do |t|
+      t.name.match(/Timepoint/)
+    end
+    
+    acceptibles = LocalisationMedianMicroarrayMeasurement::LOCALISATIONS
+    
+    # collect the coding regions and measurements
+    codes = PlasmodbGeneList.find_by_description(
+      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+    ).coding_regions.all().collect do |code|
+      name = code.tops[0].name
+      #      puts [name, MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+      #          code.id,
+      #          derisi_timepoints[0].id
+      #        ).nil? ? nil : measurement
+      #      ].join("\t")
+
+      if acceptibles.include?(name)
+
+        derisis = derisi_timepoints.collect do |timepoint|
+          measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+            code.id,
+            timepoint.id
+          )
+          if !measures.nil?
+            measures.measurement
+          else
+            nil
+          end
+        end
+
+        [name, derisis].flatten
+      else
+        nil
+      end
+    end
+
+    # process the coding regions into localisations
+    # {localisation => [timepoint][measurement]}
+    locs = {}
+
+    codes.each do |arr|
+      next if arr.nil?
+      locs[arr[0]] ||= []
+
+      # push each measurement into the hash if it isn't nil
+      arr[1..arr.length-1].each_with_index do |measurement, index|
+        next if measurement.nil?
+        locs[arr[0]][index] ||= []
+        locs[arr[0]][index].push measurement
+      end
+    end
+    return locs
+  end
+
+  def median_expression_localisation_graphs
+    locs = median_expression_localisations
+    # for each localisation at each timepoint, print the median value
+    puts ['localisation', derisi_timepoints.reach.name.retract].flatten.join("\t")
+    locs.each do |loc, values|
+      puts [
+        loc,
+        values.collect{|t| t.median}
+      ].flatten.join("\t")
+    end
+  end
+
+  # Generate the median localisations for each localisation
+  def generate_median_microarray_timepoints
+    locs = median_expression_localisations
+
+    microarray = Microarray.find_or_create_by_description(Microarray::DERISI_3D7_LOCALISATION_MEDIAN_TIMEPOINTS)
+
+    locs.each do |loc, values|
+      values.each_with_index do |individuals, index|
+        timepoint = MicroarrayTimepoint.find_or_create_by_name_and_microarray_id(
+          MicroarrayTimepoint.get_derisi_3d7_localisation_median_name(loc, index+1),
+          microarray.id
+        )
+        median = individuals.median
+        unless timepoint.localisation_median_microarray_measurements.empty?
+          raise Exception unless timepoint.localisation_median_microarray_measurements.length == 1 and
+            timepoint.localisation_median_microarray_measurements[0].measurement == median
+        else
+          LocalisationMedianMicroarrayMeasurement.find_or_create_by_microarray_timepoint_id_and_measurement(
+            timepoint.id, median
+          ) or raise
+        end
+      end
+    end
+  end
+
+  def exported_derisi_measurements
+    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints.all(
+      :conditions => ['name like ?','%Timepoint%']
+    )
+
+    # Headings
+    puts derisi_timepoints.reach.name.join("\t")
+
+    PlasmodbGeneList.find_by_description(
+      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+    ).coding_regions.each do |code|
+      next unless code.uniq_top? and code.tops[0].name == 'exported'
+
+      puts derisi_timepoints.collect{|dt|
+        m = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(code.id, dt)
+        m.nil? ? 'NA' : m.measurement
+      }.join("\t")
+    end
+  end
+
+  def iterate_weka_to_choose_localisations
+    require 'gsl'
+    
+    total_number_of_classes = 15
+    (2..total_number_of_classes).each do |nclasses|
+      c = GSL::Combination(total_number_of_classes, nclasses)
+      indices = (1..nclasses).collect{|i| c[i]}
+
+      # test out these combinations - how well does it predict?
+    end
+  end
+
+  def upload_lacount_yeast_two_hybrid
+    net = Network.find_or_create_by_name(
+      Network::LACOUNT_2005_NAME
+    )
+    bads = 0
+    goods = 0
+
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/interaction/LaCount2005/nature04104-s6.txt",
+      :col_sep => "\t", :headers => true) do |row|
+
+      code1 = CodingRegion.ff(row[0])
+      code2 = CodingRegion.ff(row[4])
+
+      if code1.nil? or code2.nil?
+        bads += 1
+        next
+      end
+
+      CodingRegionNetworkEdge.find_or_create_by_network_id_and_coding_region_id_first_and_coding_region_id_second(
+        net.id, code1.id, code2.id
+      ) or raise
+      goods += 1
+    end
+
+    puts "#{goods} good, #{bads} bad."
+  end
+
+  def upload_wuchty_gene_network
+    net = Network.find_or_create_by_name(
+      Network::WUCHTY_2009_NAME
+    )
+    bads = 0
+    goods = 0
+
+    first = true
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/interaction/Wuchty2009/sm002.csv",
+      :col_sep => "\t", :headers => true) do |row|
+
+      if first # skip the first 2 lines
+        first = false
+        next
+      end
+
+      code1 = CodingRegion.ff(row[0])
+      code2 = CodingRegion.ff(row[2])
+
+      if code1.nil? or code2.nil?
+        bads += 1
+        next
+      end
+
+      CodingRegionNetworkEdge.find_or_create_by_network_id_and_coding_region_id_first_and_coding_region_id_second(
+        net.id, code1.id, code2.id
+      ) or raise
+      goods += 1
+    end
+
+    puts "#{goods} good, #{bads} bad."
+  end
+  
+  def falciparum_apiloc_counts
+    File.open("#{PHD_DIR}/gene lists/counts/falciparum.tab",'w') do |f|
+      f.puts ['Localisation', 'Count'].join("\t")
+      TopLevelLocalisation.all.sort{|a,b| a.name <=> b.name}.each do |t| 
+        f.puts [
+          t.name, 
+          CodingRegion.falciparum.top(t.name).count(:select =>'distinct(coding_regions.id)')
+        ].join("\t")
+      end
+    end
+  end
 end
