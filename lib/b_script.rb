@@ -7949,4 +7949,14 @@ PFL2395c
       end
     end
   end
+
+  # Find all the orthomcl groups that are specific to alveolates in OrthoMCL,
+  # and then retrieve the falciparum sequence from that.
+  def apicomplexa_specific_example_sequences
+    # The list of groups has been compiled by copy and pasting the whole
+    # web pages and then grepping the text versions of them.
+    File.foreach("#{PHD_DIR}/algae_search/apicomplexa_specific/specific.orthomcl_groups.txt") do |line|
+      puts OrthomclGroup.official.find_by_orthomcl_name(line.strip).orthomcl_genes.code('pfa').first.orthomcl_gene_official_data.fasta
+    end
+  end
 end
