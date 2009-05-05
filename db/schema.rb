@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090324232636) do
+ActiveRecord::Schema.define(:version => 20090430070748) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -103,6 +103,13 @@ ActiveRecord::Schema.define(:version => 20090324232636) do
 
   add_index "coding_region_drosophila_allele_genes", ["coding_region_id"], :name => "index_coding_region_drosophila_allele_genes_on_coding_region_id"
   add_index "coding_region_drosophila_allele_genes", ["drosophila_allele_gene_id"], :name => "index_coding_region_drosophila_allele_genes_on_drosophila_allel"
+
+  create_table "coding_region_drosophila_rnai_lethalities", :force => true do |t|
+    t.integer  "coding_region_id",             :null => false
+    t.integer  "drosophila_rnai_lethality_id", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "coding_region_go_terms", :force => true do |t|
     t.integer "coding_region_id"
@@ -268,6 +275,14 @@ ActiveRecord::Schema.define(:version => 20090324232636) do
   end
 
   add_index "drosophila_allele_phenotypes", ["phenotype"], :name => "index_drosophila_allele_phenotypes_on_phenotype"
+
+  create_table "drosophila_rnai_lethalities", :force => true do |t|
+    t.string   "lethality",  :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "drosophila_rnai_lethalities", ["lethality"], :name => "index_drosophila_rnai_lethalities_on_lethality", :unique => true
 
   create_table "export_preds", :force => true do |t|
     t.integer  "coding_region_id", :null => false

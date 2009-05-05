@@ -279,7 +279,34 @@ class WScript
       puts lc.to_s
     end
   end
+  
+ def elegans_all_genes_including_genes_not_in_orthomclgroups_excluding_mammalian
     
+    overlaps = [
+      [['cel'],['cel']]  
+    ]
+    overlaps.each do |arrays|
+      p arrays
+      groups = OrthomclGroup.all_overlapping_groups(arrays[0])
+      puts "Found #{groups.length} orthomcl groups with at least one #{arrays[0]} gene in them"
+        
+      #find groups without mammalian orthologues
+      groups.reject! do |g|
+        g.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0
+      end
+      
+      #count the lethal ones
+      lethal_count = compute_lethal_count(groups, arrays[1])
+      puts "LethalCount of genes with an orthomcl group: #{lethal_count}"
+      OrthomclGene.code(arrays[1]).no_group.all.each do |orthomcl_gene|
+        add_orthomcl_gene_to_lethal_count(orthomcl_gene, lethal_count)
+      end
+      puts "LethalCount of genes with and without an orthomcl group: #{lethal_count}"
+    end    
+  end 
+   
+   
+  
   
   def lethal_orthology
     overlaps = [
@@ -1302,6 +1329,7 @@ class WScript
   def elegans_essentiality_after_excluding_mammalian
    
     overlaps = [ 
+      [['cel'],['cel'],['cel']], 
       [['cel','sce'],['sce'],['cel']],  
       [['cel','dme'],['dme'],['cel']],      
       [['cel','dme','sce'],['sce','dme'],['cel']]  
@@ -1372,6 +1400,7 @@ class LethalCount
     "Genes found to be lethal: #{@lethal_count} of #{@total_count} genes (#{@phenotype_count} had recorded phenotypes) from #{@group_count} orthomcl groups. #{@missing_count} didn't have matching coding regions"
   end
 end
+
 class LethalCount2
   attr_accessor :lethal_count, :total_count, :phenotype_count, :missing_count
   

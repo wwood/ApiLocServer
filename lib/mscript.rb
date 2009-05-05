@@ -5,6 +5,7 @@ require 'bio'
 require 'go'
 require 'wormbase_go_file'
 require 'reach'
+require 'fastercsv'
 
 
 
@@ -369,27 +370,27 @@ class Mscript
     
     dummy = Gene.new.create_dummy(Species.fly_name)
 
-        File.open("#{dir}/fbal_fbgn_annotation_id.txt").each do |row|
-          #first 2 lines are headers so skip  
-          next if $. <= 2
-          splits = row.strip.split("\t")
+    File.open("#{dir}/fbal_fbgn_annotation_id.txt").each do |row|
+      #first 2 lines are headers so skip  
+      next if $. <= 2
+      splits = row.strip.split("\t")
           
-          gene_name = splits[4]
-          allele_name = splits[0]
+      gene_name = splits[4]
+      allele_name = splits[0]
           
-          code = CodingRegion.find_by_name_or_alternate_and_organism(gene_name, Species.fly_name)
-          if !code
-            code = CodingRegion.create(:gene_id => dummy.id, :string_id => gene_name)
-          end
+      code = CodingRegion.find_by_name_or_alternate_and_organism(gene_name, Species.fly_name)
+      if !code
+        code = CodingRegion.create(:gene_id => dummy.id, :string_id => gene_name)
+      end
           
-          #Then create allele gene table with
-          ag = DrosophilaAlleleGene.find_or_create_by_allele(allele_name)
+      #Then create allele gene table with
+      ag = DrosophilaAlleleGene.find_or_create_by_allele(allele_name)
           
-          CodingRegionDrosophilaAlleleGene.find_or_create_by_coding_region_id_and_drosophila_allele_gene_id(
-            code.id,
-            ag.id
-          )
-        end
+      CodingRegionDrosophilaAlleleGene.find_or_create_by_coding_region_id_and_drosophila_allele_gene_id(
+        code.id,
+        ag.id
+      )
+    end
 
     #Then create allele phenotype table. The format of the phenotype input file is as follows
     #allele_symbol allele_FBal#    phenotype       FBrf#
@@ -403,14 +404,14 @@ class Mscript
       #retrieve id for allele from drosophila_allele_gene_table
       name = splits[1].strip
       phenotype = splits[2]
-        g = DrosophilaAlleleGene.find_by_allele(name)
-        if !g
-          $stderr.puts "Couldn't find gene with allele #{name}"
-        else
-          ph = DrosophilaAllelePhenotype.find_or_create_by_phenotype(phenotype.strip)
-          DrosophilaAllelePhenotypeDrosophilaAlleleGene.find_or_create_by_drosophila_allele_gene_id_and_drosophila_allele_phenotype_id(
-            g.id, ph.id
-          )
+      g = DrosophilaAlleleGene.find_by_allele(name)
+      if !g
+        $stderr.puts "Couldn't find gene with allele #{name}"
+      else
+        ph = DrosophilaAllelePhenotype.find_or_create_by_phenotype(phenotype.strip)
+        DrosophilaAllelePhenotypeDrosophilaAlleleGene.find_or_create_by_drosophila_allele_gene_id_and_drosophila_allele_phenotype_id(
+          g.id, ph.id
+        )
       end
     end
   end
@@ -477,9 +478,53 @@ class Mscript
     end
   end
   
+  def enzyme_gpcr_lethal_maria_modified
+    ['sce', 'cel'].each do |name|
+      gpcr_count = 0
+      enzyme_count = 0
+      gpcr_and_lethal = 0
+      enzyme_and_lethal = 0
+      lethal_count = 0
+      lethal_total_count = 0
+        
+      OrthomclGene.code(name).all.each do |g|
+        begin
+          code = g.single_code
+          enzyme = code.is_enzyme?(true, false)
+          gpcr = code.is_gpcr?(true, false)
+          lethal = code.lethal?
+
+          lethal_count += 1 if lethal
+          lethal_total_count += 1 unless lethal.nil?
+
+          if enzyme
+            enzyme_count += 1 unless lethal.nil?
+            if lethal
+              enzyme_and_lethal += 1
+            end
+          end
+
+          if gpcr
+            gpcr_count += 1 unless lethal.nil?
+            if lethal
+              gpcr_and_lethal += 1
+            end
+          end
+        rescue OrthomclGene::UnexpectedCodingRegionCount => e
+        end
+      end        
+      
+      puts name
+      puts "random: #{lethal_count} out of #{lethal_total_count}, probability #{lethal_count.to_f/lethal_total_count.to_f}"
+      puts "enzyme #{enzyme_count}, enzyme+lethal #{enzyme_and_lethal}, probability #{enzyme_and_lethal.to_f/enzyme_count.to_f}"
+      puts "gpcr #{gpcr_count}, gpcr+lethal #{gpcr_and_lethal}, probability #{gpcr_and_lethal.to_f/gpcr_count.to_f}"
+    end
+  end
+  
+  
   def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups_first9000")
-   #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups_last8411")
-     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups")
+    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups_last8411")
+    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Celegans_database_analysis/Checking_the_approx_500genes_in_ortho_not_in_db/genes_in_orthomcl_not_in_dbresults.with_species_code")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_ESTseq_files/Hcontortus_analysis/Method_used_seqclean_repeatmasker_WITHOUT_CAP3/Database_Queries/22_cel_gene.ids_with_species_code")
@@ -501,7 +546,7 @@ class Mscript
       "wormnet_full_no._interactions",
       "wormnet_full_total_score",
       "has mammalian orthologue",
-     "no. of elegans genes in group"
+      "no. of elegans genes in group"
     ].join("\t")
     
     badness_count1 = 0
@@ -523,7 +568,7 @@ class Mscript
           code.wormnet_full_number_interactions,
           code.wormnet_full_total_linkage_scores,
           #for genes not in orthomcl groups need to comment out the next couple of lines
-         code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
+          code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
           true : false,
           code.single_orthomcl.orthomcl_group.orthomcl_genes.codes('cel').count
         ].join("\t")
@@ -648,6 +693,40 @@ class Mscript
     end
   end
   
+   
+
+  def drosophila_rnai_lethality_to_db(filename = "#{DATA_DIR}/Essentiality/Drosophila/nature07936-s3.csv")
+   
+    dummy = Gene.new.create_dummy(Species.fly_name)
+   
+    #info is in file like below:
+    #836    3    "viable"    "CG5819"    1    0    10    0    10    "Not Lethal"    0    0    0    0    0    0    0    0    0    0    0    0    "No"
+
+    FasterCSV.foreach(filename, :headers => true, :col_sep => "\t") do |row|
+
+      gene_name = row[3]
+      lethality = row[9]
+
+      #skip lines if contains multiple genes as we're excluding cases where the RNAi targets multiple genes
+      next if gene_name.match(',')
+
+      code = CodingRegion.find_by_name_or_alternate_and_organism(gene_name, Species.fly_name)
+      if !code
+        code = CodingRegion.create!(:gene_id => dummy.id, :string_id => gene_name)
+      end
+
+
+      #Then create a table just for the phenotypes with:
+      l = DrosophilaRnaiLethality.find_or_create_by_lethality(lethality) or raise Exception, "Unexpected error when creating lethality entry: #{inspect}"
+      
+      cl = CodingRegionDrosophilaRnaiLethality.find_or_create_by_coding_region_id_and_drosophila_rnai_lethality_id(
+        code.id,
+        l.id
+      ) or raise Exception, "Unexpected error when creating coding region lethality entry: #{inspect}"
+    end
+  end
+ 
+    
   
       
 end

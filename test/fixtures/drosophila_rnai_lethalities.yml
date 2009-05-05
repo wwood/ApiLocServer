@@ -1,0 +1,22 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+lethal_adult:
+  id: 1
+  lethality: Adult
+
+lethal_before_pupal:
+  id: 2
+  lethality: Before Pupal
+
+lethal_pupal:
+  id: 3
+  lethality: Pupal
+
+lethal_eclosion:
+  id: 4
+  lethality: Eclosion
+
+not_lethal:
+  id: 5
+  lethality: Not Lethal
+

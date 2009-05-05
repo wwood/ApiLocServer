@@ -99,7 +99,8 @@ class CodingRegion < ActiveRecord::Base
   #drosophila
   has_many :coding_region_drosophila_allele_genes, :dependent => :destroy
   has_many :drosophila_allele_genes, :through => :coding_region_drosophila_allele_genes
-  
+  has_many :coding_region_drosophila_rnai_lethalities, :dependent => :destroy
+  has_many :drosophila_rnai_lethalities, :through => :coding_region_drosophila_rnai_lethalities
   acts_as_signalp :sequence_method => :aaseq
   
   # cached results
@@ -514,11 +515,18 @@ class CodingRegion < ActiveRecord::Base
       end
       return false
     elsif get_species.name == Species.fly_name
-      obs = drosophila_allele_genes.collect{|g| g.drosophila_allele_phenotypes.trusted.all}.flatten
-      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
-      obs.each do |ob|
-        return true if ob.lethal?
+      #if gene has an RNAi lethality entry check if it is lethal, note: a coding region can have multiple RNAi lethality values
+      if drosophila_rnai_lethalities
+        obs1 = drosophila_rnai_lethalities.all.each do |ob1|
+          return true if ob1.lethal?
+        end
       end
+      #if gene does not have an RNAi lethality entry check if gene has lethal phenotype from flybase phenotype  
+      obs2 = drosophila_allele_genes.collect{|g| g.drosophila_allele_phenotypes.trusted.all}.flatten
+      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs2.empty?
+      obs2.each do |ob2|
+        return true if ob2.lethal?
+      end     
       return false
     else
       raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
@@ -535,8 +543,9 @@ class CodingRegion < ActiveRecord::Base
       return mouse_phenotypes.trusted.count > 0
     elsif get_species.name == Species.yeast_name
       return yeast_pheno_infos.trusted.count > 0
+      #for drosophila check if there is phenotype info in EITHER flybase phenotype table OR RNAi lethality table
     elsif get_species.name == Species.fly_name
-      return !(drosophila_allele_genes.collect{|g| g.drosophila_allele_phenotypes.trusted.all}.flatten.empty?)
+      return (!(drosophila_allele_genes.collect{|g| g.drosophila_allele_phenotypes.trusted.all}.flatten.empty?) or drosophila_rnai_lethalities.exists?)
     else
       raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
     end
@@ -887,6 +896,7 @@ class CodingRegion < ActiveRecord::Base
     end
     return hits
   end
+  
 end
 
 
