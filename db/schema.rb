@@ -11,7 +11,6 @@
 
 ActiveRecord::Schema.define(:version => 20090430070748) do
 
-
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
     t.text     "annotation",       :null => false
