@@ -134,9 +134,9 @@ class Mverification < ActiveRecord::Base
       puts "Bad phenotype phenotype name: #{code.phenotype_observeds.pick(:phenotype).sort[0]}"
     end
     
-      #check an elegans gene in Orthomcl no_group is correctly linked to lethal phenotype
+    #check an elegans gene in Orthomcl no_group is correctly linked to lethal phenotype
     name = 'cel|WBGene00000461'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene in orthomcl no_group, should be true for lethal phenotype: #{name}"
     end  
     
@@ -201,21 +201,21 @@ class Mverification < ActiveRecord::Base
     #MGI:3702935	1190005F20Rik<Gt(W027A02)Wrst>	gene trap W027A02, Wolfgang Wurst	Gene trapped	17198746	MGI:1916185	1190005F20Rik	XM_355244	ENSMUSG00000053286	MP:0005386,MP:0005389
     #ENSMUSG00000053286 = mmu|ENSMUSP00000068309
     name = 'mmu|ENSMUSP00000068309'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != false
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != false
       puts "Bad lethal phenotype association, should be false as not lethal phenotype: #{name}"
     end
         
     #3)check incorrect expt type + lethal = nil 
     #MGI:3774413	Avil<tm1(ALPP)Fawa>	targeted mutation 1, Fan Wang	Targeted (knock-in)	18160648	MGI:1333798	Avil	NM_009635	ENSMUSG00000025432	MP:0003631,MP:0005372,MP:0005374
     #ENSMUSG00000025432 =mmu|ENSMUSP00000026500 
-     name = 'mmu|ENSMUSP00000026500'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != nil
+    name = 'mmu|ENSMUSP00000026500'
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != nil
       puts "Bad lethal phenotype association, should be nil as incorrect expt type: #{name}"
     end
     
     #check a mouse gene in Orthomcl no_group is correctly linked to lethal phenotype
     name = 'mmu|ENSMUSP00000000031'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene in orthomcl no_group, should be true for lethal phenotype: #{name}"
     end
   end
@@ -249,37 +249,37 @@ class Mverification < ActiveRecord::Base
     
     # check gene with known lethal phenotype is linked correctly. CG3095 is a gene that has a lethal phenotype according to flybase but is Not lethal according to the RNAi screen so because it is lethal from one of the sources (flybase/RNAi) it should be found to be lethal by our analysis
     name = 'dme|CG3095-PA'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene, should be true for lethal phenotype: #{name}"
-      end
+    end
     
-     #check a drosophila gene in Orthomcl no_group is correctly linked to lethal phenotype. CG3095 is a gene that has a lethal phenotype according to flybase but is not present in RNAi screen dataset
+    #check a drosophila gene in Orthomcl no_group is correctly linked to lethal phenotype. CG3095 is a gene that has a lethal phenotype according to flybase but is not present in RNAi screen dataset
     name = 'dme|CG3096-PA'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene in orthomcl no_group, should be true for lethal phenotype: #{name}"
     end 
     
     #check a drosophila gene lethal by RNAi screen (lethality = Adult) is found to be lethal. 
     name = 'dme|CG6461-PA'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene from RNAi screen, should be true for lethal phenotype: #{name}"
     end 
    
     #check a drosophila gene lethal by RNAi screen (lethality = Before Pupal) is found to be lethal. 
     name = 'dme|CG10484-PA'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene from RNAi screen, should be true for lethal phenotype: #{name}"
     end 
     
     #check a drosophila gene lethal by RNAi screen (lethality = Pupal) is found to be lethal. 
     name = 'dme|CG18412-PA'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene from RNAi screen, should be true for lethal phenotype: #{name}"
     end 
     
-   #check a drosophila gene lethal by RNAi screen (lethality = Eclosion) is found to be lethal. 
+    #check a drosophila gene lethal by RNAi screen (lethality = Eclosion) is found to be lethal. 
     name = 'dme|CG3810-PA'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene from RNAi screen, should be true for lethal phenotype: #{name}"
     end  
     
@@ -351,9 +351,9 @@ class Mverification < ActiveRecord::Base
       puts "Bad phenotype inclusion, should be nil as not correct expt type #{name}"
     end
       
-      #check a yeast gene in Orthomcl no_group is correctly linked to lethal phenotype
+    #check a yeast gene in Orthomcl no_group is correctly linked to lethal phenotype
     name = 'sce|YPR177C'
-      if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene in orthomcl no_group, should be true for lethal phenotype: #{name}"
     end  
   end

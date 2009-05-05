@@ -44,6 +44,44 @@ class SpreadsheetGenerator
     puts rarff_relation.to_arff
   end
 
+  def arff_eight_class
+    eight_classes = [
+      'exported',
+      'mitochondria',
+      'apicoplast',
+      'cytosol',
+      'nucleus',
+      'endoplasmic reticulum',
+      'merozoite surface',
+      'inner membrane complex',
+      'apical'
+    ]
+    
+    codes = PlasmodbGeneList.find_by_description(
+      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+    ).coding_regions.select do |code|
+      code.tops.length == 1 and eight_classes.include?(code.tops[0].name)
+    end
+    #    codes = [codes[0],codes[1]]
+
+    data = generate_spreadsheet(codes) do |code|
+      @headings.push 'Localisation' if @first
+      @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
+      check_headings
+    end
+
+    rarff_relation = Rarff::Relation.new('PfalciparumLocalisation')
+    rarff_relation.instances = data
+    @headings.each_with_index do |heading, index|
+      rarff_relation.attributes[index].name = "\"#{heading}\""
+    end
+
+    # Make some attributes noiminal instead of String
+    rarff_relation.set_string_attributes_to_nominal
+
+    puts rarff_relation.to_arff
+  end
+
   # Write out an ARFF file for each of the top level localisations
   def each_localisation_arff
     MalariaLocalisationTopLevelLocalisation.all.reach.top_level_localisation.uniq.each do |top|
@@ -104,6 +142,7 @@ class SpreadsheetGenerator
     
     # For all genes that only have 1 localisation and that are non-redundant
     coding_regions.each do |code|
+      @finished = false
       #    CodingRegion.species_name(Species.falciparum_name).all(
       #      :select => 'distinct(coding_regions.*)',
       #      :joins => {:expressed_localisations => :malaria_top_level_localisation}
@@ -132,6 +171,11 @@ class SpreadsheetGenerator
       # PlasmoAP
       @headings.push 'PlasmoAP Score' if @first
       @current_row.push code.amino_acid_sequence.plasmo_a_p.points
+      check_headings
+
+      # ExportPred
+      @headings.push 'ExportPred?' if @first
+      @current_row.push code.export_pred_however.predicted?
       check_headings
       
       #WoLF_PSORT
@@ -380,13 +424,13 @@ class SpreadsheetGenerator
       end
       check_headings
       
-      #             gMARS and other headings
-      code.gmars_vector(3).each do |node|
-        # Push the headings on the fly - easier this way
-        @headings.push node.name if @first
-        @current_row.push node.normalised_value
-        check_headings
-      end
+      #      #             gMARS and other headings
+      #      code.gmars_vector(3).each do |node|
+      #        # Push the headings on the fly - easier this way
+      #        @headings.push node.name if @first
+      #        @current_row.push node.normalised_value
+      #        check_headings
+      #      end
       
       @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "Jiang et al #{s} 10kb SFP Count"} if @first
       @current_row.push code.jiangs
@@ -400,15 +444,72 @@ class SpreadsheetGenerator
       @current_row.push code.at_content
       check_headings
 
-      @headings.push 'Number of tandem repeats' if @first
-      @headings.push 'Nucleotides covered length' if @first
+      @headings.push 'Nucleotide Tandem Repeats: Number of tandem repeats' if @first
+      @headings.push 'Nucleotide Tandem Repeats: Nucleotides covered length' if @first
       repeats = code.transcript_sequence.tandem_repeats
       @current_row.push repeats.length
       @current_row.push repeats.length_covered
       check_headings
       
-      @headings.push 'Number of repeats (by radar)' if @first
-      @current_row.push code.amino_acid_sequence.radar_repeats.length
+      #      @headings.push 'Number of repeats (by radar)' if @first
+      #      @current_row.push code.amino_acid_sequence.radar_repeats.length
+      #      check_headings
+
+      if @first
+        LocalisationMedianMicroarrayMeasurement::LOCALISATIONS.each do |loc|
+          @headings.push "Pearson Distance from Median Localisation #{loc}"
+        end
+      end
+      @current_row.push LocalisationMedianMicroarrayMeasurement.pearson_distance_from_localisation_medians(code)
+      check_headings
+
+      if @first
+        LocalisationMedianMicroarrayMeasurement::LOCALISATIONS.each do |loc|
+          @headings.push "Euclidean Distance from Median Localisation #{loc}"
+        end
+      end
+      @current_row.push LocalisationMedianMicroarrayMeasurement.euclidean_distance_from_localisation_medians(code)
+      check_headings
+
+      @headings.push [
+        'LaCount Interaction Partner Localisation',
+        'Wuchty Interaction Partner Localisation'
+      ] if @first
+      [Network::LACOUNT_2005_NAME, Network::WUCHTY_2009_NAME].each do |network_name|
+        interlocs = code.interaction_partners(network_name).collect do |c|
+          tops = c.tops
+          if c.tops.length == 1
+            tops[0].name
+          else
+            nil
+          end
+        end
+        interlocs.reject!{|i| i.nil?}
+        iis = interlocs.uniq
+        if iis.length > 1
+          $stderr.puts "In network #{network_name}, #{code.string_id}: #{interlocs.join(', ')}"
+        end
+
+        if interlocs.empty?
+          @current_row.push nil
+        else
+          hash = {}
+          interlocs.each do |loc|
+            hash[loc] ||= 0
+            hash[loc] += 1
+          end
+          winning_count = 0
+          winning_loc = 'bug'
+          hash.each do |loc,count|
+            if count > winning_count
+              winning_count = count
+              winning_loc = loc
+            end
+          end
+          $stderr.puts winning_loc
+          @current_row.push winning_loc.gsub(' ','_')
+        end
+      end
       check_headings
 
       # Run any additional code as per caller's block
@@ -419,6 +520,8 @@ class SpreadsheetGenerator
       
       #      break unless @first
       @first = false if @first
+      @finished = true
+      check_headings
     end
     return all_data
   end
@@ -429,6 +532,12 @@ class SpreadsheetGenerator
       @headings.flatten!
       @current_row.flatten!
       unless @current_row.length == @headings.length
+        raise Exception, "Bad number of entries in the row for code #{@current_row[0].inspect}: headings #{@headings.length} results #{@current_row.length}"
+      end
+      @expected_row_entries = @current_row.length
+    elsif @finished
+      @current_row.flatten!
+      unless @current_row.length == @expected_row_entries
         raise Exception, "Bad number of entries in the row for code #{@current_row[0].inspect}: headings #{@headings.length} results #{@current_row.length}"
       end
     end

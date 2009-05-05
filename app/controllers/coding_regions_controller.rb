@@ -1,7 +1,7 @@
 class CodingRegionsController < ApplicationController
   
   def upload
-    Script.new.upload_hardy
+    BScript.new.upload_hardy
     render :index
   end
   
@@ -10,7 +10,7 @@ class CodingRegionsController < ApplicationController
   def index
     # obsolete? Useful for catching bugs when script/runner
     # fails uselessly sometimes
-    Script.new
+    BScript.new
 
     respond_to do |format|
       format.html # index.html.erb

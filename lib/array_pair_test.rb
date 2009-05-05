@@ -61,4 +61,11 @@ class ArrayPairTest < Test::Unit::TestCase
     assert_equal '()', [].to_sql_in_string
     assert_equal "('a','bc')", ['a','bc'].to_sql_in_string
   end
+
+  def test_median
+    assert_equal nil, [].median
+    assert_equal 1, [1].median
+    assert_equal 1.5, [0,3,2,1].median
+    assert_equal 2, [1,2,3].median
+  end
 end
