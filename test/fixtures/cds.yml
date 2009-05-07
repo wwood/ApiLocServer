@@ -30,3 +30,8 @@ four1:  #On a different scaffold
   coding_region_id: 4
   start: 150
   stop: 160
+five1:
+  id: 7
+  coding_region_id: 5
+  start: 140
+  stop: 156

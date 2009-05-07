@@ -184,7 +184,6 @@ class CodingRegion < ActiveRecord::Base
   concerned_with :machine_learning
   
   def calculate_upstream_region
-    
     scaffold_id = gene.scaffold_id
     
     # If positive orientation
@@ -216,6 +215,33 @@ class CodingRegion < ActiveRecord::Base
     end
     
     raise Exception, "No proper orientation found so couldn't calculate upstream distance"
+  end
+
+  # Find the coding region immediately upstream of this gene on the genome, taking
+  # into account the orientation of the gene on the genome
+  # Return that coding region, or nil if none exists
+  def upstream_coding_region
+    butting = nil
+    scaffold_id = gene.scaffold_id
+    if positive_orientation?
+      first = first_base_scaffold_wise
+
+      # find the nearest upstream cds of this coding region
+      # that is on the same scaffold
+      butting = Cd.first(:order => 'Cds.stop desc',
+        :include => [:coding_region => {:gene => :scaffold}],
+        :conditions => "stop < #{first} and genes.scaffold_id=#{scaffold_id}")
+    elsif negative_orientation?
+      last = last_base_scaffold_wise
+      butting = Cd.first(:order => 'Cds.stop',
+        :include => [:coding_region => {:gene => :scaffold}],
+        :conditions => "start > #{last} and scaffold_id=#{scaffold_id}")
+    else
+      raise Exception, "Cannot find upstream coding region since the orientation is not positive or negative: #{orientation}"
+    end
+
+    return nil if butting.nil?
+    return butting.coding_region
   end
 
   

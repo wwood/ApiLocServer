@@ -7969,4 +7969,38 @@ PFL2395c
       puts OrthomclGroup.official.find_by_orthomcl_name(line.strip).orthomcl_genes.code('tth').all.reach.orthomcl_gene_official_data.fasta.join("\n")
     end
   end
+
+  # Given a file of -m 8 blast results, find queries and hits where the
+  # query gene hits against 2 genes that have actually been split according
+  # to the genome annotation
+  def babesia_split_genes(filename="#{PHD_DIR}/babesiaApicoplastReAnnotation/babesia_split_genes/PfaVBbo.blastp.blast.tab")
+    hash = {}
+    
+    # read in the hit groups
+    FasterCSV.foreach(filename, :col_sep => "\t") do |row|
+      query = row[0]
+      hit = row[1]
+
+      hash[query] ||= []
+      hash[query].push hit
+    end
+
+    hash.each do |query, hits|
+      consecutives = []
+      hits.each do |hit|
+        code = CodingRegion.find_by_name_or_alternate_and_organism(hit, Species::BABESIA_BOVIS_NAME)
+        upstream = code.upstream_coding_region
+
+        # if an upstream gene exists and this query also hits that upstream
+        # gene, we've found something
+        if upstream and hits.include?(upstream.string_id)
+          consecutives.push upstream.string_id, code.string_id
+        end
+      end
+
+      unless consecutives.empty?
+        puts [query, consecutives.sort.uniq].flatten.join("\t")
+      end
+    end
+  end
 end
