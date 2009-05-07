@@ -1,7 +1,7 @@
 
 
 # A class for verifying the state of the database is as expected.
-class Verification < ActiveRecord::Base
+class Verification
   def falciparum
     
     # this gene should not exist
