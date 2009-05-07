@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define do
+ActiveRecord::Schema.define(:version => 20090507042711) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -821,9 +821,6 @@ ActiveRecord::Schema.define do
 
   add_index "user_comments", ["coding_region_id", "number"], :name => "index_user_comments_on_coding_region_id_and_number", :unique => true
   add_index "user_comments", ["coding_region_id"], :name => "index_user_comments_on_coding_region_id"
-
-  create_table "verifications", :force => true do |t|
-  end
 
   create_table "wolf_psort_predictions", :force => true do |t|
     t.integer  "coding_region_id"
