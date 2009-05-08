@@ -3976,14 +3976,13 @@ class BScript
           if !code
             raise Exception, "Couldn't find coding region name #{string}"
           end
-      
-          c = Cd.find_or_create_by_coding_region_id_and_start_and_stop(
-            code.id,
-            feature.locations.first.from,
-            feature.locations.first.to
-          )
-          if !c
-            raise Exception, "Failed to upload Cd: #{c.inspect}"
+
+          feature.locations.each do |location|
+            Cd.find_or_create_by_coding_region_id_and_start_and_stop(
+              code.id,
+              location.from,
+              location.to
+            ) or raise Exception, "Failed to upload Cd: #{location}"
           end
         
           # Set orientation of gene

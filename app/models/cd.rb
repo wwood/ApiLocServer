@@ -21,7 +21,7 @@ class Cd < ActiveRecord::Base
       real_count = count.nil? ? 0 : count
       protein_count += real_count
       exon_total += real_count * number
-      puts "#{number} exons: #{real_count}"
+      puts "#{number} exons: #{real_count}\t#{((real_count.to_f/coding_region_string_id_list.length.to_f)*10000.0).round.to_f/100.0} %"
     end
     puts "Average: #{exon_total.to_f/protein_count.to_f}"
   end

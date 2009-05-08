@@ -638,6 +638,42 @@ class Verification
     if cd.start != 3374 or cd.stop != 4232 or cd.coding_region.gene.scaffold.name != 'AAXT01000011.gb'
       raise Exception, "start or stop wrong for #{name}: #{cd.inspect}"
     end
+
+    # test one with multiple exons, which was previously buggy. That bug
+    # resulted in all coding regions having a single exon.
+    name = "BBOV_III000200"
+    code = CodingRegion.find_by_name_or_alternate_and_organism(name, Species::BABESIA_BOVIS_NAME)
+    if !code
+      raise Exception, "No coding region #{name} found"
+    end
+    unless code.negative_orientation?
+      raise Exception, "Coding region orientation not properly set: #{code.inspect}"
+    end
+    cds = Cd.all(:joins => {:coding_region => {:gene => {:scaffold => :species}}}, :conditions =>
+        {:coding_regions => {:id => code.id}, :species => {:name => Species.babesia_bovis_name}}
+    )
+    #      CDS             complement(join(44464..46640,46678..46939,47002..47157))
+    unless cds.length == 3
+      raise Exception, "Wrong number of cds found for #{name}: #{cds.inspect}. Expected #{3}, found #{cds.length}"
+    end
+    [ # correct cds regions in reverse order since it is a negatively oriented gene
+      [47002, 47157],
+      [46678, 46939],
+      [44464, 46640]
+    ].each_with_index do |start_and_stop, i|
+      start = cds[i].start
+      stop = cds[i].stop
+      unless start == start_and_stop[0]
+        raise Exception, "start of 3 exon gene: #{start_and_stop.inpect} expected, found #{start}"
+      end
+      unless stop == start_and_stop[1]
+        raise Exception, "stop of 3 exon gene: #{start_and_stop.inpect} expected, found #{stop}"
+      end
+    end
+    
+    if cd.start != 3374 or cd.stop != 4232 or cd.coding_region.gene.scaffold.name != 'AAXT01000011.gb'
+      raise Exception, "start or stop wrong for #{name}: #{cd.inspect}"
+    end
   end
   
   def snp_jeffares
