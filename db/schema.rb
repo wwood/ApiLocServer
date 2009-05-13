@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090507042711) do
+ActiveRecord::Schema.define(:version => 20090513014854) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -45,9 +45,16 @@ ActiveRecord::Schema.define(:version => 20090507042711) do
     t.integer  "stop",             :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "order"
   end
 
+  add_index "cds", ["coding_region_id", "order"], :name => "index_cds_on_order_and_coding_region_id"
+  add_index "cds", ["coding_region_id", "start"], :name => "index_cds_on_start_and_coding_region_id"
+  add_index "cds", ["coding_region_id", "stop"], :name => "index_cds_on_stop_and_coding_region_id"
   add_index "cds", ["coding_region_id"], :name => "index_cds_on_coding_region_id"
+  add_index "cds", ["order"], :name => "index_cds_on_order"
+  add_index "cds", ["start"], :name => "index_cds_on_start"
+  add_index "cds", ["stop"], :name => "index_cds_on_stop"
 
   create_table "chromosomal_features", :force => true do |t|
     t.integer  "start",       :null => false

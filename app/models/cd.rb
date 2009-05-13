@@ -1,6 +1,8 @@
 class Cd < ActiveRecord::Base
   belongs_to :coding_region
 
+  named_scope :first, {:conditions => [:order => 1]}
+
   def length
     stop-start+1
   end
