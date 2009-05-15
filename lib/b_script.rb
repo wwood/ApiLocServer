@@ -3976,14 +3976,13 @@ class BScript
           if !code
             raise Exception, "Couldn't find coding region name #{string}"
           end
-      
-          c = Cd.find_or_create_by_coding_region_id_and_start_and_stop(
-            code.id,
-            feature.locations.first.from,
-            feature.locations.first.to
-          )
-          if !c
-            raise Exception, "Failed to upload Cd: #{c.inspect}"
+
+          feature.locations.each do |location|
+            Cd.find_or_create_by_coding_region_id_and_start_and_stop(
+              code.id,
+              location.from,
+              location.to
+            ) or raise Exception, "Failed to upload Cd: #{location}"
           end
         
           # Set orientation of gene
@@ -3999,81 +3998,6 @@ class BScript
           code.gene.scaffold = scaff
           code.gene.save!
 
-        end
-      end
-    end
-  end
-  
-  # Find all the genes where there is a 5 prime extension (but without the need of an upstream exon) relative to the 
-  # official genome. Assumes Script.new.babesia_bovis_cds and verification
-  def babesia_five_prime_extensions
-    # for each of the generated coding regions
-    require 'orf_finder'
-    finder = Orf::OrfFinder.new
-    Bio::FlatFile.auto("#{DATA_DIR}/bovis/genome/NCBI/BabesiaWGS-96909.fasta").each do |seq|
-      genbank_id = seq.definition.match(/^Babesia bovis .*, whole genome shotgun sequence. \| (\S+)$/)[1]
-      scaff = Scaffold.find_by_name "#{genbank_id}.gb"
-      raise if !scaff
-      
-      # forward direction
-      orf_threads = finder.generate_longest_orfs(seq.seq)
-      orf_threads.each do |orfs|
-        orfs.each do |orf|
-          if orf.length > 1
-            # Does this orf encompass another one that is already in the genome?
-            codes = CodingRegion.all(
-              :include => [
-                :cds,
-                :gene
-              ],
-              :conditions =>
-                "coding_regions.orientation = '#{CodingRegion.positive_orientation}' and "+ # Coding regions must be positive
-              "genes.scaffold_id = #{scaff.id} and "+ #has to be on the same stretch
-              "cds.start-1 > #{orf.start} and cds.stop-1 <= #{orf.stop} and "+# start must be before and end same or after 
-              "(cds.start - #{orf.start}) % 3 = 1" #must be in frame. 1 is somewhat of a hack, but seems to be true for BBOV_III000190
-            )
-            codes.each do |code|
-              puts [
-                code.string_id,
-                code.cds[0].start,
-                orf.start,
-                code.orientation,
-                orf.aa_sequence,
-                code.amino_acid_sequence.sequence
-              ].join("\t")
-            end
-          end
-        end
-      end
-        
-      # reverse direction
-      orf_threads = finder.generate_longest_orfs(Bio::Sequence::NA.new(seq.seq).complement)
-      orf_threads.each do |orfs|
-        orfs.each do |orf|
-          if orf.length > 1
-            # Does this orf encompass another one that is already in the genome?
-            codes = CodingRegion.all(
-              :include => [
-                :cds,
-                :gene
-              ],
-              :conditions =>
-                "coding_regions.orientation = '#{CodingRegion.negative_orientation}' and "+ # Coding regions must be positive
-              "genes.scaffold_id = #{scaff.id} and "+ #has to be on the same stretch
-              "cds.stop+1 < #{seq.length-orf.start} and cds.start+1 >= #{seq.length - orf.stop} and "+# start must be before and end same or after 
-              "(cds.stop - #{seq.length-orf.start}) % 3 = 1" #must be in frame. 1 is somewhat of a hack, but seems to be true for BBOV_III000190
-            )
-            codes.each do |code|
-              puts [
-                code.string_id,
-                code.cds[0].start,
-                orf.start,
-                code.orientation,
-                orf.aa_sequence,
-                code.amino_acid_sequence.sequence
-              ].join("\t")
-            end
-          end
         end
       end
     end

@@ -16,6 +16,28 @@ class CodingRegionTest < ActiveSupport::TestCase
 
   end
 
+  def test_upstream_coding_region
+    # test none
+    assert_nil CodingRegion.find(1).upstream_coding_region
+
+    # test forward
+    assert_equal 2, CodingRegion.find(3).upstream_coding_region.id
+
+    # test backward
+    assert_equal 3, CodingRegion.find(2).upstream_coding_region.id
+  end
+
+#  def test_upstream_coding_region_same_orientation
+#    # test none
+#    assert_nil CodingRegion.find(1).upstream_coding_region
+#
+#    # test forward
+#    assert_equal 1, CodingRegion.find(3).upstream_coding_region
+#
+#    # test backward
+#    assert_equal 5, CodingRegion.find(2).upstream_coding_region
+#  end
+
   def test_get_by_normal_or_alternate
     #normal
     c = CodingRegion.find_by_name_or_alternate 'PF1.1'
@@ -60,7 +82,7 @@ class CodingRegionTest < ActiveSupport::TestCase
 
   end
 
-  def test_single_gene
+  def test_single_orthomcl
     # test good
     o = CodingRegion.find(2).single_orthomcl
     assert_kind_of OrthomclGene, o

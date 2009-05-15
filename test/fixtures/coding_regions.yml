@@ -26,7 +26,7 @@ five:
   id: 5
   gene_id: 3
   string_id: 'PF1'
-  orientation: +
+  orientation: -
 six:
   id: 6
   gene_id: 3
