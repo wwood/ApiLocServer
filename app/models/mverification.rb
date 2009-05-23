@@ -253,36 +253,41 @@ class Mverification < ActiveRecord::Base
       puts "Bad lethal phenotype association for gene, should be true for lethal phenotype: #{name}"
     end
     
-    #check a drosophila gene in Orthomcl no_group is correctly linked to lethal phenotype. CG3095 is a gene that has a lethal phenotype according to flybase but is not present in RNAi screen dataset
+    #check a drosophila gene in Orthomcl no_group is correctly linked to lethal phenotype. CG3096 is a gene that has a lethal phenotype according to flybase but is not present in RNAi screen dataset
     name = 'dme|CG3096-PA'
     if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene in orthomcl no_group, should be true for lethal phenotype: #{name}"
     end 
     
-    #check a drosophila gene lethal by RNAi screen (lethality = Adult) is found to be lethal. 
+    #check a drosophila gene lethal by RNAi screen (lethality = Adult) is found to be lethal. This gene has no phenotype info in flybase.
     name = 'dme|CG6461-PA'
     if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene from RNAi screen, should be true for lethal phenotype: #{name}"
     end 
    
-    #check a drosophila gene lethal by RNAi screen (lethality = Before Pupal) is found to be lethal. 
+    #check a drosophila gene lethal by RNAi screen (lethality = Before Pupal) is found to be lethal. This gene is lethal in flybase.
     name = 'dme|CG10484-PA'
     if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene from RNAi screen, should be true for lethal phenotype: #{name}"
     end 
     
-    #check a drosophila gene lethal by RNAi screen (lethality = Pupal) is found to be lethal. 
+    #check a drosophila gene lethal by RNAi screen (lethality = Pupal) is found to be lethal. This gene is lethal in flybase.
     name = 'dme|CG18412-PA'
     if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene from RNAi screen, should be true for lethal phenotype: #{name}"
     end 
     
-    #check a drosophila gene lethal by RNAi screen (lethality = Eclosion) is found to be lethal. 
+    #check a drosophila gene lethal by RNAi screen (lethality = Eclosion) is found to be lethal. This gene is not lethal in flybase.
     name = 'dme|CG3810-PA'
     if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != true
       puts "Bad lethal phenotype association for gene from RNAi screen, should be true for lethal phenotype: #{name}"
     end  
     
+    # check a drosophila gene with RNAi info that says not lethal and no flybase info returns as false for not lethal
+    name = 'dme|CG8927-PA'
+    if OrthomclGene.find_by_orthomcl_name(name).single_code.lethal? != false
+      puts "Bad phenotype association for gene from RNAi screen, should be false for lethal phenotype: #{name}"
+    end  
     
   end
   
