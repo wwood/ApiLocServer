@@ -586,6 +586,10 @@ class CodingRegion < ActiveRecord::Base
         raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs2.empty?
       end
 
+      if drosophila_rnai_lethalities.all.empty?  
+        raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs1.empty?
+      end
+
       return false if annotated
       return nil
     else
@@ -603,14 +607,13 @@ class CodingRegion < ActiveRecord::Base
       return mouse_phenotypes.trusted.count > 0
     elsif get_species.name == Species.yeast_name
       return yeast_pheno_infos.trusted.count > 0
-      #for drosophila check if there is phenotype info in EITHER flybase phenotype table OR RNAi lethality table
+      #for drosophila check if there is phenotype info in RNAi lethality table
     elsif get_species.name == Species.fly_name
-      return (!(drosophila_allele_genes.collect{|g| g.drosophila_allele_phenotypes.trusted.all}.flatten.empty?) or drosophila_rnai_lethalities.exists?)
+      return drosophila_rnai_lethalities.exists?
     else
       raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
     end
-  end
-  
+  end  
   
   def name_with_localisation
     "#{string_id} - #{localisations.join(' ')}"
@@ -745,7 +748,11 @@ class CodingRegion < ActiveRecord::Base
       return preds[0].localisation
     else # not cached, run from scratch
       return nil
+<<<<<<< HEAD:app/models/coding_region.rb
     end
+=======
+    end    
+>>>>>>> e0aa66c4ade2c58f1517838413059be3b0bb418b:app/models/coding_region.rb
   end
   
   def cache_wolf_psort_predictions
@@ -762,7 +769,11 @@ class CodingRegion < ActiveRecord::Base
       result.score_hash.each do |loc, score|
         w = WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
         self.wolf_psort_predictions << w
+<<<<<<< HEAD:app/models/coding_region.rb
       end
+=======
+      end  
+>>>>>>> e0aa66c4ade2c58f1517838413059be3b0bb418b:app/models/coding_region.rb
     end
     
     self.wolf_psort_predictions
@@ -813,6 +824,7 @@ class CodingRegion < ActiveRecord::Base
     @@go_object ||= Bio::Go.new
     @@go_subsumers ||= {}
     @@go_subsumers[go_identifier] ||= @@go_object.subsume_tester(go_identifier, check_for_synonym)
+<<<<<<< HEAD:app/models/coding_region.rb
     
     subsume_tester = nil
     begin
@@ -822,6 +834,17 @@ class CodingRegion < ActiveRecord::Base
       return false
     end
     
+=======
+    
+    subsume_tester = nil
+    begin
+      subsume_tester = @@go_subsumers[go_identifier]
+    rescue RException => e
+      raise e unless safe
+      return false
+    end
+    
+>>>>>>> e0aa66c4ade2c58f1517838413059be3b0bb418b:app/models/coding_region.rb
     go_terms.all.reach.go_identifier.each do |go_id|
       begin
         if subsume_tester.subsume?(go_id, check_for_synonym)
