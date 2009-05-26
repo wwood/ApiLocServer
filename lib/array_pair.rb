@@ -173,4 +173,17 @@ class Array
       return a[length/2]
     end
   end
+
+  # Similar to pairs(another_array) iterator, in that you iterate over 2
+  # pairs of elements. However, here only the one array (the 'this' Enumerable)
+  # and the names of these are from the names
+  def each_lower_triangular_matrix
+    each_with_index do |e1, i|
+      if i < length-1
+        self[i+1..length-1].each do |e2|
+          yield e1, e2
+        end
+      end
+    end
+  end
 end

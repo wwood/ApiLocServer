@@ -68,4 +68,26 @@ class ArrayPairTest < Test::Unit::TestCase
     assert_equal 1.5, [0,3,2,1].median
     assert_equal 2, [1,2,3].median
   end
+
+  def test_each_lower_triangle_iterator
+    gained = []
+    [].each_lower_triangular_matrix() { |i,j| gained.push([i,j]) }
+    assert_equal [], gained
+
+    gained = []
+    [1].each_lower_triangular_matrix() { |i,j| gained.push([i,j]) }
+    assert_equal [], gained
+
+    gained = []
+    [1,2].each_lower_triangular_matrix() { |i,j| gained.push([i,j]) }
+    assert_equal [1,2], gained[0]
+    assert_equal 1, gained.length
+
+    gained = []
+    [1,2,3].each_lower_triangular_matrix() { |i,j| gained.push([i,j]) }
+    assert_equal [1,2], gained[0]
+    assert_equal [1,3], gained[1]
+    assert_equal [2,3], gained[2]
+    assert_equal 3, gained.length
+  end
 end
