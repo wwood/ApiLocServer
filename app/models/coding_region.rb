@@ -547,402 +547,398 @@ class CodingRegion < ActiveRecord::Base
           return true if ob1.lethal?
         end
       end
-     
-      #if gene does not have an RNAi lethality entry check if gene has lethal phenotype from flybase phenotype  
-      flybase_phenotypes = drosophila_allele_genes.collect{|g| g.drosophila_allele_phenotypes.trusted.all}.flatten
-      flybase_phenotypes.each do |ob2|    
-        return true if ob2.lethal?
-      end    
-      if (flybase_phenotypes.empty? and drosophila_rnai_lethalities.all.empty?)    
-        raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs2.empty?
-      end
-        return false
-      else
-        raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
-      end
-    
-    end
-  
-    # Returns true iff there is sufficient data available for this coding region
-    # to be classified as lethal? or not
-    def phenotype_information?
-      if get_species.name == Species.elegans_name
-        return coding_region_phenotype_informations.count > 0
-      elsif get_species.name == Species.mouse_name
-        return mouse_phenotypes.trusted.count > 0
-      elsif get_species.name == Species.yeast_name
-        return yeast_pheno_infos.trusted.count > 0
-        #for drosophila check if there is phenotype info in EITHER flybase phenotype table OR RNAi lethality table
-      elsif get_species.name == Species.fly_name
-        return (!(drosophila_allele_genes.collect{|g| g.drosophila_allele_phenotypes.trusted.all}.flatten.empty?) or drosophila_rnai_lethalities.exists?)
-      else
-        raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
-      end
-    end
-  
-  
-    def name_with_localisation
-      "#{string_id} - #{localisations.join(' ')}"
-    end
-  
-    class << self
-      alias_method(:f, :find_by_name_or_alternate)
-      alias_method(:fs, :find_by_name_or_alternate_and_organism)
-    end
-  
-    # convenience method for falciparum
-    def self.ff(string_id)
-      find_by_name_or_alternate_and_organism(string_id, Species.falciparum_name)
-    end
-  
-    # Print a coding region out like it is in my other localisation spreadsheet
-    def localisation_english
-      contexts = expression_contexts
-      return contexts.pick(:english).sort.join(', ')    
-    end
-  
-    # return true if there is only 1 top level localisation associated with this coding region
-    def uniq_top?
-      tops.pick(:id).uniq.length == 1
-    end
-  
-    def tops
-      TopLevelLocalisation.all(
-        :joins => {:malaria_localisations => :expression_contexts},
-        :conditions => ['expression_contexts.coding_region_id = ?', id]
-      )
-    end
-  
-    def single_top_level_localisation
-      stuffs = tops.uniq
-      raise Exception, "Unexpected number of top level localisations for #{string_id}: #{stuffs.inspect}" if stuffs.length != 1
-      return stuffs[0]
-    end
-  
-    # convenience method for getting the single orthomcl gene associated with this coding region.
-    # optional argument run_name is the name of the orthomcl_run to be searched for.
-    def single_orthomcl(run_name = OrthomclRun.official_run_v2_name, options = {})
-      genes = orthomcl_genes.run(run_name).all(options)
-      if genes.length != 1
-        raise CodingRegion::UnexpectedOrthomclGeneCount, "Unexpected number of orthomcl genes found for #{inspect}: #{genes.inspect}"
-      else
-        return genes[0]
-      end
-    end
-  
-  
-    # annotation of the species with babesia orthologs
-    def babesia_ortholog_anntoations
-      results = [
-        string_id,
-        nice_names.join(', '),
-        annotation.annotation,
-        expressed_localisations.known.pick(:name).uniq.join(', '),
-        expression_contexts.all.reach.publication.definition.uniq.join(', ')
-      ]
-      babesias = []
-      begin
-        group = single_orthomcl(OrthomclRun.seven_species_name).orthomcl_group
-        babesias = group.orthomcl_genes.all(
-          :conditions => ['orthomcl_name like ?', 'BB%']
-        )
-          
-        falciparums = CodingRegion.falciparum.all(
-          :joins => :orthomcl_genes,
-          :conditions => {:orthomcl_genes => {:orthomcl_group_id => group.id}}
-        )
-
-        if !babesias.empty?
-          results.push babesias.pick(:orthomcl_name).join(', ')
-          results.push babesias.collect{|b| b.single_code.annotation.annotation}.join(' || ')
-          results.push falciparums.reach.reject{|f| f.id == id}.reach.string_id.join(', ')
-        else
-          return nil
-        end
-      rescue UnexpectedOrthomclGeneCount => e
-        return nil
-      end
-      return results
-    end
-  
-    # convenience method to reduce typing
-    def species
-      gene.scaffold.species
-    end
-  
-    # Calculate/retrieve the winning WoLF_PSORT localisation for this coding
-    # region, given the sequence is already associated with this coding region
-    def wolf_psort_localisation(psort_organism_type)
-      # Check if they have already been cached
-      preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
-      if preds.length > 0
-        # cached
-        return preds[0].localisation
-      else # not cached, run from scratch
-        cache_wolf_psort_predictions
-        preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
-        if preds.length > 0
-          # cached
-          return preds[0].localisation
-        else
-          return nil
-        end
-      end
-    end
-  
-    # All the highest localisations, including those that came second that really
-    # have the same score as the top one. If a dual localisation is there, then both are returned
-    def wolf_psort_localisations(psort_organism_type)
-      # Check if they have already been cached
-      preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
-      locs = nil
-      if preds.length > 0
-        newpreds = wolf_psort_predictions.all(:conditions => ['organism_type =? and score = ?', psort_organism_type, preds[0].score])
-        # cached
-        locs = newpreds.reach.localisation
-      else # not cached, run from scratch
-        Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
-      end
-    end
-  
-    # Read only from the cache, don't run it if no cache exists
-    def cached_wolf_psort_localisation(psort_organism_type)
-      # Check if they have already been cached
-      preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
-      if preds.length > 0
-        # cached
-        return preds[0].localisation
-      else # not cached, run from scratch
-        return nil
-      end    
-    end
-  
-    def cache_wolf_psort_predictions
-      if !amino_acid_sequence
-        $stderr.puts "Unable to run WoLF_PSORT because there is no amino acid sequence for #{inspect}"
-        return
-      end
-    
-      Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
-        logger.warn "Running WoLF_PSORT using organism type '#{organism_type}' on #{string_id}"
-        result = Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, organism_type)
-        next if !result #skip sequences that are too short
-      
-        result.score_hash.each do |loc, score|
-          w = WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
-          self.wolf_psort_predictions << w
-        end  
-      end
-    
-      self.wolf_psort_predictions
-    end
-  
-    def wolf_psort_localisations_line(organism_type)
-      wolf_psort_predictions.all(:conditions => {:organism_type => organism_type}, :order => 'score desc').collect{ |pred|
-        "#{pred.localisation} #{pred.score}"
-      }.join(", ")
-    end
-  
-    # The sum of the linkages emanating from this coding region in
-    # wormnet core
-    def wormnet_core_total_linkage_scores
-      CodingRegionNetworkEdge.coding_region_id(id).wormnet_core.all.reach.strength.sum
-    end
-  
-    # The number of the linkages emanating from this coding region in
-    # wormnet core
-    def wormnet_core_number_interactions
-      CodingRegionNetworkEdge.coding_region_id(id).wormnet_core.count
-    end
-  
-    def wormnet_full_total_linkage_scores
-      CodingRegionNetworkEdge.coding_region_id(id).wormnet.all.reach.strength.sum
-    end
- 
-
-    def wormnet_full_number_interactions
-      CodingRegionNetworkEdge.coding_region_id(id).wormnet.count
-    end
-
-    # determine whether this coding region is classified as an enzyme
-    # according to the associated GO terms.
-    # WARNING: This method is not thread-safe due
-    # to the static variables
-    # if safe is true, then don't pass on RExceptions that are raised when
-    # the go_identifier is not in the database, just ignore that entry
-    def is_enzyme?(safe=false, check_for_synonym=true)
-      go_term?(GoTerm::ENZYME_GO_TERM, safe, check_for_synonym)
-    end
-  
-    def is_gpcr?(safe=false, check_for_synonym=true)
-      go_term?(GoTerm::GPCR_GO_TERM, safe, check_for_synonym)
-    end
-
-    def go_term?(go_identifier, safe=false, check_for_synonym=true)
-      @@go_object ||= Bio::Go.new
-      @@go_subsumers ||= {}
-      @@go_subsumers[go_identifier] ||= @@go_object.subsume_tester(go_identifier, check_for_synonym)
-    
-      subsume_tester = nil
-      begin
-        subsume_tester = @@go_subsumers[go_identifier]
-      rescue RException => e
-        raise e unless safe
-        return false
-      end
-    
-      go_terms.all.reach.go_identifier.each do |go_id|
-        begin
-          if subsume_tester.subsume?(go_id, check_for_synonym)
-            return true
-          end
-        rescue RException => e
-          raise e unless safe
-          false
-        end
-      end
-    
-      return false
-    end
-  
-    def aaseq
-      amino_acid_sequence ? amino_acid_sequence.sequence : nil
-    end
-  
-    class UnexpectedOrthomclGeneCount < StandardError; end
-  
-    # Return the golgi consensus sequences that the amino acid
-    # sequence of this coding region is attached to. Return [] if none
-    # are found or if there is no amino acid sequence attached
-    def golgi_consensi
-      return [] if !aaseq
-    
-      consensi = []
-    
-      [GolgiNTerminalSignal, GolgiCTerminalSignal].each do |model|
-        model.all.each do |s|
-          consensi.push s if aaseq.match(s.regex)
-        end
-      end
-      consensi
-    end
-  
-    # Return true iff this coding region is either a pseudogene
-    # or rifin, stevor, surfin, PfEMP1, etc.
-    # This method is probably not perfect because it only calculates
-    # the returned value based on the annotation.
-    # Manually checked the results for PlasmoDB v5.5 and there was no
-    # false positives at least, though.
-    def falciparum_cruft?
-      return false unless annotation # ignore unannotated sequences
-    
-      a = annotation.annotation
-      [/var /i,/pfemp1/i, /pseudogene/i, /rifin/i, /stevor/i, /surfin/i, /RESA/].each do |crap|
-        if annotation.annotation.match(crap)
-          return true
-        end
+      if drosophila_rnai_lethalities.all.empty?  
+        raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs1.empty?
       end
       return false
+    else
+      raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
     end
-  
-    # Return the saved exportpred result, or calculate
-    # it if this does not exist
-    def export_pred_however
-      return nil if aaseq.nil?
     
-      return export_pred_cache unless export_pred_cache.nil? #returned cached if possible
-    
-      # otherwise just calculate the bastard
-      result = Bio::ExportPred::Wrapper.new.calculate(aaseq)
-      self.export_pred_cache = ExportPredCache.create_from_result(id, result)
-      return export_pred_cache
-    end
+  end
+       
   
-    # Return the saved signalp result, or calculate
-    # it if this does not exist
-    def signalp_however
-      return nil if aaseq.nil?
-      return signal_p_cache if signal_p_cache #returned cached if possible
-
-      # otherwise just calculate the bastard
-      logger.debug "Running SignalP on #{string_id}"
-      result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
-      res = SignalPCache.create_from_result(id, result)
-      self.signal_p_cache = res
-      return res
-    end
-  
-    def signal?
-      signalp_however.signal?
-    end
-  
-    # Return the saved signalp result, or calculate
-    # it if this does not exist
-    def segmasker_low_complexity_percentage_however
-      return nil if aaseq.nil?
-      return segmasker_low_complexity_percentage.value if segmasker_low_complexity_percentage #returned cached if possible
-
-      # otherwise just calculate the bastard
-      logger.debug "Running Segmasker on #{string_id}"
-      result = Bio::SegmaskerWrapper.new.calculate(aaseq)
-      res = SegmaskerLowComplexityPercentage.new(:value => (result.total_masked_length.to_f/aaseq.length.to_f))
-      self.segmasker_low_complexity_percentage = res
-      return res.value
-    end
-  
-    def hypothetical_by_annotation?
-      annotation.annotation.match(/hypothetical/i)
-    end
-  
-    def plasmo_a_p
-      amino_acid_sequence.plasmo_a_p
-    end
-  
-    # Comments on http://railscasts.com/episodes/35 says this is the way to make
-    # coding regions RESTful. Comes into play when coding_region_path(code)
-    # is called from a controller or action.
-    def to_param
-      "#{string_id}"
-    end
-
-    # Return an array of probes
-    def winzeler_tiling_array_probes(nucleotide_sequence = nucleotide_sequence.sequence)
-      hits = []
-      Tempfile.open('winzeler') do |tempfile|
-        tempfile.puts ">input"
-        tempfile.puts nucleotide_sequence
-        tempfile.flush
-        Tempfile.open('winzelerOut') do |outfile|
-          system(
-            "exonerate --dnawordlen 25 -m ungapped --ryo '%ti %tl %tal\n' --showalignment no --showvulgar no --verbose no #{tempfile.path} /blastdb/WinzelerTilingArrayProbes2009 >#{outfile.path}"
-          )
-          outfile.read.each_line do |line|
-            splits = line.strip.split(' ')
-            raise Exception, "Couldn't parse line '#{line}'" unless splits.length == 3
-            hits.push splits[0] if splits[2] == splits[1] #only accept ones that matched the whole of the probe
-          end
-        end
-      end
-      return hits
-    end
-  
-
-    # Return an array of interaction partners in the given network
-    def interaction_partners(network_name)
-      CodingRegionNetworkEdge.network_name(network_name).coding_region_id(id).all.collect do |edge|
-        if edge.coding_region_id_first == id
-          edge.coding_region_2
-        elsif edge.coding_region_id_second == id
-          edge.coding_region_1
-        else
-          raise Exception, "Unexpected that a gene interacts with itself! CodingRegionNetworkEdge #{edge.inspect}"
-        end
-      end
+  # Returns true iff there is sufficient data available for this coding region
+  # to be classified as lethal? or not
+  def phenotype_information?
+    if get_species.name == Species.elegans_name
+      return coding_region_phenotype_informations.count > 0
+    elsif get_species.name == Species.mouse_name
+      return mouse_phenotypes.trusted.count > 0
+    elsif get_species.name == Species.yeast_name
+      return yeast_pheno_infos.trusted.count > 0
+      #for drosophila check if there is phenotype info in RNAi lethality table
+    elsif get_species.name == Species.fly_name
+      return drosophila_rnai_lethalities.exists?
+    else
+      raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
     end
   end
 
+  
+  
+  def name_with_localisation
+    "#{string_id} - #{localisations.join(' ')}"
+  end
+  
+  class << self
+    alias_method(:f, :find_by_name_or_alternate)
+    alias_method(:fs, :find_by_name_or_alternate_and_organism)
+  end
+  
+  # convenience method for falciparum
+  def self.ff(string_id)
+    find_by_name_or_alternate_and_organism(string_id, Species.falciparum_name)
+  end
+  
+  # Print a coding region out like it is in my other localisation spreadsheet
+  def localisation_english
+    contexts = expression_contexts
+    return contexts.pick(:english).sort.join(', ')    
+  end
+  
+  # return true if there is only 1 top level localisation associated with this coding region
+  def uniq_top?
+    tops.pick(:id).uniq.length == 1
+  end
+  
+  def tops
+    TopLevelLocalisation.all(
+      :joins => {:malaria_localisations => :expression_contexts},
+      :conditions => ['expression_contexts.coding_region_id = ?', id]
+    )
+  end
+  
+  def single_top_level_localisation
+    stuffs = tops.uniq
+    raise Exception, "Unexpected number of top level localisations for #{string_id}: #{stuffs.inspect}" if stuffs.length != 1
+    return stuffs[0]
+  end
+  
+  # convenience method for getting the single orthomcl gene associated with this coding region.
+  # optional argument run_name is the name of the orthomcl_run to be searched for.
+  def single_orthomcl(run_name = OrthomclRun.official_run_v2_name, options = {})
+    genes = orthomcl_genes.run(run_name).all(options)
+    if genes.length != 1
+      raise CodingRegion::UnexpectedOrthomclGeneCount, "Unexpected number of orthomcl genes found for #{inspect}: #{genes.inspect}"
+    else
+      return genes[0]
+    end
+  end
+  
+  
+  # annotation of the species with babesia orthologs
+  def babesia_ortholog_anntoations
+    results = [
+      string_id,
+      nice_names.join(', '),
+      annotation.annotation,
+      expressed_localisations.known.pick(:name).uniq.join(', '),
+      expression_contexts.all.reach.publication.definition.uniq.join(', ')
+    ]
+    babesias = []
+    begin
+      group = single_orthomcl(OrthomclRun.seven_species_name).orthomcl_group
+      babesias = group.orthomcl_genes.all(
+        :conditions => ['orthomcl_name like ?', 'BB%']
+      )
+          
+      falciparums = CodingRegion.falciparum.all(
+        :joins => :orthomcl_genes,
+        :conditions => {:orthomcl_genes => {:orthomcl_group_id => group.id}}
+      )
+
+      if !babesias.empty?
+        results.push babesias.pick(:orthomcl_name).join(', ')
+        results.push babesias.collect{|b| b.single_code.annotation.annotation}.join(' || ')
+        results.push falciparums.reach.reject{|f| f.id == id}.reach.string_id.join(', ')
+      else
+        return nil
+      end
+    rescue UnexpectedOrthomclGeneCount => e
+      return nil
+    end
+    return results
+  end
+  
+  # convenience method to reduce typing
+  def species
+    gene.scaffold.species
+  end
+  
+  # Calculate/retrieve the winning WoLF_PSORT localisation for this coding
+  # region, given the sequence is already associated with this coding region
+  def wolf_psort_localisation(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    if preds.length > 0
+      # cached
+      return preds[0].localisation
+    else # not cached, run from scratch
+      cache_wolf_psort_predictions
+      preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+      if preds.length > 0
+        # cached
+        return preds[0].localisation
+      else
+        return nil
+      end
+    end
+  end
+  
+  # All the highest localisations, including those that came second that really
+  # have the same score as the top one. If a dual localisation is there, then both are returned
+  def wolf_psort_localisations(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    locs = nil
+    if preds.length > 0
+      newpreds = wolf_psort_predictions.all(:conditions => ['organism_type =? and score = ?', psort_organism_type, preds[0].score])
+      # cached
+      locs = newpreds.reach.localisation
+    else # not cached, run from scratch
+      Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, psort_organism_type).highest_predicted_localization
+    end
+  end
+  
+  # Read only from the cache, don't run it if no cache exists
+  def cached_wolf_psort_localisation(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    if preds.length > 0
+      # cached
+      return preds[0].localisation
+    else # not cached, run from scratch
+      return nil
+    end    
+  end
+  
+  def cache_wolf_psort_predictions
+    if !amino_acid_sequence
+      $stderr.puts "Unable to run WoLF_PSORT because there is no amino acid sequence for #{inspect}"
+      return
+    end
+    
+    Bio::PSORT::WoLF_PSORT::ORGANISM_TYPES.each do |organism_type|
+      logger.warn "Running WoLF_PSORT using organism type '#{organism_type}' on #{string_id}"
+      result = Bio::PSORT::WoLF_PSORT.exec_local_from_sequence(amino_acid_sequence.sequence, organism_type)
+      next if !result #skip sequences that are too short
+      
+      result.score_hash.each do |loc, score|
+        w = WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
+        self.wolf_psort_predictions << w
+      end  
+    end
+    
+    self.wolf_psort_predictions
+  end
+  
+  def wolf_psort_localisations_line(organism_type)
+    wolf_psort_predictions.all(:conditions => {:organism_type => organism_type}, :order => 'score desc').collect{ |pred|
+      "#{pred.localisation} #{pred.score}"
+    }.join(", ")
+  end
+  
+  # The sum of the linkages emanating from this coding region in
+  # wormnet core
+  def wormnet_core_total_linkage_scores
+    CodingRegionNetworkEdge.coding_region_id(id).wormnet_core.all.reach.strength.sum
+  end
+  
+  # The number of the linkages emanating from this coding region in
+  # wormnet core
+  def wormnet_core_number_interactions
+    CodingRegionNetworkEdge.coding_region_id(id).wormnet_core.count
+  end
+  
+  def wormnet_full_total_linkage_scores
+    CodingRegionNetworkEdge.coding_region_id(id).wormnet.all.reach.strength.sum
+  end
+ 
+
+  def wormnet_full_number_interactions
+    CodingRegionNetworkEdge.coding_region_id(id).wormnet.count
+  end
+
+  # determine whether this coding region is classified as an enzyme
+  # according to the associated GO terms.
+  # WARNING: This method is not thread-safe due
+  # to the static variables
+  # if safe is true, then don't pass on RExceptions that are raised when
+  # the go_identifier is not in the database, just ignore that entry
+  def is_enzyme?(safe=false, check_for_synonym=true)
+    go_term?(GoTerm::ENZYME_GO_TERM, safe, check_for_synonym)
+  end
+  
+  def is_gpcr?(safe=false, check_for_synonym=true)
+    go_term?(GoTerm::GPCR_GO_TERM, safe, check_for_synonym)
+  end
+
+  def go_term?(go_identifier, safe=false, check_for_synonym=true)
+    @@go_object ||= Bio::Go.new
+    @@go_subsumers ||= {}
+    @@go_subsumers[go_identifier] ||= @@go_object.subsume_tester(go_identifier, check_for_synonym)
+    
+    subsume_tester = nil
+    begin
+      subsume_tester = @@go_subsumers[go_identifier]
+    rescue RException => e
+      raise e unless safe
+      return false
+    end
+    
+    go_terms.all.reach.go_identifier.each do |go_id|
+      begin
+        if subsume_tester.subsume?(go_id, check_for_synonym)
+          return true
+        end
+      rescue RException => e
+        raise e unless safe
+        false
+      end
+    end
+    
+    return false
+  end
+  
+  def aaseq
+    amino_acid_sequence ? amino_acid_sequence.sequence : nil
+  end
+  
+  class UnexpectedOrthomclGeneCount < StandardError; end
+  
+  # Return the golgi consensus sequences that the amino acid
+  # sequence of this coding region is attached to. Return [] if none
+  # are found or if there is no amino acid sequence attached
+  def golgi_consensi
+    return [] if !aaseq
+    
+    consensi = []
+    
+    [GolgiNTerminalSignal, GolgiCTerminalSignal].each do |model|
+      model.all.each do |s|
+        consensi.push s if aaseq.match(s.regex)
+      end
+    end
+    consensi
+  end
+  
+  # Return true iff this coding region is either a pseudogene
+  # or rifin, stevor, surfin, PfEMP1, etc.
+  # This method is probably not perfect because it only calculates
+  # the returned value based on the annotation.
+  # Manually checked the results for PlasmoDB v5.5 and there was no
+  # false positives at least, though.
+  def falciparum_cruft?
+    return false unless annotation # ignore unannotated sequences
+    
+    a = annotation.annotation
+    [/var /i,/pfemp1/i, /pseudogene/i, /rifin/i, /stevor/i, /surfin/i, /RESA/].each do |crap|
+      if annotation.annotation.match(crap)
+        return true
+      end
+    end
+    return false
+  end
+  
+  # Return the saved exportpred result, or calculate
+  # it if this does not exist
+  def export_pred_however
+    return nil if aaseq.nil?
+    
+    return export_pred_cache unless export_pred_cache.nil? #returned cached if possible
+    
+    # otherwise just calculate the bastard
+    result = Bio::ExportPred::Wrapper.new.calculate(aaseq)
+    self.export_pred_cache = ExportPredCache.create_from_result(id, result)
+    return export_pred_cache
+  end
+  
+  # Return the saved signalp result, or calculate
+  # it if this does not exist
+  def signalp_however
+    return nil if aaseq.nil?
+    return signal_p_cache if signal_p_cache #returned cached if possible
+
+    # otherwise just calculate the bastard
+    logger.debug "Running SignalP on #{string_id}"
+    result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
+    res = SignalPCache.create_from_result(id, result)
+    self.signal_p_cache = res
+    return res
+  end
+  
+  def signal?
+    signalp_however.signal?
+  end
+  
+  # Return the saved signalp result, or calculate
+  # it if this does not exist
+  def segmasker_low_complexity_percentage_however
+    return nil if aaseq.nil?
+    return segmasker_low_complexity_percentage.value if segmasker_low_complexity_percentage #returned cached if possible
+
+    # otherwise just calculate the bastard
+    logger.debug "Running Segmasker on #{string_id}"
+    result = Bio::SegmaskerWrapper.new.calculate(aaseq)
+    res = SegmaskerLowComplexityPercentage.new(:value => (result.total_masked_length.to_f/aaseq.length.to_f))
+    self.segmasker_low_complexity_percentage = res
+    return res.value
+  end
+  
+  def hypothetical_by_annotation?
+    annotation.annotation.match(/hypothetical/i)
+  end
+  
+  def plasmo_a_p
+    amino_acid_sequence.plasmo_a_p
+  end
+  
+  # Comments on http://railscasts.com/episodes/35 says this is the way to make
+  # coding regions RESTful. Comes into play when coding_region_path(code)
+  # is called from a controller or action.
+  def to_param
+    "#{string_id}"
+  end
+
+  # Return an array of probes
+  def winzeler_tiling_array_probes(nucleotide_sequence = nucleotide_sequence.sequence)
+    hits = []
+    Tempfile.open('winzeler') do |tempfile|
+      tempfile.puts ">input"
+      tempfile.puts nucleotide_sequence
+      tempfile.flush
+      Tempfile.open('winzelerOut') do |outfile|
+        system(
+          "exonerate --dnawordlen 25 -m ungapped --ryo '%ti %tl %tal\n' --showalignment no --showvulgar no --verbose no #{tempfile.path} /blastdb/WinzelerTilingArrayProbes2009 >#{outfile.path}"
+        )
+        outfile.read.each_line do |line|
+          splits = line.strip.split(' ')
+          raise Exception, "Couldn't parse line '#{line}'" unless splits.length == 3
+          hits.push splits[0] if splits[2] == splits[1] #only accept ones that matched the whole of the probe
+        end
+      end
+    end
+    return hits
+  end
+  
+
+  # Return an array of interaction partners in the given network
+  def interaction_partners(network_name)
+    CodingRegionNetworkEdge.network_name(network_name).coding_region_id(id).all.collect do |edge|
+      if edge.coding_region_id_first == id
+        edge.coding_region_2
+      elsif edge.coding_region_id_second == id
+        edge.coding_region_1
+      else
+        raise Exception, "Unexpected that a gene interacts with itself! CodingRegionNetworkEdge #{edge.inspect}"
+      end
+    end
+  end
+end
 
 
 
-  class CodingRegionNotFoundException < Exception; end
-  #class UnexpectedOrthomclGeneCount < Exception; end
+
+class CodingRegionNotFoundException < Exception; end
+#class UnexpectedOrthomclGeneCount < Exception; end
