@@ -555,21 +555,21 @@ class Mscript
     
     CSV.open(filename, 'r') do |gene|
       begin
-        $stderr.puts gene.inspect
+        #        $stderr.puts gene.inspect
         code = OrthomclGene.find_by_orthomcl_name(gene).single_code
-        $stderr.print "#{code.string_id}.."
+        #        $stderr.print "#{code.string_id}.."
         puts [
           code.gene.name,
-          code.lethal?,
-          code.is_enzyme?,
-          code.is_gpcr?,
+          code.lethal?(false),
+          code.is_enzyme?(false),
+          code.is_gpcr?(false),
           code.wormnet_core_number_interactions,
           code.wormnet_core_total_linkage_scores,
           code.wormnet_full_number_interactions,
           code.wormnet_full_total_linkage_scores,
           #for genes not in orthomcl groups need to comment out the next couple of lines
           code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
-          true : false,
+            true : false,
           code.single_orthomcl.orthomcl_group.orthomcl_genes.codes('cel').count
         ].join("\t")
       rescue OrthomclGene::UnexpectedCodingRegionCount
@@ -580,11 +580,11 @@ class Mscript
         badness_count2 += 1
           
       end
-      $stderr.puts "tick"
+      #      $stderr.puts "tick"
     end
     
     $stderr.puts "Didn't manage to link #{badness_count1} orthomcl genes to coding regions."
-    $stderr.puts "Didn't manage to find #{badness_count2} GO ids"
+    #    $stderr.puts "Didn't manage to find #{badness_count2} GO ids" # no longer true because is_lethal? and others are now silenced.
     
   end
   
