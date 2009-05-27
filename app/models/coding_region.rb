@@ -520,10 +520,10 @@ class CodingRegion < ActiveRecord::Base
     annotated = false # set to true when a non-RExceptionist annotation is found
     
     if get_species.name == Species.elegans_name
-      obs = phenotype_observeds
+      obsc = phenotype_observeds
       # It is ok that it has no phenotype_observeds, if it has phenotype_informations,
       # which it does according to CodingRegion#phenotype_information?
-      obs.each do |ob|
+      obsc.each do |ob|
         begin
           return true if ob.lethal?
           annotated = true
@@ -534,9 +534,9 @@ class CodingRegion < ActiveRecord::Base
       return false if annotated
       return nil
     elsif get_species.name == Species.mouse_name
-      obs = mouse_phenotypes.trusted.all(:include => :mouse_phenotype_dictionary_entries)
-      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
-      obs.each do |ob|
+      obsm = mouse_phenotypes.trusted.all(:include => :mouse_phenotype_dictionary_entries)
+      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obsm.empty?
+      obsm.each do |ob|
         begin
           return true if ob.lethal?
           annotated = true
@@ -547,9 +547,9 @@ class CodingRegion < ActiveRecord::Base
       return false if annotated
       return nil
     elsif get_species.name == Species.yeast_name
-      obs = yeast_pheno_infos.trusted.all
-      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs.empty?
-      obs.each do |ob|
+      obss = yeast_pheno_infos.trusted.all
+      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obss.empty?
+      obss.each do |ob|
         begin
           return true if ob.lethal?
           annotated = true
@@ -561,37 +561,32 @@ class CodingRegion < ActiveRecord::Base
       return nil
     elsif get_species.name == Species.fly_name
       #if gene has an RNAi lethality entry check if it is lethal, note: a coding region can have multiple RNAi lethality values
-      if drosophila_rnai_lethalities
-        drosophila_rnai_lethalities.all.each do |ob1|
-          begin
-            return true if ob1.lethal?
-            annotated = true
-          rescue RException => e
-            raise e if raise_exceptions
-          end
-        end
-      end
-     
-      #if gene does not have an RNAi lethality entry check if gene has lethal phenotype from flybase phenotype  
-      flybase_phenotypes = drosophila_allele_genes.collect{|g| g.drosophila_allele_phenotypes.trusted.all}.flatten
-      flybase_phenotypes.each do |ob2|
+   
+      obsd = drosophila_rnai_lethalities.all.each do |ob1|
+        raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obsd.empty?
         begin
-          return true if ob2.lethal?
+          return true if ob1.lethal?
           annotated = true
         rescue RException => e
           raise e if raise_exceptions
         end
-      end    
-      if (flybase_phenotypes.empty? and drosophila_rnai_lethalities.all.empty?)    
-        raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs2.empty?
       end
-
-      if drosophila_rnai_lethalities.all.empty?  
-        raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs1.empty?
-      end
-
       return false if annotated
       return nil
+      #-Not using flybase any more 
+      #previously was using it as follows if gene does not have an RNAi lethality entry check if gene has lethal phenotype from flybase phenotype  
+      # flybase_phenotypes = drosophila_allele_genes.collect{|g| g.drosophila_allele_phenotypes.trusted.all}.flatten
+      #flybase_phenotypes.each do |ob2|
+      #begin
+      #return true if ob2.lethal?
+      #annotated = true
+      #rescue RException => e
+      # raise e if raise_exceptions
+      #end
+      #end    
+      # if (flybase_phenotypes.empty? and drosophila_rnai_lethalities.all.empty?)    
+      #raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obs2.empty?
+      #end
     else
       raise Exception, "Don't know how to handle lethality for coding region: #{inspect}"
     end
@@ -748,11 +743,8 @@ class CodingRegion < ActiveRecord::Base
       return preds[0].localisation
     else # not cached, run from scratch
       return nil
-<<<<<<< HEAD:app/models/coding_region.rb
+     
     end
-=======
-    end    
->>>>>>> e0aa66c4ade2c58f1517838413059be3b0bb418b:app/models/coding_region.rb
   end
   
   def cache_wolf_psort_predictions
@@ -769,11 +761,8 @@ class CodingRegion < ActiveRecord::Base
       result.score_hash.each do |loc, score|
         w = WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
         self.wolf_psort_predictions << w
-<<<<<<< HEAD:app/models/coding_region.rb
-      end
-=======
+      
       end  
->>>>>>> e0aa66c4ade2c58f1517838413059be3b0bb418b:app/models/coding_region.rb
     end
     
     self.wolf_psort_predictions
@@ -824,7 +813,6 @@ class CodingRegion < ActiveRecord::Base
     @@go_object ||= Bio::Go.new
     @@go_subsumers ||= {}
     @@go_subsumers[go_identifier] ||= @@go_object.subsume_tester(go_identifier, check_for_synonym)
-<<<<<<< HEAD:app/models/coding_region.rb
     
     subsume_tester = nil
     begin
@@ -833,18 +821,7 @@ class CodingRegion < ActiveRecord::Base
       raise e unless safe
       return false
     end
-    
-=======
-    
-    subsume_tester = nil
-    begin
-      subsume_tester = @@go_subsumers[go_identifier]
-    rescue RException => e
-      raise e unless safe
-      return false
-    end
-    
->>>>>>> e0aa66c4ade2c58f1517838413059be3b0bb418b:app/models/coding_region.rb
+   
     go_terms.all.reach.go_identifier.each do |go_id|
       begin
         if subsume_tester.subsume?(go_id, check_for_synonym)

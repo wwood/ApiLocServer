@@ -521,7 +521,8 @@ class Mscript
     end
   end
   
-  def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}//Gasser/Essentiality/Nematode_EST_essentiality_analysis/Hcontortus_analysis/Method_used_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids")
+  def  are_genes_enzymes_or_lethal?(filename = ARGV[0])
+    #are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}//Gasser/Essentiality/Nematode_EST_essentiality_analysis/Hcontortus_analysis/Method_used_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups_first9000") 
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups_last8411")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups")
