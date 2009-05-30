@@ -9,6 +9,7 @@ require 'rpbs'
 class RpbsTest < Test::Unit::TestCase
   def test_default
     expected = <<DATA
+!/bin/bash
 #PBS -S /bin/bash
 #PBS -M b.woodcroft@pgrad.unimelb.edu.au
 #PBS -n MyJob
@@ -25,6 +26,7 @@ DATA
 
   def test_change_email
     expected = <<DATA
+!/bin/bash
 #PBS -S /bin/bash
 #PBS -M yeh right
 #PBS -n MyJob
@@ -36,6 +38,7 @@ cd $PBS_O_WORKDIR
 # Actual command to run is below
 one
 DATA
+    puts Pbs.get_pbs_script('one', {:email => 'yeh right'})
     assert_equal expected.split("\n").sort.join("\n"),
       Pbs.get_pbs_script('one', {:email => 'yeh right'}).split("\n").sort.join("\n")
   end

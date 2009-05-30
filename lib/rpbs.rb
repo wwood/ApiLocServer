@@ -39,7 +39,7 @@ class Pbs
 
   # Return the string that is to be written to the tempfile that is to be qsub'd
   def self.get_pbs_script(command, pbs_parameters={})
-    toReturn = ''
+    to_return = "!/bin/bash\n"
     
     # write each of the parameters to the tempfile
     final_hash = DEFAULT_PARAMETERS.merge pbs_parameters
@@ -47,17 +47,17 @@ class Pbs
       conv = PARAMETER_CONVERSIONS[parameter]
       raise Exception, "RPBS: Don't know how to handle parameter: #{parameter}" if conv.nil?
 
-      toReturn << "##{conv}#{endpoint}\n"
+      to_return << "##{conv}#{endpoint}\n"
     end
 
     # some other stuff
-    toReturn << "# Changes directory to your execution directory (Leave as is)\n"
-    toReturn << "cd $PBS_O_WORKDIR\n"
-    toReturn << "# Actual command to run is below\n"
+    to_return << "# Changes directory to your execution directory (Leave as is)\n"
+    to_return << "cd $PBS_O_WORKDIR\n"
+    to_return << "# Actual command to run is below\n"
 
     # write the command to the tempfile
-    toReturn << "#{command}\n"
+    to_return << "#{command}\n"
 
-    return toReturn
+    return to_return
   end
 end
