@@ -187,3 +187,32 @@ class Array
     end
   end
 end
+
+
+
+#!/usr/bin/env ruby
+
+# Queue up all the blasts of the ESTs
+
+require 'rubygems'
+require 'rpbs'
+require 'array_pair'
+
+files =	%w(
+Carteriospongia_foliascens.fa
+Ephydatia_muelleri_NCBI.fasta
+Heterochone_sp.fa
+Leucetta_chagosensis.fa
+Oopsacas_minuta_NCBI.fasta
+Oscarella_carmela_NCBI.fasta
+Oscarella_lobularis_NCBI.fasta
+Sycon_raphanus_NCBI.fasta
+)
+
+# queue a blast for each pair
+files.each_lower_triangular_matrix do |file1, file2|
+#  Pbs.qsub(
+    puts "blastall -i ESTs/#{file1} -d ESTs/#{file2} -p tblastx -e 1e-5 -a 8 -o blast_outputs#{file1}V#{file2}"
+#    :walltime => '500:00:00')
+end
+

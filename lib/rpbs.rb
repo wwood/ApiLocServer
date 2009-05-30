@@ -16,7 +16,7 @@ class Pbs
 
   PARAMETER_CONVERSIONS = {
     :email => 'PBS -M ',
-    :job_name => 'PBS -n ',
+    :job_name => 'PBS -N ',
     :nodes => 'PBS -l ',
     :walltime => 'PBS -l walltime=',
     :receive_email => 'PBS -m ',
