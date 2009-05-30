@@ -27,21 +27,8 @@ class Pbs
     # Create a tempfile to create the script in
     Tempfile.open('rpbs_qsub_script') do |tempfile|
 
-      # write each of the parameters to the tempfile
-      final_hash = DEFAULT_PARAMETERS.merge pbs_parameters
-      final_hash.each do |parameter, endpoint|
-        conv = PARAMETER_CONVERSIONS[parameter]
-        raise Exception, "RPBS: Don't know how to handle parameter: #{parameter}" if conv.nil?
-
-        tempfile.puts "##{conv}#{endpoint}"
-      end
-
-      # some other stuff
-      tempfile.puts '# Changes directory to your execution directory (Leave as is)'
-      tempfile.puts 'cd $PBS_O_WORKDIR'
-
       # write the command to the tempfile
-      tempfile.puts command
+      tempfile.puts get_pbs_script(command, pbs_parameters)
 
       tempfile.flush
 
