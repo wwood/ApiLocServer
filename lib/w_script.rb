@@ -280,7 +280,7 @@ class WScript
     end
   end
   
- def elegans_all_genes_including_genes_not_in_orthomclgroups_excluding_mammalian
+  def elegans_all_genes_including_genes_not_in_orthomclgroups_excluding_mammalian
     
     overlaps = [
       [['cel'],['cel']]  

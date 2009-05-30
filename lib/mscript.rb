@@ -521,8 +521,9 @@ class Mscript
     end
   end
   
-  
-  def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups_first9000")
+  def  are_genes_enzymes_or_lethal?(filename = ARGV[0])
+    #are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}//Gasser/Essentiality/Nematode_EST_essentiality_analysis/Hcontortus_analysis/Method_used_seqclean_repeatmasker_WITHOUT_CAP3/ALL_hcon_gps_get_elegans.gene_ids")
+    #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups_first9000") 
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups_last8411")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_in_groups")
     #def are_genes_enzymes_or_lethal?(filename = "#{WORK_DIR}/Gasser/Essentiality/Nematode_EST_essentiality_analysis/Celegans_database_analysis/all_ortho_cel_genes_NOT_in_groups")
@@ -555,21 +556,21 @@ class Mscript
     
     CSV.open(filename, 'r') do |gene|
       begin
-        $stderr.puts gene.inspect
+        #        $stderr.puts gene.inspect
         code = OrthomclGene.find_by_orthomcl_name(gene).single_code
-        $stderr.print "#{code.string_id}.."
+        #        $stderr.print "#{code.string_id}.."
         puts [
           code.gene.name,
-          code.lethal?,
-          code.is_enzyme?,
-          code.is_gpcr?,
+          code.lethal?(false),
+          code.is_enzyme?(false),
+          code.is_gpcr?(false),
           code.wormnet_core_number_interactions,
           code.wormnet_core_total_linkage_scores,
           code.wormnet_full_number_interactions,
           code.wormnet_full_total_linkage_scores,
           #for genes not in orthomcl groups need to comment out the next couple of lines
           code.single_orthomcl.orthomcl_group.orthomcl_genes.codes(OrthomclGene::MAMMALIAN_THREE_LETTER_CODES).count > 0 ?
-          true : false,
+            true : false,
           code.single_orthomcl.orthomcl_group.orthomcl_genes.codes('cel').count
         ].join("\t")
       rescue OrthomclGene::UnexpectedCodingRegionCount
@@ -580,11 +581,11 @@ class Mscript
         badness_count2 += 1
           
       end
-      $stderr.puts "tick"
+      #      $stderr.puts "tick"
     end
     
     $stderr.puts "Didn't manage to link #{badness_count1} orthomcl genes to coding regions."
-    $stderr.puts "Didn't manage to find #{badness_count2} GO ids"
+    #    $stderr.puts "Didn't manage to find #{badness_count2} GO ids" # no longer true because is_lethal? and others are now silenced.
     
   end
   
@@ -726,8 +727,75 @@ class Mscript
     end
   end
  
+  def does_elegans_gene_have_lethal_orthologue
+    #feed in a list of elegans ids in the format cel|WBGene000000001, make sure the genes have no paralogues
+    puts [
+      "gene id",
+      "yeast orthologue?",
+      "essential yeast orthologue?",
+      "drosophila orthologue?",
+      "essential drosophila orthologue?", 
+      "mouse orthologue?",
+      "essential mouse orthologue?"
+    ].join("\t")
     
-  
+       
+    FasterCSV.foreach(ARGV[0], :col_sep => "\t") do |line|
+      gene = "cel|". + line[0]
+      $stderr.puts gene.inspect
+      print gene
+      group = OrthomclGene.find_by_orthomcl_name(gene).orthomcl_group
+
+      #first check that the group only contains 1 cel gene
+      cels = group.orthomcl_genes.code('cel')
+      if cels.length != 1  
+        raise Exception     
+      end
+      
+      # identify if the elegans gene has a yeast orthologue with no paralogues
+      print "\t"
+      sces = group.orthomcl_genes.code('sce')
+      if sces.length == 1 && !sces[0].coding_regions.empty?
+        print [
+          'sce',
+          sces[0].single_code.lethal?
+        ].join("\t")  
+      else 
+        print [
+          "",
+          ""
+        ].join("\t")
+      end
+
+      print "\t"
+      dmes = group.orthomcl_genes.code('dme')
+      if dmes.length == 1 && !dmes[0].coding_regions.empty?
+        print [
+          'dme',
+          dmes[0].single_code.lethal?
+        ].join("\t")   
+      else 
+        print [
+          "",
+          ""
+        ].join("\t")
+      end
+
+      print "\t"
+      mmus = group.orthomcl_genes.code('mmu')
+      if mmus.length == 1 && !mmus[0].coding_regions.empty?
+        puts [
+          'mmu',
+          mmus[0].single_code.lethal?
+        ].join("\t")
+      else 
+        puts [
+          "",
+          ""
+        ].join("\t")
+      end
+    end
+  end
       
 end
 
