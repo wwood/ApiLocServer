@@ -66,6 +66,7 @@ Rails::Initializer.run do |config|
 #  config.gem 'wwood-rarff', :source => "http://gems.github.com", :lib => 'rarff', :version => '0.2.3'
 #  config.gem 'wwood-bioruby', :source => "http://gems.github.com", :lib => 'bio'
   config.gem 'schleyfox-peach', :source => "http://gems.github.com", :lib => 'peach'
+  config.gem 'rio'
 end
 
 

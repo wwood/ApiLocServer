@@ -5073,41 +5073,45 @@ class BScript
   
   
   # Upload Wormbase genes, proteins and go terms from scratch
-  def upload_elegans_go_terms_and_genes
-    genes = Bio::WormbaseGoFile.new("#{DATA_DIR}/elegans/wormbase/WS194/annotations/gene_ontology/c_elegans.WS194.gene_ontology.txt").genes
-    
-    protein_names = []
-    File.open("#{DATA_DIR}/elegans/wormbase/WS191/cel_protein-coding_geneids_v191").each do |line|
-      protein_names.push line.strip
-    end
-    
-    #    #    $ grep WBGene GO.WS190.txt |wc -l
-    #  #31499
-    #    #$ grep WBGene GO.WS187.txt |wc -l
-    #    #31316
-    #    if genes.length != 31316
-    #      raise Exception, "Unexpected number of genes found in GO file."
-    #    end
-    
-
-    sp = Species.find_or_create_by_name(Species.elegans_name)
-    raise if sp.scaffolds.length > 1 #make sure we are still hacking this stuff
-    scaf = Scaffold.find_or_create_by_species_id_and_name(sp.id, Species.elegans_name)
-    
-    genes.each do |gene|
-      # Ignore genes not given to me by Maria
-      next if !protein_names.include?(gene.gene_name)
-      gd = Gene.find_or_create_by_name_and_scaffold_id(gene.gene_name, scaf.id)
-      cd = CodingRegion.find_or_create_by_string_id_and_gene_id(gene.protein_name, gd.id)
-      CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(cd.id, gene.gene_name)
-      gene.go_identifiers.each do |go_id|
-        g = GoTerm.find_or_create_by_go_identifier(go_id)
-        CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id_and_evidence_code(
-          g.id, cd.id, go_id
-        )
-      end
-    end
-  end
+  # Now defunct in place of elegans_gene_ontology_to_database, which can be updated
+  # through CVS - much better
+#  def upload_elegans_go_terms_and_genes(go_term_file =
+#      "#{DATA_DIR}/elegans/wormbase/WS194/annotations/gene_ontology/c_elegans.WS194.gene_ontology.txt"
+#    )
+#    genes = Bio::WormbaseGoFile.new(go_term_file).genes
+#
+#    protein_names = []
+#    File.open("#{DATA_DIR}/elegans/wormbase/WS191/cel_protein-coding_geneids_v191").each do |line|
+#      protein_names.push line.strip
+#    end
+#
+#    #    #    $ grep WBGene GO.WS190.txt |wc -l
+#    #  #31499
+#    #    #$ grep WBGene GO.WS187.txt |wc -l
+#    #    #31316
+#    #    if genes.length != 31316
+#    #      raise Exception, "Unexpected number of genes found in GO file."
+#    #    end
+#
+#
+#    sp = Species.find_or_create_by_name(Species.elegans_name)
+#    raise if sp.scaffolds.length > 1 #make sure we are still hacking this stuff
+#    scaf = Scaffold.find_or_create_by_species_id_and_name(sp.id, Species.elegans_name)
+#
+#    genes.each do |gene|
+#      # Ignore genes not given to me by Maria
+#      next if !protein_names.include?(gene.gene_name)
+#      gd = Gene.find_or_create_by_name_and_scaffold_id(gene.gene_name, scaf.id)
+#      cd = CodingRegion.find_or_create_by_string_id_and_gene_id(gene.protein_name, gd.id)
+#      CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(cd.id, gene.gene_name)
+#      gene.go_identifiers.each do |go_id|
+#        g = GoTerm.find_or_create_by_go_identifier(go_id)
+#        CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id_and_evidence_code(
+#          g.id, cd.id, nil
+#        )
+#      end
+#    end
+#  end
   
   def check_elegans_go
     genes = Bio::WormbaseGoFile.new("/home/ben/phd/data/elegans/wormbase/WS187/annotations/GO/GO.WS187.txt").genes
@@ -7892,5 +7896,30 @@ PFL2395c
     File.foreach("#{PHD_DIR}/algae_search/teaching/TthTpsPossiblyApi.orthomcl.txt") do |line|
       puts OrthomclGroup.official.find_by_orthomcl_name(line.strip).orthomcl_genes.code('tth').all.reach.orthomcl_gene_official_data.fasta.join("\n")
     end
+  end
+
+  def map_jaquinod_to_falciparum
+    no_orthomcls = 0
+    loners = 0
+    groups = []
+    File.foreach("#{DATA_DIR}/arabidopsis/localisation/Jaquinod2007.vacuoleProteomics387.txt") do |ath|
+      orthomcl = OrthomclGene.find_by_orthomcl_name "ath|#{ath.strip}.1"
+      if orthomcl.nil?
+        no_orthomcls += 1
+        next
+      end
+
+      if orthomcl.orthomcl_group.nil?
+        loners += 1
+        next
+      end
+
+      groups.push orthomcl.orthomcl_group
+    end
+
+    puts groups.uniq.collect{|g| g.orthomcl_genes.code('pfa').reach.single_code.string_id.retract}.join("\n")
+
+    $stderr.puts "Unable to find #{no_orthomcls} orthomcl genes"
+    $stderr.puts "Found #{loners} loners"
   end
 end

@@ -562,8 +562,9 @@ class CodingRegion < ActiveRecord::Base
     elsif get_species.name == Species.fly_name
       #if gene has an RNAi lethality entry check if it is lethal, note: a coding region can have multiple RNAi lethality values
    
-      obsd = drosophila_rnai_lethalities.all.each do |ob1|
-        raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obsd.empty?
+      obsd = drosophila_rnai_lethalities.all
+      raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obsd.empty?
+      obsd.each do |ob1|
         begin
           return true if ob1.lethal?
           annotated = true
