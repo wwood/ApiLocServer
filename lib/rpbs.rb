@@ -39,7 +39,7 @@ class Pbs
 
   # Return the string that is to be written to the tempfile that is to be qsub'd
   def self.get_pbs_script(command, pbs_parameters={})
-    to_return = "!/bin/bash\n"
+    to_return = "#!/bin/bash\n"
     
     # write each of the parameters to the tempfile
     final_hash = DEFAULT_PARAMETERS.merge pbs_parameters
