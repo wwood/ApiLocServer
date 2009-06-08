@@ -53,6 +53,8 @@ class CodingRegion < ActiveRecord::Base
   has_one :memsat_max_transmembrane_domain_length, :dependent => :destroy
   
   has_many :membrain_transmembrane_domains
+
+  has_many :spoctopus_transmembrane_domains
   
   # Measurements
   has_one :nucleo_nls
@@ -970,6 +972,20 @@ class CodingRegion < ActiveRecord::Base
         raise Exception, "Unexpected that a gene interacts with itself! CodingRegionNetworkEdge #{edge.inspect}"
       end
     end
+  end
+
+  # return a transmembrane domain representation of this coding region of a given
+  # type, i.e. which predictor was used
+  def to_transmembrane_domain_protein(transmembrane_domain_type)
+    require 'transmembrane'
+    o = Transmembrane::OrientedTransmembraneDomainProtein.new
+    o.name = string_id
+    send(transmembrane_domain_type).each do |tmd|
+      o.push Transmembrane::OrientedTransmembraneDomain.new(
+        tmd.start, tmd.stop, tmd.orientation
+      )
+    end
+    o
   end
 end
 

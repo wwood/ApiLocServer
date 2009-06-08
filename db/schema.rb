@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090513014854) do
+ActiveRecord::Schema.define(:version => 20090608043703) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -812,6 +812,7 @@ ActiveRecord::Schema.define(:version => 20090513014854) do
     t.string   "type",             :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "orientation"
   end
 
   add_index "transmembrane_domains", ["coding_region_id", "type"], :name => "index_transmembrane_domains_on_coding_region_id_and_type"
