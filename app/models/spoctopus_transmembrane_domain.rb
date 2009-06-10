@@ -1,0 +1,2 @@
+class SpoctopusTransmembraneDomain < TransmembraneDomain
+end

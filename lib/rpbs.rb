@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 # A script for automatic creation and setup of pbs scripts, so
 # that a script doesn't have to be set up for each job that is to be submitted
 
@@ -28,12 +30,17 @@ class Pbs
     Tempfile.open('rpbs_qsub_script') do |tempfile|
 
       # write the command to the tempfile
-      tempfile.puts get_pbs_script(command, pbs_parameters)
+      contents = get_pbs_script(command, pbs_parameters)
+      tempfile.puts contents
 
       tempfile.flush
 
       # qsub in reality
-      system "qsub #{tempfile.path}"
+      output = system "qsub #{tempfile.path}"
+      unless output
+        $stderr.puts "Rpbs: Failed to submit to qsub: #{command}"
+        $stderr.puts "Error: #{$?.inspect}"
+      end
     end
   end
 
@@ -60,4 +67,11 @@ class Pbs
 
     return to_return
   end
+end
+
+
+# If run as a script, this allows arguments to the script, compared to qsub
+# which does not, as far as I know
+if $0 == __FILE__
+  Pbs.qsub ARGV.join(' ')
 end
