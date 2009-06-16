@@ -5218,12 +5218,15 @@ class BScript
   
   # Upload all the data from Winzeler 2005 experiments downloaded from
   # http://carrier.gnf.org/publications/CellCycle/index.html
-  def winzeler_2003_measurements_to_database
-    base_dir = "#{DATA_DIR}/falciparum/microarray/Winzeler2003"
+  def winzeler_2003_measurements_to_database_restart
     microarray = Microarray.find_all_by_description(Microarray::WINZELER_2003_NAME)
     $stderr.print "Destroying... "
-    microarray.reach.destroy #destroy all the old ones because find_or_create is used below
+    microarray.each{|m|m.destroy; nil} #destroy all the old ones because find_or_create is used below
     $stderr.puts "done."
+  end
+
+  def winzeler_2003_measurements_to_database
+    base_dir = "#{DATA_DIR}/falciparum/microarray/Winzeler2003"
     microarray = Microarray.find_or_create_by_description(Microarray::WINZELER_2003_NAME)
     sporozoite_replicate = 1
     
@@ -7980,12 +7983,40 @@ PFL2395c
       end
     end
 
-    # take all 1TMD proteins that are predicted by any TMD predictor
-    # (including Florian), and list what their annotations are.
-    # Not including memsat as input, only output, because otherwise too
-    # many proteins are included
     def florian_tmd_annotation2
-      # Print out the predictions
+      $stdin.each do |plasmodb_id|
+        plasmodb_id.strip!
+        next if plasmodb_id.nil?
+
+        code = CodingRegion.ff(plasmodb_id);
+        code54 = CodingRegion.s('falciparum v5.4').find_by_string_id(plasmodb_id)
+        if code
+          tmhmm = code.tmhmm
+          florians = TransmembraneDomain.find_all_by_coding_region_id(:conditions =>
+              ['type like ?','Floria%']
+          )
+          raise if florians.length > 1
+          next if florians[0].nil?
+
+          florian = code.to_transmembrane_domain_protein(florians[0].type.underscore.to_sym)
+          spoctopussies = code.to_transmembrane_domain_protein(:spoctopus_transmembrane_domain)
+
+          puts [
+            plasmodb_id,
+            florian.length,
+            code.spoctopus_transmembrane_domains.length > 0,
+            code.spoctopus_transmembrane_domains.count,
+            code54.memsat_transmembrane_domain_count.measurement > 0,
+            code54.memsat_transmembrane_domain_count.measurement.to_i,
+            tmhmm.has_domain?,
+            tmhmm.transmembrane_domains.length,
+            code.signal?
+          ].join("\t")
+        else
+          puts plasmodb_id
+        end
+
+      end
       CodingRegion.falciparum.all.each do |code|
         code54 = CodingRegion.s('falciparum v5.4').find_by_string_id(code.string_id)
         tmhmm = code.tmhmm
@@ -8009,7 +8040,7 @@ PFL2395c
     current_list = nil
     FasterCSV.foreach("#{PHD_DIR}/florian manual tmd/florianManual20090616.csv") do |row|
       next if row.nil? or row.length == 0
-#      p row
+      #      p row
       if row.length == 1 or row[1].nil?
         current_list = "Florian#{row[0].gsub(' ','_').camelize}TransmembraneDomain"
         next
@@ -8025,7 +8056,7 @@ PFL2395c
       stop = matches[2].to_i
       raise if start >= stop
       code = CodingRegion.ff plasmodb
-#puts current_list
+      #puts current_list
       TransmembraneDomain.find_or_create_by_coding_region_id_and_start_and_stop_and_type(
         code.id,
         start,
