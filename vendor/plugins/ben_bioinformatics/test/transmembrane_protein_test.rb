@@ -30,4 +30,10 @@ class TransmembraneProteinTest < Test::Unit::TestCase
     assert protein.transmembrane_domains.empty?
     assert_equal false, protein.has_domain?
   end
+
+  def test_overlap_tmd
+    tmd1 = TransmembraneDomainDefinition.new(3,6)
+    tmd2 = TransmembraneDomainDefinition.new(3,6)
+    assert_equal((3..6), tmd1.intersection(tmd2))
+  end
 end

@@ -32,7 +32,7 @@ class PlasmodbGeneList < ActiveRecord::Base
       end
       
       if !code
-        $stderr.puts "Warning no coding region found for #{line}"
+        $stderr.puts "Warning no coding region found for '#{line}'"
       else
         PlasmodbGeneListEntry.find_or_create_by_plasmodb_gene_list_id_and_coding_region_id(
           list.id,

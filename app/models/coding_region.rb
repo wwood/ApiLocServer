@@ -987,6 +987,24 @@ class CodingRegion < ActiveRecord::Base
     end
     o
   end
+
+  def florian_says
+    taken = false
+    lists = {
+      'florianSaysYes20090615' => 'yes',
+      'florianSaysNo20090615' => 'no',
+      'florianSaysMaybeSignalPeptide20090615' => 'sp?',
+      'florianSaysNothing20090615' => 'lazy'
+    }
+    lists.each do |list_name, annotation|
+      if plasmodb_gene_lists.find_by_description(list_name)
+        raise Exception, "Couldn't find #{string_id}" if taken
+        #$stderr.puts "Found duplicate: #{string_id}" if taken
+        taken = annotation
+      end
+    end
+    taken
+  end
 end
 
 
