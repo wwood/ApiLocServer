@@ -51,11 +51,22 @@ class CodingRegion < ActiveRecord::Base
   has_one :memsat_average_transmembrane_domain_length, :dependent => :destroy
   has_one :memsat_transmembrane_domain_count, :dependent => :destroy
   has_one :memsat_max_transmembrane_domain_length, :dependent => :destroy
-  
+
+  has_many :transmembrane_domains
   has_many :membrain_transmembrane_domains
 
   has_many :spoctopus_transmembrane_domains
-  
+
+  has_one :florian_secreted_transmembrane_domain
+  has_one :florian_er_transmembrane_domain
+  has_one :florian_ta_transmembrane_domain
+  has_one :florian_gpi_transmembrane_domain
+  has_one :florian_fv_transmembrane_domain
+  has_one :florian_apicoplast_transmembrane_domain
+  has_one :florian_mitochondria_transmembrane_domain
+  has_one :florian_plasma_membrane_and_alike_transmembrane_domain
+  has_one :florian_intracellular_transmembrane_domain
+
   # Measurements
   has_one :nucleo_nls
   has_one :nucleo_non_nls
@@ -980,12 +991,19 @@ class CodingRegion < ActiveRecord::Base
     require 'transmembrane'
     o = Transmembrane::OrientedTransmembraneDomainProtein.new
     o.name = string_id
-    send(transmembrane_domain_type).each do |tmd|
+    tmds = send(transmembrane_domain_type)
+    if tmds.kind_of?(Array)
+      tmds.each do |tmd|
+        o.push Transmembrane::OrientedTransmembraneDomain.new(
+          tmd.start, tmd.stop, tmd.orientation
+        )
+      end
+    else
       o.push Transmembrane::OrientedTransmembraneDomain.new(
-        tmd.start, tmd.stop, tmd.orientation
+        tmds.start, tmds.stop, tmds.orientation
       )
     end
-    o
+    return o
   end
 
   def florian_says

@@ -7982,57 +7982,59 @@ PFL2395c
         puts plasmodb_id
       end
     end
+  end
 
-    def florian_tmd_annotation2
-      $stdin.each do |plasmodb_id|
-        plasmodb_id.strip!
-        next if plasmodb_id.nil?
+  def florian_tmd_annotation2
+    list = nil
+    FasterCSV.foreach("#{PHD_DIR}/florian manual tmd/florianManual20090616.csv") do |row|
+      plasmodb_id = row[0]
+      plasmodb_id.strip!
+      next if plasmodb_id.nil?
 
-        code = CodingRegion.ff(plasmodb_id);
-        code54 = CodingRegion.s('falciparum v5.4').find_by_string_id(plasmodb_id)
-        if code
-          tmhmm = code.tmhmm
-          florians = TransmembraneDomain.find_all_by_coding_region_id(:conditions =>
-              ['type like ?','Floria%']
-          )
-          raise if florians.length > 1
-          next if florians[0].nil?
+      code = CodingRegion.ff(plasmodb_id);
+      code54 = CodingRegion.s('falciparum v5.4').find_by_string_id(plasmodb_id)
+      if code and !(%w(PFD1200c MAL7P1.208 PF11_0373).include?(code.string_id))
+        next if list == 'GPI'
+        tmhmm = code.tmhmm
+        florians = TransmembraneDomain.find_all_by_coding_region_id(code.id,
+          :conditions =>
+            ['type like ?','Floria%']
+        )
+        $stderr.puts florians[0].inspect
+        raise if florians.length > 1
 
-          florian = code.to_transmembrane_domain_protein(florians[0].type.underscore.to_sym)
-          spoctopussies = code.to_transmembrane_domain_protein(:spoctopus_transmembrane_domain)
-
-          puts [
-            plasmodb_id,
-            florian.length,
-            code.spoctopus_transmembrane_domains.length > 0,
-            code.spoctopus_transmembrane_domains.count,
-            code54.memsat_transmembrane_domain_count.measurement > 0,
-            code54.memsat_transmembrane_domain_count.measurement.to_i,
-            tmhmm.has_domain?,
-            tmhmm.transmembrane_domains.length,
-            code.signal?
-          ].join("\t")
-        else
-          puts plasmodb_id
+        florian = code.to_transmembrane_domain_protein(florians[0].type_before_type_cast.underscore.to_sym)
+        unless tmhmm.has_domain?
+          $stderr.puts "No good: #{code.string_id}"
+          next
         end
 
-      end
-      CodingRegion.falciparum.all.each do |code|
-        code54 = CodingRegion.s('falciparum v5.4').find_by_string_id(code.string_id)
-        tmhmm = code.tmhmm
+        # get the best spoctopus overlapping domain, or none otherwise
+        spoctopussies = code.to_transmembrane_domain_protein(:spoctopus_transmembrane_domains)
+        overlap = nil
+        if spoctopussies.has_domain?
+          overlap = florian.best_overlap(spoctopussies)
+        end
+        spoctopussy = (overlap.nil? ? nil : overlap[1].length)
+
+        # get the best tmhmm domain, or none otherwise
+        overlap = nil
+        unless tmhmm.nil?
+          overlap = florian.best_overlap(tmhmm)
+        end
+        tmhmm_domain = (overlap.nil? ? nil : overlap[1].length)
 
         puts [
-          code.string_id,
-          code.spoctopus_transmembrane_domains.length > 0,
-          code.spoctopus_transmembrane_domains.count,
-          code54.nil? ? 'unknown' : code54.memsat_transmembrane_domain_count.measurement > 0,
-          code54.nil? ? 'unknown' : code54.memsat_transmembrane_domain_count.measurement.to_i,
-          tmhmm.has_domain?,
-          tmhmm.transmembrane_domains.length,
-          code.signal?
+          plasmodb_id,
+          florian.transmembrane_domains[0].length,
+          spoctopussy,
+          tmhmm_domain,
+          code54.memsat_average_transmembrane_domain_length.measurement
         ].join("\t")
+      else
+        list = plasmodb_id
+        puts plasmodb_id
       end
-
     end
   end
 
@@ -8042,7 +8044,11 @@ PFL2395c
       next if row.nil? or row.length == 0
       #      p row
       if row.length == 1 or row[1].nil?
-        current_list = "Florian#{row[0].gsub(' ','_').camelize}TransmembraneDomain"
+        # camelize.underscore.camelize because otherwise there is problems between
+        # FlorianErTransmembraneDomain and
+        # FlorianERTransmembraneDomain for instance (2 capitals in a row stuffs
+        # things up.
+        current_list = "Florian#{row[0].gsub(' ','_').camelize.underscore.camelize}TransmembraneDomain"
         next
       elsif row.length > 2
         raise

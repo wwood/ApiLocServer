@@ -77,10 +77,10 @@ require 'array_pair' #random added methods for array
 
 # Simple class defintions that don't really need their own file since they are too short
 class FlorianSecretedTransmembraneDomain < TransmembraneDomain; end
-class FlorianERTransmembraneDomain < TransmembraneDomain; end
-class FlorianTATransmembraneDomain < TransmembraneDomain; end
-class FlorianGPITransmembraneDomain < TransmembraneDomain; end
-class FlorianFVTransmembraneDomain < TransmembraneDomain; end
+class FlorianErTransmembraneDomain < TransmembraneDomain; end
+class FlorianTaTransmembraneDomain < TransmembraneDomain; end
+class FlorianGpiTransmembraneDomain < TransmembraneDomain; end
+class FlorianFvTransmembraneDomain < TransmembraneDomain; end
 class FlorianApicoplastTransmembraneDomain < TransmembraneDomain; end
 class FlorianMitochondriaTransmembraneDomain < TransmembraneDomain; end
 class FlorianPlasmaMembraneAndAlikeTransmembraneDomain < TransmembraneDomain; end
