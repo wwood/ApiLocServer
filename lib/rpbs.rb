@@ -25,13 +25,15 @@ class Pbs
     :shell => 'PBS -S '
   }
 
-  def self.qsub(command, pbs_parameters = {})
+  def self.qsub(command, pbs_parameters = {}, verbose = false)
     # Create a tempfile to create the script in
     Tempfile.open('rpbs_qsub_script') do |tempfile|
 
       # write the command to the tempfile
       contents = get_pbs_script(command, pbs_parameters)
       tempfile.puts contents
+
+      puts contents if verbose
 
       tempfile.flush
 
@@ -73,5 +75,5 @@ end
 # If run as a script, this allows arguments to the script, compared to qsub
 # which does not, as far as I know
 if $0 == __FILE__
-  Pbs.qsub ARGV.join(' ')
+  Pbs.qsub ARGV.join(' '), {}, true
 end

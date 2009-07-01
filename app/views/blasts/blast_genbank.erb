@@ -1,0 +1,16 @@
+
+<head>
+  <title><%= @genbank_id %></title>
+</head>
+
+<h2>BLAST report</h2>
+<%= @name %>
+<pre>
+  <%= @blast_output %>
+</pre>
+
+<h3>Input Query</h3>
+Found genbank id '<%= @genbank_id %>' with sequence:
+<pre>
+<%= @seq %>
+</pre>
