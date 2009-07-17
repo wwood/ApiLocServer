@@ -196,10 +196,11 @@ class SpreadsheetGenerator
         'Number of C. homonis Genes in Official Orthomcl Group',
         'Number of T. parva Genes in Official Orthomcl Group',
         'Number of T. annulata Genes in Official Orthomcl Group',
+        'Number of T. gondii Genes in Official Orthomcl Group',
         'Number of Arabidopsis Genes in Official Orthomcl Group',
         'Number of Yeast Genes in Official Orthomcl Group',
         'Number of Mouse Genes in Official Orthomcl Group'] if @first
-      interestings = ['pfa','pvi','cpa','cho','the','tan','ath','sce','mmu']
+      interestings = ['pfa','pvi','cpa','cho','the','tan','tgo','ath','sce','mmu']
       
       # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
       if merged_genes.include?(code.string_id)

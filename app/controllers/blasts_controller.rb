@@ -23,21 +23,29 @@ class BlastsController < ApplicationController
     
     rets = Bio::NCBI::REST::efetch(@genbank_id, {:db => 'sequences', :rettype => 'fasta'})
 
-    unless rets.length == 1
-      flash[:error] = "#{rets.length} sequences found! Expected 1."
-      return
+    # Not sure what is returned exactly. I believe a string
+    # is the most up to date.
+    str = rets
+
+    # make str = rets[0] unless rets is a String (this is old code?)
+    unless rets.class == String
+      unless rets.length == 1
+        flash[:error] = "#{rets.length} sequences found! Expected 1."
+        return
+      end
+      str = rets[0]
     end
 
-    fasta = Bio::FastaFormat.new(rets[0])
+    fasta = Bio::FastaFormat.new(str)
     @seq = fasta.seq
     @name = fasta.definition
 
-    @blast_output = blast_result(@seq, params[:taxa])
+    @blast_output = blast_result(@seq, params[:taxa], params[:program])
   end
 
 
   private
-  def blast_result(sequence, organism = 'apicomplexa')
+  def blast_result(sequence, organism = 'apicomplexa', blast_program = nil)
     organism ||= 'apicomplexa' # in case nil is passed here
 
     databases = {
@@ -47,15 +55,25 @@ class BlastsController < ApplicationController
     }
     blast_array = databases[organism]
 
+    program_to_database_index = {
+      'tblastx' => 0,
+    }
+
     # work out if it is a protein sequence or a nucleotide sequence
     # meh. for the moment assume it is a transcript to be blasted
     seq = Bio::Sequence.auto(sequence)
     factory = nil
-    if seq.moltype == Bio::Sequence::NA
-      factory = Bio::Blast.local('blastn', "/blastdb/#{blast_array[0]}")
-    elsif seq.moltype == Bio::Sequence::AA
-      logger.debug "using protein!"
-      factory = Bio::Blast.local('blastp', "/blastdb/#{blast_array[1]}")
+
+    if blast_program
+      factory = Bio::Blast.local(blast_program,
+        "/blastdb/#{blast_array[program_to_database_index[blast_program]]}")
+    else
+      if seq.moltype == Bio::Sequence::NA
+        factory = Bio::Blast.local('blastn', "/blastdb/#{blast_array[0]}")
+      elsif seq.moltype == Bio::Sequence::AA
+        logger.debug "using protein!"
+        factory = Bio::Blast.local('blastp', "/blastdb/#{blast_array[1]}")
+      end
     end
 
     factory.format = 0

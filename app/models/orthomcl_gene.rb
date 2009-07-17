@@ -8,6 +8,19 @@ class OrthomclGene < ActiveRecord::Base
   has_one :orthomcl_gene_official_data
   
   MAMMALIAN_THREE_LETTER_CODES = ['hsa', 'mmu', 'rno']
+  OFFICIAL_ORTHOMCL_APICOMPLEXAN_CODES = [
+    'cpa',
+    'cho',
+    'tgo',
+    'pfa',
+    'pyo',
+    'pvi',
+    'pkn',
+    'pbe',
+    'pch',
+    'the',
+    'tan'
+  ]
   
   named_scope :code, lambda { |three_letter_species_code| {
       :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
@@ -36,6 +49,16 @@ class OrthomclGene < ActiveRecord::Base
   named_scope :no_group, {
     :include => :orthomcl_gene_orthomcl_group_orthomcl_runs,
     :conditions => 'orthomcl_gene_orthomcl_group_orthomcl_runs.orthomcl_group_id is NULL'
+  }
+  named_scope :apicomplexan, lambda {
+    three_letter_species_codes = OFFICIAL_ORTHOMCL_APICOMPLEXAN_CODES
+    pre = 'orthomcl_genes.orthomcl_name like ?'
+    post = ["#{three_letter_species_codes[0]}%"]
+    three_letter_species_codes.each {|code|
+      pre += ' or orthomcl_genes.orthomcl_name like ?'
+      post.push ["#{code}%"]
+    }
+    {:conditions => [pre, post].flatten}
   }
   
   def accepted_database_id
@@ -182,19 +205,7 @@ class OrthomclGene < ActiveRecord::Base
   end
   
   def self.official_orthomcl_apicomplexa_codes
-    [
-      'cpa',
-      'cho',
-      'tgo',
-      'pfa',
-      'pyo',
-      'pvi',
-      'pkn',
-      'pbe',
-      'pch',
-      'the',
-      'tan'
-    ]
+    OFFICIAL_ORTHOMCL_APICOMPLEXAN_CODES
   end
     
   
