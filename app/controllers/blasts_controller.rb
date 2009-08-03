@@ -64,7 +64,7 @@ class BlastsController < ApplicationController
     seq = Bio::Sequence.auto(sequence)
     factory = nil
 
-    if blast_program
+    if blast_program and blast_program != ''
       factory = Bio::Blast.local(blast_program,
         "/blastdb/#{blast_array[program_to_database_index[blast_program]]}")
     else

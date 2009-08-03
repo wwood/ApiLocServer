@@ -5,8 +5,9 @@
 # ENV['RAILS_ENV'] ||= 'production'
 
 # Specifies gem version of Rails to use when vendor/rails is not present
+# Ben removed this because I couldn't be bothered changing manually when
+# every new version of rails is released.
 #RAILS_GEM_VERSION = '2.2.2' unless defined? RAILS_GEM_VERSION
-RAILS_GEM_VERSION = '2.3.2' unless defined? RAILS_GEM_VERSION
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')
