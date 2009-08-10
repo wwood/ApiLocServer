@@ -8071,4 +8071,16 @@ PFL2395c
       ) or raise
     end
   end
+
+  def strange_crypto_orthology_er
+    puts PlasmodbGeneList.find_by_description(
+      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+    ).coding_regions.select {|code|
+      og = code.orthomcl_genes.official.first
+      next if og.nil? or og.orthomcl_group.nil?
+      group = og.orthomcl_group
+      num = group.orthomcl_genes.code('cpa').all.length
+      puts [num, code.string_id, code.tops[0].name].join(" ") if code.tops[0].name == 'endoplasmic reticulum' and num != 1
+    }.reach.string_id.join("\n")
+  end
 end
