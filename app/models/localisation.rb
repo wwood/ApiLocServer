@@ -25,6 +25,15 @@ class Localisation < ActiveRecord::Base
     'parasitophorous vacuole',
     'parasitophorous vacuole membrane',
     'parasite plasma membrane',
+    'apicoplast membrane',
+    'proximal to plasma membrane',
+    'diffuse cytoplasm',
+    'under parasite plama membrane',
+    'microtubule',
+    'replication foci in nucleus',
+    'area near nucleus', # nucleus + surrounds
+    'anterior to nucleus',
+    'mitotic spindle in nucleus',
     'food vacuole',
     'food vacuole membrane',
     'mitochondria',
@@ -38,43 +47,26 @@ class Localisation < ActiveRecord::Base
     'endoplasmic reticulum',
     'vesicles',
     'intracellular vacuole',
+    'vesicles near parasite surface',
+    'peripheral',
     'merozoite surface', #start of merozoite locs
+    'moving junction',
     'inner membrane complex',
+    'pellicle',
     'rhoptry',
     'rhoptry neck',
     'microneme',
     'mononeme',
     'dense granule',
     'apical',
-    'gametocyte surface', #gametocyte locs
-    'gametocyte nucleus',
-    'gametocyte cytoplasm',
-    'gametocyte parasitophorous vacuole',
     'gametocyte osmiophilic body',
     'sporozoite surface', #sporozoite locs
     'oocyst wall',
-    'hepatocyte cytoplasm',
-    'hepatocyte nucleus',
-    'hepatocyte parasitophorous vacuole membrane',
-    'intracellular vacuole membrane',
-    'moving junction',
-    'apicoplast membrane',
-    'proximal to plasma membrane',
-    'diffuse cytoplasm',
-    'under parasite plama membrane',
-    'microtubule',
-    'replication foci in nucleus',
-    'area near nucleus', # nucleus + surrounds
-    'anterior to nucleus',
-    'mitotic spindle in nucleus',
     'zygote remnant', # the zygote part when the ookinete is budding off from the zygote
     'ookinete protrusion', # the opposite of zygote remnant
     'oocyst protrusion', # during ookinete to oocyst transition, oocyst starts out as a round protrusion
     'peripheral of oocyst protrusion', # possibly an analogue of IMC?
     'trail', # the trail that sporozoites leave behind when they move
-    'vesicles near parasite surface',
-    'peripheral',
-    'pellicle',
   ]
   
   # Return a list of ORFs that have this and only this localisation
