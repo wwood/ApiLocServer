@@ -364,27 +364,28 @@ class Mverification < ActiveRecord::Base
   end
   
   def testttt
-CSV.open(filename, 'r') do |gene|
-  $stderr.puts gene.inspect
-  ogenes = OrthomclGene.find_by_orthomcl_name(gene).orthomcl_group.orthomcl_genes
+    CSV.open(filename, 'r') do |gene|
+      $stderr.puts gene.inspect
+      ogenes = OrthomclGene.find_by_orthomcl_name(gene).orthomcl_group.orthomcl_genes
 
-    if ogenes.code('sce').count = 1
-    puts "sce"
-    puts ogenes.code('sce').lethal?
+      if ogenes.code('sce').count = 1
+        puts "sce"
+        puts ogenes.code('sce').lethal?
+      end
+      if ogenes.code('dme').count = 1
+        puts "dme"
+        puts ogenes.code('dme').lethal?
+
+        if ogenes.code('mmu').count = 1
+          puts mmu
+          puts ogenes.code('mmu').lethal?
+
+        end
+      end
     end
-   if ogenes.code('dme').count = 1
-   puts "dme"
-   puts ogenes.code('dme').lethal?
-
-   if ogenes.code('mmu').count = 1
-   puts mmu
-   puts ogenes.code('mmu').lethal?
-
-   end
-   end
-    end
   
   
   
   
+  end
 end
