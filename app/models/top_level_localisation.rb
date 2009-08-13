@@ -51,6 +51,10 @@ class TopLevelLocalisation < ActiveRecord::Base
     #    'sporozoite surface',
     'apical'
   ]
+
+  TOXOPLASMA_GONDII_LOCALISATIONS = [
+
+  ]
   
   def upload_localisations
     # upload all the normal ones
@@ -74,5 +78,9 @@ class TopLevelLocalisation < ActiveRecord::Base
         t.id
       ) or raise
     end
+  end
+
+  def upload_toxoplasma_gondii_localisations
+
   end
 end
