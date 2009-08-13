@@ -19,8 +19,9 @@ class Localisation < ActiveRecord::Base
     'erythrocyte cytoplasm',
     'maurer\'s clefts',
     'erythrocyte plasma membrane',
-    'erythrocyte cytoplasmic vesicles',
     'erythrocyte cytoplasmic structures',
+    'cytoplasmic side of erythrocyte membrane',
+    'beyond erythrocyte membrane',
     'parasitophorous vacuole',
     'parasitophorous vacuole membrane',
     'parasite plasma membrane',
@@ -45,17 +46,13 @@ class Localisation < ActiveRecord::Base
     'mononeme',
     'dense granule',
     'apical',
-    'merozoite cytoplasm',
     'gametocyte surface', #gametocyte locs
     'gametocyte nucleus',
     'gametocyte cytoplasm',
     'gametocyte parasitophorous vacuole',
     'gametocyte osmiophilic body',
     'sporozoite surface', #sporozoite locs
-    'sporozoite cytoplasm',
-    #      'ookinete', #mosquito stage locs - removed because there's no locs here (yet!)
-    'ookinete microneme',
-    'ookinete surface',
+    'oocyst wall',
     'hepatocyte cytoplasm',
     'hepatocyte nucleus',
     'hepatocyte parasitophorous vacuole membrane',
@@ -64,7 +61,20 @@ class Localisation < ActiveRecord::Base
     'apicoplast membrane',
     'proximal to plasma membrane',
     'diffuse cytoplasm',
-    'under parasite plama membrane'
+    'under parasite plama membrane',
+    'microtubule',
+    'replication foci in nucleus',
+    'area near nucleus', # nucleus + surrounds
+    'anterior to nucleus',
+    'mitotic spindle in nucleus',
+    'zygote remnant', # the zygote part when the ookinete is budding off from the zygote
+    'ookinete protrusion', # the opposite of zygote remnant
+    'oocyst protrusion', # during ookinete to oocyst transition, oocyst starts out as a round protrusion
+    'peripheral of oocyst protrusion', # possibly an analogue of IMC?
+    'trail', # the trail that sporozoites leave behind when they move
+    'vesicles near parasite surface',
+    'peripheral',
+    'pellicle',
   ]
   
   # Return a list of ORFs that have this and only this localisation
@@ -90,6 +100,20 @@ class Localisation < ActiveRecord::Base
   
   def upload_localisation_synonyms
     {
+      'zygote side' => 'zygote remnant',
+      'sporozoite trail' => 'trail',
+      'apical tip' => 'apical',
+      'parasite surface' => 'parasite plasma membrane',
+      'microtubules' => 'microtubule',
+      'not rbc cytosol' => 'not erythrocyte cytoplasm',
+      'rbc cytoplasm' => 'erythrocyte cytoplasm',
+      'vesicles in rbc cytoplasm' => 'erythrocyte cytoplasmic structures',
+      'mc' => 'maurer\'s clefts',
+      'ppm' => 'parasite plasma membrane',
+      'rbc cytoplasmic aggregates' => 'erythrocyte cytoplasmic structures',
+      'foci in erythrocyte cytosol' => 'erythrocyte cytoplasmic structures',
+      'tight junction' => 'moving junction',
+      'beyond rbc membrane' => 'beyond erythrocyte membrane',
       'under pm' => 'under parasite plama membrane',
       'rhoptry pundicle' => 'rhoptry neck',
       'ER' => 'endoplasmic reticulum',
@@ -168,7 +192,11 @@ class Localisation < ActiveRecord::Base
     $stderr.puts "Repeatitive plasmodb ids are not uploaded!!!!!!. Need to do the two pass method, and delete localisations first"
 
     require 'csv'
+
+    line = 0
     CSV.open(filename, 'r', "\t") do |row|
+      line += 1
+      #      next unless line > 420
       p row
       
       if row[0]
@@ -194,17 +222,18 @@ class Localisation < ActiveRecord::Base
       if plasmodb_id
         plasmodb_id.strip!
         next if ['PF13_0115'].include?(plasmodb_id)
-        code = CodingRegion.ff(plasmodb_id)
-        if !code
+        code2 = CodingRegion.ff(plasmodb_id)
+        code = code2 unless code2.nil?
+        if !code2
           $stderr.puts "No coding region '#{plasmodb_id}' found."
-          next
+          #          next
+        else
+          # Create the common name as an alternate String ID
+          CodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
+            common_name,
+            code.id
+          )
         end
-      
-        # Create the common name as an alternate String ID
-        CodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
-          common_name,
-          code.id
-        )
       end
       
       # Create the publication(s) we are relying on
@@ -237,7 +266,13 @@ class Localisation < ActiveRecord::Base
         end
       end
     end
-    
+  end
+  
+  def remove_strength_modifiers(localisation_string)
+    %w(weak strong).each do |modifier|
+      localisation_string.gsub!(/^#{modifier} /, '')
+    end
+    localisation_string
   end
   
   # Parse a line from the dirty localisation files. Return an array of (unsaved) ExpressionContext objects
@@ -246,6 +281,8 @@ class Localisation < ActiveRecord::Base
     
     # split on commas
     dirt.split(',').each do |fragment|
+      fragment.strip!
+      
       # If gene is not expressed during a certain developmental stage
       if matches = fragment.match('not during (.*)')
         stages = []
@@ -278,7 +315,7 @@ class Localisation < ActiveRecord::Base
               )
             end
           else
-            positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(stage)
+            positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(remove_strength_modifiers(stage))
             raise Exception, "No such dev stage '#{stage}' found." if positive_devs.empty?
             positive_devs.each do |found|
               d = DevelopmentalStage.find_by_name_or_alternate(found.name)
@@ -288,6 +325,9 @@ class Localisation < ActiveRecord::Base
             end
           end
         end
+
+      elsif fragment.match(/^weak during/) # ignore these
+        
         
         # gene is expressed in a localisation during a particular developmental
         # stage
@@ -332,7 +372,7 @@ class Localisation < ActiveRecord::Base
         
       else #no during - it's just a straight localisation
         # split each of the localisations by 'and' and 'then'
-        locs = parse_small_name(fragment)
+        locs = parse_small_name(remove_strength_modifiers(fragment))
         locs.each do |l|
           contexts.push ExpressionContext.new(
             :localisation => l
@@ -362,17 +402,9 @@ class Localisation < ActiveRecord::Base
     fragment.split(' and ').each do |loc|
       loc.strip!
       loc.downcase!
-      splits = loc.split(' then ')
-      
-      if splits.length == 1
-        l = parse_small_small_name(splits[0])
-      elsif splits.length == 2 #forget the first localisation - we'll just take the second
-        l = parse_small_small_name(splits[1])
-      else
-        raise ParseException, "fragment not understood: #{fragment}"
+      loc.split(' then ').each do |loc2|
+        locs.push parse_small_small_name(loc2)
       end
-
-      locs.push l
     end
     return locs
   end
@@ -380,6 +412,7 @@ class Localisation < ActiveRecord::Base
   def parse_small_small_name(frag)
     frag.strip!
     frag.downcase!
+    frag = remove_strength_modifiers(frag)
     l = Localisation.find_by_name_or_alternate(frag)
     if !l and matches = frag.match(/^not (.+)$/)
       syn = LocalisationSynonym.find_by_name(matches[1])

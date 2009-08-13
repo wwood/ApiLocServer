@@ -79,8 +79,4 @@ class TopLevelLocalisation < ActiveRecord::Base
       ) or raise
     end
   end
-
-  def upload_toxoplasma_gondii_localisations
-
-  end
 end

@@ -121,22 +121,23 @@ class LocalisationTest < ActiveSupport::TestCase
     assert_equal 1, ExpressionContext.new(:coding_region_id => 2) <=> ExpressionContext.new(:coding_region_id => 1)
     assert_equal 0, ExpressionContext.new(:localisation_id => 2) <=> ExpressionContext.new(:localisation_id => 2)
   end
-    
-  def test_then
-    stuff = @l.parse_name('mitochondria then apicoplast')
-    contexts = [
-      ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'))
-    ]
-    assert_equal_expression_contexts contexts, stuff, 'test_then'
-  end
-    
-  def test_and_then
-    stuff = @l.parse_name('mitochondria then apicoplast during schizont')
-    contexts = [
-      ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'), :developmental_stage => DevelopmentalStage.find_by_name('schizont'))
-    ]
-    assert_equal_expression_contexts contexts, stuff, 'test_then'
-  end
+
+  # commented out then types because they are deprecated
+  #  def test_then
+  #    stuff = @l.parse_name('mitochondria then apicoplast')
+  #    contexts = [
+  #      ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'))
+  #    ]
+  #    assert_equal_expression_contexts contexts, stuff, 'test_then'
+  #  end
+  #
+  #  def test_and_then
+  #    stuff = @l.parse_name('mitochondria then apicoplast during schizont')
+  #    contexts = [
+  #      ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'), :developmental_stage => DevelopmentalStage.find_by_name('schizont'))
+  #    ]
+  #    assert_equal_expression_contexts contexts, stuff, 'test_then'
+  #  end
     
     
   def test_known_named_scope
@@ -193,5 +194,19 @@ class LocalisationTest < ActiveSupport::TestCase
     ].sort
     assert_equal expected,
       @l.parse_name('during schizont and not ring and not trophozoite').sort
+  end
+
+  def test_remove_strength_modifiers
+    assert_equal 'yey', Localisation.new.remove_strength_modifiers('yey')
+    assert_equal 'yey', Localisation.new.remove_strength_modifiers('weak yey')
+  end
+
+  def test_weak_during
+    assert_equal [], Localisation.new.parse_name('weak during schizont')
+    assert_equal [
+      ExpressionContext.new(
+        :developmental_stage => DevelopmentalStage.find_by_name('ring')
+      )],
+      Localisation.new.parse_name('during ring, weak during schizont')
   end
 end
