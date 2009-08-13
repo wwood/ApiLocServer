@@ -170,8 +170,28 @@ class LocalisationTest < ActiveSupport::TestCase
     
   def test_not_during_synonym
     assert_equal [ExpressionContext.new(
-        :developmental_stage => DevelopmentalStage.find_by_name('my ring')
+        :developmental_stage => DevelopmentalStage.find_by_name('not ring')
       )],
       @l.parse_name('not during my ring')
+  end
+
+  def test_not_during_in_positive_during_with_alternate
+    expected = [
+      ExpressionContext.new(:developmental_stage => DevelopmentalStage.find_by_name('schizont')),
+      ExpressionContext.new(:developmental_stage => DevelopmentalStage.find_by_name('not ring')),
+      ExpressionContext.new(:developmental_stage => DevelopmentalStage.find_by_name('not trophozoite')),
+    ].sort
+    assert_equal expected,
+      @l.parse_name('during schizont and not ring and not troph').sort
+  end
+
+  def test_not_during_in_positive_during
+    expected = [
+      ExpressionContext.new(:developmental_stage => DevelopmentalStage.find_by_name('schizont')),
+      ExpressionContext.new(:developmental_stage => DevelopmentalStage.find_by_name('not ring')),
+      ExpressionContext.new(:developmental_stage => DevelopmentalStage.find_by_name('not trophozoite')),
+    ].sort
+    assert_equal expected,
+      @l.parse_name('during schizont and not ring and not trophozoite').sort
   end
 end

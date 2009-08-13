@@ -3,6 +3,9 @@
 one:
   developmental_stage_id: 2
   name: my ring
+troph:
+  developmental_stage_id: 3
+  name: troph
 
 two:
   developmental_stage_id: 1

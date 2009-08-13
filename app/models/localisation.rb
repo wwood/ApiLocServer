@@ -19,6 +19,8 @@ class Localisation < ActiveRecord::Base
     'erythrocyte cytoplasm',
     'maurer\'s clefts',
     'erythrocyte plasma membrane',
+    'erythrocyte cytoplasmic vesicles',
+    'erythrocyte cytoplasmic structures',
     'parasitophorous vacuole',
     'parasitophorous vacuole membrane',
     'parasite plasma membrane',
@@ -38,6 +40,7 @@ class Localisation < ActiveRecord::Base
     'merozoite surface', #start of merozoite locs
     'inner membrane complex',
     'rhoptry',
+    'rhoptry neck',
     'microneme',
     'mononeme',
     'dense granule',
@@ -60,7 +63,8 @@ class Localisation < ActiveRecord::Base
     'moving junction',
     'apicoplast membrane',
     'proximal to plasma membrane',
-    'diffuse cytoplasm'
+    'diffuse cytoplasm',
+    'under parasite plama membrane'
   ]
   
   # Return a list of ORFs that have this and only this localisation
@@ -86,6 +90,8 @@ class Localisation < ActiveRecord::Base
   
   def upload_localisation_synonyms
     {
+      'under pm' => 'under parasite plama membrane',
+      'rhoptry pundicle' => 'rhoptry neck',
       'ER' => 'endoplasmic reticulum',
       'tER' => 'endoplasmic reticulum',
       'imc' => 'inner membrane complex',
@@ -97,7 +103,9 @@ class Localisation < ActiveRecord::Base
       'RBC Surface' => 'erythrocyte cytoplasm',
       'FV' => 'food vacuole',
       'erythrocyte membrane' => 'erythrocyte plasma membrane',
+      'rbc membrane' => 'erythrocyte plasma membrane',
       'erythrocyte surface' => 'erythrocyte plasma membrane',
+      'rbc cytoplasm vesicles' => 'erythrocyte cytoplasmic vesicles',
       'rhoptries' => 'rhoptry',
       'micronemes' => 'microneme',
       'mitochondrion' => 'mitochondria',
@@ -113,6 +121,8 @@ class Localisation < ActiveRecord::Base
       'erythrocyte cytoplasm punctate' => 'erythrocyte cytoplasm',
       'vesicle' => 'cytoplasm',
       'plasma membrane' => 'parasite plasma membrane',
+      'surface' => 'parasite plasma membrane',
+      'pm' => 'parasite plasma membrane',
       'fv membrane' => 'food vacuole membrane',
       'limiting membranes' => 'parasite plasma membrane',
       'dense granules' => 'dense granule',
@@ -133,7 +143,6 @@ class Localisation < ActiveRecord::Base
       'er foci' => 'endoplasmic reticulum',
       'food vacuole foci' => 'food vacuole',
       'erythrocyte cytosol' => 'erythrocyte cytoplasm',
-      'erythrocyte cytoplasmic vesicles' => 'erythrocyte cytoplasm',
       'pvm' => 'parasitophorous vacuole membrane',
       'moving junction' => 'merozoite surface',
       'merozoite membrane' => "merozoite surface"
@@ -155,6 +164,9 @@ class Localisation < ActiveRecord::Base
   
   # Upload all the data from the localisation list manually collected by ben
   def upload_falciparum_list(filename='/home/ben/phd/gene lists/falciparum.csv')
+
+    $stderr.puts "Repeatitive plasmodb ids are not uploaded!!!!!!. Need to do the two pass method, and delete localisations first"
+
     require 'csv'
     CSV.open(filename, 'r', "\t") do |row|
       p row
@@ -170,25 +182,36 @@ class Localisation < ActiveRecord::Base
       pubmed_id = row[2]
       localisation_string = row[3]
       comments = [row[4],row[5],row[6],row[7]]
-      
-      # make sure the coding region is in the database properly.
-      plasmodb_id.strip!
-      next if ['PF13_0115'].include?(plasmodb_id)
-      code = CodingRegion.ff(plasmodb_id)
-      if !code
-        raise Exception, "No coding region '#{plasmodb_id}' found."
+
+      next if common_name.nil? and plasmodb_id.nil?
+      if localisation_string.nil?
+        $stderr.puts "No localisation data found!"
+        next
       end
       
-      # Create the common name as an alternate String ID
-      CodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
-        common_name,
-        code.id
-      )
+      # make sure the coding region is in the database properly.
+      code = CodingRegion.ff('PFL1090w')
+      if plasmodb_id
+        plasmodb_id.strip!
+        next if ['PF13_0115'].include?(plasmodb_id)
+        code = CodingRegion.ff(plasmodb_id)
+        if !code
+          $stderr.puts "No coding region '#{plasmodb_id}' found."
+          next
+        end
+      
+        # Create the common name as an alternate String ID
+        CodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
+          common_name,
+          code.id
+        )
+      end
       
       # Create the publication(s) we are relying on
       pubs = Publication.find_create_from_ids_or_urls pubmed_id
       if !pubs or pubs.empty?
-        raise Exception, "No publications found for line #{row.inspect}"
+        $stderr.puts "No publications found for line #{row.inspect}"
+        next
       end
 
       
@@ -241,6 +264,30 @@ class Localisation < ActiveRecord::Base
             end
           end
         end
+      elsif matches = fragment.match('^during (.*)')
+        stages = []
+        matches[1].split(' and ').each do |stage|
+          if matches = stage.match(/^not (.+)/)
+            positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(matches[1])
+            raise Exception, "No such dev stage '#{matches[1]}' found." if positive_devs.empty?
+            positive_devs.each do |found|
+              negated = DevelopmentalStage.add_negation(found.name)
+              d = DevelopmentalStage.find_by_name_or_alternate(negated)
+              contexts.push ExpressionContext.new(
+                :developmental_stage => d
+              )
+            end
+          else
+            positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(stage)
+            raise Exception, "No such dev stage '#{stage}' found." if positive_devs.empty?
+            positive_devs.each do |found|
+              d = DevelopmentalStage.find_by_name_or_alternate(found.name)
+              contexts.push ExpressionContext.new(
+                :developmental_stage => d
+              )
+            end
+          end
+        end
         
         # gene is expressed in a localisation during a particular developmental
         # stage
@@ -252,7 +299,21 @@ class Localisation < ActiveRecord::Base
         
         # split each of the stages by 'and'
         matches[2].split(' and ').each do |stage|
-          d = DevelopmentalStage.find_all_by_name_or_alternate(stage)
+          d = []
+          if matches = stage.match(/^not (.+)/)
+            # for things like during late schizont and not ring and not troph
+            d = DevelopmentalStage.find_all_by_name_or_alternate(stage)
+            d.each do |found|
+              d.push DevelopmentalStage.find_all_by_name_or_alternate(
+                DevelopmentalStage.add_negation(found.name)
+              )
+            end
+            DevelopmentalStage.add_negation(stage.name)
+          else
+            # for normaler things without negation like during late schizont
+            d = DevelopmentalStage.find_all_by_name_or_alternate(stage)
+          end
+
           if d.empty?
             raise Exception, "No such dev stage '#{stage}' found."
           else

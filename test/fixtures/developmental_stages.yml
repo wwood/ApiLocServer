@@ -12,3 +12,9 @@ troph:
 not_schizont:
   id: 4
   name: not schizont
+not_ring:
+  id: 5
+  name: not ring
+not_troph:
+  id: 6
+  name: not trophozoite
