@@ -27,6 +27,9 @@ class SpreadsheetGenerator
         PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
       ).coding_regions
     ) do |code|
+
+      yield code if block_given?
+
       @headings.push 'Localisation' if @first
       @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
       check_headings
@@ -163,44 +166,58 @@ class SpreadsheetGenerator
       #      results.push code.amino_acid_sequence.sequence,
       
       
-      #      SignalP
-      @headings.push 'SignalP Prediction' if @first
-      @current_row.push(code.signal?)
-      check_headings
-      
-      # PlasmoAP
-      @headings.push 'PlasmoAP Score' if @first
-      @current_row.push code.amino_acid_sequence.plasmo_a_p.points
-      check_headings
-
-      # ExportPred
-      @headings.push 'ExportPred?' if @first
-      @current_row.push code.export_pred_however.predicted?
-      check_headings
-      
-      #WoLF_PSORT
-      @headings.push ['WoLF_PSORT prediction Plant',
-        'WoLF_PSORT prediction Animal',
-        'WoLF_PSORT prediction Fungi'] if @first
-      ['plant','animal','fungi'].each do |organism|
-        c = code.wolf_psort_localisation(organism)
-        @current_row.push c
-      end
-      check_headings
+      #      #      SignalP
+      #      @headings.push 'SignalP Prediction' if @first
+      #      @current_row.push(code.signal?)
+      #      check_headings
+      #
+      #      # PlasmoAP
+      #      @headings.push 'PlasmoAP Score' if @first
+      #      @current_row.push code.amino_acid_sequence.plasmo_a_p.points
+      #      check_headings
+      #
+      #      # ExportPred
+      #      @headings.push 'ExportPred?' if @first
+      #      @current_row.push code.export_pred_however.predicted?
+      #      check_headings
+      #
+      #      #WoLF_PSORT
+      #      @headings.push ['WoLF_PSORT prediction Plant',
+      #        'WoLF_PSORT prediction Animal',
+      #        'WoLF_PSORT prediction Fungi'] if @first
+      #      ['plant','animal','fungi'].each do |organism|
+      #        c = code.wolf_psort_localisation(organism)
+      #        @current_row.push c
+      #      end
+      #      check_headings
       
       # official orthomcl
       @headings.push [
         'Number of P. falciparum Genes in Official Orthomcl Group',
-        'Number of P. vivax Genes in Official Orthomcl Group',
-        'Number of C. parvum Genes in Official Orthomcl Group',
+        #        'Number of P. vivax Genes in Official Orthomcl Group',
+        #        'Number of C. parvum Genes in Official Orthomcl Group',
         'Number of C. homonis Genes in Official Orthomcl Group',
-        'Number of T. parva Genes in Official Orthomcl Group',
-        'Number of T. annulata Genes in Official Orthomcl Group',
-        'Number of T. gondii Genes in Official Orthomcl Group',
+        #        'Number of T. parva Genes in Official Orthomcl Group',
+        #        'Number of T. annulata Genes in Official Orthomcl Group',
+        #        'Number of T. gondii Genes in Official Orthomcl Group',
+        'Number of Tetrahymena thermophila Genes in Official Orthomcl Group',
         'Number of Arabidopsis Genes in Official Orthomcl Group',
-        'Number of Yeast Genes in Official Orthomcl Group',
-        'Number of Mouse Genes in Official Orthomcl Group'] if @first
-      interestings = ['pfa','pvi','cpa','cho','the','tan','tgo','ath','sce','mmu']
+        #        'Number of Yeast Genes in Official Orthomcl Group',
+        #        'Number of Mouse Genes in Official Orthomcl Group'
+      ] if @first
+      interestings = [
+        'pfa',
+#        'pvi',
+#        'cpa',
+        'cho',
+#        'the',
+#        'tan',
+#        'tgo',
+        'tth',
+        'ath',
+#        'sce',
+#        'mmu'
+      ]
       
       # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
       if merged_genes.include?(code.string_id)
@@ -223,295 +240,295 @@ class SpreadsheetGenerator
       end
       check_headings
       
-      # 7species orthomcl
-      @headings.push [      'Number of P. falciparum Genes in 7species Orthomcl Group', #7species orthomcl
-        'Number of P. vivax Genes in 7species Orthomcl Group',
-        'Number of Babesia Genes in 7species Orthomcl Group'] if @first
-      seven_name_hash = {}
-      begin
-        if !fivepfour.include?(code.string_id) #Used 5.2 for 7species too, so ignore new genes
-          og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
-          raise Exception, "7species falciparum not found for #{code.inspect}" if !og
-          og.orthomcl_group.orthomcl_genes.all.each do |gene|
-            begin
-              species_name = gene.single_code.gene.scaffold.species.name
-              if seven_name_hash[species_name]
-                seven_name_hash[species_name] += 1
-              else
-                seven_name_hash[species_name] = 1
-              end
-            rescue OrthomclGene::UnexpectedCodingRegionCount => e
-              # ignore vivax because of current linking errors
-              raise e unless gene.orthomcl_name.match(/^Plasmodium_vivax_/)
-            end
-          end
-        end
-      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
-        # This happens for singlet genes
-      rescue OrthomclGene::UnexpectedCodingRegionCount => e
-        raise e
-      end
-      [Species.falciparum_name,
-        Species.vivax_name,
-        Species.babesia_bovis_name].each do |name|
-        @current_row.push seven_name_hash[name] ? seven_name_hash[name] : 0
-      end
-      check_headings
-      
-      @headings.push [
-        'Number of Synonymous IT SNPs according to Jeffares et al',
-        'Number of Non-Synonymous IT SNPs according to Jeffares et al',
-        'Number of Synonymous Clinical SNPs according to Jeffares et al',
-        'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
-        'dNdS for Reichenowi SNPs according to Jeffares et al',
-        'Number of Synonymous Reichenowi SNPs according to Jeffares et al',
-        'Number of Non-Synonymous Reichenowi SNPs according to Jeffares et al',
-        'Number of Synonymous SNPs according to Neafsey et al',
-        'Number of Non-Synonymous SNPs according to Neafsey et al',
-        'Number of Intronic SNPs according to Neafsey et al',
-        'Number of Synonymous SNPs according to Mu et al',
-        'Number of Non-Synonymous SNPs according to Mu et al',
-        'Number of Non-coding SNPs according to Mu et al',
-        'Number of Surveyed by to Mu et al',
-        'SNP Theta by to Mu et al',
-        'SNP Pi by to Mu et al'] if @first
-      [:it_synonymous_snp,
-        :it_non_synonymous_snp,
-        :pf_clin_synonymous_snp,
-        :pf_clin_non_synonymous_snp,
-        :reichenowi_dnds,
-        :reichenowi_synonymous_snp,
-        :reichenowi_non_synonymous_snp,
-        :neafsey_synonymous_snp,
-        :neafsey_non_synonymous_snp,
-        :neafsey_intronic_snp,
-        :mu_synonymous_snp,
-        :mu_non_synonymous_snp,
-        :mu_non_coding_snp,
-        :mu_bp_surveyed,
-        :mu_theta,
-        :mu_pi,
-      ].each do |method|
-        if s = code.send(method)
-          @current_row.push s.value
-        else
-          @current_row.push nil
-        end
-      end
-      check_headings
-      
-      
-      # Segmasker
-      @headings.push 'Percentage of Amino Acid Sequence Low Complexity according to NCBI Segmasker' if @first
-      @current_row.push code.segmasker_low_complexity_percentage_however
-      check_headings
-      
-      # Number of Acidic and basic Residues in the protein
-      @headings.push 'Number of Acidic Residues' if @first
-      @headings.push 'Number of Basic Residues' if @first
-      b = code.amino_acid_sequence.to_bioruby_sequence
-      @current_row.push b.acidic_count
-      @current_row.push b.basic_count
-      check_headings
-      
-      # Length of protein
-      @headings.push 'Length of Protein' if @first
-      @current_row.push code.amino_acid_sequence.sequence.length
-      check_headings
-      
-      @headings.push 'Chromosome' if @first
-      name = code.chromosome_name
-      @current_row.push name
-      check_headings
-      
-      @headings.push 'Distance from chromosome end' if @first
-      @current_row.push code.length_from_chromosome_end
-      check_headings
-      
-      @headings.push 'Percentage from chromosome end' if @first
-      @current_row.push code.length_from_chromosome_end_percent
-      check_headings
-      
-      @headings.push 'Number of Exons' if @first
-      @current_row.push code.cds.count
-      check_headings
-      
-      @headings.push 'Offset of 2nd Exon' if @first
-      @current_row.push code.second_exon_splice_offset
-      check_headings
-      
-      @headings.push 'Orientation' if @first
-      # pretty stupid really
-      @current_row.push code.positive_orientation? ? '+' : '-'
-      check_headings
-      
-      # predicted = code.send(predictor)
-      #          if predicted.transmembrane_type_1? or predicted.transmembrane_type_2?
-      @headings.push 'Number of transmembrane domains' if @first
-      @headings.push 'Type 1 transmembrane domain?' if @first
-      # pretty stupid really
-      tmhmm = code.tmhmm
-      @current_row.push [
-        tmhmm.transmembrane_domains.length,
-        tmhmm.transmembrane_type_1?
-      ]
-      check_headings
-      
-      @headings.push 'Random number as noise cutoff' if @first
-      # pretty stupid really
-      @current_row.push rand
-      check_headings
-      
-      # Microarray DeRisi
-      if @first
-        @headings.push derisi_timepoints.collect{|t|
-          'DeRisi 2006 3D7 '+t.name
-        }
-      end
-      derisi_timepoints.each do |timepoint|
-        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
-          code.id,
-          timepoint.id
-        )
-        if !measures.nil?
-          @current_row.push measures.measurement
-        else
-          @current_row.push nil
-        end
-      end
-      check_headings
-      
-      # Amino Acid Composition
-      if @first
-        amino_acids.each do |one|
-          @headings.push "Number of AA: #{one}"
-        end
-      end
-      composition = code.amino_acid_sequence.to_bioruby_sequence.composition
-      amino_acids.each do |one|
-        @current_row.push(composition[one].nil? ? 0 : composition[one])
-      end
-      check_headings
-      
-      # Normalised AA Composition
-      if @first
-        amino_acids.each do |one|
-          @headings.push "Normalised number of AA: #{one}"
-        end
-      end
-      amino_acids.each do |one|
-        @current_row.push(composition[one].nil? ? 0.0 : composition[one].to_f/code.amino_acid_sequence.sequence.length.to_f)
-      end
-      check_headings
-      
-      # Winzeler Timepoints
-      @headings.push WINZELER_TIMEPOINTS if @first
-      WINZELER_TIMEPOINTS.each do |timepoint|
-        t = code.microarray_measurements.timepoint_name(timepoint).first
-        @current_row.push t ? t.measurement : nil
-      end
-      check_headings
-      
-      # Winzeler Timepoints percentiles
-      if @first
-        WINZELER_TIMEPOINTS.each do |name|
-          name += ' percentile'
-          @headings.push name
-        end
-      end
-      WINZELER_TIMEPOINTS.each do |timepoint|
-        t = code.microarray_measurements.timepoint_name(timepoint).first
-        @current_row.push t ? t.percentile : nil
-      end
-      check_headings
-      
-      #      #             gMARS and other headings
-      #      code.gmars_vector(3).each do |node|
-      #        # Push the headings on the fly - easier this way
-      #        @headings.push node.name if @first
-      #        @current_row.push node.normalised_value
-      #        check_headings
+      #      # 7species orthomcl
+      #      @headings.push [      'Number of P. falciparum Genes in 7species Orthomcl Group', #7species orthomcl
+      #        'Number of P. vivax Genes in 7species Orthomcl Group',
+      #        'Number of Babesia Genes in 7species Orthomcl Group'] if @first
+      #      seven_name_hash = {}
+      #      begin
+      #        if !fivepfour.include?(code.string_id) #Used 5.2 for 7species too, so ignore new genes
+      #          og = code.single_orthomcl(OrthomclRun.seven_species_filtering_name)
+      #          raise Exception, "7species falciparum not found for #{code.inspect}" if !og
+      #          og.orthomcl_group.orthomcl_genes.all.each do |gene|
+      #            begin
+      #              species_name = gene.single_code.gene.scaffold.species.name
+      #              if seven_name_hash[species_name]
+      #                seven_name_hash[species_name] += 1
+      #              else
+      #                seven_name_hash[species_name] = 1
+      #              end
+      #            rescue OrthomclGene::UnexpectedCodingRegionCount => e
+      #              # ignore vivax because of current linking errors
+      #              raise e unless gene.orthomcl_name.match(/^Plasmodium_vivax_/)
+      #            end
+      #          end
+      #        end
+      #      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
+      #        # This happens for singlet genes
+      #      rescue OrthomclGene::UnexpectedCodingRegionCount => e
+      #        raise e
       #      end
-      
-      @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "Jiang et al #{s} 10kb SFP Count"} if @first
-      @current_row.push code.jiangs
-      check_headings
-      
-      @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "log of Jiang et al #{s} 10kb SFP Count"} if @first
-      @current_row.push code.jiangs.collect{|j| j == 0.0 ? -1 : Math.log(j)}
-      check_headings
-      
-      @headings.push 'AT content' if @first
-      @current_row.push code.at_content
-      check_headings
-
-      @headings.push 'Nucleotide Tandem Repeats: Number of tandem repeats' if @first
-      @headings.push 'Nucleotide Tandem Repeats: Nucleotides covered length' if @first
-      repeats = code.transcript_sequence.tandem_repeats
-      @current_row.push repeats.length
-      @current_row.push repeats.length_covered
-      check_headings
-      
-      #      @headings.push 'Number of repeats (by radar)' if @first
-      #      @current_row.push code.amino_acid_sequence.radar_repeats.length
+      #      [Species.falciparum_name,
+      #        Species.vivax_name,
+      #        Species.babesia_bovis_name].each do |name|
+      #        @current_row.push seven_name_hash[name] ? seven_name_hash[name] : 0
+      #      end
       #      check_headings
-
-      if @first
-        LocalisationMedianMicroarrayMeasurement::LOCALISATIONS.each do |loc|
-          @headings.push "Pearson Distance from Median Localisation #{loc}"
-        end
-      end
-      @current_row.push LocalisationMedianMicroarrayMeasurement.pearson_distance_from_localisation_medians(code)
-      check_headings
-
-      if @first
-        LocalisationMedianMicroarrayMeasurement::LOCALISATIONS.each do |loc|
-          @headings.push "Euclidean Distance from Median Localisation #{loc}"
-        end
-      end
-      @current_row.push LocalisationMedianMicroarrayMeasurement.euclidean_distance_from_localisation_medians(code)
-      check_headings
-
-      @headings.push [
-        'LaCount Interaction Partner Localisation',
-        'Wuchty Interaction Partner Localisation'
-      ] if @first
-      [Network::LACOUNT_2005_NAME, Network::WUCHTY_2009_NAME].each do |network_name|
-        interlocs = code.interaction_partners(network_name).collect do |c|
-          tops = c.tops
-          if c.tops.length == 1
-            tops[0].name
-          else
-            nil
-          end
-        end
-        interlocs.reject!{|i| i.nil?}
-        iis = interlocs.uniq
-        if iis.length > 1
-          $stderr.puts "In network #{network_name}, #{code.string_id}: #{interlocs.join(', ')}"
-        end
-
-        if interlocs.empty?
-          @current_row.push nil
-        else
-          hash = {}
-          interlocs.each do |loc|
-            hash[loc] ||= 0
-            hash[loc] += 1
-          end
-          winning_count = 0
-          winning_loc = 'bug'
-          hash.each do |loc,count|
-            if count > winning_count
-              winning_count = count
-              winning_loc = loc
-            end
-          end
-          $stderr.puts winning_loc
-          @current_row.push winning_loc.gsub(' ','_')
-        end
-      end
-      check_headings
+      #
+      #      @headings.push [
+      #        'Number of Synonymous IT SNPs according to Jeffares et al',
+      #        'Number of Non-Synonymous IT SNPs according to Jeffares et al',
+      #        'Number of Synonymous Clinical SNPs according to Jeffares et al',
+      #        'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
+      #        'dNdS for Reichenowi SNPs according to Jeffares et al',
+      #        'Number of Synonymous Reichenowi SNPs according to Jeffares et al',
+      #        'Number of Non-Synonymous Reichenowi SNPs according to Jeffares et al',
+      #        'Number of Synonymous SNPs according to Neafsey et al',
+      #        'Number of Non-Synonymous SNPs according to Neafsey et al',
+      #        'Number of Intronic SNPs according to Neafsey et al',
+      #        'Number of Synonymous SNPs according to Mu et al',
+      #        'Number of Non-Synonymous SNPs according to Mu et al',
+      #        'Number of Non-coding SNPs according to Mu et al',
+      #        'Number of Surveyed by to Mu et al',
+      #        'SNP Theta by to Mu et al',
+      #        'SNP Pi by to Mu et al'] if @first
+      #      [:it_synonymous_snp,
+      #        :it_non_synonymous_snp,
+      #        :pf_clin_synonymous_snp,
+      #        :pf_clin_non_synonymous_snp,
+      #        :reichenowi_dnds,
+      #        :reichenowi_synonymous_snp,
+      #        :reichenowi_non_synonymous_snp,
+      #        :neafsey_synonymous_snp,
+      #        :neafsey_non_synonymous_snp,
+      #        :neafsey_intronic_snp,
+      #        :mu_synonymous_snp,
+      #        :mu_non_synonymous_snp,
+      #        :mu_non_coding_snp,
+      #        :mu_bp_surveyed,
+      #        :mu_theta,
+      #        :mu_pi,
+      #      ].each do |method|
+      #        if s = code.send(method)
+      #          @current_row.push s.value
+      #        else
+      #          @current_row.push nil
+      #        end
+      #      end
+      #      check_headings
+      #
+      #
+      #      # Segmasker
+      #      @headings.push 'Percentage of Amino Acid Sequence Low Complexity according to NCBI Segmasker' if @first
+      #      @current_row.push code.segmasker_low_complexity_percentage_however
+      #      check_headings
+      #
+      #      # Number of Acidic and basic Residues in the protein
+      #      @headings.push 'Number of Acidic Residues' if @first
+      #      @headings.push 'Number of Basic Residues' if @first
+      #      b = code.amino_acid_sequence.to_bioruby_sequence
+      #      @current_row.push b.acidic_count
+      #      @current_row.push b.basic_count
+      #      check_headings
+      #
+      #      # Length of protein
+      #      @headings.push 'Length of Protein' if @first
+      #      @current_row.push code.amino_acid_sequence.sequence.length
+      #      check_headings
+      #
+      #      @headings.push 'Chromosome' if @first
+      #      name = code.chromosome_name
+      #      @current_row.push name
+      #      check_headings
+      #
+      #      @headings.push 'Distance from chromosome end' if @first
+      #      @current_row.push code.length_from_chromosome_end
+      #      check_headings
+      #
+      #      @headings.push 'Percentage from chromosome end' if @first
+      #      @current_row.push code.length_from_chromosome_end_percent
+      #      check_headings
+      #
+      #      @headings.push 'Number of Exons' if @first
+      #      @current_row.push code.cds.count
+      #      check_headings
+      #
+      #      @headings.push 'Offset of 2nd Exon' if @first
+      #      @current_row.push code.second_exon_splice_offset
+      #      check_headings
+      #
+      #      @headings.push 'Orientation' if @first
+      #      # pretty stupid really
+      #      @current_row.push code.positive_orientation? ? '+' : '-'
+      #      check_headings
+      #
+      #      # predicted = code.send(predictor)
+      #      #          if predicted.transmembrane_type_1? or predicted.transmembrane_type_2?
+      #      @headings.push 'Number of transmembrane domains' if @first
+      #      @headings.push 'Type 1 transmembrane domain?' if @first
+      #      # pretty stupid really
+      #      tmhmm = code.tmhmm
+      #      @current_row.push [
+      #        tmhmm.transmembrane_domains.length,
+      #        tmhmm.transmembrane_type_1?
+      #      ]
+      #      check_headings
+      #
+      #      @headings.push 'Random number as noise cutoff' if @first
+      #      # pretty stupid really
+      #      @current_row.push rand
+      #      check_headings
+      #
+      #      # Microarray DeRisi
+      #      if @first
+      #        @headings.push derisi_timepoints.collect{|t|
+      #          'DeRisi 2006 3D7 '+t.name
+      #        }
+      #      end
+      #      derisi_timepoints.each do |timepoint|
+      #        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+      #          code.id,
+      #          timepoint.id
+      #        )
+      #        if !measures.nil?
+      #          @current_row.push measures.measurement
+      #        else
+      #          @current_row.push nil
+      #        end
+      #      end
+      #      check_headings
+      #
+      #      # Amino Acid Composition
+      #      if @first
+      #        amino_acids.each do |one|
+      #          @headings.push "Number of AA: #{one}"
+      #        end
+      #      end
+      #      composition = code.amino_acid_sequence.to_bioruby_sequence.composition
+      #      amino_acids.each do |one|
+      #        @current_row.push(composition[one].nil? ? 0 : composition[one])
+      #      end
+      #      check_headings
+      #
+      #      # Normalised AA Composition
+      #      if @first
+      #        amino_acids.each do |one|
+      #          @headings.push "Normalised number of AA: #{one}"
+      #        end
+      #      end
+      #      amino_acids.each do |one|
+      #        @current_row.push(composition[one].nil? ? 0.0 : composition[one].to_f/code.amino_acid_sequence.sequence.length.to_f)
+      #      end
+      #      check_headings
+      #
+      #      # Winzeler Timepoints
+      #      @headings.push WINZELER_TIMEPOINTS if @first
+      #      WINZELER_TIMEPOINTS.each do |timepoint|
+      #        t = code.microarray_measurements.timepoint_name(timepoint).first
+      #        @current_row.push t ? t.measurement : nil
+      #      end
+      #      check_headings
+      #
+      #      # Winzeler Timepoints percentiles
+      #      if @first
+      #        WINZELER_TIMEPOINTS.each do |name|
+      #          name += ' percentile'
+      #          @headings.push name
+      #        end
+      #      end
+      #      WINZELER_TIMEPOINTS.each do |timepoint|
+      #        t = code.microarray_measurements.timepoint_name(timepoint).first
+      #        @current_row.push t ? t.percentile : nil
+      #      end
+      #      check_headings
+      #
+      #      #      #             gMARS and other headings
+      #      #      code.gmars_vector(3).each do |node|
+      #      #        # Push the headings on the fly - easier this way
+      #      #        @headings.push node.name if @first
+      #      #        @current_row.push node.normalised_value
+      #      #        check_headings
+      #      #      end
+      #
+      #      @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "Jiang et al #{s} 10kb SFP Count"} if @first
+      #      @current_row.push code.jiangs
+      #      check_headings
+      #
+      #      @headings.push Scaffold::JIANG_SFP_COUNT_STRAINS.collect{|s| "log of Jiang et al #{s} 10kb SFP Count"} if @first
+      #      @current_row.push code.jiangs.collect{|j| j == 0.0 ? -1 : Math.log(j)}
+      #      check_headings
+      #
+      #      @headings.push 'AT content' if @first
+      #      @current_row.push code.at_content
+      #      check_headings
+      #
+      #      @headings.push 'Nucleotide Tandem Repeats: Number of tandem repeats' if @first
+      #      @headings.push 'Nucleotide Tandem Repeats: Nucleotides covered length' if @first
+      #      repeats = code.transcript_sequence.tandem_repeats
+      #      @current_row.push repeats.length
+      #      @current_row.push repeats.length_covered
+      #      check_headings
+      #
+      #      #      @headings.push 'Number of repeats (by radar)' if @first
+      #      #      @current_row.push code.amino_acid_sequence.radar_repeats.length
+      #      #      check_headings
+      #
+      #      if @first
+      #        LocalisationMedianMicroarrayMeasurement::LOCALISATIONS.each do |loc|
+      #          @headings.push "Pearson Distance from Median Localisation #{loc}"
+      #        end
+      #      end
+      #      @current_row.push LocalisationMedianMicroarrayMeasurement.pearson_distance_from_localisation_medians(code)
+      #      check_headings
+      #
+      #      if @first
+      #        LocalisationMedianMicroarrayMeasurement::LOCALISATIONS.each do |loc|
+      #          @headings.push "Euclidean Distance from Median Localisation #{loc}"
+      #        end
+      #      end
+      #      @current_row.push LocalisationMedianMicroarrayMeasurement.euclidean_distance_from_localisation_medians(code)
+      #      check_headings
+      #
+      #      @headings.push [
+      #        'LaCount Interaction Partner Localisation',
+      #        'Wuchty Interaction Partner Localisation'
+      #      ] if @first
+      #      [Network::LACOUNT_2005_NAME, Network::WUCHTY_2009_NAME].each do |network_name|
+      #        interlocs = code.interaction_partners(network_name).collect do |c|
+      #          tops = c.tops
+      #          if c.tops.length == 1
+      #            tops[0].name
+      #          else
+      #            nil
+      #          end
+      #        end
+      #        interlocs.reject!{|i| i.nil?}
+      #        iis = interlocs.uniq
+      #        if iis.length > 1
+      #          $stderr.puts "In network #{network_name}, #{code.string_id}: #{interlocs.join(', ')}"
+      #        end
+      #
+      #        if interlocs.empty?
+      #          @current_row.push nil
+      #        else
+      #          hash = {}
+      #          interlocs.each do |loc|
+      #            hash[loc] ||= 0
+      #            hash[loc] += 1
+      #          end
+      #          winning_count = 0
+      #          winning_loc = 'bug'
+      #          hash.each do |loc,count|
+      #            if count > winning_count
+      #              winning_count = count
+      #              winning_loc = loc
+      #            end
+      #          end
+      #          $stderr.puts winning_loc
+      #          @current_row.push winning_loc.gsub(' ','_')
+      #        end
+      #      end
+      #      check_headings
 
       # Run any additional code as per caller's block
       yield code if block_given?
@@ -525,6 +542,16 @@ class SpreadsheetGenerator
       check_headings
     end
     return all_data
+  end
+
+  def ciliate_investigation
+    arff do |code|
+      @headings.push "PlasmoDB" if @first
+      @current_row.push code.string_id
+      #      @headings.push "Annotation" if @first
+      #      @current_row.push code.annotation.annotation
+      check_headings
+    end
   end
   
   private

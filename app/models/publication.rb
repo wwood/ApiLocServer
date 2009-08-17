@@ -4,20 +4,23 @@ class Publication < ActiveRecord::Base
   # Given a pubmed id, or url (or more than one separated by commas. Create them and return an array of them
   def self.find_create_from_ids_or_urls(publications_string)
     pubs = []
-    publications_string.split(',').each do |str|
-      str.strip!
-      pub = nil
-      if str.to_i.to_s === str #if it is an integer, it's a pubmed id
-        pub = Publication.find_or_create_by_pubmed_id str.to_i
-      else
-        # make sure the parsing problem is a-ok
-        if !str.match('^http') and !str.match('unpublished')
-          raise ParseException, "Couldn't parse #{pub} as a publication"
-        end
-        pub = Publication.find_or_create_by_url str
+
+    publications_string.strip!
+    pub = nil
+    if publications_string.to_i.to_s === publications_string #if it is an integer, it's a pubmed id
+      pub = Publication.find_or_create_by_pubmed_id publications_string.to_i
+    else
+      # commas are deprecated and disallowed now (previously more than 1 publication could be in the same line
+      raise ParseException, "Comma found in publication string. Only 1 publication per record please." if publications_string.match(/\,/)
+      
+      # make sure the parsing problem is a-ok
+      if !publications_string.match('^http') and !publications_string.match('unpublished')
+        raise ParseException, "Couldn't parse #{pub} as a publication"
       end
-      pubs.push pub
+      pub = Publication.find_or_create_by_url publications_string
     end
+    pubs.push pub
+
     return pubs
   end
   
