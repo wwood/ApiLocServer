@@ -937,4 +937,34 @@ SRRKRRMPEGLDN*).join('')
     # 2333
     raise unless JiangHB3TenKbBinSfpCount.count == 2333
   end
+
+  def whole_cell_proteome_to_database
+    # There should be 2444 proteins, because there is 2444 annotations in the list
+    # (saving the annotations as /tmp/annotations.txt)
+    #    ben@ben:~/phd/gnr$ grep . /tmp/annotations.txt |wc -l
+    #    2444
+    # But this isn't quite true - I hate this badly formatted thing
+    p CodingRegion.count(:joins => :proteomic_experiment_results, :select => 'distinct(coding_regions.id)')
+
+    code = CodingRegion.ff('PFL0590c')
+    raise if code.nil?
+    raise unless code.proteomic_experiment_results.count == 4
+    raise unless code.proteomic_experiment_peptides.count == 8
+
+    code = CodingRegion.ff('PFI0735c')
+    raise if code.nil?
+    raise unless code.proteomic_experiment_results.count == 1
+    raise unless code.proteomic_experiment_results.all[0].proteomic_experiment.name == ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME
+    raise unless code.proteomic_experiment_peptides.count == 2
+    raise unless code.proteomic_experiment_peptides.all[0].proteomic_experiment.name == ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME
+
+    code = CodingRegion.ff('PF14_0740')
+    raise if code.nil?
+    raise unless code.proteomic_experiment_results.count == 1
+    raise unless code.proteomic_experiment_results.all[0].proteomic_experiment.name == ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME
+    raise unless code.proteomic_experiment_peptides.count == 1
+    raise unless code.proteomic_experiment_peptides.all[0].proteomic_experiment.name == ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME
+    raise unless code.proteomic_experiment_peptides.all[0].peptide == 'M.ETQNEPTIK.N'
+    raise unless code.proteomic_experiment_peptides.all[0].charge == '+1'
+  end
 end

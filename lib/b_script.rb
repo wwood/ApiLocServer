@@ -7541,72 +7541,118 @@ PFL2395c
     mero_count = 0
     troph_count = 0
     game_count = 0
+    peptides = []
+    charges = []
+    stages = []
 
     sp_percent = nil
     mero_percent = nil
     troph_percent = nil
     game_percent = nil
+
+    line_number = 0
+
+    plasmodb_line_next = true
     
-    FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/WholeCell2002/nature01107-s1.csv",
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/WholeCell2002/nature01107-s1.modified.csv",
       :col_sep => "\t"
     ) do |row|
+      line_number += 1
+      #      next unless line_number > 10313
+      
       if header
         next unless row[0] == "Locus (a)"
         header = false
         next
       end
 
+      p row
+      
+
       # What is this rubbish?
       next if row[1] == 'X' or row[2] == 'X' or row[3] == 'X' or row[4] == 'X'
       break if row[0] == 'Summary'
 
-      unless row[0] and row[0].strip.length > 0 #blank lines indicate the end of a protein block
-        finished = true
+      if row[0].nil? or row[0].strip.length == 0 #blank lines indicate the end of a protein block
+        p 'I say finish.'
         skipping = false
-      else
-        next if skipping
         
-        if finished
-          # start a new block of hits for a gene
-          plasmo = row[0].strip
+        p 'rounding up'
+        # upload the coding region from last time
+        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, sp_count, sp_percent, sp.id) if sp_count > 0
+        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, mero_count, mero_percent, mero.id) if mero_count > 0
+        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, troph_count, troph_percent, troph.id) if troph_count > 0
+        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, game_count, game_percent, game.id) if game_count > 0
+
+        peptides.each_with_index do |e, i|
+          stages[i].each do |stage_id|
+            ProteomicExperimentPeptide.find_or_create_by_peptide_and_charge_and_proteomic_experiment_id_and_coding_region_id(
+              e, charges[i], stage_id, code.id
+            )
+          end
+        end
+          
+        # reset the stuff
+        sp_count = 0
+        mero_count = 0
+        troph_count = 0
+        game_count = 0
+        peptides = []
+        charges = []
+        stages = []
+
+        plasmodb_line_next = true
+      else
+        p 'not rounding up'
+        next if skipping #ignore problematic plasmodb ids
+
+        if plasmodb_line_next
+          p 'plasmodb line'
+          plasmo = row[0]
           # skip some
           if %w(PFD0845w PFD0965w PFD0510c).include?(plasmo)
             $stderr.puts "Ignoring #{plasmo} as expected."
             skipping = true
             next
           end
-          code = CodingRegion.ff(plasmo) or raise Exception, "Couldn't find #{row[0].strip} in #{row.inspect}"
-
-          if first
-            first = false
-          else
-            # upload the coding region from last time
-            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, sp_count, sp_percent, sp.id) if sp_count > 0
-            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, mero_count, mero_percent, mero.id) if mero_count > 0
-            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, troph_count, troph_percent, troph.id) if troph_count > 0
-            ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, game_count, game_percent, game.id) if game_count > 0
-          end
-          # reset the stuff
-          sp_count = 0
-          mero_count = 0
-          troph_count = 0
-          game_count = 0
+          code = CodingRegion.ff(plasmo) or raise Exception, "Couldn't find #{plasmo} in #{row.inspect}"
 
           sp_percent = row[1]
           mero_percent = row[2]
           troph_percent = row[3]
           game_percent = row[4]
 
-          finished = false
+          plasmodb_line_next = false
         else
+          p 'peptide line'
           # a row containing info on 1 peptide
-          sp_count += 1 if row[1] and row[1].strip.length > 0
-          mero_count += 1 if row[2] and row[2].strip.length > 0
-          troph_count += 1 if row[3] and row[3].strip.length > 0
-          game_count += 1 if row[4] and row[4].strip.length > 0
+
+          my_sp = row[1] and row[1].strip.length > 0
+          my_mero = row[2] and row[2].strip.length > 0
+          my_troph = row[3] and row[3].strip.length > 0
+          my_game = row[4] and row[4].strip.length > 0
+
+          sp_count += 1 if my_sp
+          mero_count += 1 if my_mero
+          troph_count += 1 if my_troph
+          game_count += 1 if my_game
+
+          # record the peptide that they have apparently found
+          unless plasmodb_line_next
+            matches = row[0].match(/^(.+) (\+\d)/)
+            raise Exception, row[0] if matches.nil? or matches.length != 3
+            peptides.push matches[1]
+            charges.push matches[2]
+
+            my_stages = []
+            my_stages.push sp.id if my_sp
+            my_stages.push mero.id if my_mero
+            my_stages.push troph.id if my_troph
+            my_stages.push game.id if my_game
+            stages.push my_stages
+          end
         end
       end
-      
     end
   end
 
@@ -7885,9 +7931,9 @@ PFL2395c
   def falciparum_apiloc_counts
     File.open("#{PHD_DIR}/gene lists/counts/falciparum.tab",'w') do |f|
       f.puts ['Localisation', 'Count'].join("\t")
-      TopLevelLocalisation.all.sort{|a,b| a.name <=> b.name}.each do |t| 
+      TopLevelLocalisation.all.sort{|a,b| a.name <=> b.name}.each do |t|
         f.puts [
-          t.name, 
+          t.name,
           CodingRegion.falciparum.top(t.name).count(:select =>'distinct(coding_regions.id)')
         ].join("\t")
       end
@@ -8090,5 +8136,18 @@ PFL2395c
       num = group.orthomcl_genes.code('cpa').all.length
       puts [num, code.string_id, code.tops[0].name].join(" ") if code.tops[0].name == 'endoplasmic reticulum' and num != 1
     }.reach.string_id.join("\n")
+  end
+
+  # Are there mass spec fragments that correspond to the hydrophobic signal peptides?
+  def mass_spectrometry_peptides_in_signal_peptides
+    CodingRegion.falciparum.all(:include => [:proteomic_experiment_peptides, :amino_acid_sequence]).each do |code|
+      sp_finish_residue = code.signalp_however.to_signalp_result.cleavage_site
+
+      # Match each of the peptides to the amino acid sequence.
+      code.proteomic_experiment_peptides.each do |peptide|
+        p peptide
+        code.peptide.match
+      end
+    end
   end
 end
