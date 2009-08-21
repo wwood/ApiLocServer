@@ -8141,12 +8141,35 @@ PFL2395c
   # Are there mass spec fragments that correspond to the hydrophobic signal peptides?
   def mass_spectrometry_peptides_in_signal_peptides
     CodingRegion.falciparum.all(:include => [:proteomic_experiment_peptides, :amino_acid_sequence]).each do |code|
-      sp_finish_residue = code.signalp_however.to_signalp_result.cleavage_site
+      if code.aaseq.nil?
+        $stderr.puts "No aaseq found for #{code.string_id}. Skipping."
+        next
+      end
+
+      signalp = code.signalp_however
+      next unless signalp.signal?
+      sp_finish_residue = signalp.to_signalp_result.cleavage_site
 
       # Match each of the peptides to the amino acid sequence.
       code.proteomic_experiment_peptides.each do |peptide|
-        p peptide
-        code.peptide.match
+        # iterate through the hits
+        offsets = []
+        code.aaseq.scan(peptide.regex) do
+          offsets << $~.offset(0)[0]
+        end
+
+        if offsets.length == 0
+          $stderr.puts "No matches found for protein #{code.string_id} #{code.annotation.annotation} for peptide #{peptide.peptide}"
+        elsif offsets.length == 1
+          if offsets[0] <= sp_finish_residue
+            puts "What in the wierd? A mass spec where there is supposed to be a signal peptide: #{code.string_id} for peptide #{peptide.peptide}"
+          else
+#             ignore these, because they are 'expected'
+            puts "Normal for #{code.string_id}\t#{sp_finish_residue}\t#{offsets[0]}"
+          end
+        else
+          $stderr.puts "#{offsets.length} matches found for protein #{code.string_id} #{code.annotation.annotation} for peptide #{peptide.peptide}"
+        end
       end
     end
   end
