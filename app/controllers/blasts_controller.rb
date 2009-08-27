@@ -57,6 +57,9 @@ class BlastsController < ApplicationController
 
     program_to_database_index = {
       'tblastx' => 0,
+      'tblastn' => 0,
+      'blastp' => 1,
+      'blastn' => 0
     }
 
     # work out if it is a protein sequence or a nucleotide sequence
@@ -64,7 +67,7 @@ class BlastsController < ApplicationController
     seq = Bio::Sequence.auto(sequence)
     factory = nil
 
-    if blast_program and blast_program != ''
+    unless blast_program.nil? or program_to_database_index[blast_program].nil?
       factory = Bio::Blast.local(blast_program,
         "/blastdb/#{blast_array[program_to_database_index[blast_program]]}")
     else

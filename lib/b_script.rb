@@ -8165,7 +8165,7 @@ PFL2395c
             puts "What in the wierd? A mass spec where there is supposed to be a signal peptide: #{code.string_id} for peptide #{peptide.peptide}"
           else
 #             ignore these, because they are 'expected'
-            puts "Normal for #{code.string_id}\t#{sp_finish_residue}\t#{offsets[0]}"
+            puts "Norm  al for #{code.string_id}\t#{sp_finish_residue}\t#{offsets[0]}"
           end
         else
           $stderr.puts "#{offsets.length} matches found for protein #{code.string_id} #{code.annotation.annotation} for peptide #{peptide.peptide}"
