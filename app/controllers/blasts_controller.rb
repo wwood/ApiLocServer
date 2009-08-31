@@ -40,6 +40,21 @@ class BlastsController < ApplicationController
     @seq = fasta.seq
     @name = fasta.definition
 
+    # if the sequence is nucleotide, then try to get the protein sequence
+    # associated with it. I'm mostly only interested in the protein sequence
+    # being correct.
+    seq2 = Bio::Sequence.auto(@seq)
+    if seq2.moltype == Bio::Sequence::NA
+      # found a nucleotide sequence. What is the protein sequence attached
+      # to it?
+      rets = Bio::NCBI::REST::efetch(@genbank_id, {:db => 'nucleotide', :rettype => 'gb'})
+      raise unless rets.class == String #problems. If they occur I'll deal with it then
+      gb = Bio::GenBank.new(rets)
+      cds = gb.features.select{|f| f.feature == 'CDS'}
+      raise unless cds.length == 1 and cds[0].assoc['translation']
+      @seq = cds[0].assoc['translation']
+    end
+
     @blast_output = blast_result(@seq, params[:taxa], params[:program], params[:database])
   end
 
