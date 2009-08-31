@@ -1690,7 +1690,8 @@ class BScript
   
   
   def falciparum_transcripts_to_database
-    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAllTranscripts_PlasmoDB-5.5.fasta")
+#    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAllTranscripts_PlasmoDB-5.5.fasta")
+    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/6.0/PfalciparumAnnotatedTranscripts_PlasmoDB-6.0.fasta")
     sp = Species.find_by_name(Species.falciparum_name)
     upload_transcript_fasta_general!(fa, sp)
   end
@@ -8266,13 +8267,53 @@ PFL2395c
     puts bins.join("\n")
   end
 
-  def hydrophobicity_bias_length_normalised_medians
-    puts "HydrophobicitiesMedian"
+  def hydrophobicity_bias_length_normalised_reverse
+    puts "Hydrophobicities"
     bins = []
     CodingRegion.falciparum.all.each do |code|
       next unless code.aaseq #skip ncRNA and stuff
       l = code.aaseq.length
+      pro = code.hydrophobicity_profile.reverse
+      pro.each_with_index do |h,i|
+        index = i
+        bins[index] ||= 0.0
+        bins[index] += h
+      end
+    end
+    puts bins.join("\n")
+  end
+
+  def hydrophobicity_bias_length_normalised_medians
+    puts "HydrophobicitiesMedianBin\tAverage\tMedian"
+    bins = []
+    CodingRegion.falciparum.all.each do |code|
+      next unless code.aaseq #skip ncRNA and stuff
+      next if code.falciparum_cruft? #exclude var, rifin, stevor, etc.
+      l = code.aaseq.length
       pro = code.hydrophobicity_profile
+      pro.each_with_index do |h,i|
+        index = i.to_f/l.to_f*100
+        bins[index] ||= []
+        bins[index].push h
+      end
+    end
+    bins.each_with_index do |b, i|
+      puts [
+        i,
+        b.average,
+        b.median
+      ].join("\t")
+    end
+  end
+
+  def at_bias_length_normalised_proteins
+    puts "ATbiasBin\tAverage\tMedian"
+    bins = []
+    CodingRegion.falciparum.all.each do |code|
+      next unless code.naseq #skip ncRNA and stuff
+      next if code.falciparum_cruft? #exclude var, rifin, stevor, etc.
+      l = code.naseq.length
+      pro = code.at_profile
       pro.each_with_index do |h,i|
         index = i.to_f/l.to_f*100
         bins[index] ||= []

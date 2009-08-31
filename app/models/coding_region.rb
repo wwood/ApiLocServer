@@ -854,6 +854,10 @@ class CodingRegion < ActiveRecord::Base
   def aaseq
     amino_acid_sequence ? amino_acid_sequence.sequence : nil
   end
+
+  def naseq
+    transcript_sequence ? transcript_sequence.sequence : nil
+  end
   
   class UnexpectedOrthomclGeneCount < StandardError; end
   
@@ -1070,6 +1074,21 @@ class CodingRegion < ActiveRecord::Base
         acmi.push hydrophobicities[amino]
       else
         acmi.push 0.0
+      end
+    end
+    acmi
+  end
+
+  # Return an Array of 1s and 0s the length of the transcript.
+  # 1 means A or T, 0 means G or C
+  def at_profile
+    return nil if naseq.nil?
+    acmi = []
+    naseq.each_char do |base|
+      if %w(A T).include?(base.upcase)
+        acmi.push 1
+      else
+        acmi.push 0
       end
     end
     acmi
