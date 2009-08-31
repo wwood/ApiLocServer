@@ -9,7 +9,7 @@ class BlastsController < ApplicationController
     @input ||= params[:id]
 
     # parse the name of the organism that is being blasted against
-    @output = blast_result(@input, params[:taxa])
+    @output = blast_result(@input, params[:taxa], params[:program], params[:database])
   end
 
   def blast_genbank
@@ -40,42 +40,67 @@ class BlastsController < ApplicationController
     @seq = fasta.seq
     @name = fasta.definition
 
-    @blast_output = blast_result(@seq, params[:taxa], params[:program])
+    @blast_output = blast_result(@seq, params[:taxa], params[:program], params[:database])
   end
 
 
   private
-  def blast_result(sequence, organism = 'apicomplexa', blast_program = nil)
+  def blast_result(sequence, organism = 'apicomplexa', blast_program = nil, database=nil)
     organism ||= 'apicomplexa' # in case nil is passed here
 
     databases = {
       # species name => [blastn name, blastp name]
-      'apicomplexa' => ['apicomplexa.nucleotide.fa', 'apicomplexa.protein.fa'],
-      'yoelii' => ['PyoeliiAnnotatedTranscripts_PlasmoDB-5.5.fasta', 'PyoeliiAnnotatedProteins_PlasmoDB-5.5.fasta']
+      'apicomplexa' => {
+        'transcript' => 'apicomplexa.nucleotide.fa',
+        'protein' => 'apicomplexa.protein.fa',
+        'genome' => 'apicomplexa.genome.fa',
+      },
+      'yoelii' => {
+        'transcript' => 'PyoeliiAnnotatedTranscripts_PlasmoDB-5.5.fasta',
+        'protein' => 'PyoeliiAnnotatedProteins_PlasmoDB-5.5.fasta',
+      }
     }
     blast_array = databases[organism]
 
     program_to_database_index = {
-      'tblastx' => 0,
-      'tblastn' => 0,
-      'blastp' => 1,
-      'blastn' => 0
+      'tblastx' => 'transcript',
+      'tblastn' => 'transcript',
+      'blastp' => 'protein',
+      'blastn' => 'transcript',
+      'blastx' => 'protein'
     }
 
     # work out if it is a protein sequence or a nucleotide sequence
     # meh. for the moment assume it is a transcript to be blasted
     seq = Bio::Sequence.auto(sequence)
     factory = nil
+    database = nil if database == ''
 
     unless blast_program.nil? or program_to_database_index[blast_program].nil?
-      factory = Bio::Blast.local(blast_program,
-        "/blastdb/#{blast_array[program_to_database_index[blast_program]]}")
+      if database.nil?
+        factory = Bio::Blast.local(blast_program,
+          "/blastdb/#{blast_array[program_to_database_index[blast_program]]}")
+      else
+        factory = Bio::Blast.local(blast_program,
+          "/blastdb/#{blast_array[program_to_database_index[database]]}")
+      end
     else
       if seq.moltype == Bio::Sequence::NA
-        factory = Bio::Blast.local('blastn', "/blastdb/#{blast_array[0]}")
+        if database.nil?
+          # default to protein
+          factory = Bio::Blast.local('blastn', "/blastdb/#{blast_array['transcript']}")
+        else
+          # accept database as given
+          factory = Bio::Blast.local('blastn', "/blastdb/#{blast_array[database]}")
+        end
       elsif seq.moltype == Bio::Sequence::AA
-        logger.debug "using protein!"
-        factory = Bio::Blast.local('blastp', "/blastdb/#{blast_array[1]}")
+        if database.nil?
+          # default to protein
+          factory = Bio::Blast.local('blastp', "/blastdb/#{blast_array['protein']}")
+        else
+          # accept database as given
+          factory = Bio::Blast.local('tblastn', "/blastdb/#{blast_array[database]}")
+        end
       end
     end
 
