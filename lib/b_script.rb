@@ -223,7 +223,8 @@ class BScript
   def falciparum_to_database
     # abstraction!
     #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
-    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
+    #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
+    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/6.0/Pfalciparum_PlasmoDB-6.0.gff"
   end
   
   def gondii_to_database
@@ -1663,7 +1664,8 @@ class BScript
   # upload the fasta sequences from falciparum file to the database
   def falciparum_fasta_to_database
     #    fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.4/PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta")
-    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAnnotatedProteins_PlasmoDB-5.5.fasta")
+    #    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAnnotatedProteins_PlasmoDB-5.5.fasta")
+    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/6.0/PfalciparumAnnotatedProteins_PlasmoDB-6.0.fasta")
     sp = Species.find_by_name(Species.falciparum_name)
     upload_fasta_general!(fa, sp)
   end
@@ -5776,6 +5778,22 @@ class BScript
     falciparum_to_database
     falciparum_fasta_to_database
   end
+
+  # WARNING: Run once only!
+  def update_falciparum_to_6pzero
+    #    raise if Species.find_by_name('falciparum v5.5')
+    #    five = Species.find_by_name(Species::FALCIPARUM_NAME)
+    #    five.name = 'falciparum v5.5'
+    #    five.orthomcl_three_letter = nil
+    #    five.save
+
+    five = Species.find_or_create_by_name(
+      Species::FALCIPARUM
+    )
+
+    falciparum_to_database
+    falciparum_fasta_to_database
+  end
   
   def florian_thanks_in_advance
     puts PlasmodbGeneList.find_by_description('florian temp').coding_regions.collect {|code|
@@ -8164,13 +8182,109 @@ PFL2395c
           if offsets[0] <= sp_finish_residue
             puts "What in the wierd? A mass spec where there is supposed to be a signal peptide: #{code.string_id} for peptide #{peptide.peptide}"
           else
-#             ignore these, because they are 'expected'
+            #             ignore these, because they are 'expected'
             puts "Norm  al for #{code.string_id}\t#{sp_finish_residue}\t#{offsets[0]}"
           end
         else
           $stderr.puts "#{offsets.length} matches found for protein #{code.string_id} #{code.annotation.annotation} for peptide #{peptide.peptide}"
         end
       end
+    end
+  end
+
+  def low_complexity_towards_n_terminus
+    percentages = CodingRegion.falciparum.all.collect do |code|
+      next unless code.aaseq #skip ncRNA and stuff
+      
+      $stdout.flush
+      code.segmasker_low_complexity_median.to_f / code.aaseq.length.to_f
+    end
+    percentages.reject!{|p| p.nil? or p == 0.0}
+
+    $stderr.puts "Average: #{percentages.average}"
+    $stderr.puts "Median: #{percentages.median}"
+    puts "Medians"
+    puts percentages.join("\n")
+  end
+
+  def low_complexity_towards_n_terminus_coverage
+    puts "Residues"
+    CodingRegion.falciparum.all.each do |code|
+      next unless code.aaseq #skip ncRNA and stuff
+      l = code.aaseq.length
+      code.segmasker.residues.each do |r|
+        puts r.to_f/l.to_f
+      end
+    end
+  end
+
+  def low_complexity_towards_n_terminus_coverage_weight
+    puts "ResidueWeight"
+    bins = []
+    CodingRegion.falciparum.all.each do |code|
+      next unless code.aaseq #skip ncRNA and stuff
+      l = code.aaseq.length
+      seg = code.segmasker
+      seg_length = seg.total_masked_length.to_f/l.to_f
+      seg.residues.each do |r|
+        bin = (r.to_f/l.to_f*100).round
+        bins[bin] ||= 0.0
+        bins[bin] += seg_length
+      end
+    end
+    puts bins.join("\n")
+  end
+
+  def hydrophobicity_bias
+    puts "Hydrophobicities"
+    bins = []
+    CodingRegion.falciparum.all.each do |code|
+      next unless code.aaseq #skip ncRNA and stuff
+      l = code.aaseq.length
+      pro = code.hydrophobicity_profile
+      pro.each_with_index do |h,i|
+        bins[i] ||= 0.0
+        bins[i] += h
+      end
+    end
+    puts bins.join("\n")
+  end
+
+  def hydrophobicity_bias_length_normalised
+    puts "Hydrophobicities"
+    bins = []
+    CodingRegion.falciparum.all.each do |code|
+      next unless code.aaseq #skip ncRNA and stuff
+      l = code.aaseq.length
+      pro = code.hydrophobicity_profile
+      pro.each_with_index do |h,i|
+        index = i.to_f/l.to_f*100
+        bins[index] ||= 0.0
+        bins[index] += h
+      end
+    end
+    puts bins.join("\n")
+  end
+
+  def hydrophobicity_bias_length_normalised_medians
+    puts "HydrophobicitiesMedian"
+    bins = []
+    CodingRegion.falciparum.all.each do |code|
+      next unless code.aaseq #skip ncRNA and stuff
+      l = code.aaseq.length
+      pro = code.hydrophobicity_profile
+      pro.each_with_index do |h,i|
+        index = i.to_f/l.to_f*100
+        bins[index] ||= []
+        bins[index].push h
+      end
+    end
+    bins.each_with_index do |b, i|
+      puts [
+        i,
+        b.average,
+        b.median
+      ].join("\t")
     end
   end
 end

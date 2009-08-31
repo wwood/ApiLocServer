@@ -37,14 +37,14 @@ class ApiDbGenesTest < Test::Unit::TestCase
     assert_nil genes.next_gene
   end
   
-  #  def test_real_file
-  #    genes = ApiDbGenes.new('/home/uyen/phd/data/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff')
-  #    count = 0
-  #    while genes.next_gene
-  #      count += 1
-  #    end
-  #    p count
-  #  end
+  def test_real_file
+    genes = ApiDbGenes.new('/home/ben/phd/data/falciparum/genome/plasmodb/6.0/Pfalciparum_PlasmoDB-6.0.gff')
+    count = 0
+    while genes.next_gene
+      count += 1
+    end
+    p count
+  end
   
   
   def test_distances

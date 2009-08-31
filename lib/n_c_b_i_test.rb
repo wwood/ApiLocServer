@@ -25,8 +25,12 @@ class NCBITest < Test::Unit::TestCase
     protein = Bio::SegmaskerResult.new
     protein.masked_segments = [seg]
     assert_equal 4, protein.total_masked_length
+    assert_equal 3.5, protein.median_masked_residue
+    assert_equal [2,3,4,5], protein.residues
     
     protein.masked_segments = [seg, Bio::SegmaskerSegment.new(5,6)]
     assert_equal 6, protein.total_masked_length
+    assert_equal 4.5, protein.median_masked_residue
+    assert_equal [2,3,4,5,5,6], protein.residues
   end
 end

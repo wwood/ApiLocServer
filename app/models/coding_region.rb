@@ -935,6 +935,17 @@ class CodingRegion < ActiveRecord::Base
     self.segmasker_low_complexity_percentage = res
     return res.value
   end
+
+  def segmasker_low_complexity_median
+    return nil if aaseq.nil?
+    logger.debug "Running Segmasker on #{string_id}"
+    result = Bio::SegmaskerWrapper.new.calculate(aaseq)
+    return result.median_masked_residue
+  end
+
+  def segmasker
+    Bio::SegmaskerWrapper.new.calculate(aaseq) unless aaseq.nil?
+  end
   
   def hypothetical_by_annotation?
     annotation.annotation.match(/hypothetical/i)
@@ -1023,6 +1034,45 @@ class CodingRegion < ActiveRecord::Base
       end
     end
     taken
+  end
+
+  # Return an Array of indexes for the hydrophobicity of this protein,
+  # according to the Kyle-Doolittle scheme:
+  # http://en.wikipedia.org/wiki/Hydropathy_index
+  # All other amino acids are given a 0
+  def hydrophobicity_profile
+    return nil if aaseq.nil?
+    hydrophobicities = {
+      'A' => 1.8,
+      'R' => -4.5,
+      'N' => -3.5,
+      'D' => -3.5,
+      'C' => 2.5,
+      'Q' => -3.5,
+      'E' => -3.5,
+      'G' => -0.4,
+      'H' => -3.2,
+      'I' => 4.5,
+      'L' => 3.8,
+      'K' => -3.9,
+      'M' => 1.9,
+      'F' => 2.8,
+      'P' => -1.6,
+      'S' => -0.8,
+      'T' => -0.7,
+      'W' => -0.9,
+      'Y' => -1.3,
+      'V' => 4.2
+    }
+    acmi = []
+    aaseq.each_char do |amino|
+      if hydrophobicities[amino]
+        acmi.push hydrophobicities[amino]
+      else
+        acmi.push 0.0
+      end
+    end
+    acmi
   end
 end
 

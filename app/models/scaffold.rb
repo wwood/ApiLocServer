@@ -5,10 +5,10 @@ class Scaffold < ActiveRecord::Base
   
   # Jiang et al. Features
   JIANG_SFP_COUNT_STRAINS = %w(7G8 FCR3 Dd2 HB3)
-  has_many :jiang_7g8_ten_kb_bin_sfp_counts, :dependent => :destroy
-  has_many :jiang_fcr3_ten_kb_bin_sfp_counts, :dependent => :destroy
-  has_many :jiang_dd2_ten_kb_bin_sfp_counts, :dependent => :destroy
-  has_many :jiang_hb3_ten_kb_bin_sfp_counts, :dependent => :destroy
+  has_many :jiang_7g8_ten_kb_bin_sfp_counts, :dependent => :destroy, :class_name => 'Jiang7G8TenKbBinSfpCount'
+  has_many :jiang_fcr3_ten_kb_bin_sfp_counts, :dependent => :destroy, :class_name => 'JiangFCR3TenKbBinSfpCount'
+  has_many :jiang_dd2_ten_kb_bin_sfp_counts, :dependent => :destroy, :class_name => 'JiangDd2TenKbBinSfpCount'
+  has_many :jiang_hb3_ten_kb_bin_sfp_counts, :dependent => :destroy, :class_name => 'JiangHB3TenKbBinSfpCount'
   
   named_scope :species_name, lambda {|species_common_name|
     {

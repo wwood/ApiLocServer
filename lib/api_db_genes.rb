@@ -56,6 +56,7 @@ class ApiDbGenes < JgiGenesGff
         # skip forward to the next gene
         while cur.feature != 'gene'
           cur = read_record
+          return nil if cur.nil? # we have reached the end on an ignored gene
         end
         @next_gff = cur
         if cur
@@ -123,8 +124,8 @@ class ApiDbGenes < JgiGenesGff
         record.seqname.match(/^apidb\|NC\_/) or
         record.seqname.match(/^apidb\|API_IRAB/) or
         record.seqname.match(/^apidb\|M76611/) or
-        record.seqname.match(/^apidb\|X95276/) or
-        record.seqname.match(/^apidb\|Pf/)
+        record.seqname.match(/^apidb\|X95276/) #or
+#        record.seqname.match(/^apidb\|Pf/)
       return true
     else
       return false

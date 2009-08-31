@@ -3,6 +3,7 @@ require 'rubygems'
 require 'bio'
 require 'tempfile'
 require 'reach'
+require 'array_pair'
 
 module Bio
   class SegmaskerWrapper    
@@ -49,6 +50,16 @@ module Bio
     def total_masked_length
       # Why doesn't ruby have an Array#sum method?
       @masked_segments.slap.length.retract.inject { |sum, element| sum + element }
+    end
+
+    def median_masked_residue
+      residues.median
+    end
+
+    def residues
+      @masked_segments.collect{ |segment|
+        (segment.start..segment.stop).to_a
+      }.flatten
     end
   end
   
