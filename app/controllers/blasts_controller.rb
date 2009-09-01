@@ -44,7 +44,7 @@ class BlastsController < ApplicationController
     # associated with it. I'm mostly only interested in the protein sequence
     # being correct.
     seq2 = Bio::Sequence.auto(@seq)
-    if seq2.moltype == Bio::Sequence::NA
+    if seq2.moltype == Bio::Sequence::NA and !%w(blastn tblastx blastx).include?(params[:program])
       # found a nucleotide sequence. What is the protein sequence attached
       # to it?
       rets = Bio::NCBI::REST::efetch(@genbank_id, {:db => 'nucleotide', :rettype => 'gb'})

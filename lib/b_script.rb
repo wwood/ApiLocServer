@@ -1690,7 +1690,7 @@ class BScript
   
   
   def falciparum_transcripts_to_database
-#    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAllTranscripts_PlasmoDB-5.5.fasta")
+    #    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAllTranscripts_PlasmoDB-5.5.fasta")
     fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/6.0/PfalciparumAnnotatedTranscripts_PlasmoDB-6.0.fasta")
     sp = Species.find_by_name(Species.falciparum_name)
     upload_transcript_fasta_general!(fa, sp)
@@ -8325,6 +8325,187 @@ PFL2395c
         i,
         b.average,
         b.median
+      ].join("\t")
+    end
+  end
+
+  def at_bias_c_terminal_coverage_biased
+    puts "ATbiasBin\tAverage\tMedian"
+    at_biases = []
+    coverages = []
+    CodingRegion.falciparum.all.each do |code|
+      next unless code.naseq #skip ncRNA and stuff
+      next if code.falciparum_cruft? #exclude var, rifin, stevor, etc.
+      l = code.naseq.length
+      pro = code.at_profile
+      pro.each_with_index do |h,i|
+        index = l-i
+        at_biases[index] ||= 0.0
+        at_biases[index] += h
+      end
+      (1..l).each do |i|
+        coverages[i] ||= 0
+        coverages[i] += 1
+      end
+    end
+    at_biases.each_with_index do |b, i|
+      next if i==0
+      puts b/coverages[i]
+    end
+  end
+
+  def hydrophobicity_bias_n_terminal_coverage_normalised
+    puts "Hydrophobicities"
+    hydrophobicities = []
+    coverages = []
+    CodingRegion.falciparum.all(
+      :include => [:transcript_sequence, :annotation],
+      :joins => :transcript_sequence).each do |code|
+      next unless code.aaseq #skip ncRNA and stuff
+      next if code.falciparum_cruft? # skip var, rifin, etc.
+      l = code.aaseq.length
+      pro = code.hydrophobicity_profile
+      pro.each_with_index do |h,i|
+        hydrophobicities[i] ||= 0.0
+        hydrophobicities[i] += h
+      end
+
+      (1..l).each do |i|
+        coverages[i] ||= 0
+        coverages[i] += 1
+      end
+    end
+
+    hydrophobicities.each_with_index do |h,i|
+      next if i==0 #there is no zeroth residue
+      puts h/coverages[i].to_f
+    end
+  end
+
+  def hydrophobicity_bias_n_terminal_coverage_normalised_no_secreted
+    puts "Hydrophobicities"
+    hydrophobicities = []
+    coverages = []
+    CodingRegion.falciparum.all(
+      :include => [:transcript_sequence, :annotation],
+      :joins => :transcript_sequence).each do |code|
+      next unless code.aaseq #skip ncRNA and stuff
+      next if code.falciparum_cruft? # skip var, rifin, etc.
+      next unless code.signal?
+      l = code.aaseq.length
+      pro = code.hydrophobicity_profile
+      pro.each_with_index do |h,i|
+        hydrophobicities[i] ||= 0.0
+        hydrophobicities[i] += h
+      end
+
+      (1..l).each do |i|
+        coverages[i] ||= 0
+        coverages[i] += 1
+      end
+    end
+
+    hydrophobicities.each_with_index do |h,i|
+      next if i==0 #there is no zeroth residue
+      puts h/coverages[i].to_f
+    end
+  end
+
+  def hydrophobicity_bias_c_terminal_coverage_normalised
+    puts "HydrophobicitiesReversed"
+    hydrophobicities = []
+    coverages = []
+    CodingRegion.falciparum.all(
+      :include => [:amino_acid_sequence, :annotation],
+      :joins => :amino_acid_sequence).each do |code|
+      
+      next unless code.aaseq #skip ncRNA and stuff
+      next if code.falciparum_cruft? # skip var, rifin, etc.
+      l = code.aaseq.length
+      pro = code.hydrophobicity_profile
+      pro.each_with_index do |h,i|
+        index = l-i
+        hydrophobicities[index] ||= 0.0
+        hydrophobicities[index] += h
+      end
+
+      (1..l).each do |i|
+        index = l-(i-1)
+        coverages[index] ||= 0
+        coverages[index] += 1
+      end
+    end
+
+    hydrophobicities.each_with_index do |h,i|
+      next if i==0 #there is no zeroth residue
+      puts h/coverages[i].to_f
+    end
+  end
+
+  def length_versus_hydrophobicity
+    puts "Length\tHydrophobicity"
+
+    CodingRegion.falciparum.all(
+      :include => [:amino_acid_sequence, :annotation],
+      :joins => :amino_acid_sequence).each do |code|
+
+      next unless code.aaseq #skip ncRNA and stuff
+      next if code.falciparum_cruft? # skip var, rifin, etc.
+
+      puts [
+        code.aaseq.length,
+        code.hydrophobicity_profile.average
+      ].join("\t")
+    end
+  end
+
+  def transmembrane_domain_distribution
+    puts "TMHMM5\tTMHMM3"
+
+    fives = []
+    coverage_fives = []
+    threes = []
+    coverage_threes = []
+
+    CodingRegion.falciparum.all(
+      :include => [:amino_acid_sequence, :annotation],
+      :joins => :amino_acid_sequence,
+      :limit => 2, :conditions => {:string_id => 'PF14_0463'}
+    ).each do |code|
+
+      next unless code.aaseq #skip ncRNA and stuff
+      next if code.falciparum_cruft? # skip var, rifin, etc.
+      l = code.aaseq.length
+
+      code.tmhmm.each do |tmd|
+        #tmd coverages
+        (tmd.start..tmd.stop).each do |residue|
+          fives[residue]||=0
+          fives[residue]+=0
+          index = l-(residue-1)
+          threes[index]||=0
+          threes[index]+=0
+        end
+      end
+      p coverage_fives
+
+      # coverages
+      (1..l).each do |i|
+        #forward
+        coverage_fives[i]||=0
+        coverage_fives[i]+=1
+        #backward
+        index = l-(i-1)
+        coverage_threes[index] ||= 0
+        coverage_threes[index] += 1
+      end
+    end
+
+    fives.each_with_index do |f,i|
+      next if i==0 #there is no zeroth residue
+      puts [
+        f.to_f/coverage_fives[i].to_f,
+        threes[i].to_f/coverage_threes[i].to_f
       ].join("\t")
     end
   end
