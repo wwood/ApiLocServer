@@ -131,6 +131,12 @@ class CodingRegion < ActiveRecord::Base
       :conditions => ['species.name = ?', species_name]
     }
   }
+  named_scope :species, lambda{ |species_name|
+    {
+      :joins => {:gene => {:scaffold => :species}},
+      :conditions => ['species.name = ?', species_name]
+    }
+  }
   named_scope :s, lambda{ |species_name|
     {
       :joins => {:gene => {:scaffold => :species}},
@@ -234,6 +240,7 @@ class CodingRegion < ActiveRecord::Base
   # Find the coding region immediately upstream of this gene on the genome, taking
   # into account the orientation of the gene on the genome
   # Return that coding region, or nil if none exists
+  # The upstream coding region does not have to be in the same direction
   def upstream_coding_region
     butting = nil
     scaffold_id = gene.scaffold_id
@@ -256,6 +263,19 @@ class CodingRegion < ActiveRecord::Base
 
     return nil if butting.nil?
     return butting.coding_region
+  end
+
+  def next_coding_region
+    # for positive orientation genes, start<stop. Find the next positively
+    # oriented gene with a higher start
+    cutoff = 0
+    if positive_orientation?
+      cutoff = cds.first(:order => 'stop desc').stop
+    elsif negative_orientation?
+      cutoff = cds.first(:order => 'stop desc').stop
+    end
+    
+    gene.scaffold.downstreamest_coding_region(cutoff)
   end
 
   

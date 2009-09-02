@@ -44,15 +44,21 @@ class BlastsController < ApplicationController
     # associated with it. I'm mostly only interested in the protein sequence
     # being correct.
     seq2 = Bio::Sequence.auto(@seq)
-    if seq2.moltype == Bio::Sequence::NA and !%w(blastn tblastx blastx).include?(params[:program])
+    if seq2.moltype == Bio::Sequence::NA and 
+        !%w(blastn tblastx blastx).include?(params[:program]) and
+        !%w(transcript genome).include?(params[:database])
       # found a nucleotide sequence. What is the protein sequence attached
       # to it?
       rets = Bio::NCBI::REST::efetch(@genbank_id, {:db => 'nucleotide', :rettype => 'gb'})
       raise unless rets.class == String #problems. If they occur I'll deal with it then
       gb = Bio::GenBank.new(rets)
       cds = gb.features.select{|f| f.feature == 'CDS'}
-      raise unless cds.length == 1 and cds[0].assoc['translation']
-      @seq = cds[0].assoc['translation']
+      
+      # for pseudogenes, they have nucleotide but no amino acid sequence. 
+      if cds.length > 0
+        raise unless cds.length == 1 and cds[0].assoc['translation']
+        @seq = cds[0].assoc['translation']
+      end
     end
 
     @blast_output = blast_result(@seq, params[:taxa], params[:program], params[:database])
