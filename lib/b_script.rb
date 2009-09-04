@@ -8324,12 +8324,27 @@ PFL2395c
     end
   end
 
-  def at_bias_length_normalised_proteins
+  def at_bias_length_normalised_falciparum
+    at_bias_length_normalised_proteins_species(Species::FALCIPARUM_NAME) do |code|
+      code.falciparum_cruft? #exclude var, rifin, stevor, etc.
+    end
+  end
+
+  def at_bias_length_normalised_vivax
+    at_bias_length_normalised_proteins_species(Species::VIVAX_NAME)
+  end
+
+  def at_bias_length_normalised_proteins_species(species_name)
     puts "ATbiasBin\tAverage\tMedian"
     bins = []
-    CodingRegion.falciparum.all.each do |code|
+    CodingRegion.s(species_name).all(
+      :include => :transcript_sequence
+    ).each do |code|
       next unless code.naseq #skip ncRNA and stuff
-      next if code.falciparum_cruft? #exclude var, rifin, stevor, etc.
+      if block_given?
+        next if yield(code)
+      end
+      
       l = code.naseq.length
       pro = code.at_profile
       pro.each_with_index do |h,i|
@@ -8441,6 +8456,17 @@ PFL2395c
     hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(Species::VIVAX_NAME)
   end
 
+  def hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_falciparum
+    hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(Species::FALCIPARUM_NAME){|code|
+      code.falciparum_cruft?
+    }
+  end
+
+  # print out a total hydrophobicity profile of the proteins in one particular
+  # species. Also accepts a block which functions much like Array#reject,
+  # skipping those where the coding region returns true. If no block
+  # is given it keeps all the coding regions that have a signal peptide
+  # and have an amino acid sequence.
   def hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(species_name)
     puts "Hydrophobicities"
     hydrophobicities = []
@@ -8450,7 +8476,9 @@ PFL2395c
       :joins => :amino_acid_sequence).each do |code|
 
       next unless code.aaseq #skip ncRNA and stuff
-      #      next if code.falciparum_cruft? # skip var, rifin, etc.
+      if block_given?
+        next if yield(code)
+      end
       next unless code.signal?
 
       l = code.aaseq.length
