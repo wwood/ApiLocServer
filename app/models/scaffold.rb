@@ -33,4 +33,31 @@ class Scaffold < ActiveRecord::Base
       jiangs[0].value
     end
   end
+
+  # the first coding region that starts or stops after the cutoff
+  def downstreamest_coding_region(cutoff=0)
+    # Find the max start and max stop on this scaffold, then
+    # give it to the lowest number
+    miss_start = Cd.first(
+      :order => 'start asc',
+      :joins => {:coding_region => {:gene => :scaffold}},
+      :conditions =>
+        ['scaffolds.id = ? and cds.start > ?', id, cutoff]
+    )
+    miss_stop = Cd.first(
+      :order => 'stop asc',
+      :joins => {:coding_region => {:gene => :scaffold}},
+      :conditions =>
+        ['scaffolds.id = ? and cds.stop > ?', id, cutoff]
+    )
+
+    # We have reached the end of the chromosome
+    return nil if miss_start.nil? and miss_stop.nil?
+
+    if miss_start.start < miss_stop.stop
+      return miss_start.coding_region
+    else
+      return miss_stop.coding_region
+    end
+  end
 end

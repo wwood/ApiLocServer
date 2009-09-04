@@ -226,15 +226,24 @@ class BScript
     #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
     apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/6.0/Pfalciparum_PlasmoDB-6.0.gff"
   end
+
+  def berghei_to_database
+    # abstraction!
+    #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
+    #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
+    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/6.0/Pfalciparum_PlasmoDB-6.0.gff"
+  end
   
   def gondii_to_database
     #    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
-    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49_ToxoDB-5.0.gff"
+    #    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49_ToxoDB-5.0.gff"
+    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.2/TgondiiME49_ToxoDB-5.2.gff"
   end
   
   def gondii_fasta_to_database
     #    fa = ToxoDbFasta4p3.new.load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta")
-    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49AnnotatedProteins_ToxoDB-5.0.fasta")
+    #    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49AnnotatedProteins_ToxoDB-5.0.fasta")
+    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.2/TgondiiME49AnnotatedProteins_ToxoDB-5.2.fasta")
     sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
     upload_fasta_general!(fa, sp)
   end
@@ -8396,11 +8405,50 @@ PFL2395c
     hydrophobicities = []
     coverages = []
     CodingRegion.falciparum.all(
-      :include => [:transcript_sequence, :annotation],
-      :joins => :transcript_sequence).each do |code|
+      :include => [:amino_acid_sequence, :annotation],
+      :joins => :amino_acid_sequence).each do |code|
       next unless code.aaseq #skip ncRNA and stuff
       next if code.falciparum_cruft? # skip var, rifin, etc.
       next unless code.signal?
+      l = code.aaseq.length
+      pro = code.hydrophobicity_profile
+      pro.each_with_index do |h,i|
+        hydrophobicities[i] ||= 0.0
+        hydrophobicities[i] += h
+      end
+
+      (1..l).each do |i|
+        coverages[i] ||= 0
+        coverages[i] += 1
+      end
+    end
+
+    hydrophobicities.each_with_index do |h,i|
+      next if i==0 #there is no zeroth residue
+      puts h/coverages[i].to_f
+    end
+  end
+
+  def hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_yeast
+    hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(Species::YEAST_NAME)
+  end
+
+  def hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_toxo
+    hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(Species::TOXOPLASMA_GONDII_NAME)
+  end
+
+  def hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(species_name)
+    puts "Hydrophobicities"
+    hydrophobicities = []
+    coverages = []
+    CodingRegion.species(species_name).all(
+      :include => [:amino_acid_sequence, :signal_p_cache],
+      :joins => :amino_acid_sequence).each do |code|
+
+      next unless code.aaseq #skip ncRNA and stuff
+      #      next if code.falciparum_cruft? # skip var, rifin, etc.
+      next unless code.signal?
+
       l = code.aaseq.length
       pro = code.hydrophobicity_profile
       pro.each_with_index do |h,i|
@@ -8478,27 +8526,26 @@ PFL2395c
 
     CodingRegion.falciparum.all(
       :include => [:amino_acid_sequence, :annotation],
-      :joins => :amino_acid_sequence,
-      :limit => 2, :conditions => {:string_id => 'PF14_0463'}
+      :joins => :amino_acid_sequence
+      #:limit => 2, :conditions => {:string_id => 'PFE1150w'}
     ).each do |code|
 
       next unless code.aaseq #skip ncRNA and stuff
       next if code.falciparum_cruft? # skip var, rifin, etc.
       l = code.aaseq.length
 
-      code.tmhmm.each do |tmd|
+      code.amino_acid_sequence.tmhmm.each do |tmd|
         #tmd coverages
         (tmd.start..tmd.stop).each do |residue|
           fives[residue]||=0
-          fives[residue]+=0
+          fives[residue]+=1
           index = l-(residue-1)
           threes[index]||=0
-          threes[index]+=0
+          threes[index]+=1
         end
       end
-      p coverage_fives
 
-      # coverages
+      # length coverages
       (1..l).each do |i|
         #forward
         coverage_fives[i]||=0
@@ -8510,10 +8557,10 @@ PFL2395c
       end
     end
 
-    fives.each_with_index do |f,i|
+    threes.each_with_index do |f,i|
       next if i==0 #there is no zeroth residue
       puts [
-        f.to_f/coverage_fives[i].to_f,
+        fives[i].to_f.to_f/coverage_fives[i].to_f,
         threes[i].to_f/coverage_threes[i].to_f
       ].join("\t")
     end
