@@ -1231,7 +1231,8 @@ class BScript
   
   def vivax_to_database
     #apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.4/Pvivax_Salvador1_plasmoDB-5.4.gff")
-    apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.5/Pvivax_PlasmoDB-5.5.gff")
+    #apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.5/Pvivax_PlasmoDB-5.5.gff")
+    apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/6.0/Pvivax_PlasmoDB-6.0.gff")
   end
   
   
@@ -1672,7 +1673,8 @@ class BScript
   
   # upload the fasta sequences from falciparum file to the database
   def vivax_fasta_to_database
-    fa = ApiDbVivaxFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/5.5/PvivaxAnnotatedProteins_PlasmoDB-5.5.fasta")
+    #fa = ApiDbVivaxFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/5.5/PvivaxAnnotatedProteins_PlasmoDB-5.5.fasta")
+    fa = ApiDbVivaxFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/6.0/PvivaxAnnotatedProteins_PlasmoDB-6.0.fasta")
     sp = Species.find_by_name(Species.vivax_name)
     upload_fasta_general!(fa, sp)
   end
@@ -1693,6 +1695,13 @@ class BScript
     #    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAllTranscripts_PlasmoDB-5.5.fasta")
     fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/6.0/PfalciparumAnnotatedTranscripts_PlasmoDB-6.0.fasta")
     sp = Species.find_by_name(Species.falciparum_name)
+    upload_transcript_fasta_general!(fa, sp)
+  end
+
+  def vivax_transcripts_to_database
+    #    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAllTranscripts_PlasmoDB-5.5.fasta")
+    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/6.0/PvivaxAnnotatedTranscripts_PlasmoDB-6.0.fasta")
+    sp = Species.find_by_name(Species::VIVAX_NAME)
     upload_transcript_fasta_general!(fa, sp)
   end
     

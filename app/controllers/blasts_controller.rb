@@ -51,8 +51,11 @@ class BlastsController < ApplicationController
       raise unless rets.class == String #problems. If they occur I'll deal with it then
       gb = Bio::GenBank.new(rets)
       cds = gb.features.select{|f| f.feature == 'CDS'}
-      raise unless cds.length == 1 and cds[0].assoc['translation']
-      @seq = cds[0].assoc['translation']
+      unless cds.length == 0
+        # I get confused by 2 different CDSs.
+        raise unless cds.length == 1 and cds[0].assoc['translation']
+        @seq = cds[0].assoc['translation']
+      end
     end
 
     @blast_output = blast_result(@seq, params[:taxa], params[:program], params[:database])
@@ -62,6 +65,8 @@ class BlastsController < ApplicationController
   private
   def blast_result(sequence, organism = 'apicomplexa', blast_program = nil, database=nil)
     organism ||= 'apicomplexa' # in case nil is passed here
+
+
 
     databases = {
       # species name => [blastn name, blastp name]
@@ -91,36 +96,55 @@ class BlastsController < ApplicationController
     factory = nil
     database = nil if database == ''
 
+    factory_program = nil
+    factory_database = nil
+
     unless blast_program.nil? or program_to_database_index[blast_program].nil?
       if database.nil?
-        factory = Bio::Blast.local(blast_program,
-          "/blastdb/#{blast_array[program_to_database_index[blast_program]]}")
+        # default to protein
+        factory_program = blast_program
+        factory_database = "/blastdb/#{blast_array[program_to_database_index[blast_program]]}"
       else
-        factory = Bio::Blast.local(blast_program,
-          "/blastdb/#{blast_array[program_to_database_index[database]]}")
+        # default to protein
+        factory_program = blast_program
+        factory_database = "/blastdb/#{blast_array[database]}"
       end
     else
       if seq.moltype == Bio::Sequence::NA
         if database.nil?
           # default to protein
-          factory = Bio::Blast.local('blastn', "/blastdb/#{blast_array['transcript']}")
+          factory_program = 'blastn'
+          factory_database = "/blastdb/#{blast_array['transcript']}"
         else
           # accept database as given
-          factory = Bio::Blast.local('blastn', "/blastdb/#{blast_array[database]}")
+          factory_program = 'blastn'
+          factory_database = "/blastdb/#{blast_array[database]}"
         end
       elsif seq.moltype == Bio::Sequence::AA
         if database.nil?
           # default to protein
-          factory = Bio::Blast.local('blastp', "/blastdb/#{blast_array['protein']}")
+          factory_program = 'blastp'
+          factory_database = "/blastdb/#{blast_array['protein']}"
         else
           # accept database as given
-          factory = Bio::Blast.local('tblastn', "/blastdb/#{blast_array[database]}")
+          factory_program = 'blastn'
+          factory_database = "/blastdb/#{blast_array[database]}"
         end
       end
     end
 
+    raise if factory_program.nil?
+    raise if factory_database.nil?
+    raise Exception, "Database doesn't seem to exist! #{factory_database}" unless File.exist?(factory_database)
+    factory = Bio::Blast.local(factory_program, factory_database)
+
     factory.format = 0
     factory.filter = 'F'
+
+    #    # What are we doing again?
+    logger.debug "BLAST search: database: #{database} program #{factory.inspect}"
+    #    logger.debug("SEQUENCE: #{seq}")
+
     report = factory.query(seq)
     output = factory.output
 

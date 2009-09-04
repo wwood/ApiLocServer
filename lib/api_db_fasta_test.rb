@@ -110,7 +110,7 @@ class ApiDbFastaTest < Test::Unit::TestCase
   
   
   def test_theileria_big
-    fa = TigrFasta.new.load('/home/ben/phd/data/Theileria annulata/TANN.GeneDB.pep')
+    fa = TigrFasta.new.load(File.join(ENV['HOME'],'phd/data/Theileria annulata/TANN.GeneDB.pep'))
     count = 0
     while f = fa.next_entry
       assert f.name
@@ -119,7 +119,7 @@ class ApiDbFastaTest < Test::Unit::TestCase
     end
     assert_equal 3795, count
     
-    fa = TigrFasta.new.load('/home/ben/phd/data/Theileria parva/TPA1.pep')
+    fa = TigrFasta.new.load(File.join(ENV['HOME'],'phd/data/Theileria parva/TPA1.pep'))
     count = 0
     while f = fa.next_entry
       assert f.name
@@ -153,6 +153,14 @@ class ApiDbFastaTest < Test::Unit::TestCase
     p = fa.parse_name('gb|Chro.80234 | organism=Cryptosporidium_hominis | product=hypothetical protein | location=AAEL01000108:8398-11373(-) | length=991')
     assert_equal 'Chro.80234', p.name
     assert_equal 'AAEL01000108', p.scaffold
+    assert_equal 'hypothetical protein', p.annotation
+  end
+
+  def test_vivax5p5
+    fa = ApiDbFasta5p5.new
+    p = fa.parse_name('gb|PVX_090835 | organism=Plasmodium_vivax_SaI-1 | product=hypothetical protein | location=CM000450:19413-20373(+) | length=961')
+    assert_equal 'PVX_090835', p.name
+    assert_equal 'CM000450', p.scaffold
     assert_equal 'hypothetical protein', p.annotation
   end
 end

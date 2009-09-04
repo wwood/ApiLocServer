@@ -79,8 +79,12 @@ class ApiDbFasta5p5 < FastaParser
      
     # eg. 
     # >psu|PFC1120c | organism=Plasmodium_falciparum_3D7 | product=var (3D7-varT3-2) | location=MAL3:1027492-1034924(-) | length=2169
+    # >gb|PVX_090835 | organism=Plasmodium_vivax_SaI-1 | product=hypothetical protein | location=CM000450:19413-20373(+) | length=961
     # requires 'timid' search for first bits because sometimes the annotation contains a '|' character at the end -> bad!
     matches = definition.match('^psu\|(.+?) \| organism=(\S+?) \| product=(.*?) \| location=(.+?) \| length=(\d+)$')
+    if !matches
+      matches = definition.match('^gb\|(.+?) \| organism=(\S+?) \| product=(.*?) \| location=(.+?) \| length=(\d+)$')
+    end
     if !matches
       raise Exception, "Definition line has unexpected format: #{definition}"
     end
