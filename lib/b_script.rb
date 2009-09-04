@@ -8437,6 +8437,10 @@ PFL2395c
     hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(Species::TOXOPLASMA_GONDII_NAME)
   end
 
+  def hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_vivax
+    hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(Species::VIVAX_NAME)
+  end
+
   def hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(species_name)
     puts "Hydrophobicities"
     hydrophobicities = []
