@@ -76,4 +76,192 @@ class BScript2
       printtandem(roll) unless roll.empty?
     end
   end
+
+  # What is the distribution of the number of each amino acid in each protein.
+  # Don't print headers, but do print row names
+  def print_amino_acid_counts
+    amino_acid_counts.each do |residue, residue_counts|
+      puts [
+        residue, (residue_counts.slap*100).round(2).retract.join(',')
+      ].flatten.join(",")
+    end
+  end
+
+  # What is the distribution of the number of each amino acid in each protein.
+  # Don't print headers, but do print row names
+  def cache_amino_acid_counts
+    name = MyCache::FALCIPARUM_AMINO_ACID_FRACTIONS
+    raise Exception, "Already exists?" if MyCache.find_by_name(name)
+    MyCache.create!(:name => name, :cache => amino_acid_counts)
+    return nil
+  end
+
+  # What is the distribution of the number of each amino acid in each protein.
+  # Don't print headers, but do print row names
+  def print_amino_acid_numbers
+    amino_acid_counts.each do |residue, residue_counts|
+      puts [
+        residue, residue_counts.length
+      ].flatten.join(' ')
+    end
+  end
+
+  def amino_acid_counts
+    counts = {}
+
+    CodingRegion.falciparum.all(
+      :joins => :amino_acid_sequence,
+      :include => [:amino_acid_sequence, :annotation]
+    ).each do |code|
+      next if code.falciparum_cruft? #skip overrepresented ones
+
+      my_counts = {}
+      skipped_count = 0
+
+      code.aaseq.each_char do |residue|
+        if %w(X *).include?(residue)
+          skipped_count += 1
+          next
+        end
+        my_counts[residue] ||= 0
+        my_counts[residue] += 1
+      end
+
+      my_counts.each do |residue, count|
+        counts[residue] ||= []
+        counts[residue].push count.to_f/(code.aaseq.length.to_f-skipped_count)
+      end
+    end
+
+    return counts
+  end
+
+
+  def c_terminal_unexpectedness_coverage_normalised
+    puts "c_terminal_unexpectedness_coverage_normalised"
+
+    #array of positions each containing residue hash to count
+    # so a count of each residue and each position
+    position_residue = []
+    # total number of residues at each position for normalisation
+    coverages = []
+    # the amino acids I care about (so no X, U, B)
+    # ben@ben:~/phd/gnr$ scr BScript2.new.print_amino_acid_numbers
+    #K 5101
+    #V 5095
+    #A 5030
+    #W 4105
+    #L 5107
+    #M 5110
+    #N 5097
+    #C 4919
+    #Y 5093
+    #D 5093
+    #E 5094
+    #P 5005
+    #F 5088
+    #Q 5045
+    #G 5057
+    #R 5069
+    #H 4990
+    #S 5105
+    #T 5094
+    #I 5105
+    #U 1
+    amino_acids = %w(A C D E F G H I K L M N P Q R S T V W Y)
+    CodingRegion.falciparum.all(
+      :include => [:amino_acid_sequence, :annotation],
+      :joins => :amino_acid_sequence).each do |code|
+
+      aaseq = code.aaseq
+      next if aaseq.nil? #skip ncRNA and stuff
+      next if code.falciparum_cruft? # skip var, rifin, etc.
+      
+      (0..(aaseq.length-1)).each do |i|
+        break if i > 300
+        index = i
+        current_aa = aaseq[index..index]
+        next unless amino_acids.include?(aaseq[index..index])
+
+        # initialise the numbers of each residue this position
+        position_residue[index] ||= {}
+        amino_acids.each do |aa|
+          position_residue[index][aa] ||= 0
+        end
+        # increment the amino acid count
+        position_residue[index][current_aa] += 1
+
+        # record the coverage here
+        coverages[index] ||= 0
+        coverages[index] += 1
+      end
+      print '.'
+    end; nil
+    puts
+
+    # work out distributions of each of the amino acids
+    aminos = MyCache.find_by_name(MyCache::FALCIPARUM_AMINO_ACID_FRACTIONS).cache; nil
+
+    # for each position, determine how much the distribution of amino acids is
+    # unexpected. The metric is to take the average distance away from the distribution,
+    # measured by the kolmogorov-smirnov test distance.
+    # I'm not choosing the right way to do
+    # this probably, Because:
+    # * I want to upweight overrepresented residues, because the distances are
+    #   more reliable
+    # * 2 units away is more than twice 1 unit away.
+    #
+    # But I want to do something first, so here goes. It is just exploratory
+    # anyway, right?
+
+    position_residue.each_with_index do |amino_acid_hash, index|
+      puts [
+        index+1,
+        amino_acids.collect { |aa|
+          observed = amino_acid_hash[aa].to_f/coverages[index].to_f # a single number
+          expected = aminos[aa] # a distribution
+
+          r = RSRuby.instance
+          r.ks_test(expected,observed)['statistic']['D']
+        }.average
+      ].join("\t")
+    end
+
+    # z-score trial
+    # create the averages and standard deviations for each aa.
+    averages = {}
+    sds = {}
+    aminos.each do |aa, observeds|
+      averages[aa] = observeds.average
+      sds[aa] = observeds.standard_deviation
+    end
+    # Average the z-scores
+    results = []
+    position_residue.each_with_index do |amino_acid_hash, index|
+      break if index > 100
+      result = amino_acids.collect { |aa|
+        puts aa
+        observed = amino_acid_hash[aa].to_f/coverages[index].to_f # a single number
+        (observed - averages[aa])/sds[aa]
+      }.send(:average)
+      results[index] = result
+      puts [
+        index+1,
+        result
+      ].join("\t")
+    end
+    RSRuby.instance.plot(results, :type => 'l', :xlab=>'residue', :ylab => 'difference'); nil
+  end
+
+  # As of PlasmoDB 6.0
+  # => #<ReachingArray:0xb65c7ba8 @retract=["MAL8P1.86"]>
+  def print_selenocysteine_search
+    puts selenocysteine_search.reach.string_id.join(' ')
+  end
+
+  def selenocysteine_search
+    CodingRegion.falciparum.all(:include => :amino_acid_sequence,
+      :joins => :amino_acid_sequence,
+      :conditions => ['sequence like ?', '%U%'])
+  end
 end

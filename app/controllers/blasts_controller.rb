@@ -66,9 +66,9 @@ class BlastsController < ApplicationController
 
 
   private
-  def blast_result(sequence, organism = 'apicomplexa', blast_program = nil, database=nil)
+  def blast_result(sequence, organism = 'apicomplexa', blast_program = nil, database=nil, alignment_program='blast')
     organism ||= 'apicomplexa' # in case nil is passed here
-
+    alignment_program ||= 'blast'
 
 
     databases = {
@@ -139,17 +139,24 @@ class BlastsController < ApplicationController
     raise if factory_program.nil?
     raise if factory_database.nil?
     raise Exception, "Database doesn't seem to exist! #{factory_database}" unless File.exist?(factory_database)
-    factory = Bio::Blast.local(factory_program, factory_database)
 
-    factory.format = 0
-    factory.filter = 'F'
+    output = nil
+    if alignment_program == 'blast'
+      factory = Bio::Blast.local(factory_program, factory_database)
 
-    #    # What are we doing again?
-    logger.debug "BLAST search: database: #{database} program #{factory.inspect}"
-    #    logger.debug("SEQUENCE: #{seq}")
+      factory.format = 0
+      factory.filter = 'F'
 
-    report = factory.query(seq)
-    output = factory.output
+      #    # What are we doing again?
+      logger.debug "BLAST search: database: #{database} program #{factory.inspect}"
+      #    logger.debug("SEQUENCE: #{seq}")
+
+      report = factory.query(seq)
+      output = factory.output
+    #elsif alignment_program == 'blat'
+    else
+      raise Exception, "I don't know how to handle this alignment program: '#{alignment_program}'"
+    end
 
     return output
   end
