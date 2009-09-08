@@ -163,4 +163,28 @@ class ApiDbFastaTest < Test::Unit::TestCase
     assert_equal 'CM000450', p.scaffold
     assert_equal 'hypothetical protein', p.annotation
   end
+
+  def test_eupathdb2009
+    fa = EuPathDb2009.new('abc_1')
+    p = fa.parse_name('gb|PVX_090835 | organism=abc_1 | product=hypothetical protein | location=CM000450:19413-20373(+) | length=961')
+    assert_equal 'PVX_090835', p.name
+    assert_equal 'CM000450', p.scaffold
+    assert_equal 'hypothetical protein', p.annotation
+
+    assert_raise ParseException do
+      fa = EuPathDb2009.new('abc_1')
+      p = fa.parse_name('gbH|PVX_090835 | organism=abc_1 | product=hypothetical protein | location=CM000450:19413-20373(+) | length=961')
+    end
+
+    assert_raise ParseException do
+      fa = EuPathDb2009.new('abc_1','gbI')
+      p = fa.parse_name('gbH|PVX_090835 | organism=abc_1 | product=hypothetical protein | location=CM000450:19413-20373(+) | length=961')
+    end
+
+    fa = EuPathDb2009.new('abc_1','gbH')
+    p = fa.parse_name('gbH|PVX_090835 | organism=abc_1 | product=hypothetical protein | location=CM000450:19413-20373(+) | length=961')
+    assert_equal 'PVX_090835', p.name
+    assert_equal 'CM000450', p.scaffold
+    assert_equal 'hypothetical protein', p.annotation
+  end
 end

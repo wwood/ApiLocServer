@@ -1113,6 +1113,16 @@ class CodingRegion < ActiveRecord::Base
     end
     acmi
   end
+
+  # return an array of 1s and 0s corresponding to the amino acids, where
+  # 1 indicates that amino acid is covered by at least one proteomics fragment,
+  # and a 0 indicates that it is not.
+  def proteomics_profile
+    coverages = []
+    return nil if aaseq.nil? #let us be sensible here
+
+    proteomic_experiment_peptides
+  end
 end
 
 

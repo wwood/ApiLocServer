@@ -259,9 +259,24 @@ class BScript2
     puts selenocysteine_search.reach.string_id.join(' ')
   end
 
-  def selenocysteine_search
-    CodingRegion.falciparum.all(:include => :amino_acid_sequence,
+  def selenocysteine_search(species_name=Species::FALCIPARUM_NAME)
+    CodingRegion.species(species_name).all(:include => :amino_acid_sequence,
       :joins => :amino_acid_sequence,
       :conditions => ['sequence like ?', '%U%'])
+  end
+
+  def apicoplast_and_transmembrane_domains
+    CodingRegion.falciparum.all do |code|
+      next unless code.plasmo_a_p.predicted
+    end
+  end
+
+  # print a csv file of the mass spec peptides, lined up by their N terminus
+  def proteomics_coverage_n_terminal_coverage_normalised
+    CodingRegion.falciparum.all(
+      :conditions => {:string_id => 'PFL2405c'}
+    ) do |code|
+      
+    end
   end
 end

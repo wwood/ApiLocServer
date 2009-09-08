@@ -160,6 +160,7 @@ module Bio
     end
     
     alias_method :predicted?, :apicoplast_targeted?
+    alias_method :signal?, :apicoplast_targeted?
   end
 end # End module Bio
 
