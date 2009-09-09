@@ -3,8 +3,11 @@ class Species < ActiveRecord::Base
   FALCIPARUM_NAME = FALCIPARUM
   VIVAX = 'Plasmodium vivax'
   VIVAX_NAME = VIVAX
+  BERGHEI_NAME = 'Plasmodium berghei'
+  YOELII_NAME = 'Plasmodium yoelii'
   THEILERIA_PARVA = 'Theileria parva'
   THEILERIA_PARVA_NAME = THEILERIA_PARVA
+  THEILERIA_ANNULATA_NAME = 'Theileria annulata'
   TOXOPLASMA_GONDII = 'Toxoplasma gondii'
   TOXOPLASMA_GONDII_NAME = TOXOPLASMA_GONDII
   ELEGANS_NAME = 'elegans'
@@ -91,7 +94,14 @@ class Species < ActiveRecord::Base
     [
       TOXOPLASMA_GONDII,
       FALCIPARUM,
-      VIVAX
+      VIVAX,
+      BERGHEI_NAME,
+      YOELII_NAME,
+      BABESIA_BOVIS_NAME,
+      CYRYPTOSPORIDIUM_HOMINIS_NAME,
+      CYRYPTOSPORIDIUM_PARVUM_NAME,
+      THEILERIA_PARVA_NAME,
+      THEILERIA_ANNULATA_NAME,
     ]
   end
 end

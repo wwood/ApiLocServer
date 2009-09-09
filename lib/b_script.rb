@@ -231,9 +231,15 @@ class BScript
     # abstraction!
     #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
     #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
-    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/6.0/Pfalciparum_PlasmoDB-6.0.gff"
+    apidb_species_to_database Species::BERGHEI_NAME, "#{DATA_DIR}/berghei/genome/plasmodb/6.0/Pberghei_PlasmoDB-6.0.gff"
   end
   
+  def berghei_fasta_to_database
+    fa = EuPathDb2009.new('Plasmodium_berghei_str._ANKA','psu').load("#{DATA_DIR}/berghei/genome/plasmodb/6.0/PbergheiAnnotatedProteins_PlasmoDB-6.0.fasta")
+    sp = Species.find_by_name(Species::BERGHEI_NAME)
+    upload_fasta_general!(fa, sp)
+  end
+
   def gondii_to_database
     #    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
     #    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49_ToxoDB-5.0.gff"
@@ -1678,16 +1684,7 @@ class BScript
     fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/6.0/PfalciparumAnnotatedProteins_PlasmoDB-6.0.fasta")
     sp = Species.find_by_name(Species.falciparum_name)
     upload_fasta_general!(fa, sp)
-  end
-  
-  # upload the fasta sequences from falciparum file to the database
-  def vivax_fasta_to_database
-    #fa = ApiDbVivaxFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/5.5/PvivaxAnnotatedProteins_PlasmoDB-5.5.fasta")
-    fa = ApiDbVivaxFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/6.0/PvivaxAnnotatedProteins_PlasmoDB-6.0.fasta")
-    sp = Species.find_by_name(Species.vivax_name)
-    upload_fasta_general!(fa, sp)
-  end
-  
+  end 
   
   def crypto_fasta_to_database
     fa = CryptoDbFasta4p0.new.load("#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/4.0/CparvumAnnotatedProteins_CryptoDB-4.0.fasta")
@@ -7164,6 +7161,8 @@ PFL2395c
   end
 
   def apidb_species_to_database(species_name, gff_file_path=nil, iter=nil)
+    cds_count = 0
+    coding_region_count = 0
 
 
     sp = Species.find_or_create_by_name species_name
@@ -7211,6 +7210,7 @@ PFL2395c
         g.id,
         gene.strand
       )
+      coding_region_count += 1
 
       gene.cds.each {|cd|
         if cd.from.to_i < 1 or cd.to.to_i > scaff.length
@@ -7222,6 +7222,7 @@ PFL2395c
           cd.from,
           cd.to
         )
+        cds_count += 1
       }
 
       Annotation.find_or_create_by_coding_region_id_and_annotation(
@@ -7273,7 +7274,7 @@ PFL2395c
       end
     end
 
-    puts "finished."
+    puts "finished. Uploaded #{coding_region_count} coding regions and #{cds_count} cds."
   end
 
   def yeast_gene_ontology_to_database(filename = "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.sgd")

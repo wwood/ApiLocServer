@@ -3,15 +3,15 @@
 one:
   id: 1
   coding_region_id: 1
-  peptide: abc
+  peptide: a.b.c
   charge: +2
 two:
   id: 2
   coding_region_id: 2
-  peptide: -g.abc
+  peptide: -.abc.g
   charge: +2
 three:
   id: 3
   coding_region_id: 3
-  peptide: abc-
+  peptide: a.bc.-
   charge: +2

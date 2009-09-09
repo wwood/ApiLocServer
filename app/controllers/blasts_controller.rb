@@ -8,6 +8,15 @@ class BlastsController < ApplicationController
     @input = params[:sequence]
     @input ||= params[:id]
 
+    # if there are any numbers in the given sequence, maybe it is from a
+    # database. Do that as priority. If not, just use the regular one
+    if @input.match /[01-9]/
+      if code = CodingRegion.find_by_name_or_alternate(@input)
+        logger.debug "Using coding region #{code} from #{code.species.name} to blast with"
+        @input = code.aaseq
+      end
+    end
+
     # parse the name of the organism that is being blasted against
     @output = blast_result(@input, params[:taxa], params[:program], params[:database])
   end
@@ -15,6 +24,8 @@ class BlastsController < ApplicationController
   def blast_genbank
     @genbank_id = params[:seq]
     @genbank_id ||= params[:id]
+    #identifiers are never lower case but NCBI is still case sensitive
+    @genbank_id.upcase!
 
     unless @genbank_id
       flash[:error] = "No genbank identifier!"
@@ -92,6 +103,11 @@ class BlastsController < ApplicationController
       'blastn' => 'transcript',
       'blastx' => 'protein'
     }
+    database_to_default_programs = {
+      'genome' => ['blastn', 'tblastn'],
+      'transcript' => ['blastn', 'tblastn'],
+      'protein' => ['blastx', 'blastp']
+    }
 
     # work out if it is a protein sequence or a nucleotide sequence
     # meh. for the moment assume it is a transcript to be blasted
@@ -102,13 +118,13 @@ class BlastsController < ApplicationController
     factory_program = nil
     factory_database = nil
 
-    unless blast_program.nil? or program_to_database_index[blast_program].nil?
+    # only use the blast_program given if it is defined and I understand it
+    if blast_program and program_to_database_index[blast_program]
       if database.nil?
-        # default to protein
+        # default to protein or transcript, depending on the program
         factory_program = blast_program
         factory_database = "/blastdb/#{blast_array[program_to_database_index[blast_program]]}"
       else
-        # default to protein
         factory_program = blast_program
         factory_database = "/blastdb/#{blast_array[database]}"
       end
@@ -119,8 +135,8 @@ class BlastsController < ApplicationController
           factory_program = 'blastn'
           factory_database = "/blastdb/#{blast_array['transcript']}"
         else
-          # accept database as given
-          factory_program = 'blastn'
+          # accept database as given. Choose the program to suit
+          factory_program = database_to_default_programs[database][0]
           factory_database = "/blastdb/#{blast_array[database]}"
         end
       elsif seq.moltype == Bio::Sequence::AA
@@ -130,7 +146,7 @@ class BlastsController < ApplicationController
           factory_database = "/blastdb/#{blast_array['protein']}"
         else
           # accept database as given
-          factory_program = 'blastn'
+          factory_program = database_to_default_programs[database][1]
           factory_database = "/blastdb/#{blast_array[database]}"
         end
       end
@@ -142,7 +158,7 @@ class BlastsController < ApplicationController
 
     output = nil
     if alignment_program == 'blast'
-      factory = Bio::Blast.local(factory_program, factory_database)
+      factory = Bio::Blast.local(factory_program, factory_database, '-a 2')
 
       factory.format = 0
       factory.filter = 'F'
@@ -153,7 +169,7 @@ class BlastsController < ApplicationController
 
       report = factory.query(seq)
       output = factory.output
-    #elsif alignment_program == 'blat'
+      #elsif alignment_program == 'blat'
     else
       raise Exception, "I don't know how to handle this alignment program: '#{alignment_program}'"
     end
