@@ -16,3 +16,9 @@ elegans:
 one:
   id: 5
   name: the one
+berghei:
+  id: 6
+  name: Plasmodium berghei
+vivax:
+  id: 7
+  name: Plasmodium vivax

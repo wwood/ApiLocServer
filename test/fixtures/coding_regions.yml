@@ -87,3 +87,13 @@ mouse_good_and_good_separate:
    gene_id: 5
    string_id: meat
    orientation: +
+berghei:
+   id: 18
+   gene_id: 7
+   string_id: my berghei gene
+   orientation: +
+vivax:
+   id: 19
+   gene_id: 8
+   string_id: my vivax gene
+   orientation: +

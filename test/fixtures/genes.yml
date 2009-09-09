@@ -24,3 +24,11 @@ elegans:
   id: 6
   name: elegans1
   scaffold_id: 5
+berghei:
+  id: 7
+  name: berghei
+  scaffold_id: 6
+vivax:
+  id: 8
+  name: vivax
+  scaffold_id: 7

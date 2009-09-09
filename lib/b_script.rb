@@ -240,6 +240,12 @@ class BScript
     upload_fasta_general!(fa, sp)
   end
 
+  def vivax_fasta_to_database
+    fa = EuPathDb2009.new('Plasmodium_vivax_SaI-1','gb').load("#{DATA_DIR}/vivax/genome/plasmodb/6.0/PvivaxAnnotatedProteins_PlasmoDB-6.0.fasta")
+    sp = Species.find_by_name(Species::VIVAX_NAME)
+    upload_fasta_general!(fa, sp)
+  end
+
   def gondii_to_database
     #    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
     #    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49_ToxoDB-5.0.gff"
@@ -8442,6 +8448,18 @@ PFL2395c
     hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(Species::VIVAX_NAME)
   end
 
+  def hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_berghei
+    hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(Species::BERGHEI_NAME)
+  end
+
+  def hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_falciparum
+    hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(Species::FALCIPARUM_NAME) do |code|
+      code.falciparum_cruft?
+    end
+  end
+
+  # Lining up the hydrophobicity profiles of all the proteins in a particular
+  # species.
   def hydrophobicity_bias_n_terminal_coverage_normalised_all_secreted_species(species_name)
     puts "Hydrophobicities"
     hydrophobicities = []
@@ -8451,7 +8469,7 @@ PFL2395c
       :joins => :amino_acid_sequence).each do |code|
 
       next unless code.aaseq #skip ncRNA and stuff
-      #      next if code.falciparum_cruft? # skip var, rifin, etc.
+      next if block_given? and yield(code)
       next unless code.signal?
 
       l = code.aaseq.length

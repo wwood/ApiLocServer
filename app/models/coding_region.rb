@@ -1123,6 +1123,18 @@ class CodingRegion < ActiveRecord::Base
 
     proteomic_experiment_peptides
   end
+
+  def cruft?
+    if species.name == Species::FALCIPARUM_NAME
+      return falciparum_cruft?
+    elsif species.name == Species::VIVAX_NAME
+      return false if annotation.nil? or annotation.annotation.nil?
+      return annotation.annotation.gsub('[^A-Z ]','').match(/ vir /i)
+    elsif species.name == Species::BERGHEI_NAME
+      return false if annotation.nil? or annotation.annotation.nil?
+      return annotation.annotation.gsub('[^A-Z ]','').match(/ bir /i)
+    end
+  end
 end
 
 

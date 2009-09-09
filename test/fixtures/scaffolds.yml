@@ -1,24 +1,32 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
 one:
-    id: 1
-    name: apidb|MAL3
-    species_id: 1
-    length: 65
+  id: 1
+  name: apidb|MAL3
+  species_id: 1
+  length: 65
 two:
-    id: 2
-    name: NAPPYDB|MAL3
-    species_id: 1
-    length: 165
+  id: 2
+  name: NAPPYDB|MAL3
+  species_id: 1
+  length: 165
 three:
-    id: 3
-    name: s2
-    species_id: 2
+  id: 3
+  name: s2
+  species_id: 2
 mouse:
-    id: 4
-    name: mgi1
-    species_id: 3
+  id: 4
+  name: mgi1
+  species_id: 3
 elegans:
-    id: 5
-    name: mgi1_eleg
-    species_id: 4
+  id: 5
+  name: mgi1_eleg
+  species_id: 4
+berghei:
+  id: 6
+  name: berghei_scaffold
+  species_id: 6
+vivax:
+  id: 7
+  name: vivax scaffold
+  species_id: 7
