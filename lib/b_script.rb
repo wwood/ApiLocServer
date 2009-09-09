@@ -7563,6 +7563,8 @@ PFL2395c
   end
 
   def whole_cell_proteome_to_database
+    $stderr.puts "WARNING! PlasmoDB 6.0 has problems with aliases, and so many old gene names are not mapped, when perhaps they should be! You have been warned."
+
     header = true #still in the top crap?
     finished = false
     code = nil
@@ -7603,8 +7605,6 @@ PFL2395c
         header = false
         next
       end
-
-      p row
       
 
       # What is this rubbish?
@@ -7612,10 +7612,8 @@ PFL2395c
       break if row[0] == 'Summary'
 
       if row[0].nil? or row[0].strip.length == 0 #blank lines indicate the end of a protein block
-        p 'I say finish.'
         skipping = false
         
-        p 'rounding up'
         # upload the coding region from last time
         ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, sp_count, sp_percent, sp.id) if sp_count > 0
         ProteomicExperimentResult.find_or_create_by_coding_region_id_and_number_of_peptides_and_percentage_and_proteomic_experiment_id(code.id, mero_count, mero_percent, mero.id) if mero_count > 0
@@ -7641,19 +7639,22 @@ PFL2395c
 
         plasmodb_line_next = true
       else
-        p 'not rounding up'
         next if skipping #ignore problematic plasmodb ids
 
         if plasmodb_line_next
-          p 'plasmodb line'
           plasmo = row[0]
           # skip some
-          if %w(PFD0845w PFD0965w PFD0510c).include?(plasmo)
+          if %w(PFD0845w PFD0965w).include?(plasmo)
             $stderr.puts "Ignoring #{plasmo} as expected."
             skipping = true
             next
           end
-          code = CodingRegion.ff(plasmo) or raise Exception, "Couldn't find #{plasmo} in #{row.inspect}"
+          code = CodingRegion.ff(plasmo)
+          if code.nil?
+            $stderr.puts "Couldn't find #{plasmo} from #{row.inspect}"
+            skipping = true
+            next
+          end
 
           sp_percent = row[1]
           mero_percent = row[2]
@@ -7662,7 +7663,6 @@ PFL2395c
 
           plasmodb_line_next = false
         else
-          p 'peptide line'
           # a row containing info on 1 peptide
 
           my_sp = row[1] and row[1].strip.length > 0

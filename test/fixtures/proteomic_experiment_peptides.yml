@@ -15,3 +15,15 @@ three:
   coding_region_id: 3
   peptide: a.bc.-
   charge: +2
+coding_region_1_good:
+  id: 4
+  coding_region_id: 1
+  peptide: P.FII.I
+coding_region_1_bad:
+  id: 5
+  coding_region_id: 1
+  peptide: P.FIIPPPPPPPP.I
+coding_region_1_end:
+  id: 6
+  coding_region_id: 1
+  peptide: I.FIIKYTFSYHIIIF.-

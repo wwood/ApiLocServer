@@ -1118,10 +1118,17 @@ class CodingRegion < ActiveRecord::Base
   # 1 indicates that amino acid is covered by at least one proteomics fragment,
   # and a 0 indicates that it is not.
   def proteomics_profile
-    coverages = []
     return nil if aaseq.nil? #let us be sensible here
+    coverages = [0]*aaseq.length # initialize to the correct size
 
-    proteomic_experiment_peptides
+    proteomic_experiment_peptides.each do |pep|
+      if matches = aaseq.match(pep.regex)
+        (matches.begin(1)..(matches.end(1)-1)).each do |position|
+          coverages[position] = 1 #don't add, because one or more matches is the same thing to me.
+        end
+      end
+    end
+    return coverages
   end
 end
 

@@ -272,11 +272,47 @@ class BScript2
   end
 
   # print a csv file of the mass spec peptides, lined up by their N terminus
-  def proteomics_coverage_n_terminal_coverage_normalised
+  def proteomics_profile_first
+    total_profile = [0.0]*100 #initialize. This is done on percent, so..
+
     CodingRegion.falciparum.all(
-      :conditions => {:string_id => 'PFL2405c'}
-    ) do |code|
-      
+      :joins => [:amino_acid_sequence, :proteomic_experiment_peptides]
+    ).uniq.each do |code|
+      code.proteomics_profile.each_with_index do |yes_no, i|
+        l = code.aaseq.length
+        index = ((i.to_f/l.to_f)*100).round
+        total_profile[index-1] += yes_no.to_f/l.to_f #normalise addition by length too, otherwise long proteins will get in the way
+      end
+    end
+
+    puts "ProteomicsProfile"
+    puts total_profile.join("\n")
+  end
+
+  # print a csv file of the mass spec peptides, lined up by their N terminus
+  def proteomics_coverage_n_terminal_coverage_normalised
+    total_profile = []
+    length_coverages = []
+
+    CodingRegion.falciparum.all(
+      :joins => [:amino_acid_sequence, :proteomic_experiment_peptides],
+      :include => [:amino_acid_sequence, :proteomic_experiment_peptides]
+    ).uniq.each do |code|
+      code.proteomics_profile.each_with_index do |yes_no, i|
+        index = i
+        total_profile[index] ||= 0
+        total_profile[index] += yes_no
+        length_coverages[index] ||= 0
+        length_coverages[index] += 1
+      end
+    end
+
+    puts "ProteomicsProfileNTerminal\tProteins"
+    total_profile.each_with_index do |num, i|
+      puts [
+        (num.to_f/length_coverages[i].to_f).round(5),
+        length_coverages[i]
+      ].join("\t")
     end
   end
 end
