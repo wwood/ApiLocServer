@@ -152,7 +152,7 @@ class CodingRegionTest < ActiveSupport::TestCase
       code.is_gpcr?(false)
     end
   end
-  
+
   def test_go_term?
     # plain gpcr
     assert CodingRegion.find(3).go_term?(GoTerm::GPCR_GO_TERM)
@@ -357,5 +357,23 @@ class CodingRegionTest < ActiveSupport::TestCase
     assert_equal 2, CodingRegion.find(1).second_exon_splice_offset
     assert_equal 0, CodingRegion.find(2).second_exon_splice_offset
     assert_nil CodingRegion.find(3).second_exon_splice_offset
+  end
+
+  def test_proteomics_profile
+    assert_equal [
+      [0]*3,
+      [1]*3,
+      [0]*40,
+      [1]*14
+    ].flatten,
+      CodingRegion.find(1).proteomics_profile
+
+    # test no aaseq
+    assert_nil CodingRegion.new.proteomics_profile
+
+    # test aaseq but no hits
+    c = CodingRegion.new
+    c.amino_acid_sequence = AminoAcidSequence.new(:sequence => 'ABC')
+    assert_equal [0,0,0], c.proteomics_profile
   end
 end
