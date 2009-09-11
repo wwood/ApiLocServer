@@ -190,6 +190,9 @@ class ApiDbGffRecord < JgiGffRecord
     if parts
       parts.each {|couple|
         cs = couple.split '='
+        #deal with attributes like 'Note=;' by ignoring them
+        # I once found one of these in the yeast genome gff
+        next if cs.length == 1 and couple.match(/=/)
         if cs.length != 2
           raise Exception, "Badly handled attributes bit in api db gff: '#{cs}' from '#{attributes_string}'"
         end

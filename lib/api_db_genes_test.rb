@@ -164,4 +164,14 @@ class ApiDbGenesTest < Test::Unit::TestCase
     assert_equal 'PFC1100w', g.name
     assert_nil api.next_gene
   end
+
+  def test_empty_attribute
+    # this is the empty attribute from yeast
+    gff_line = 'chrXVI	SGD	gene	101608	102702	.	-	.	ID=YPL236C;Name=YPL236C;gene=ENV7;Alias=ENV7;Ontology_term=GO:0008150,GO:0004674,GO:0000329;Note=;dbxref=SGD:S000006157;orf_classification=Uncharacterized'
+    g = ApiDbGffRecord.new(gff_line)
+    r = g.attributes
+    assert_equal 7, r.length
+    assert_equal 'YPL236C', r['ID']
+    assert_equal 'Uncharacterized', r['orf_classification']
+  end
 end

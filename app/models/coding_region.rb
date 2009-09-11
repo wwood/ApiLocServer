@@ -23,6 +23,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :annotation, :dependent => :destroy
   has_one :amino_acid_sequence, :dependent => :destroy
   has_one :transcript_sequence, :dependent => :destroy
+  has_one :cds_sequence, :dependent => :destroy
   has_many :microarray_measurements, :dependent => :destroy
   has_many :microarray_timepoints, :through => :microarray_measurements
   has_many :expression_contexts, :dependent => :destroy
@@ -878,6 +879,11 @@ class CodingRegion < ActiveRecord::Base
   def naseq
     transcript_sequence ? transcript_sequence.sequence : nil
   end
+
+  def cdsseq
+    cds_sequence ? cds_sequence.sequence : nil
+  end
+  alias_method :cdseq, :cdsseq # I just know I'll stuff this one up
   
   class UnexpectedOrthomclGeneCount < StandardError; end
   

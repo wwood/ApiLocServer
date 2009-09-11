@@ -635,12 +635,12 @@ class BScript
   end
   
   
-  def upload_yeastgfp_gff
+  def upload_yeast_gff
     
     sp = Species.find_or_create_by_name YEAST
     
     iter = YeastGenomeGenes.new(
-      "#{DATA_DIR}/yeast/yeastgenome/20080321/saccharomyces_cerevisiae.gff")
+      "#{DATA_DIR}/yeast/genome/20090911/saccharomyces_cerevisiae.gff")
     
    
     puts "Deleting..."
@@ -1710,6 +1710,13 @@ class BScript
     upload_transcript_fasta_general!(fa, sp)
   end
 
+  def falciparum_cds_to_database
+    #    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAllTranscripts_PlasmoDB-5.5.fasta")
+    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/6.0/PfalciparumAnnotatedCDS_PlasmoDB-6.0.fasta")
+    sp = Species.find_by_name(Species.falciparum_name)
+    upload_cds_fasta_general!(fa, sp)
+  end
+
   def vivax_transcripts_to_database
     #    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAllTranscripts_PlasmoDB-5.5.fasta")
     fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/6.0/PvivaxAnnotatedTranscripts_PlasmoDB-6.0.fasta")
@@ -2158,6 +2165,24 @@ class BScript
         next
       end
       TranscriptSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        f.sequence
+      )
+    end
+  end
+
+  # Upload a cds fasta file by filling in scaffold, annotation, sequence, but do not create coding regions, genes or scaffolds - assume they
+  # already exist in the database, and throw an exception if that isn't the case.
+  # Accepts a block that takes the name from the fasta line and turns it into something more useful - untested!
+  def upload_cds_fasta_general!(fa, species)
+    while f = fa.next_entry
+      name = f.name
+      code = CodingRegion.fs(name, species.name)
+      unless code
+        $stderr.puts "No coding region found to attach a sequence/annotation to: #{f.name}. Ignored."
+        next
+      end
+      CdsSequence.find_or_create_by_coding_region_id_and_sequence(
         code.id,
         f.sequence
       )
@@ -3211,7 +3236,8 @@ class BScript
   end
   
   def upload_yeast_genome
-    Bio::FlatFile.auto("#{DATA_DIR}/yeast/genome/20080606/orf_trans.fasta").each do |seq|
+    # upload amino acids
+    Bio::FlatFile.auto("#{DATA_DIR}/yeast/genome/20090911/orf_trans.fasta").each do |seq|
       name = seq.entry_id
       
       code = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.yeast_name)
@@ -3220,6 +3246,20 @@ class BScript
         next
       end
       AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
+        code.id,
+        seq.seq
+      )
+    end
+    # upload CDS (no UTR, no introns, no untranslated nucleotides)
+    Bio::FlatFile.auto("#{DATA_DIR}/yeast/genome/20090911/orf_coding.fasta").each do |seq|
+      name = seq.entry_id
+
+      code = CodingRegion.find_by_name_or_alternate_and_organism(name, Species.yeast_name)
+      if !code
+        $stderr.puts "Couldn't find coding region name: #{name}. Ignoring."
+        next
+      end
+      CdsSequence.find_or_create_by_coding_region_id_and_sequence(
         code.id,
         seq.seq
       )
@@ -8369,13 +8409,13 @@ PFL2395c
     end
   end
 
-  def at_bias_c_terminal_coverage_biased
+  def at_bias_c_terminal_coverage_biased(species_name=Species::FALCIPARUM_NAME)
     puts "ATbiasBin\tAverage\tMedian"
     at_biases = []
     coverages = []
-    CodingRegion.falciparum.all.each do |code|
-      next unless code.naseq #skip ncRNA and stuff
-      next if code.falciparum_cruft? #exclude var, rifin, stevor, etc.
+    CodingRegion.species(species_name).all.each do |code|
+      next unless code.cdsseq #skip ncRNA and stuff
+      next if block_given? and yield(code)
       l = code.naseq.length
       pro = code.at_profile
       pro.each_with_index do |h,i|
@@ -8392,6 +8432,16 @@ PFL2395c
       next if i==0
       puts b/coverages[i]
     end
+  end
+  
+  def at_bias_c_terminal_coverage_biased_falciparum
+    at_bias_c_terminal_coverage_biased(Species::FALCIPARUM_NAME) do |code|
+      code.falciparum_cruft? #exclude var, rifin, stevor, etc.
+    end
+  end
+
+  def at_bias_c_terminal_coverage_biased_yeast
+    at_bias_c_terminal_coverage_biased(Species::YEAST_NAME)
   end
 
   def hydrophobicity_bias_n_terminal_coverage_normalised
