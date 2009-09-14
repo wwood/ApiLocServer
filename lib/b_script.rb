@@ -26,6 +26,9 @@ require 'stdlib'
 require 'babesia'
 require 'spoctopus_wrapper'
 
+# Modules to split up this massive file. Each one is included
+require 'modules/at_bias'
+
 
 MOLECULAR_FUNCTION = 'molecular_function'
 YEAST = 'yeast'
@@ -259,6 +262,14 @@ class BScript
     sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
     upload_fasta_general!(fa, sp)
   end
+
+  def gondii_cds_to_database
+    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.2/TgondiiME49AnnotatedCDS_ToxoDB-5.2.fasta")
+    sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
+    upload_cds_fasta_general!(fa, sp)
+  end
+
+
   
   def calculate_falciparum_distances
     puts "Removing all upstream distances"
@@ -1722,6 +1733,13 @@ class BScript
     fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/6.0/PvivaxAnnotatedTranscripts_PlasmoDB-6.0.fasta")
     sp = Species.find_by_name(Species::VIVAX_NAME)
     upload_transcript_fasta_general!(fa, sp)
+  end
+
+  def vivax_cds_to_database
+    #    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAllTranscripts_PlasmoDB-5.5.fasta")
+    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/vivax/genome/plasmodb/6.0/PvivaxAnnotatedCDS_PlasmoDB-6.0.fasta")
+    sp = Species.find_by_name(Species::VIVAX_NAME)
+    upload_cds_fasta_general!(fa, sp)
   end
     
     
@@ -8377,100 +8395,7 @@ PFL2395c
     end
   end
 
-  def at_bias_length_normalised_vivax
-    at_bias_length_normalised_proteins_species(Species::VIVAX_NAME)
-  end
-
-  def at_bias_length_normalised_proteins_species(species_name)
-    puts "ATbiasBin\tAverage\tMedian"
-    bins = []
-    CodingRegion.s(species_name).all(
-      :include => :transcript_sequence
-    ).each do |code|
-      next unless code.naseq #skip ncRNA and stuff
-      if block_given?
-        next if yield(code)
-      end
-      
-      l = code.naseq.length
-      pro = code.at_profile
-      pro.each_with_index do |h,i|
-        index = i.to_f/l.to_f*100
-        bins[index] ||= []
-        bins[index].push h
-      end
-    end
-    bins.each_with_index do |b, i|
-      puts [
-        i,
-        b.average,
-        b.median
-      ].join("\t")
-    end
-  end
-
-  def at_bias_c_terminal_coverage_biased(species_name=Species::FALCIPARUM_NAME)
-    puts "ATbiasBin\tAverage\tMedian"
-    at_biases = []
-    coverages = []
-    CodingRegion.species(species_name).all.each do |code|
-      next unless code.cdsseq #skip ncRNA and stuff
-      next if block_given? and yield(code)
-      l = code.naseq.length
-      pro = code.at_profile
-      pro.each_with_index do |h,i|
-        index = l-i
-        at_biases[index] ||= 0.0
-        at_biases[index] += h
-      end
-      (1..l).each do |i|
-        coverages[i] ||= 0
-        coverages[i] += 1
-      end
-    end
-    at_biases.each_with_index do |b, i|
-      next if i==0
-      puts b/coverages[i]
-    end
-  end
-  
-  def at_bias_c_terminal_coverage_biased_falciparum
-    at_bias_c_terminal_coverage_biased(Species::FALCIPARUM_NAME) do |code|
-      code.falciparum_cruft? #exclude var, rifin, stevor, etc.
-    end
-  end
-
-  def at_bias_c_terminal_coverage_biased_yeast
-    at_bias_c_terminal_coverage_biased(Species::YEAST_NAME)
-  end
-
-  def hydrophobicity_bias_n_terminal_coverage_normalised
-    puts "Hydrophobicities"
-    hydrophobicities = []
-    coverages = []
-    CodingRegion.falciparum.all(
-      :include => [:transcript_sequence, :annotation],
-      :joins => :transcript_sequence).each do |code|
-      next unless code.aaseq #skip ncRNA and stuff
-      next if code.falciparum_cruft? # skip var, rifin, etc.
-      l = code.aaseq.length
-      pro = code.hydrophobicity_profile
-      pro.each_with_index do |h,i|
-        hydrophobicities[i] ||= 0.0
-        hydrophobicities[i] += h
-      end
-
-      (1..l).each do |i|
-        coverages[i] ||= 0
-        coverages[i] += 1
-      end
-    end
-
-    hydrophobicities.each_with_index do |h,i|
-      next if i==0 #there is no zeroth residue
-      puts h/coverages[i].to_f
-    end
-  end
+  include AtBias
 
   def hydrophobicity_bias_n_terminal_coverage_normalised_no_secreted
     puts "Hydrophobicities"

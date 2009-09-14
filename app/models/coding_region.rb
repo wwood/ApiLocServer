@@ -1120,6 +1120,21 @@ class CodingRegion < ActiveRecord::Base
     acmi
   end
 
+  # Return an Array of 1s and 0s the length of the transcript.
+  # 1 means A or T, 0 means G or C
+  def cds_at_profile
+    return nil if cdsseq.nil?
+    acmi = []
+    cdsseq.each_char do |base|
+      if %w(A T).include?(base.upcase)
+        acmi.push 1
+      else
+        acmi.push 0
+      end
+    end
+    acmi
+  end
+
   # return an array of 1s and 0s corresponding to the amino acids, where
   # 1 indicates that amino acid is covered by at least one proteomics fragment,
   # and a 0 indicates that it is not.
@@ -1137,15 +1152,18 @@ class CodingRegion < ActiveRecord::Base
     return coverages
   end
 
-  def cruft?
-    if species.name == Species::FALCIPARUM_NAME
+  # Is this a member of a multigene family that would dominate proteome
+  # wide scans? e.g. var genes or PfEMP1 genes
+  def cruft?(species_name = nil)
+    species_name ||= species
+    if species_name == Species::FALCIPARUM_NAME
       return falciparum_cruft?
-    elsif species.name == Species::VIVAX_NAME
+    elsif species_name == Species::VIVAX_NAME
       return false if annotation.nil? or annotation.annotation.nil?
-      return annotation.annotation.gsub('[^A-Z ]','').match(/ vir /i)
-    elsif species.name == Species::BERGHEI_NAME
+      return !(annotation.annotation.gsub('[^A-Z ]','').match(/ vir /i).nil?)
+    elsif species_name == Species::BERGHEI_NAME
       return false if annotation.nil? or annotation.annotation.nil?
-      return annotation.annotation.gsub('[^A-Z ]','').match(/ bir /i)
+      return !(annotation.annotation.gsub('[^A-Z ]','').match(/ bir /i).nil?)
     end
   end
 end
