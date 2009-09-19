@@ -120,7 +120,8 @@ class BlastsController < ApplicationController
 
     # only use the blast_program given if it is defined and I understand it
     if blast_program and program_to_database_index[blast_program]
-      if database.nil?
+      # if no recognizable database is specified
+      if database.nil? or blast_array[database].nil?
         # default to protein or transcript, depending on the program
         factory_program = blast_program
         factory_database = "/blastdb/#{blast_array[program_to_database_index[blast_program]]}"
@@ -130,7 +131,7 @@ class BlastsController < ApplicationController
       end
     else
       if seq.moltype == Bio::Sequence::NA
-        if database.nil?
+        if database.nil? or blast_array[database].nil?
           # default to protein
           factory_program = 'blastn'
           factory_database = "/blastdb/#{blast_array['transcript']}"
@@ -140,7 +141,7 @@ class BlastsController < ApplicationController
           factory_database = "/blastdb/#{blast_array[database]}"
         end
       elsif seq.moltype == Bio::Sequence::AA
-        if database.nil?
+        if database.nil? or blast_array[database].nil?
           # default to protein
           factory_program = 'blastp'
           factory_database = "/blastdb/#{blast_array['protein']}"
