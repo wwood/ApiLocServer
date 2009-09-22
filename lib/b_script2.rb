@@ -315,4 +315,32 @@ class BScript2
       ].join("\t")
     end
   end
+
+  def stuart_apicoplast_falciparum_to_toxoplasma
+    r = File.read('/home/ben/Desktop/392 falciparum apicoplast.txt').split("\n").collect {|f|
+      if %w(
+PF10_0249
+PF11_0110
+PF11_0475
+PF11_0493
+PFB0814c
+PFE0180w
+PFI1740c).include?(f)
+        [f, 'no falciparum gene'].join("\t")
+      else
+        og = OrthomclGene.official.find_by_orthomcl_name("pfa|#{f}")
+        if og
+          group = og.orthomcl_group
+          if group
+            [f, og.orthomcl_group.orthomcl_genes.code('tgo').all.reach.orthomcl_name.retract].flatten.join("\t")
+          else
+            [f, 'no orthomcl group'].join("\t")
+          end
+        else
+          [f, 'no orthomcl gene'].join("\t")
+        end
+      end
+    }.join("\n"); nil
+    puts r
+  end
 end
