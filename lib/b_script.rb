@@ -4086,13 +4086,7 @@ class BScript
     end
   end
   
-  def upload_other_meta
-    DevelopmentalStage.new.upload_known_falciparum_developmental_stages
-    Localisation.new.upload_known_localisations
-    Localisation.new.upload_localisation_synonyms
-    Localisation.new.upload_falciparum_list
-    TopLevelLocalisation.new.upload_localisations
-  end
+
 
   def upload_berghei_meta
     DevelopmentalStage.new.upload_known_falciparum_developmental_stages

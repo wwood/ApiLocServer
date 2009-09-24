@@ -38,6 +38,7 @@ class DevelopmentalStage < ActiveRecord::Base
       'gametocyte committed early ring',
       'salivary gland sporozoite',
       'oocyst sporozoite',
+      'hemocoel sporozoite',
       'oocyst',
       'early oocyst',
       'sporulating oocyst',

@@ -13,6 +13,7 @@ class CodingRegion < ActiveRecord::Base
   belongs_to :gene
   has_many :cds, :dependent => :destroy
   has_many :coding_region_alternate_string_ids, :dependent => :destroy
+  has_many :literature_defined_coding_region_alternate_string_ids, :dependent => :destroy
   has_many :derisi20063d7_logmeans
   has_many :plasmodb_gene_list_entries
   has_many :plasmodb_gene_lists, :through => :plasmodb_gene_list_entries
@@ -386,8 +387,7 @@ class CodingRegion < ActiveRecord::Base
         return nil
       end
     end    
-  end
-  
+  end  
   
   def find_by_name_or_alternate_and_orthomcl_three_letter(name, orthomcl_three_letter)
     simple = CodingRegion.find(:first,

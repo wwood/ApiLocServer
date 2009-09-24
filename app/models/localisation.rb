@@ -1,3 +1,5 @@
+require 'csv'
+
 class Localisation < ActiveRecord::Base
   has_many :coding_regions, :through => :coding_region_localisations
   has_many :coding_region_localisations, :dependent => :destroy
@@ -43,6 +45,8 @@ class Localisation < ActiveRecord::Base
     'cytoplasm',
     'nucleus',
     'nuclear membrane',
+    'cis golgi',
+    'trans golgi',
     'golgi',
     'endoplasmic reticulum',
     'vesicles',
@@ -67,6 +71,9 @@ class Localisation < ActiveRecord::Base
     'oocyst protrusion', # during ookinete to oocyst transition, oocyst starts out as a round protrusion
     'peripheral of oocyst protrusion', # possibly an analogue of IMC?
     'trail', # the trail that sporozoites leave behind when they move
+    'cytoplasmic vesicles',
+    'erythrocyte cytoplasmic vesicles',
+    'vesicles under erythrocyte surface'
   ]
   
   # Return a list of ORFs that have this and only this localisation
@@ -93,7 +100,6 @@ class Localisation < ActiveRecord::Base
   def upload_localisation_synonyms
     {
       'zygote side' => 'zygote remnant',
-      'sporozoite trail' => 'trail',
       'apical tip' => 'apical',
       'parasite surface' => 'parasite plasma membrane',
       'microtubules' => 'microtubule',
@@ -132,10 +138,9 @@ class Localisation < ActiveRecord::Base
       'male gametocyte surface' => 'gametocyte surface',
       'female gametocyte surface' => 'gametocyte surface',
       'gametocyte pv' => 'gametocyte parasitophorous vacuole',
-      'cytoplasmic vesicles' => 'cytoplasm',
       'pv membrane' => 'parasitophorous vacuole membrane',
       'erythrocyte cytoplasm punctate' => 'erythrocyte cytoplasm',
-      'vesicle' => 'cytoplasm',
+      'vesicle' => 'cytoplasmic vesicles',
       'plasma membrane' => 'parasite plasma membrane',
       'surface' => 'parasite plasma membrane',
       'pm' => 'parasite plasma membrane',
@@ -147,7 +152,7 @@ class Localisation < ActiveRecord::Base
       'hepatocyte pv membrane' => 'hepatocyte parasitophorous vacuole membrane',
       'osmiophilic body' => 'gametocyte osmiophilic body',
       'cytosol diffuse' => 'cytosol',
-      'vesicles under rbc surface' => 'erythrocyte cytoplasm',
+      'vesicles under rbc surface' => 'vesicles under erythrocyte surface',
       'punctate peripheral cytoplasm' => 'cytoplasm',
       'parasite periphery' => 'cytoplasm',
       'nucleoplasm' => 'nucleus',
@@ -180,84 +185,13 @@ class Localisation < ActiveRecord::Base
   
   # Upload all the data from the localisation list manually collected by ben
   def upload_falciparum_list(filename='/home/ben/phd/gene lists/falciparum.csv')
+    upload_localisations_for_species Species::FALCIPARUM_NAME, filename
+  end
 
-    $stderr.puts "Repeatitive plasmodb ids are not uploaded!!!!!!. Need to do the two pass method, and delete localisations first"
-
-    require 'csv'
-
-    line = 0
-    CSV.open(filename, 'r', "\t") do |row|
-      line += 1
-      #      next unless line > 420
-      p row
-      
-      if row[0]
-        next if row[0].match(/^\#/) # ignore lines starting with # (comment) characters
-      end
-      next if row.length < 1 #ignore blank lines
-      
-      # name the columns sensibly
-      common_name = row[0]
-      plasmodb_id = row[1]
-      pubmed_id = row[2]
-      localisation_string = row[3]
-      comments = [row[4],row[5],row[6],row[7]]
-
-      next if common_name.nil? and plasmodb_id.nil?
-      if localisation_string.nil?
-        $stderr.puts "No localisation data found!"
-        next
-      end
-      
-      # make sure the coding region is in the database properly.
-      code = CodingRegion.ff('PFL1090w')
-      if plasmodb_id
-        plasmodb_id.strip!
-        next if ['PF13_0115'].include?(plasmodb_id)
-        code2 = CodingRegion.ff(plasmodb_id)
-        code = code2 unless code2.nil?
-        if !code2
-          $stderr.puts "No coding region '#{plasmodb_id}' found."
-          #          next
-        else
-          # Create the common name as an alternate String ID
-          CodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
-            common_name,
-            code.id
-          )
-        end
-      end
-      
-      # Create the publication(s) we are relying on
-      pubs = Publication.find_create_from_ids_or_urls pubmed_id
-      if !pubs or pubs.empty?
-        $stderr.puts "No publications found for line #{row.inspect}"
-        next
-      end
-
-      
-      # add the coding region and publication for each of the names
-      parse_name(localisation_string).each do |context|
-        pubs.each do |pub|
-          if code.string_id == 'PFA0445w'
-            puts "'PFA0445w' found: #{pub} #{context.inspect}"
-          end
-          e = ExpressionContext.find_or_create_by_coding_region_id_and_developmental_stage_id_and_localisation_id_and_publication_id(
-            code.id,
-            context.developmental_stage_id,
-            context.localisation_id,
-            pub.id
-          )
-          comments.each do |comment|
-            next if !comment
-            Comment.find_or_create_by_expression_context_id_and_comment(
-              e.id,
-              comment
-            )
-          end
-        end
-      end
-    end
+  def upload_localisations_for_species(species_name, filename)
+    upload_list_gene_ids species_name, filename
+    LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency species_name
+    upload_list_localisations species_name, filename
   end
   
   def remove_strength_modifiers(localisation_string)

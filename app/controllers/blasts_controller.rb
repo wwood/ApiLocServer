@@ -56,8 +56,11 @@ class BlastsController < ApplicationController
     # being correct.
     seq2 = Bio::Sequence.auto(@seq)
     if seq2.moltype == Bio::Sequence::NA and 
-        !%w(blastn tblastx blastx).include?(params[:program]) and
-        !%w(transcript genome).include?(params[:database])
+        !%w(blastn tblastx blastx).include?(params[:program]) #and
+      # Commented out the line below because it was getting in the way of tblastn against the genome.
+      # why was it there again? Can't remember.
+      #  !%w(transcript genome).include?(params[:database])
+
       # found a nucleotide sequence. What is the protein sequence attached
       # to it?
       rets = Bio::NCBI::REST::efetch(@genbank_id, {:db => 'nucleotide', :rettype => 'gb'})
@@ -126,6 +129,7 @@ class BlastsController < ApplicationController
         factory_program = blast_program
         factory_database = "/blastdb/#{blast_array[program_to_database_index[blast_program]]}"
       else
+        logger.debug "Using what you expect: #{blast_program}, #{sequence}"
         factory_program = blast_program
         factory_database = "/blastdb/#{blast_array[database]}"
       end
