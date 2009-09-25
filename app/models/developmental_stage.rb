@@ -7,6 +7,7 @@ class DevelopmentalStage < ActiveRecord::Base
   
   def upload_known_falciparum_developmental_stages
     [
+      'intraerythrocytic',
       'ring',
       'early ring',
       'late ring',
@@ -16,9 +17,12 @@ class DevelopmentalStage < ActiveRecord::Base
       'schizont',
       'early schizont',
       'late schizont',
+      'segmenter',
       'sporozoite',
       'merozoite',
       'extracellular merozoite',
+      'after rupture', #after the RBC has ruptured. Not the same as free merozoite, but sort of I guess
+      'invasion',
       'hepatocyte',
       'early hepatocyte',
       'late hepatocyte',
@@ -28,7 +32,9 @@ class DevelopmentalStage < ActiveRecord::Base
       'gametocyte stage II',
       'gametocyte stage III',
       'gametocyte stage IV',
+      'gametocyte stage V',
       'gametocyte',
+      'developing gametocyte',
       'female gametocyte',
       'male gametocyte',
       'retort',
@@ -49,12 +55,17 @@ class DevelopmentalStage < ActiveRecord::Base
       'sporozoite invasion',
       'after sporozoite invasion',
       'developing oocyst',
+      '30h',
+      '40h',
     ].each do |name|
       DevelopmentalStage.find_or_create_by_name(name) or raise
       DevelopmentalStage.find_or_create_by_name(DevelopmentalStage.add_negation(name)) or raise
     end
     
     {
+      'developing gametocytes' => 'developing gametocyte',
+      'intact schizont' => 'early schizont',
+      'mature' => 'schizont',
       'hemolymph sporozoite' => 'oocyst sporozoite',
       'ookinete protrusion' => 'retort',
       'young oocyst' => 'early oocyst',
@@ -70,21 +81,36 @@ class DevelopmentalStage < ActiveRecord::Base
       'free merozoite' => 'extracellular merozoite',
       'hepatocyte stage' => 'hepatocyte',
       'trophs' => 'trophozoite',
+      'young trophs' => 'early trophozoite',
+      'young troph' => 'early trophozoite',
+      'old trophs' => 'late trophozoite',
+      'old troph' => 'late trophozoite',
+      'old trophozoite' => 'late trophozoite',
+      'mature troph' => 'late trophozoite',
       'rings' => 'ring',
       'merozoites' => 'merozoite',
       'mature schizonts' => 'late schizont',
+      'mature intraerythcytic' => 'schizont',
       'mature schizont' => 'late schizont',
       'immature schizont' => 'early schizont',
       'segmented schizont' => 'late schizont',
+      'extracellular schizont' => 'extracellular merozoite',
       'mature trophozoite' => 'late trophozoite',
       'troph' => 'trophozoite',
       'young trophozoite' => 'early trophozoite',
       'schizonts' => 'schizont',
       'young schizont' => 'early schizont',
       'early troph' => 'early trophozoite',
+      'intracellular' => 'intraerythrocytic',
+      'asexual' => 'intraerythrocytic',
       'blood stages' => ['ring', 'trophozoite', 'schizont'],
       'asexual stages' => ['ring', 'trophozoite', 'schizont', 'merozoite'],
       'erythrocytic stages' => ['ring', 'trophozoite', 'schizont', 'merozoite'],
+      'stage I gametocyte' => 'gametocyte stage I',
+      'stage II gametocyte' => 'gametocyte stage II',
+      'stage III gametocyte' => 'gametocyte stage III',
+      'stage IV gametocyte' => 'gametocyte stage IV',
+      'stage V gametocyte' => 'gametocyte stage V',
     }.each do |key, value|
       if value.kind_of?(Array)
         value.each {|name| upload_stage_synonym(key, name)}
@@ -126,7 +152,7 @@ class DevelopmentalStage < ActiveRecord::Base
   # small method to DRY another method
   def upload_stage_synonym(synonym, name)
     dev = DevelopmentalStage.find_by_name(name)
-    raise if !dev
+    raise Exception, "No primary dev stage #{name} found from #{synonym}" unless dev
     raise if !DevelopmentalStageSynonym.find_or_create_by_name_and_developmental_stage_id(
       synonym, dev.id
     )

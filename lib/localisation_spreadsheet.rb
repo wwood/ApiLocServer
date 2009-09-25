@@ -102,7 +102,7 @@ class LocalisationSpreadsheet
           $stderr.puts "Skipping. You should know why, because I have already told you"
         end
       else
-        $stderr.puts "Couldn't find matching gene id for #{info.common_names.inspect}, skipping."
+        $stderr.puts "Couldn't find matching gene id for #{info.common_names.inspect} in the second pass, skipping."
       end
     end
   end
@@ -112,7 +112,9 @@ class LocalisationSpreadsheet
     
     # Upload each of the localisations as an expression context
     parse_spreadsheet(species_name, filename) do |info, line_number|
+      p info
       next unless info.normal_localisation_line?
+
       if info.localisation_and_timing.nil?
         $stderr.puts "No localisation data found. I expected some. Ignoring this line"
         next
@@ -127,7 +129,10 @@ class LocalisationSpreadsheet
         codes = LiteratureDefinedCodingRegionAlternateStringId.find_all_by_name(info.common_names[0],
           :joins => {:coding_region => {:gene => {:scaffold => :species}}},
           :conditions => {:species => {:name => species_name}}).reach.coding_region.uniq
-        raise Exception, "Too many hits to the common name #{info.common_names[0]}: #{codes.inspect}" unless codes.length == 1
+        unless codes.length == 1
+          $stderr.puts "Too many hits to the common name #{info.common_names[0]}: #{codes.inspect}"
+          next
+        end
         code = codes[0]
       end
 
@@ -232,7 +237,7 @@ class LocalisationSpreadsheetRow
   def parse_common_name_column(species_name, common_name)
     return [] unless common_name
     common_name.split(',').reach.strip.collect do |c|
-      remove_species_prefix species_name, c
+      (remove_species_prefix species_name, c).downcase
     end
   end
 

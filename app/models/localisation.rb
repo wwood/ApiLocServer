@@ -19,12 +19,18 @@ class Localisation < ActiveRecord::Base
   KNOWN_FALCIPARUM_LOCALISATIONS = [
     'knob', #start of ring, troph, schizont stage locs
     'erythrocyte cytoplasm',
+    'erythrocyte cytosol',
     'maurer\'s clefts',
+    'tubulovesicular membrane',
     'erythrocyte plasma membrane',
+    'erythrocyte periphery',
     'erythrocyte cytoplasmic structures',
+    'exported',
     'cytoplasmic side of erythrocyte membrane',
     'beyond erythrocyte membrane',
+    'cleft like parasitophorous vacuole membrane protrusions',
     'parasitophorous vacuole',
+    'parasitophorous vacuole subdomains',
     'parasitophorous vacuole membrane',
     'parasite plasma membrane',
     'apicoplast membrane',
@@ -38,7 +44,11 @@ class Localisation < ActiveRecord::Base
     'mitotic spindle in nucleus',
     'food vacuole',
     'food vacuole membrane',
+    'food vacuole lumen',
+    'spot in parasitophorous vacuole close to food vacuole',
+    'cytostome',
     'mitochondria',
+    'mitochondrial inner membrane',
     'mitochondrial membrane',
     'apicoplast',
     'cytosol',
@@ -48,24 +58,33 @@ class Localisation < ActiveRecord::Base
     'cis golgi',
     'trans golgi',
     'golgi',
+    'golgi matrix',
     'endoplasmic reticulum',
     'vesicles',
     'intracellular vacuole',
+    'intracellular inclusions',
+    'punctate intracellular inclusions',
     'vesicles near parasite surface',
     'peripheral',
     'merozoite surface', #start of merozoite locs
+    'merozoite associated material',
+    'apical end of surface',
     'moving junction',
     'inner membrane complex',
     'pellicle',
     'rhoptry',
     'rhoptry neck',
+    'rhoptry bulb',
+    'nowhere except rhoptry',
     'microneme',
     'mononeme',
     'dense granule',
     'apical',
     'gametocyte osmiophilic body',
+    'gametocyte attached erythrocytic vesicles',
     'sporozoite surface', #sporozoite locs
     'oocyst wall',
+    'osmiophilic bodies',
     'zygote remnant', # the zygote part when the ookinete is budding off from the zygote
     'ookinete protrusion', # the opposite of zygote remnant
     'oocyst protrusion', # during ookinete to oocyst transition, oocyst starts out as a round protrusion
@@ -73,7 +92,13 @@ class Localisation < ActiveRecord::Base
     'trail', # the trail that sporozoites leave behind when they move
     'cytoplasmic vesicles',
     'erythrocyte cytoplasmic vesicles',
-    'vesicles under erythrocyte surface'
+    'intraerythrocytic cysternae',
+    'vesicles under erythrocyte surface',
+    'area around nucleus', # not a very specific localisation compared to 'nuclear envelope' or 'ER'
+    'nuclear envelope',
+    'internal organelles',
+    'cytoplasmic structures',
+    'spread around parasite',
   ]
   
   # Return a list of ORFs that have this and only this localisation
@@ -99,6 +124,15 @@ class Localisation < ActiveRecord::Base
   
   def upload_localisation_synonyms
     {
+      'rbc vesicles' => 'erythrocyte cytoplasmic structures',
+      'spread around each individual merozoite' => 'spread around parasite',
+      'spot in pv close to fv' => 'spot in parasitophorous vacuole close to food vacuole',
+      'rbc vesicles connected to the gametocyte' => 'gametocyte attached erythrocytic vesicles',
+      'cleft like pvm protrusions' => 'cleft like parasitophorous vacuole membrane protrusions',
+      'red blood cell cytosol' => 'erythrocyte cytosol',
+      'rbcm' => 'erythrocyte plasma membrane',
+      'tvm' => 'tubulovesicular membrane',
+      'rhoptry ductule' => 'rhoptry neck',
       'zygote side' => 'zygote remnant',
       'apical tip' => 'apical',
       'parasite surface' => 'parasite plasma membrane',
@@ -117,8 +151,8 @@ class Localisation < ActiveRecord::Base
       'ER' => 'endoplasmic reticulum',
       'tER' => 'endoplasmic reticulum',
       'imc' => 'inner membrane complex',
-      'cis-golgi' => 'golgi',
-      'trans-golgi' => 'golgi', 
+      'early golgi' => 'cis golgi',
+      'late golgi' => 'trans golgi',
       'pv' => 'parasitophorous vacuole',
       'maurer\'s cleft' => 'maurer\'s clefts',
       'knobs' => 'knob',
@@ -166,7 +200,11 @@ class Localisation < ActiveRecord::Base
       'erythrocyte cytosol' => 'erythrocyte cytoplasm',
       'pvm' => 'parasitophorous vacuole membrane',
       'moving junction' => 'merozoite surface',
-      'merozoite membrane' => "merozoite surface"
+      'merozoite membrane' => "merozoite surface",
+      'fv lumen' => 'food vacuole lumen',
+      'rbc periphery' => 'erythrocyte periphery',
+      'cytostomal vacuole' => 'cytostome',
+      'pv subdomains' => 'parasitophorous vacuole subdomains',
     }.each do |key, value|
       l = value.downcase
       loc = Localisation.find_by_name(l)
@@ -195,7 +233,7 @@ class Localisation < ActiveRecord::Base
   end
   
   def remove_strength_modifiers(localisation_string)
-    %w(weak strong).each do |modifier|
+    %w(weak strong sometimes some dotty punctate).each do |modifier|
       localisation_string.gsub!(/^#{modifier} /, '')
     end
     localisation_string
@@ -216,7 +254,8 @@ class Localisation < ActiveRecord::Base
           positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(stage)
 
           if positive_devs.empty?
-            raise Exception, "No such dev stage '#{stage}' found."
+            $stderr.puts "No such dev stage '#{stage}' found."
+            next
           else
             positive_devs.each do |found|
               negated = DevelopmentalStage.add_negation(found.name)
@@ -232,7 +271,10 @@ class Localisation < ActiveRecord::Base
         matches[1].split(' and ').each do |stage|
           if matches = stage.match(/^not (.+)/)
             positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(matches[1])
-            raise Exception, "No such dev stage '#{matches[1]}' found." if positive_devs.empty?
+            if positive_devs.empty?
+              $stderr.puts "No such dev stage '#{matches[1]}' found."
+              next
+            end
             positive_devs.each do |found|
               negated = DevelopmentalStage.add_negation(found.name)
               d = DevelopmentalStage.find_by_name_or_alternate(negated)
@@ -242,7 +284,10 @@ class Localisation < ActiveRecord::Base
             end
           else
             positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(remove_strength_modifiers(stage))
-            raise Exception, "No such dev stage '#{stage}' found." if positive_devs.empty?
+            if positive_devs.empty?
+              $stderr.puts "No such dev stage '#{stage}' found."
+              next
+            end
             positive_devs.each do |found|
               d = DevelopmentalStage.find_by_name_or_alternate(found.name)
               contexts.push ExpressionContext.new(
@@ -281,7 +326,8 @@ class Localisation < ActiveRecord::Base
           end
 
           if d.empty?
-            raise Exception, "No such dev stage '#{stage}' found."
+            $stderr.puts "No such dev stage '#{stage}' found."
+            next
           else
             stages.push d
           end
@@ -329,7 +375,8 @@ class Localisation < ActiveRecord::Base
       loc.strip!
       loc.downcase!
       loc.split(' then ').each do |loc2|
-        locs.push parse_small_small_name(loc2)
+        l = parse_small_small_name(loc2)
+        locs.push l unless l.nil?
       end
     end
     return locs
@@ -347,7 +394,10 @@ class Localisation < ActiveRecord::Base
       end
     end
     
-    raise ParseException, "Localisation not understood: '#{frag}'" if !l
+    unless l
+      $stderr.puts "Localisation not understood: '#{frag}'"
+      return nil
+    end
     return l
   end
   
