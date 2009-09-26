@@ -3,7 +3,11 @@ require 'reach'
 # A class representing alternate string IDs taken from the literature
 class LiteratureDefinedCodingRegionAlternateStringId < CodingRegionAlternateStringId
 
-  NONSPECIFIC_COMMON_NAMES = %w(ARP H103 SPP)
+  #  Not needed because I just check for it manually elsewhere
+  #  NONSPECIFIC_COMMON_NAMES = %w(ARP H103 SPP)
+  #  def inconsistent_name?
+  #    NONSPECIFIC_COMMON_NAMES.include?(LocalisationSpreadsheetRow.new.remove_species_prefix(coding_region.species.name, name))
+  #  end
 
   # Find strangeness in the literature uploaded names. 
   # 2 genes shouldn't have the same name, basically

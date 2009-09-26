@@ -1,7 +1,7 @@
 class ChangeIndexRulesOnAlternateCodingRegionIds < ActiveRecord::Migration
   def self.up
     # remove the :uniq constraint, because now there is sub-types
-    remove_index :coding_region_alternate_string_ids, [:coding_region_id, :name]
+    remove_index :coding_region_alternate_string_ids, :name => "index_coding_region_alternate_string_ids_on_coding_region_id_an"
     add_index :coding_region_alternate_string_ids, [:coding_region_id, :name], :name => 'index3'
     
     add_index :coding_region_alternate_string_ids, [:coding_region_id, :name, :type], :unique => true, :name => 'index4'

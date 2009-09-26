@@ -57,6 +57,7 @@ class DevelopmentalStage < ActiveRecord::Base
       'developing oocyst',
       '30h',
       '40h',
+      '24h after invasion',
     ].each do |name|
       DevelopmentalStage.find_or_create_by_name(name) or raise
       DevelopmentalStage.find_or_create_by_name(DevelopmentalStage.add_negation(name)) or raise

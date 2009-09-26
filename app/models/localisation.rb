@@ -23,8 +23,10 @@ class Localisation < ActiveRecord::Base
     'maurer\'s clefts',
     'tubulovesicular membrane',
     'erythrocyte plasma membrane',
+    'exposed erythrocyte plasma membrane',
     'erythrocyte periphery',
     'erythrocyte cytoplasmic structures',
+    'single small vesicles in erythrocyte',
     'exported',
     'cytoplasmic side of erythrocyte membrane',
     'beyond erythrocyte membrane',
@@ -97,8 +99,10 @@ class Localisation < ActiveRecord::Base
     'area around nucleus', # not a very specific localisation compared to 'nuclear envelope' or 'ER'
     'nuclear envelope',
     'internal organelles',
+    'intracellular',
     'cytoplasmic structures',
     'spread around parasite',
+    'throughout parasite',
   ]
   
   # Return a list of ORFs that have this and only this localisation
@@ -124,6 +128,12 @@ class Localisation < ActiveRecord::Base
   
   def upload_localisation_synonyms
     {
+      'rhoptry body' => 'rhoptry bulb',
+      'throughout cell' => 'throughout parasite',
+      'crescent shaped cap associated with apical pole' => 'apical',
+      'mam' => 'merozoite associated material',
+      'single small vesicles' => 'single small vesicles in erythrocyte',
+      'exposed rbc surface' => 'exposed erythrocyte plasma membrane',
       'rbc vesicles' => 'erythrocyte cytoplasmic structures',
       'spread around each individual merozoite' => 'spread around parasite',
       'spot in pv close to fv' => 'spot in parasitophorous vacuole close to food vacuole',
