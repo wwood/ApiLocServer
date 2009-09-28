@@ -6,6 +6,7 @@ require File.dirname(__FILE__)+'/../../lib/test_helpers' #not the standard rail 
 class LocalisationTest < ActiveSupport::TestCase
   def setup
     @l = Localisation.new
+    LocalisationModifier.new.upload_known_modifiers
   end
   
   def test_simple
@@ -202,39 +203,33 @@ class LocalisationTest < ActiveSupport::TestCase
   end
 
   def test_remove_strength_modifiers
-    assert_equal 'yey', Localisation.new.remove_strength_modifiers('yey')
-    assert_equal false, Localisation.new.remove_strength_modifiers('weak yey')
+    assert_equal ['yey', nil], Localisation.new.remove_strength_modifiers('yey')
+    assert_equal ['yey', LocalisationModifier.find_by_modifier('weak').id],
+      Localisation.new.remove_strength_modifiers('weak yey')
   end
 
   def test_weak_during
-    assert_equal [], Localisation.new.parse_name('weak during schizont')
+    assert_equal [ExpressionContext.new(
+        :developmental_stage => DevelopmentalStage.find_by_name('schizont'),
+        :localisation_modifier => LocalisationModifier.find_by_modifier('weak')
+      )], Localisation.new.parse_name('weak during schizont')
+    
     assert_equal [
       ExpressionContext.new(
         :developmental_stage => DevelopmentalStage.find_by_name('ring')
+      ),
+      ExpressionContext.new(
+        :developmental_stage => DevelopmentalStage.find_by_name('schizont'),
+        :localisation_modifier => LocalisationModifier.find_by_modifier('weak')
       )],
       Localisation.new.parse_name('during ring, weak during schizont')
-
-    # test another 'weak' modifier
-    assert_equal [], Localisation.new.parse_name('sometimes during schizont')
-    assert_equal [
-      ExpressionContext.new(
-        :developmental_stage => DevelopmentalStage.find_by_name('ring')
-      )],
-      Localisation.new.parse_name('during ring, sometimes during schizont')
-  end
-
-  def test_weak_localisation
-    assert_equal [], Localisation.new.parse_name('little')
-    assert_equal [], Localisation.new.parse_name('little apicoplast')
-    assert_equal [ExpressionContext.new(
-        :localisation => Localisation.find_by_name('apicoplast')
-      )], Localisation.new.parse_name('strong apicoplast')
   end
 
   def test_modifier_during
     assert_equal [
       ExpressionContext.new(
-        :developmental_stage => DevelopmentalStage.find_by_name('schizont')
+        :developmental_stage => DevelopmentalStage.find_by_name('schizont'),
+        :localisation_modifier => LocalisationModifier.find_by_modifier('strong')
       )],
       Localisation.new.parse_name('strong during schizont')
   end

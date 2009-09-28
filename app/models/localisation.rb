@@ -26,10 +26,13 @@ class Localisation < ActiveRecord::Base
     'exposed erythrocyte plasma membrane',
     'erythrocyte periphery',
     'erythrocyte cytoplasmic structures',
+    'erythrocyte cytoplasmic structures near parasitophorous vacuole',
+    'erythrocyte',
     'single small vesicles in erythrocyte',
     'exported',
     'cytoplasmic side of erythrocyte membrane',
     'beyond erythrocyte membrane',
+    'membrane of lysed erythrocyte',
     'cleft like parasitophorous vacuole membrane protrusions',
     'punctate parasitophorous vacuole',
     'parasitophorous vacuole',
@@ -56,15 +59,22 @@ class Localisation < ActiveRecord::Base
     'mitochondrial inner membrane',
     'mitochondrial membrane',
     'apicoplast',
+    'nowhere except apicoplast',
+    'near apicoplast membranes',
+    'innermost apicoplast membrane',
+    'outermost apicoplast membrane',
     'cytosol',
     'cytoplasm',
     'nucleus',
     'nuclear membrane',
+    'electron-dense heterochromatic region at the nuclear periphery',
+    'nuclear interior',
     'cis golgi',
     'trans golgi',
     'golgi',
     'golgi matrix',
     'endoplasmic reticulum',
+    'endoplasmic reticulum associated vesicles',
     'vesicles',
     'intracellular vacuole',
     'intracellular inclusions',
@@ -85,6 +95,7 @@ class Localisation < ActiveRecord::Base
     'mononeme',
     'dense granule',
     'apical',
+    'apical parasite plasma membrane',
     'posterior structure',
     'anterior structure',
     'gametocyte osmiophilic body',
@@ -103,12 +114,28 @@ class Localisation < ActiveRecord::Base
     'vesicles under erythrocyte surface',
     'area around nucleus', # not a very specific localisation compared to 'nuclear envelope' or 'ER'
     'nuclear envelope',
+    'perinuclear',
+    'far nuclear periphery',
+    'interior of nucleus',
+    'foci near nucleus',
     'internal organelles',
     'intracellular',
     'cytoplasmic structures',
     'spread around parasite',
     'throughout parasite',
     'poles',
+    'discrete compartments at parasite periphery',
+    'around cytomeres',
+    'around merozoite',
+    'exoneme',
+    'telomeric cluster',
+    'surrounding parasite',
+    'residual body membrane',
+    'residual body',
+    'exflagellation centre',
+    'membrane structure',
+    'straight side of d shaped parasite', # A P. falciparum specific localisation
+    'internal membrane networks',
   ]
   
   # Return a list of ORFs that have this and only this localisation
@@ -134,7 +161,58 @@ class Localisation < ActiveRecord::Base
   
   def upload_localisation_synonyms
     {
-      'dotty pv' => 'punctate parasitophorous vacuole',
+      'discrete dots on ppm' => 'parasite plasma membrane',
+      'spotted in the erythrocyte cytoplasm' => 'erythrocyte cytoplasmic structures',
+      'granules near pv in erythrocyte cytoplasm' => 'erythrocyte cytoplasmic structures near parasitophorous vacuole',
+      'small double membrane-bound small hemoglobin-containing vacuoles' => 'cytostome',
+      'intraerythrocytic spots' => 'erythrocyte cytoplasmic structures',
+      'released extracellularly' => 'beyond erythrocyte membrane',
+      'small structures in parasite' => 'cytoplasmic structures',
+      'parasite nucleus' => 'nucleus',
+      'dispersed fluorescent patches underneath erythrocyte surface' => 'erythrocyte periphery',
+      'membrane bound vesicles' => 'vesicles',
+      'tvn' => 'tubulovesicular membrane',
+      'fvm' => 'food vacuole membrane',
+      'intraparasitic vacuoles' => 'intracellular vacuole',
+      'tubulovesicular system' => 'tubulovesicular membrane',
+      'er associated vesicles' => 'endoplasmic reticulum associated vesicles',
+      'infected erythrocyte' => 'erythrocyte cytoplasm',
+      'irbc' => 'erythrocyte cytoplasm',
+      'anterior' => 'apical',
+      'surrounding intracellular merozoite' => 'surrounding parasite',
+      'small vesicles in erythrocyte cytoplasm' => 'single small vesicles in erythrocyte',
+      'telomere cluster' => 'telomeric cluster',
+      'nucleus surrounding regions' => 'area around nucleus',
+      'periphery of cytoplasm' => 'peripheral',
+      'circumference' => 'parasite plasma membrane',
+      'discrete dots on parasite plasma membrane' => 'parasite plasma membrane',
+      'cytoplasm of host infected erythrocyte' => 'erythrocyte cytoplasm',
+      'surface membrane' => 'parasite plasma membrane',
+      'peripheral cytoplasm' => 'peripheral',
+      'golgi aparatus' => 'golgi',
+      'vesicles like structures' => 'vesicles',
+      'apical surface' => 'apical parasite plasma membrane',
+      'rbc cytosol' => 'erythrocyte cytosol',
+      'parasite rim' => 'peripheral',
+      'telomeric clusters' => 'telomeric cluster',
+      'widely distributed in apical' => 'apical',
+      'apical foci' => 'apical',
+      'parasite cytoplasm' => 'cytoplasm',
+      'host cell cytoplasm' => 'erythrocyte cytoplasm',
+      'cell' => 'intracellular',
+      'pv related structures in erythrocyte cytoplasm' => 'cleft like parasitophorous vacuole membrane protrusions',
+      'cytoplasmic face of erthrocyte plasma membrane' => 'cytoplasmic side of erythrocyte membrane',
+      'with membrane' => 'parasite plasma membrane',
+      'vesicles in infected erythrocyte cytoplasm' => 'erythrocyte cytoplasmic structures',
+      'intracellular bright spots' => 'intracellular',
+      'almost exclusively cytoplasm' => 'cytoplasm',
+      'close to membrane in apicoplast' => 'near apicoplast membranes',
+      'perinuclear spots' => 'perinuclear',
+      'electron sparse nuclear interior' => 'nuclear interior',
+      'apicoplast only' => 'nowhere except apicoplast',
+      'parasite' => 'intracellular',
+      'in association with the parasite plasmalemma' => 'parasite plasma membrane',
+      'parasite membrane' => 'parasite plasma membrane',
       'patchy on plasma membrane' => 'patchy on parasite plasma membrane',
       'apical end of surface' => 'apical plasma membrane',
       'outside of erythrocyte membranes' => 'beyond erythrocyte membrane',
@@ -250,26 +328,21 @@ class Localisation < ActiveRecord::Base
     upload_list_localisations species_name, filename
   end
 
-  # Remove words like 'sometimes' or 'strong' from localisation strings.
-  # A strength modifier can either be accepted or ignored.
-  # for ignored ones (like sometimes), this returns false
-  # for accepted ones (like strong), this returns the localisation
-  # string without the modifier.
+  # Remove words like 'sometimes' or 'strong' from localisation strings, and
+  # add them to the given expression context
   #
-  # It is the localisation that should be ignored, not the modifier.
-  # Having trouble thinking of a better word for this.
+  # Assumes the context is a single word, and that the string given is at
+  # least 1 word long.
+  #
+  # Returns the modified localisation string
   def remove_strength_modifiers(localisation_string)
-    modifiers_ignore = %w(weak sometimes some little)
-    modifiers_accept = %w(strong)
-    modifiers_ignore.each do |modifier|
-      return false if localisation_string.match(/^#{modifier}/)
+    mod = LocalisationModifier.find_by_modifier(localisation_string.strip.split(' ')[0])
+    if mod
+      tor = localisation_string.gsub(/^#{mod.modifier} /,'').gsub(/^#{mod.modifier}/,''), mod.id
+      return tor
+    else
+      return localisation_string, nil
     end
-    modifiers_accept.each do |modifier|
-      if localisation_string.match(/^#{modifier} /) or localisation_string.match(/^#{modifier}/)
-        return localisation_string.gsub(/^#{modifier} /,'').gsub(/^#{modifier}/,'')
-      end
-    end
-    return localisation_string #only returns here when modifier is legit
   end
   
   # Parse a line from the dirty localisation files. Return an array of (unsaved) ExpressionContext objects
@@ -281,7 +354,7 @@ class Localisation < ActiveRecord::Base
       fragment.strip!
       
       # If gene is not expressed during a certain developmental stage
-      if matches = fragment.match('not during (.*)')
+      if matches = fragment.match(/^not during (.*)/i)
         stages = []
         matches[1].split(' and ').each do |stage|
           positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(stage)
@@ -316,8 +389,7 @@ class Localisation < ActiveRecord::Base
               )
             end
           else
-            str = remove_strength_modifiers(stage)
-            next unless str #ignore when they say weak, accept when they say strong
+            str, modifier_id = remove_strength_modifiers(stage)
             positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(str)
             if positive_devs.empty?
               $stderr.puts "No such dev stage '#{stage}' found."
@@ -326,7 +398,8 @@ class Localisation < ActiveRecord::Base
             positive_devs.each do |found|
               d = DevelopmentalStage.find_by_name_or_alternate(found.name)
               contexts.push ExpressionContext.new(
-                :developmental_stage => d
+                :developmental_stage => d,
+                :localisation_modifier_id => modifier_id
               )
             end
           end
@@ -368,25 +441,21 @@ class Localisation < ActiveRecord::Base
 
         # add each of the resulting pairs
         locs.pairs(stages).each do |arr|
-          if arr[0] == true
-            contexts.push ExpressionContext.new(
-              :developmental_stage => arr[1]
-            )
-          else
-            contexts.push ExpressionContext.new(
-              :localisation => arr[0],
-              :developmental_stage => arr[1]
-            )
-          end
+          loc_e = arr[0]
+          dev = arr[1]
+
+          contexts.push ExpressionContext.new(
+            :localisation_id => loc_e.localisation_id,
+            :localisation_modifier_id => loc_e.localisation_modifier_id,
+            :developmental_stage => dev
+          )
         end
         
       else #no during - it's just a straight localisation
         # split each of the localisations by 'and' and 'then'
-        locs = parse_small_name(fragment)
-        locs.each do |l|
-          contexts.push ExpressionContext.new(
-            :localisation => l
-          )
+        eees = parse_small_name(fragment)
+        eees.each do |e|
+          contexts.push e
         end
       end
     end
@@ -413,8 +482,8 @@ class Localisation < ActiveRecord::Base
       loc.strip!
       loc.downcase!
       loc.split(' then ').each do |loc2|
-        l = parse_small_small_name(loc2)
-        locs.push l unless l.nil?
+        e = parse_small_small_name(loc2)
+        locs.push e unless e.nil?
       end
     end
     return locs
@@ -423,26 +492,26 @@ class Localisation < ActiveRecord::Base
   def parse_small_small_name(frag)
     frag.strip!
     frag.downcase!
-    str = remove_strength_modifiers(frag)
-    return nil unless str #ignore weak localisations
+    e = ExpressionContext.new
+    str, modifier_id = remove_strength_modifiers(frag)
+    e.localisation_modifier_id = modifier_id
 
-    # when there is a strong signal without a localisation
-    # to go with it, return true
-    return true if str == ''
+    unless str == '' #empty strings are ok, but there's no loc info in them
+      l = Localisation.find_by_name_or_alternate(str)
+      if !l and matches = str.match(/^not (.+)$/)
+        syn = LocalisationSynonym.find_by_name(matches[1])
+        if syn
+          l = Localisation.find_by_name("not #{syn.localisation.name}")
+        end
+      end
     
-    l = Localisation.find_by_name_or_alternate(str)
-    if !l and matches = str.match(/^not (.+)$/)
-      syn = LocalisationSynonym.find_by_name(matches[1])
-      if syn
-        l = Localisation.find_by_name("not #{syn.localisation.name}")
+      unless l
+        $stderr.puts "Localisation not understood: '#{str}' from '#{frag}'"
+      else
+        e.localisation_id = l.id
       end
     end
-    
-    unless l
-      $stderr.puts "Localisation not understood: '#{str}' from '#{frag}'"
-      return nil
-    end
-    return l
+    return e
   end
   
 end

@@ -5,6 +5,7 @@ class ExpressionContext < ActiveRecord::Base
   belongs_to :developmental_stage
   belongs_to :coding_region
   belongs_to :localisation
+  belongs_to :localisation_modifier
   
   has_many :comments
   

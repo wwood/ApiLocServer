@@ -1,7 +1,8 @@
 class LocalisationModifier < ActiveRecord::Base
   KNOWN_MODIFIERS = %w(
-      weak sometimes some little
-    strong
+    weak sometimes some little sporadically
+    strong substantial mainly throughout predominantly bright
+    punctate homogenous homogenously diffuse uniform heterogenous semi-punctate smooth beaded
   )
 
   def upload_known_modifiers

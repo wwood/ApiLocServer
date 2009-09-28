@@ -112,9 +112,9 @@ class LocalisationSpreadsheet
     
     # Upload each of the localisations as an expression context
     parse_spreadsheet(species_name, filename) do |info, line_number|
-      p info
       next unless info.normal_localisation_line?
 
+#      $stderr.puts info.inspect
       if info.localisation_and_timing.nil?
         $stderr.puts "No localisation data found. I expected some. Ignoring this line"
         next
