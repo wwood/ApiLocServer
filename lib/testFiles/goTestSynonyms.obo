@@ -1,0 +1,30 @@
+format-version: 1.2
+date: 03:03:2008 15:09
+saved-by: dph
+auto-generated-by: OBO-Edit 1.101
+subsetdef: goslim_candida "Candida GO slim"
+subsetdef: goslim_generic "Generic GO slim"
+subsetdef: goslim_goa "GOA and proteome slim"
+subsetdef: goslim_pir "PIR GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+subsetdef: gosubset_prok "Prokaryotic GO subset"
+synonymtypedef: systematic_synonym "Systematic synonym" EXACT
+default-namespace: gene_ontology
+remark: cvs version: $Revision: 5.720 $
+
+[Term]
+id: GO:0000010
+name: trans-hexaprenyltranstransferase activity
+namespace: molecular_function
+def: "Catalysis of the reaction: all-trans-hexaprenyl diphosphate + isopentenyl diphosphate = diphosphate + all-trans-heptaprenyl diphosphate." [EC:2.5.1.30]
+subset: gosubset_prok
+synonym: "all-trans-heptaprenyl-diphosphate synthase activity" EXACT [EC:2.5.1.30]
+synonym: "all-trans-hexaprenyl-diphosphate:isopentenyl-diphosphate hexaprenyltranstransferase activity" EXACT [EC:2.5.1.30]
+synonym: "heptaprenyl diphosphate synthase activity" EXACT [EC:2.5.1.30]
+synonym: "heptaprenyl pyrophosphate synthase activity" EXACT [EC:2.5.1.30]
+synonym: "heptaprenyl pyrophosphate synthetase activity" EXACT [EC:2.5.1.30]
+xref: EC:2.5.1.30
+xref: MetaCyc:TRANS-HEXAPRENYLTRANSTRANSFERASE-RXN
+is_a: GO:0016765 ! transferase activity, transferring alkyl or aryl (other than methyl) groups
+

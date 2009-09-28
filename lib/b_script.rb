@@ -77,9 +77,7 @@ class BScript
   def go_to_database
     require 'simple_go'
     
-    GoAlternate.destroy_all
     GoTerm.destroy_all
-    
 
     sg = SimpleGo.new("#{DATA_DIR}/GO/cvs/go/ontology/gene_ontology_edit.obo")
     while (e = sg.next_go)
@@ -96,6 +94,14 @@ class BScript
             go.id
           )
         }
+      end
+
+      if e.synonyms
+        e.synonyms.each do |syn|
+          GoSynonym.find_or_create_by_synonym_and_go_term_id(
+            syn, go.id
+          )
+        end
       end
     end
   end

@@ -5,6 +5,7 @@ module LocalisationSpreadsheetSpecies
     DevelopmentalStage.new.upload_known_falciparum_developmental_stages
     Localisation.new.upload_known_localisations
     Localisation.new.upload_localisation_synonyms
+    LocalisationModifier.new.upload_known_modifiers
     upload_localisations_for_species Species::FALCIPARUM_NAME, filename
     TopLevelLocalisation.new.upload_localisations
   end

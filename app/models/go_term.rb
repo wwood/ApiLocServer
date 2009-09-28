@@ -8,6 +8,7 @@ class GoTerm < ActiveRecord::Base
   #  has_and_belongs_to_many :go_terms, :class_name => 'GenericGoMap'
   
   has_many :go_alternates, :dependent => :destroy
+  has_many :go_synonyms, :dependent => :destroy
 
   ENZYME_GO_TERM = 'GO:0003824'
   GPCR_GO_TERM = 'GO:0004930'
@@ -36,5 +37,13 @@ class GoTerm < ActiveRecord::Base
       # Nothing found. Bad news for you - is the database up to scratch?
       return nil
     end
+  end
+
+  def self.find_all_by_term_and_aspect_or_synonym(go_identifier, aspect)
+    g = GoTerm.find_all_by_term_and_aspect(go_identifier,aspect)
+    g.push GoSynonym.find_all_by_synonym_and_aspect(go_identifier).reach.go_term.select{|g|
+      g.aspect == aspect
+    }
+    return g.flatten.uniq
   end
 end

@@ -17,7 +17,7 @@ class SimpleGo
         return nil
       end
       
-      if line.match('^\[Term\]')
+      if line.match(/^\[Term\]/)
         goid_line = @go_file.gets
         name_line = @go_file.gets
         namespace_line = @go_file.gets
@@ -52,6 +52,16 @@ class SimpleGo
             alternate_line = @go_file.gets
         end
         entry.alternates = alternates
+
+        #Parse synonyms from the following lines
+        synonym_line = @go_file.gets
+        while (!synonym_line.nil? and synonym_line != "\n")
+          if (matches = synonym_line.match(/^synonym\: \"(.*?)\"/))
+            entry.synonyms ||= []
+            entry.synonyms.push matches[1]
+          end
+          synonym_line = @go_file.gets
+        end
         
         return entry
       end
@@ -61,7 +71,7 @@ end
 
 # Something like ('GO:0000001','mitochondrion inheritance','biological_process')
 class GoEntry
-  attr_accessor :go_id, :name, :namespace, :alternates
+  attr_accessor :go_id, :name, :namespace, :alternates, :synonyms
   
   def initialize()
   end

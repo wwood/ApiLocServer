@@ -31,12 +31,15 @@ class Localisation < ActiveRecord::Base
     'cytoplasmic side of erythrocyte membrane',
     'beyond erythrocyte membrane',
     'cleft like parasitophorous vacuole membrane protrusions',
+    'punctate parasitophorous vacuole',
     'parasitophorous vacuole',
     'parasitophorous vacuole subdomains',
     'parasitophorous vacuole membrane',
     'parasite plasma membrane',
+    'patchy on parasite plasma membrane',
     'apicoplast membrane',
     'proximal to plasma membrane',
+    'apical plasma membrane',
     'diffuse cytoplasm',
     'under parasite plama membrane',
     'microtubule',
@@ -82,6 +85,8 @@ class Localisation < ActiveRecord::Base
     'mononeme',
     'dense granule',
     'apical',
+    'posterior structure',
+    'anterior structure',
     'gametocyte osmiophilic body',
     'gametocyte attached erythrocytic vesicles',
     'sporozoite surface', #sporozoite locs
@@ -103,6 +108,7 @@ class Localisation < ActiveRecord::Base
     'cytoplasmic structures',
     'spread around parasite',
     'throughout parasite',
+    'poles',
   ]
   
   # Return a list of ORFs that have this and only this localisation
@@ -128,6 +134,12 @@ class Localisation < ActiveRecord::Base
   
   def upload_localisation_synonyms
     {
+      'dotty pv' => 'punctate parasitophorous vacuole',
+      'patchy on plasma membrane' => 'patchy on parasite plasma membrane',
+      'apical end of surface' => 'apical plasma membrane',
+      'outside of erythrocyte membranes' => 'beyond erythrocyte membrane',
+      'rim' => 'proximal to plasma membrane',
+      'apex' => 'apical',
       'rhoptry body' => 'rhoptry bulb',
       'throughout cell' => 'throughout parasite',
       'crescent shaped cap associated with apical pole' => 'apical',
@@ -179,9 +191,6 @@ class Localisation < ActiveRecord::Base
       'cytoplasmic foci' => 'cytoplasm',
       'nucleolus' => 'nucleus',
       'telomeric foci' => 'nucleus',
-      'male gametocyte surface' => 'gametocyte surface',
-      'female gametocyte surface' => 'gametocyte surface',
-      'gametocyte pv' => 'gametocyte parasitophorous vacuole',
       'pv membrane' => 'parasitophorous vacuole membrane',
       'erythrocyte cytoplasm punctate' => 'erythrocyte cytoplasm',
       'vesicle' => 'cytoplasmic vesicles',
@@ -193,7 +202,6 @@ class Localisation < ActiveRecord::Base
       'dense granules' => 'dense granule',
       'rhoptry neck' => 'rhoptry',
       'rhoptry bulb' => 'rhoptry',
-      'hepatocyte pv membrane' => 'hepatocyte parasitophorous vacuole membrane',
       'osmiophilic body' => 'gametocyte osmiophilic body',
       'cytosol diffuse' => 'cytosol',
       'vesicles under rbc surface' => 'vesicles under erythrocyte surface',
@@ -241,12 +249,27 @@ class Localisation < ActiveRecord::Base
     LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency species_name
     upload_list_localisations species_name, filename
   end
-  
+
+  # Remove words like 'sometimes' or 'strong' from localisation strings.
+  # A strength modifier can either be accepted or ignored.
+  # for ignored ones (like sometimes), this returns false
+  # for accepted ones (like strong), this returns the localisation
+  # string without the modifier.
+  #
+  # It is the localisation that should be ignored, not the modifier.
+  # Having trouble thinking of a better word for this.
   def remove_strength_modifiers(localisation_string)
-    %w(weak strong sometimes some dotty punctate).each do |modifier|
-      localisation_string.gsub!(/^#{modifier} /, '')
+    modifiers_ignore = %w(weak sometimes some little)
+    modifiers_accept = %w(strong)
+    modifiers_ignore.each do |modifier|
+      return false if localisation_string.match(/^#{modifier}/)
     end
-    localisation_string
+    modifiers_accept.each do |modifier|
+      if localisation_string.match(/^#{modifier} /) or localisation_string.match(/^#{modifier}/)
+        return localisation_string.gsub(/^#{modifier} /,'').gsub(/^#{modifier}/,'')
+      end
+    end
+    return localisation_string #only returns here when modifier is legit
   end
   
   # Parse a line from the dirty localisation files. Return an array of (unsaved) ExpressionContext objects
@@ -293,7 +316,9 @@ class Localisation < ActiveRecord::Base
               )
             end
           else
-            positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(remove_strength_modifiers(stage))
+            str = remove_strength_modifiers(stage)
+            next unless str #ignore when they say weak, accept when they say strong
+            positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(str)
             if positive_devs.empty?
               $stderr.puts "No such dev stage '#{stage}' found."
               next
@@ -306,9 +331,6 @@ class Localisation < ActiveRecord::Base
             end
           end
         end
-
-      elsif fragment.match(/^weak during/) # ignore these
-        
         
         # gene is expressed in a localisation during a particular developmental
         # stage
@@ -343,18 +365,24 @@ class Localisation < ActiveRecord::Base
           end
         end
         stages.flatten!
-        
+
         # add each of the resulting pairs
         locs.pairs(stages).each do |arr|
-          contexts.push ExpressionContext.new(
-            :localisation => arr[0],
-            :developmental_stage => arr[1]
-          )
+          if arr[0] == true
+            contexts.push ExpressionContext.new(
+              :developmental_stage => arr[1]
+            )
+          else
+            contexts.push ExpressionContext.new(
+              :localisation => arr[0],
+              :developmental_stage => arr[1]
+            )
+          end
         end
         
       else #no during - it's just a straight localisation
         # split each of the localisations by 'and' and 'then'
-        locs = parse_small_name(remove_strength_modifiers(fragment))
+        locs = parse_small_name(fragment)
         locs.each do |l|
           contexts.push ExpressionContext.new(
             :localisation => l
@@ -395,9 +423,15 @@ class Localisation < ActiveRecord::Base
   def parse_small_small_name(frag)
     frag.strip!
     frag.downcase!
-    frag = remove_strength_modifiers(frag)
-    l = Localisation.find_by_name_or_alternate(frag)
-    if !l and matches = frag.match(/^not (.+)$/)
+    str = remove_strength_modifiers(frag)
+    return nil unless str #ignore weak localisations
+
+    # when there is a strong signal without a localisation
+    # to go with it, return true
+    return true if str == ''
+    
+    l = Localisation.find_by_name_or_alternate(str)
+    if !l and matches = str.match(/^not (.+)$/)
       syn = LocalisationSynonym.find_by_name(matches[1])
       if syn
         l = Localisation.find_by_name("not #{syn.localisation.name}")
@@ -405,7 +439,7 @@ class Localisation < ActiveRecord::Base
     end
     
     unless l
-      $stderr.puts "Localisation not understood: '#{frag}'"
+      $stderr.puts "Localisation not understood: '#{str}' from '#{frag}'"
       return nil
     end
     return l

@@ -55,11 +55,31 @@ class SimpleGoTest < Test::Unit::TestCase
   def test_count_real
     count = 0
     sg = SimpleGo.new("#{ENV['HOME']}/phd/data/GO/20080304/gene_ontology_edit.obo")
-    
+
     while (g = sg.next_go)
       count = count+1
     end
-    
+
     assert_equal 26077, count
+  end
+
+  def test_synonyms
+    sg = SimpleGo.new("lib/testFiles/goTest.obo")
+    e = sg.next_go
+    assert_equal ['mitochondrial inheritance'], e.synonyms
+    e = sg.next_go
+    assert_nil e.synonyms
+  end
+
+  def test_multiple_synonyms
+    sg = SimpleGo.new("lib/testFiles/goTestSynonyms.obo")
+    e = sg.next_go
+    assert_equal [
+      "all-trans-heptaprenyl-diphosphate synthase activity",
+      "all-trans-hexaprenyl-diphosphate:isopentenyl-diphosphate hexaprenyltranstransferase activity",
+      "heptaprenyl diphosphate synthase activity",
+      "heptaprenyl pyrophosphate synthase activity",
+      "heptaprenyl pyrophosphate synthetase activity"],
+      e.synonyms
   end
 end

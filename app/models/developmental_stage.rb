@@ -35,8 +35,12 @@ class DevelopmentalStage < ActiveRecord::Base
       'gametocyte stage V',
       'gametocyte',
       'developing gametocyte',
+      'mature gametocyte',
       'female gametocyte',
       'male gametocyte',
+      'emerging male gametocyte',
+      'emerged male gametocyte',
+      'gamete',
       'retort',
       'oocyst protrusion', #perhaps there is a better name for this. It is like retort except it is the ookinete->oocyst, not zygote->ookinete
       'merozoite invasion', #blood stage only, not liver->blood merozoite
@@ -64,6 +68,8 @@ class DevelopmentalStage < ActiveRecord::Base
     end
     
     {
+      'emerging microgametocyte' => 'emerging male gametocyte',
+      'emerged microgametocyte' => 'emerged male gametocyte',
       'developing gametocytes' => 'developing gametocyte',
       'intact schizont' => 'early schizont',
       'mature' => 'schizont',
@@ -104,6 +110,7 @@ class DevelopmentalStage < ActiveRecord::Base
       'early troph' => 'early trophozoite',
       'intracellular' => 'intraerythrocytic',
       'asexual' => 'intraerythrocytic',
+      'erythrocytic stage' => 'intraerythrocytic',
       'blood stages' => ['ring', 'trophozoite', 'schizont'],
       'asexual stages' => ['ring', 'trophozoite', 'schizont', 'merozoite'],
       'erythrocytic stages' => ['ring', 'trophozoite', 'schizont', 'merozoite'],
