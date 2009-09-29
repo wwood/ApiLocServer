@@ -3,18 +3,24 @@
 schizont:
   id: 1
   name: schizont
+  species_id: 1
 ring:
   id: 2
   name: ring
+  species_id: 1
 troph:
   id: 3
   name: trophozoite
+  species_id: 1
 not_schizont:
   id: 4
   name: not schizont
+  species_id: 1
 not_ring:
   id: 5
   name: not ring
+  species_id: 1
 not_troph:
   id: 6
   name: not trophozoite
+  species_id: 1

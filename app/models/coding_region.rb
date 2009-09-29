@@ -387,7 +387,7 @@ class CodingRegion < ActiveRecord::Base
         return nil
       end
     end    
-  end  
+  end
   
   def find_by_name_or_alternate_and_orthomcl_three_letter(name, orthomcl_three_letter)
     simple = CodingRegion.find(:first,

@@ -28,6 +28,7 @@ require 'spoctopus_wrapper'
 
 # Modules to split up this massive file. Each one is included
 require 'modules/at_bias'
+require 'modules/api_loc_publication'
 
 
 MOLECULAR_FUNCTION = 'molecular_function'

@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090928014805) do
+ActiveRecord::Schema.define(:version => 20090928234506) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -260,7 +260,10 @@ ActiveRecord::Schema.define(:version => 20090928014805) do
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "species_id", :null => false
   end
+
+  add_index "developmental_stages", ["name", "species_id"], :name => "index_developmental_stages_on_name_and_species_id", :unique => true
 
   create_table "drosophila_allele_genes", :force => true do |t|
     t.string   "allele",     :null => false
@@ -498,7 +501,10 @@ ActiveRecord::Schema.define(:version => 20090928014805) do
     t.string   "name",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "species_id", :null => false
   end
+
+  add_index "localisations", ["name", "species_id"], :name => "index_localisations_on_name_and_species_id", :unique => true
 
   create_table "meta_microarray_measurements", :force => true do |t|
     t.string   "type",                    :null => false

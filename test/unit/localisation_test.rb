@@ -7,24 +7,25 @@ class LocalisationTest < ActiveSupport::TestCase
   def setup
     @l = Localisation.new
     LocalisationModifier.new.upload_known_modifiers
+    @sp = Species.find(1) #falciparum
   end
   
   def test_simple
     #simple
-    stuff = @l.parse_name('apicoplast')
+    stuff = @l.parse_name('apicoplast', @sp)
     assert_equal_expression_contexts [ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'))],
       stuff, 'simple'
 
     #bad one
     err = capture_stderr do
-      @l.parse_name('not a localisation')
+      @l.parse_name('not a localisation', @sp)
     end
     assert_equal "Localisation not understood: 'not a localisation' from 'not a localisation'\n", err
   end
 
   #during
   def test_during
-    stuff = @l.parse_name('apicoplast during schizont')
+    stuff = @l.parse_name('apicoplast during schizont', @sp)
     assert_equal_expression_contexts [ExpressionContext.new(
         :localisation => Localisation.find_by_name('apicoplast'),
         :developmental_stage => DevelopmentalStage.find_by_name('schizont')
@@ -33,17 +34,17 @@ class LocalisationTest < ActiveSupport::TestCase
   end
 
   def test_not
-    stuff = @l.parse_name('not apicoplast')
+    stuff = @l.parse_name('not apicoplast', @sp)
     assert_equal_expression_contexts [ExpressionContext.new(:localisation => Localisation.find_by_name('not apicoplast'))],
       stuff, "a simple not"
 
     #with a synonym
-    stuff = @l.parse_name('not fv')
+    stuff = @l.parse_name('not fv', @sp)
     assert_equal_expression_contexts [ExpressionContext.new(:localisation => Localisation.find_by_name('not food vacuole'))],
       stuff, "a simple not with synonym"
 
     err = capture_stderr do
-      @l.parse_name('not a localisation')
+      @l.parse_name('not a localisation', @sp)
     end
     assert_equal "Localisation not understood: 'not a localisation' from 'not a localisation'\n", err
   end
@@ -88,7 +89,7 @@ class LocalisationTest < ActiveSupport::TestCase
   end
 
   def test_single_synonym_to_multiple_dev_stages
-    stuff = @l.parse_name('apicoplast during blood stages')
+    stuff = @l.parse_name('apicoplast during blood stages', @sp)
     assert_equal_expression_contexts [ExpressionContext.new(
         :localisation => Localisation.find_by_name('apicoplast'),
         :developmental_stage => DevelopmentalStage.find_by_name('schizont')
@@ -104,7 +105,7 @@ class LocalisationTest < ActiveSupport::TestCase
 
   #api, mito during 1 stage
   def test_two_locs_one_stage
-    stuff = @l.parse_name('apicoplast and mitochondria during schizont')
+    stuff = @l.parse_name('apicoplast and mitochondria during schizont', @sp)
     assert_equal_expression_contexts [
       ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'), :developmental_stage => DevelopmentalStage.find_by_name('schizont')),
       ExpressionContext.new(:localisation => Localisation.find_by_name('mitochondria'), :developmental_stage => DevelopmentalStage.find_by_name('schizont'))
@@ -113,7 +114,7 @@ class LocalisationTest < ActiveSupport::TestCase
 
   # 2 during 2
   def test_two_and_two
-    stuff = @l.parse_name('apicoplast and mitochondria during schizont and ring')
+    stuff = @l.parse_name('apicoplast and mitochondria during schizont and ring', @sp)
     contexts = [
       ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'), :developmental_stage => DevelopmentalStage.find_by_name('schizont')),
       ExpressionContext.new(:localisation => Localisation.find_by_name('mitochondria'), :developmental_stage => DevelopmentalStage.find_by_name('schizont')),
@@ -127,24 +128,6 @@ class LocalisationTest < ActiveSupport::TestCase
     assert_equal 1, ExpressionContext.new(:coding_region_id => 2) <=> ExpressionContext.new(:coding_region_id => 1)
     assert_equal 0, ExpressionContext.new(:localisation_id => 2) <=> ExpressionContext.new(:localisation_id => 2)
   end
-
-  # commented out then types because they are deprecated
-  #  def test_then
-  #    stuff = @l.parse_name('mitochondria then apicoplast')
-  #    contexts = [
-  #      ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'))
-  #    ]
-  #    assert_equal_expression_contexts contexts, stuff, 'test_then'
-  #  end
-  #
-  #  def test_and_then
-  #    stuff = @l.parse_name('mitochondria then apicoplast during schizont')
-  #    contexts = [
-  #      ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'), :developmental_stage => DevelopmentalStage.find_by_name('schizont'))
-  #    ]
-  #    assert_equal_expression_contexts contexts, stuff, 'test_then'
-  #  end
-
 
   def test_known_named_scope
     assert_equal 1, Localisation.known.find_all_by_name('mitochondria').length #good
@@ -172,14 +155,14 @@ class LocalisationTest < ActiveSupport::TestCase
     assert_equal [ExpressionContext.new(
         :developmental_stage => DevelopmentalStage.find_by_name('not schizont')
       )],
-      @l.parse_name('not during schizont')
+      @l.parse_name('not during schizont', @sp)
   end
 
   def test_not_during_synonym
     assert_equal [ExpressionContext.new(
         :developmental_stage => DevelopmentalStage.find_by_name('not ring')
       )],
-      @l.parse_name('not during my ring')
+      @l.parse_name('not during my ring', @sp)
   end
 
   def test_not_during_in_positive_during_with_alternate
@@ -189,7 +172,7 @@ class LocalisationTest < ActiveSupport::TestCase
       ExpressionContext.new(:developmental_stage => DevelopmentalStage.find_by_name('not trophozoite')),
     ].sort
     assert_equal expected,
-      @l.parse_name('during schizont and not ring and not troph').sort
+      @l.parse_name('during schizont and not ring and not troph', @sp).sort
   end
 
   def test_not_during_in_positive_during
@@ -199,7 +182,7 @@ class LocalisationTest < ActiveSupport::TestCase
       ExpressionContext.new(:developmental_stage => DevelopmentalStage.find_by_name('not trophozoite')),
     ].sort
     assert_equal expected,
-      @l.parse_name('during schizont and not ring and not trophozoite').sort
+      @l.parse_name('during schizont and not ring and not trophozoite', @sp).sort
   end
 
   def test_remove_strength_modifiers
@@ -212,7 +195,7 @@ class LocalisationTest < ActiveSupport::TestCase
     assert_equal [ExpressionContext.new(
         :developmental_stage => DevelopmentalStage.find_by_name('schizont'),
         :localisation_modifier => LocalisationModifier.find_by_modifier('weak')
-      )], Localisation.new.parse_name('weak during schizont')
+      )], Localisation.new.parse_name('weak during schizont', @sp)
     
     assert_equal [
       ExpressionContext.new(
@@ -222,7 +205,7 @@ class LocalisationTest < ActiveSupport::TestCase
         :developmental_stage => DevelopmentalStage.find_by_name('schizont'),
         :localisation_modifier => LocalisationModifier.find_by_modifier('weak')
       )],
-      Localisation.new.parse_name('during ring, weak during schizont')
+      Localisation.new.parse_name('during ring, weak during schizont', @sp)
   end
 
   def test_modifier_during
@@ -231,6 +214,12 @@ class LocalisationTest < ActiveSupport::TestCase
         :developmental_stage => DevelopmentalStage.find_by_name('schizont'),
         :localisation_modifier => LocalisationModifier.find_by_modifier('strong')
       )],
-      Localisation.new.parse_name('strong during schizont')
+      Localisation.new.parse_name('strong during schizont', @sp)
+  end
+
+  def test_random_ands_in_name
+    assert_equal [
+      ExpressionContext.new(:localisation => Localisation.find_by_name('between er and golgi'))
+    ], Localisation.new.parse_name('between er and golgi', @sp)
   end
 end

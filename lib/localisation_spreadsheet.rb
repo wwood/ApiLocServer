@@ -34,13 +34,15 @@ class LocalisationSpreadsheet
     return true if row_array[0] and row_array[0].strip.match(/^\#/)
   end
 
-  def upload_localisations_for_species(species_name, filename)
-    upload_list_gene_ids species_name, filename
-    LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency species_name
-    upload_list_localisations species_name, filename
+  def upload_localisations_for_species(sp, filename)
+    upload_list_gene_ids sp, filename
+    LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency sp.name
+    upload_list_localisations sp, filename
   end
 
-  def upload_list_gene_ids(species_name, filename)
+  def upload_list_gene_ids(sp, filename)
+    species_name = sp.name
+     
     # first pass. Upload each row that has a gene id in it
     parse_spreadsheet(species_name, filename) do |info, line_number|
 
@@ -107,8 +109,9 @@ class LocalisationSpreadsheet
     end
   end
 
-  def upload_list_localisations(species_name, filename)
+  def upload_list_localisations(sp, filename)
     loc = Localisation.new
+    species_name = sp.name
     
     # Upload each of the localisations as an expression context
     parse_spreadsheet(species_name, filename) do |info, line_number|
@@ -124,7 +127,10 @@ class LocalisationSpreadsheet
       code = nil
       if info.gene_id
         code = CodingRegion.find_by_name_or_alternate_and_organism(info.gene_id, species_name)
-        raise unless code
+        unless code
+          $stderr.puts "Couldn't find a coding region for #{info.gene_id} in #{info.inspect}"
+          next
+        end
       else
         codes = LiteratureDefinedCodingRegionAlternateStringId.find_all_by_name(info.common_names[0],
           :joins => {:coding_region => {:gene => {:scaffold => :species}}},
@@ -145,7 +151,7 @@ class LocalisationSpreadsheet
       end
 
       # add the coding region and publication for each of the names
-      loc.parse_name(info.localisation_and_timing).each do |context|
+      loc.parse_name(info.localisation_and_timing, sp).each do |context|
         pubs.each do |pub|
           if code.string_id == 'PFA0445w'
             puts "'PFA0445w' found: #{pub} #{context.inspect}"

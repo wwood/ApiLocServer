@@ -1,6 +1,6 @@
 class OrthomclGene < ActiveRecord::Base
   has_many :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
-  has_one :orthomcl_group, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs
+  has_many :orthomcl_groups, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs
   has_one :orthomcl_run, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs
   
   has_many :orthomcl_gene_coding_regions

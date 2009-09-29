@@ -3,16 +3,24 @@
 one:
   id: 1
   name: apicoplast
-
+  species_id: 1
 two:
   id: 2
   name: mitochondria
+  species_id: 1
 fv:
   id: 3
   name: food vacuole
+  species_id: 1
 fv_not:
   id: 4
   name: not food vacuole
+  species_id: 1
 not_api:
   id: 5
   name: not apicoplast
+  species_id: 1
+between_er_and_golgi:
+  id: 6
+  name: between er and golgi
+  species_id: 1
