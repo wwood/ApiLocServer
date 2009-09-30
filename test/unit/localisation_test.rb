@@ -222,4 +222,11 @@ class LocalisationTest < ActiveSupport::TestCase
       ExpressionContext.new(:localisation => Localisation.find_by_name('between er and golgi'))
     ], Localisation.new.parse_name('between er and golgi', @sp)
   end
+
+  def test_downcase_in_parse_name
+    # test down
+    assert_equal [
+      ExpressionContext.new(:localisation => Localisation.find_by_name('between er and golgi'))
+    ], Localisation.new.parse_name('Between ER and golgi', @sp)
+  end
 end

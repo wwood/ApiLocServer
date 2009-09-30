@@ -88,6 +88,7 @@ class Localisation < ActiveRecord::Base
     # split on commas
     dirt.split(',').each do |fragment|
       fragment.strip!
+      fragment.downcase!
       
       # If gene is not expressed during a certain developmental stage
       if matches = fragment.match(/^not during (.*)/i)
@@ -220,13 +221,11 @@ class Localisation < ActiveRecord::Base
     if LOCALISATIONS_WITH_AND_IN_THEIR_NAME.include?(fragment)
       loc = fragment
       loc.strip!
-      loc.downcase!
       e = parse_small_small_name(loc, species)
       locs.push e unless e.nil?
     else
       fragment.split(' and ').each do |loc|
         loc.strip!
-        loc.downcase!
         e = parse_small_small_name(loc, species)
         locs.push e unless e.nil?
       end
