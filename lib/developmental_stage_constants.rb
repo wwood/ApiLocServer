@@ -158,6 +158,7 @@ module DevelopmentalStageConstants
 
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
     Species::TOXOPLASMA_GONDII_NAME => {
+      'intracellular tachyzoite after invasion' => 'after tachyzoite invasion',
       '16h post infection intracellular tachyzoite' => '16h after tachyzoite infection',
       'tachyzoite daughter imc formation' => 'tachyzoite daughter cell inner membrane complex formation',
       'imc formation before arrival of imc1' => 'inner membrane complex formation before arrival of IMC1',
