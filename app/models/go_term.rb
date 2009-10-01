@@ -14,10 +14,14 @@ class GoTerm < ActiveRecord::Base
   GPCR_GO_TERM = 'GO:0004930'
   TRANSPORTER_GO_TERM = 'GO:0006810'
   
+  MOLECULAR_FUNCTION = 'molecular_function'
+  CELLULAR_COMPONENT = 'cellular_component'
+  BIOLOGICAL_PROCESS = 'biological_process'
+
   ASPECTS = [
-    'molecular_function',
-    'cellular_component',
-    'biological_process'
+    MOLECULAR_FUNCTION,
+    CELLULAR_COMPONENT,
+    BIOLOGICAL_PROCESS
   ]
   
   validates_each :aspect do |record, attr, value|
@@ -39,10 +43,10 @@ class GoTerm < ActiveRecord::Base
     end
   end
 
-  def self.find_all_by_term_and_aspect_or_synonym(go_identifier, aspect)
-    g = GoTerm.find_all_by_term_and_aspect(go_identifier,aspect)
-    g.push GoSynonym.find_all_by_synonym_and_aspect(go_identifier).reach.go_term.select{|g|
-      g.aspect == aspect
+  def self.find_all_by_term_and_aspect_or_synonym(go_term, aspect)
+    g = GoTerm.find_all_by_term_and_aspect(go_term, aspect)
+    g.push GoSynonym.aspect(aspect).find_all_by_synonym(go_term).reach.go_term.select{|term|
+      term.aspect == aspect
     }
     return g.flatten.uniq
   end

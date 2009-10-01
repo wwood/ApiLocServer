@@ -264,6 +264,32 @@ class Localisation < ActiveRecord::Base
     "not #{localisation}"
   end
 
+  def map_to_go_term_multiple
+    # manually mapped ones
+    manual_mappings = {
+      'apical' => 'GO:0020007',
+      # add more manual mappings here
+    }
+    if manual_mappings[name]
+      return [
+        GoTerm.find_by_go_identifier manual_mappings[name]
+      ]
+    end
+
+    # automatic full hit to go term or synonym
+    hits = GoTerm.find_all_by_term_and_aspect_or_synonym(name, GoTerm::CELLULAR_COMPONENT)
+
+    # partial hit to go term or synonym
+    if hits.empty?
+      hits = [
+        GoTerm.all(:conditions => ['term like ?',"%#{name}%"]),
+        GoSynonym.all(:conditions => ['synonym like ?',"%#{name}%"]).reach.go_term.uniq,
+      ].flatten
+    end
+
+    return hits
+  end
+
   include LocalisationConstants
 end
 

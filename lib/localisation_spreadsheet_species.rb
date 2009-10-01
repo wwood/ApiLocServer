@@ -4,12 +4,13 @@ require 'reach'
 # spreadsheets
 module LocalisationSpreadsheetSpecies
   def upload_falciparum(filename="#{ENV['HOME']}/phd/gene lists/falciparum.csv")
-    DevelopmentalStage.new.upload_known_developmental_stages Species::FALCIPARUM_NAME
-    Localisation.new.upload_known_localisations
-    Localisation.new.upload_localisation_synonyms
+    sp = Species.find_by_name(Species::FALCIPARUM_NAME)
+    DevelopmentalStage.new.upload_known_developmental_stages sp
+    Localisation.new.upload_known_localisations sp
+    Localisation.new.upload_localisation_synonyms sp
     LocalisationModifier.new.upload_known_modifiers
-    upload_localisations_for_species Species::FALCIPARUM_NAME, filename
-    TopLevelLocalisation.new.upload_localisations
+    upload_localisations_for_species sp, filename
+    TopLevelLocalisation.new.upload_localisations sp.name
   end
 
   def upload_toxo(filename="#{ENV['HOME']}/phd/gene lists/toxo.csv")

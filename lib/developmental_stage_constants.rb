@@ -179,6 +179,7 @@ module DevelopmentalStageConstants
       'shortly after tachyzoite invasion' => 'shortly after invasion of tachyzoite',
     },
     Species::FALCIPARUM_NAME => {
+      'late troph' => 'late trophozoite',
       'mid schizont' => 'middle schizont',
       'intraerythrocytic stages' => 'intraerythrocytic',
       'double infected trophozoites' => 'double infected erythrocyte trophozoites',

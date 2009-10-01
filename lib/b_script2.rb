@@ -343,4 +343,25 @@ PFI1740c).include?(f)
     }.join("\n"); nil
     puts r
   end
+
+  def map_localisations_to_go_terms
+    Localisation::KNOWN_LOCALISATIONS['falciparum'].each do |loc_name|
+      terms = Localisation.find_by_name(loc_name).map_to_go_term_multiple
+      if terms.empty?
+        puts "#{loc_name}"
+      else
+        terms.each_with_index do |term, index|
+          if index == 0
+            print "#{loc_name}\t"
+          else
+            print "\t"
+          end
+          puts [
+            term.go_identifier,
+            term.term,
+          ].join("\t")
+        end
+      end
+    end
+  end
 end
