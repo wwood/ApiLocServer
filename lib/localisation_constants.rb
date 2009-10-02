@@ -31,7 +31,7 @@ module LocalisationConstants
       'proximal to plasma membrane',
       'apical plasma membrane',
       'diffuse cytoplasm',
-      'under parasite plama membrane',
+      'under parasite plasma membrane',
       'microtubule',
       'replication foci in nucleus',
       'area near nucleus', # nucleus + surrounds
@@ -385,7 +385,7 @@ module LocalisationConstants
       'foci in erythrocyte cytosol' => 'erythrocyte cytoplasmic structures',
       'tight junction' => 'moving junction',
       'beyond rbc membrane' => 'beyond erythrocyte membrane',
-      'under pm' => 'under parasite plama membrane',
+      'under pm' => 'under parasite plasma membrane',
       'rhoptry pundicle' => 'rhoptry neck',
       'ER' => 'endoplasmic reticulum',
       'tER' => 'endoplasmic reticulum',
