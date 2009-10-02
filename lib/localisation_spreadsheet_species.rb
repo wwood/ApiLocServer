@@ -19,7 +19,7 @@ module LocalisationSpreadsheetSpecies
     Localisation.new.upload_known_localisations sp
     Localisation.new.upload_localisation_synonyms sp
     LocalisationModifier.new.upload_known_modifiers
-    upload_manual_toxoplasma_gene_aliases
+#    upload_manual_toxoplasma_gene_aliases
     upload_localisations_for_species sp, filename
     TopLevelLocalisation.new.upload_localisations sp.name
   end
