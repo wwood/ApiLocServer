@@ -18,9 +18,12 @@ class EuPathDBGeneInformationTable
     info = EuPathDBGeneInformation.new
 
     # first, read the table, which should start with the ID column
-    return nil if @io.eof?
-    line = @io.readline.strip #while line == ''
-    p line
+    line = @io.readline.strip
+    while line == ''
+      return nil if @io.eof?
+      line = @io.readline.strip
+    end
+
     while line != ''
       if matches = line.match(/^(.*?)\: (.*)$/)
         info.add_information(matches[1], matches[2])
@@ -28,14 +31,8 @@ class EuPathDBGeneInformationTable
         raise Exception, "EuPathDBGeneInformationTable Couldn't parse this line: #{line}"
       end
       
-
       line = @io.readline.strip
-      p line
     end
-
-    puts
-    puts
-    puts
 
     # now read each of the tables, which should start with the
     # 'TABLE: <name>' entry
@@ -47,7 +44,6 @@ class EuPathDBGeneInformationTable
       if line == ''
         # add it to the stack unless we are just starting out
         info.add_table(table_name, headers, data) unless table_name.nil?
-        p "adding table #{table_name}"
 
         # reset things
         table_name = nil
@@ -58,15 +54,14 @@ class EuPathDBGeneInformationTable
         table_name = matches[1]
       elsif line.match(/^\[.*\]/)
         # headings of the table
-        headers = line.split("\t").collect do |row|
-          row.gsub(/^\['/,'').gsub(/\]$'/,'')
+        headers = line.split("\t").collect do |header|
+          header.gsub(/^\[/,'').gsub(/\]$/,'')
         end
       else
         # a proper data row
         data.push line.split("\t")
       end
       line = @io.readline.strip
-#      p line
     end
 
     # return the object that has been created
@@ -75,6 +70,10 @@ class EuPathDBGeneInformationTable
 end
 
 class EuPathDBGeneInformation
+  def info
+    @info
+  end
+
   def get_info(key)
     @info[key]
   end
@@ -86,6 +85,7 @@ class EuPathDBGeneInformation
   def add_information(key, value)
     @info ||= {}
     @info[key] = value
+    "Added info #{key}, now is #{@info[key]}"
   end
 
   def add_table(name, headers, data)
