@@ -29,7 +29,7 @@ require 'b_script'
 require 'eu_path_d_b_gene_information_table'
 require 'zlib'
 
-class BScript2
+class BScript
   def printtandem(roll)
     raise if roll.empty?
     puts
@@ -364,22 +364,6 @@ PFI1740c).include?(f)
           ].join("\t")
         end
       end
-    end
-  end
-
-  # Use the gene table to upload the GO terms to the database
-  def upload_gondii_gene_table_to_database
-    oracle = EuPathDBGeneInformationTable.new(
-      Zlib::GzipReader.open(
-        "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.2/TgondiiME49Gene_ToxoDB-5.2.txt"
-      ))
-
-    oracle.each do |info|
-      # find the gene 
-      code = CodingRegion.s(Species::TOXOPLASMA_GONDII_NAME).find_by_string_id(info.get('ID'))
-      raise unless code
-
-      
     end
   end
 end
