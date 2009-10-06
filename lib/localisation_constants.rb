@@ -445,6 +445,7 @@ module LocalisationConstants
 
   # I hate parsers. Don't you?
   LOCALISATIONS_WITH_AND_IN_THEIR_NAME = [
-    'between er and golgi'
+    'between er and golgi',
+    'between parasite pellicle and PVM'
   ]
 end
