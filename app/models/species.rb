@@ -23,7 +23,7 @@ class Species < ActiveRecord::Base
   ORTHOMCL_THREE_LETTERS = {
     FALCIPARUM => 'pfa',
     ELEGANS_NAME => 'cel',
-    #TOXOPLASMA_GONDII_NAME => 'tgo',
+    TOXOPLASMA_GONDII_NAME => 'tgo',
     YEAST_NAME=> 'sce',
     MOUSE_NAME=> 'mmu',
     DROSOPHILA_NAME=> 'dme'

@@ -5,7 +5,7 @@ class BScript
       
     
     all_orthomcl_groups_with_falciparum = OrthomclRun.official_run_v2.orthomcl_groups.select {|group|
-        group.orthomcl_genes.code('pfa').count > 0
+      group.orthomcl_genes.code('pfa').count > 0
     }
     puts "How many P. falciparum orthomcl groups?"
     puts all_orthomcl_groups_with_falciparum.length
@@ -27,5 +27,113 @@ class BScript
     }
 
     
+  end
+
+  def distribution_of_falciparum_hits_given_toxo
+    toxo_only = []
+    falc_only = []
+    no_hits = []
+    hits_not_localised = []
+    falc_and_toxo = []
+
+    # why the hell doesn't bioruby do this for me?
+    blasts = {}
+
+
+    # convert the blast file as it currently exists into a hash of plasmodb => blast_hits
+    Bio::Blast::Report.new(
+      File.open("#{PHD_DIR}/apiloc/experiments/falciparum_vs_toxo_blast/falciparum_v_toxo.1e-5.tab.out",'r').read,
+      :tab
+    ).iterations[0].hits.each do |hit|
+      q = hit.query_id.gsub(/.*\|/,'')
+      s = hit.definition.gsub(/.*\|/,'')
+      blasts[q] ||= []
+      blasts[q].push s
+    end
+
+
+    # On average, how many hits does the toxo gene have to falciparum given
+    # arbitrary 1e-5 cutoff?
+    #    File.open("#{PHD_DIR}/apiloc/experiments/falciparum_to_toxo_how_many_hits.csv",'w') do |how_many_hits|
+    #      File.open("#{PHD_DIR}/apiloc/experiments/falciparum_to_toxo_best_evalue.csv",'w') do |best_evalue|
+    File.open("#{PHD_DIR}/apiloc/experiments/falciparum_to_toxo_best_evalue.csv", 'w') do |loc_comparison|
+      blast_hits = CodingRegion.s(Species::FALCIPARUM_NAME).all(
+        :joins => :amino_acid_sequence,
+        :include => {:expression_contexts => :localisation}
+        #      :limit => 10,
+        #      :conditions => ['string_id = ?', 'PF13_0280']
+      ).collect do |falciparum|
+        # does this falciparum have a hit?
+            
+
+        # compare localisation of the falciparum and toxo protein
+        falciparum_locs = falciparum.expression_contexts.reach.localisation.reject{|l| l.nil?}
+
+        toxo_ids = blasts[falciparum.string_id]
+        toxo_ids ||= []
+        toxos = toxo_ids.collect do |toxo_id|
+          t = CodingRegion.find_by_name_or_alternate_and_species(toxo_id, Species::TOXOPLASMA_GONDII)
+          raise unless t
+          t
+        end
+        toxo_locs = toxos.collect {|toxo|
+          toxo.expression_contexts.reach.localisation.retract
+        }.flatten.reject{|l| l.nil?}
+
+        if toxos.length > 0
+          # protein localised in falciparum but not in toxo
+          if !falciparum_locs.empty? and !toxo_locs.empty?
+            loc_comparison.puts [
+              falciparum.string_id,
+              falciparum.annotation.annotation,
+              falciparum.localisation_english
+            ].join("\t")
+            toxos.each do |toxo|
+              loc_comparison.puts [
+                toxo.string_id,
+                toxo.annotation.annotation,
+                toxo.localisation_english
+              ].join("\t")
+            end
+            loc_comparison.puts
+            falc_and_toxo.push [falciparum, toxos]
+          end
+
+          # stats about how well the protein is localised
+          if toxo_locs.empty? and !falciparum_locs.empty?
+            falc_only.push [falciparum, toxos]
+          end
+          if !toxo_locs.empty? and falciparum_locs.empty?
+            toxo_only.push [falciparum, toxos]
+          end
+
+          if toxo_locs.empty? and falciparum_locs.empty?
+            hits_not_localised.push falciparum.string_id
+          end
+        else
+          no_hits.push falciparum.string_id
+        end
+      end
+    end
+
+    puts "How many genes are localised in toxo and falciparum?"
+    puts falc_and_toxo.length
+    puts
+
+    puts "How many genes are localised in toxo but not in falciparum?"
+    puts toxo_only.length
+    puts
+
+    puts "How many genes are localised in falciparum but not in toxo?"
+    puts falc_only.length
+    puts
+
+    puts "How many falciparum genes have no toxo hit?"
+    puts no_hits.length
+    puts
+
+    puts "How many have hits but are not localised?"
+    puts hits_not_localised.length
+    puts
   end
 end
