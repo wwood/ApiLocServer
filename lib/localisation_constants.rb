@@ -299,6 +299,7 @@ module LocalisationConstants
       'ring structure at posterior imc' => 'ring structure at posterior inner membrane complex',
     },
     Species::FALCIPARUM_NAME => {
+      'merozoite surface' => 'parasite plasma membrane',
       'cis golgi' => 'cis-golgi',
       'discrete dots on ppm' => 'parasite plasma membrane',
       'spotted in the erythrocyte cytoplasm' => 'erythrocyte cytoplasmic structures',
@@ -434,8 +435,7 @@ module LocalisationConstants
       'food vacuole foci' => 'food vacuole',
       'erythrocyte cytosol' => 'erythrocyte cytoplasm',
       'pvm' => 'parasitophorous vacuole membrane',
-      'moving junction' => 'merozoite surface',
-      'merozoite membrane' => "merozoite surface",
+      'merozoite membrane' => "parasite plasma membrane",
       'fv lumen' => 'food vacuole lumen',
       'rbc periphery' => 'erythrocyte periphery',
       'cytostomal vacuole' => 'cytostome',
@@ -445,6 +445,7 @@ module LocalisationConstants
 
   # I hate parsers. Don't you?
   LOCALISATIONS_WITH_AND_IN_THEIR_NAME = [
-    'between er and golgi'
+    'between er and golgi',
+    'between parasite pellicle and PVM'
   ]
 end

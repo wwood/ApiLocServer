@@ -653,6 +653,7 @@ class CodingRegion < ActiveRecord::Base
   class << self
     alias_method(:f, :find_by_name_or_alternate)
     alias_method(:fs, :find_by_name_or_alternate_and_organism)
+    alias_method(:find_by_name_or_alternate_and_species, :find_by_name_or_alternate_and_organism)
   end
   
   # convenience method for falciparum
@@ -663,7 +664,7 @@ class CodingRegion < ActiveRecord::Base
   # Print a coding region out like it is in my other localisation spreadsheet
   def localisation_english
     contexts = expression_contexts
-    return contexts.pick(:english).sort.join(', ')
+    return contexts.reach.english.reject{|e| e.nil?}.join(', ')
   end
   
   # return true if there is only 1 top level localisation associated with this coding region
