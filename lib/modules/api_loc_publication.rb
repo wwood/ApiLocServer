@@ -136,4 +136,28 @@ class BScript
     puts hits_not_localised.length
     puts
   end
+
+  def tgo_v_pfa_crossover_count
+    both = OrthomclGroup.all_overlapping_groups(%w(tgo pfa))
+    pfa = OrthomclGroup.all_overlapping_groups(%w(pfa))
+    tgo = OrthomclGroup.all_overlapping_groups(%w(tgo))
+
+    both_genes_pfa = both.collect{|b| b.orthomcl_genes.codes(%w(pfa)).count(:select => 'distinct(orthomcl_genes.id)')}.sum
+    both_genes_tgo = both.collect{|b| b.orthomcl_genes.codes(%w(tgo)).count(:select => 'distinct(orthomcl_genes.id)')}.sum
+    pfa_genes = CodingRegion.s(Species::FALCIPARUM).count(:joins => :amino_acid_sequence)
+    tgo_genes = CodingRegion.s(Species::TOXOPLASMA_GONDII).count(:joins => :amino_acid_sequence)
+    
+    puts "How many OrthoMCL groups have at least one protein in pfa and tgo?"
+    puts "#{both.length} groups, #{both_genes_pfa} falciparum genes, #{both_genes_tgo} toxo genes"
+    puts
+
+    puts "How many OrthoMCL groups are specific to falciparum?"
+    puts "#{pfa.length - both.length} groups, #{pfa_genes - both_genes_pfa} genes"
+    puts
+
+    puts "How many OrthoMCL groups are specific to toxo?"
+    puts "#{tgo.length - both.length} groups, #{tgo_genes - both_genes_tgo} genes"
+    puts
+
+  end
 end
