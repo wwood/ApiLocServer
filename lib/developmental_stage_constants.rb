@@ -118,6 +118,7 @@ module DevelopmentalStageConstants
       'intracellular tachyzoite after 0.5-4 hours',
       '20h after tachyzoite infection',
       '16h after tachyzoite infection',
+      'tachyzoite 24 hours after invasion',
       'extracellular tachyzoite',
       'intracellular tachyzoite',
       'early intracellular tachyzoite',
@@ -158,6 +159,8 @@ module DevelopmentalStageConstants
 
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
     Species::TOXOPLASMA_GONDII_NAME => {
+      'tachyzoite gliding' => 'tachyzoite gliding motility',
+      'tachyzoite 24h after invasion' => 'tachyzoite 24 hours after invasion',
       'intracellular tachyzoite after invasion' => 'after tachyzoite invasion',
       '16h post infection intracellular tachyzoite' => '16h after tachyzoite infection',
       'tachyzoite daughter imc formation' => 'tachyzoite daughter cell inner membrane complex formation',
