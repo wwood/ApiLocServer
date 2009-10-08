@@ -37,7 +37,8 @@ class BScript
     falc_and_toxo = []
 
     # why the hell doesn't bioruby do this for me?
-    blasts = {}
+    falciparum_blasts = {}
+    toxo_blasts = {}
 
 
     # convert the blast file as it currently exists into a hash of plasmodb => blast_hits
@@ -47,8 +48,17 @@ class BScript
     ).iterations[0].hits.each do |hit|
       q = hit.query_id.gsub(/.*\|/,'')
       s = hit.definition.gsub(/.*\|/,'')
-      blasts[q] ||= []
-      blasts[q].push s
+      falciparum_blasts[q] ||= []
+      falciparum_blasts[q].push s
+    end
+    Bio::Blast::Report.new(
+      File.open("#{PHD_DIR}/apiloc/experiments/falciparum_vs_toxo_blast/toxo_v_falciparum.1e-5.tab.out",'r').read,
+      :tab
+    ).iterations[0].hits.each do |hit|
+      q = hit.query_id.gsub(/.*\|/,'')
+      s = hit.definition.gsub(/.*\|/,'')
+      toxo_blasts[q] ||= []
+      toxo_blasts[q].push s
     end
 
 
@@ -69,7 +79,7 @@ class BScript
         # compare localisation of the falciparum and toxo protein
         falciparum_locs = falciparum.expression_contexts.reach.localisation.reject{|l| l.nil?}
 
-        toxo_ids = blasts[falciparum.string_id]
+        toxo_ids = falciparum_blasts[falciparum.string_id]
         toxo_ids ||= []
         toxos = toxo_ids.collect do |toxo_id|
           t = CodingRegion.find_by_name_or_alternate_and_species(toxo_id, Species::TOXOPLASMA_GONDII)
