@@ -212,6 +212,7 @@ module LocalisationConstants
       'host cell nucleus',
       'conoid',
       'conoid fiber ends',
+      'host cell',
       'cytosolic side of host cell membrane',
       'multi-lamellar vesicles',
       'periphery of parasite',
@@ -245,6 +246,7 @@ module LocalisationConstants
 
   KNOWN_LOCALISATION_SYNONYMS = {
     Species::TOXOPLASMA_GONDII_NAME => {
+      'rear end of parasite' => 'posterior',
       'limiting membrane of pv' => 'parasitophorous vacuole membrane',
       'nuclear' => 'nucleus',
       'adjacent to mitochondrion' => 'adjacent to mitochondria',

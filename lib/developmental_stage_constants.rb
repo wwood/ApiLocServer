@@ -154,11 +154,13 @@ module DevelopmentalStageConstants
       'tachyzoite cell division',
       'mature schizont merozoite',
       'early merozoite',
+      'schizont',
     ]
   }
 
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
     Species::TOXOPLASMA_GONDII_NAME => {
+      'tachyzoite host cell entry' => 'tachyzoite invasion',
       'tachyzoite gliding' => 'tachyzoite gliding motility',
       'tachyzoite 24h after invasion' => 'tachyzoite 24 hours after invasion',
       'intracellular tachyzoite after invasion' => 'after tachyzoite invasion',
