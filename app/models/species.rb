@@ -5,11 +5,14 @@ class Species < ActiveRecord::Base
   VIVAX_NAME = VIVAX
   BERGHEI_NAME = 'Plasmodium berghei'
   YOELII_NAME = 'Plasmodium yoelii'
+  CHABAUDI_NAME = 'Plasmodium chabaudi'
+  KNOWLESI_NAME = 'Plasmodium knowlesi'
   THEILERIA_PARVA = 'Theileria parva'
   THEILERIA_PARVA_NAME = THEILERIA_PARVA
   THEILERIA_ANNULATA_NAME = 'Theileria annulata'
   TOXOPLASMA_GONDII = 'Toxoplasma gondii'
   TOXOPLASMA_GONDII_NAME = TOXOPLASMA_GONDII
+  NEOSPORA_CANINUM_NAME = 'Neospora caninum'
   ELEGANS_NAME = 'elegans'
   BABESIA_BOVIS_NAME = 'Babesia bovis'
   YEAST_NAME= 'yeast'
@@ -17,6 +20,7 @@ class Species < ActiveRecord::Base
   DROSOPHILA_NAME= 'fly'
   CYRYPTOSPORIDIUM_HOMINIS_NAME = 'Cryptosporidium hominis'
   CYRYPTOSPORIDIUM_PARVUM_NAME = 'Cryptosporidium parvum'
+  CYRYPTOSPORIDIUM_MURIS_NAME = 'Cryptosporidium muris'
   
   has_many :scaffolds, :dependent => :destroy
   
@@ -103,5 +107,31 @@ class Species < ActiveRecord::Base
       THEILERIA_PARVA_NAME,
       THEILERIA_ANNULATA_NAME,
     ]
+  end
+
+  def plasmodb?
+    [
+      FALCIPARUM,
+      VIVAX,
+      BERGHEI_NAME,
+      YOELII_NAME,
+      CHABAUDI_NAME,
+      KNOWLESI_NAME,
+    ].include?(name)
+  end
+
+  def toxodb?
+    [
+      TOXOPLASMA_GONDII_NAME,
+      NEOSPORA_CANINUM_NAME
+    ].include?(name)
+  end
+
+  def cryptodb?
+    [
+      CYRYPTOSPORIDIUM_HOMINIS_NAME,
+      CYRYPTOSPORIDIUM_PARVUM_NAME,
+      CYRYPTOSPORIDIUM_MURIS_NAME
+    ].include?(name)
   end
 end

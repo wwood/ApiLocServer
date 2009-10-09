@@ -1,0 +1,29 @@
+<h2><%= @code.string_id%></h2>
+<%= @code.annotation.annotation %>
+
+<h3>Localisation Summary</h3>
+<%= @code.localisation_english %>
+
+<h3>Publications Directly Localising this Protein</h3>
+<% @code.expression_contexts.reach.publication.uniq.each.sort.each do |publication| %>
+  <h4><%= link_to publication.definition, :action => :publication, :id => publication.definition %></h4>
+  <%# contexts = ExpressionContext.find_all_by_publication_id_and_coding_region_id(
+  # publication.id, @code.id
+  #)
+  # mapping, quote, strain etc. here
+
+  %>
+<% end %>
+
+<h3>Links</h3>
+<ul>
+  <% if @code.species.plasmodb? %>
+    <li><%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@code.string_id}" %></li>
+  <% elsif @code.species.toxodb? %>
+    <li><%= link_to 'ToxoDB', "http://toxodb.org/gene/#{@code.string_id}" %></li>
+  <% elsif @code.species.cryptodb? %>
+    <li><%= link_to 'CryptoDB', "http://cryptodb.org/gene/#{@code.string_id}" %></li>
+  <% else %>
+    <li><%= link_to 'GenBank', "http://www.ncbi.nlm.nih.gov/sites/entrez?db=nuccore&term=#{@code.string_id}" %></li>
+  <% end %>
+</ul>

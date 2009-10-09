@@ -1,0 +1,6 @@
+<h1>Apiloc - A Database of Protein Sub-Cellular Localisation in <i>Apicomplexa</i></h1>
+<ul>
+  <% popular_localisations.each do |loc_name| %>
+  <li><%= link_to loc_name, :action => :localisation, :id => loc_name %></li>
+  <% end %>
+</ul>

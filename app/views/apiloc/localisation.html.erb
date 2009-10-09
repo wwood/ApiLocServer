@@ -1,0 +1,13 @@
+<h1><%= @localisations[0].name %></h1>
+Proteins in this localisation are known in <% @localisations.reach.species.name.join(' and ') %>.
+<% @localisations.each do |loc| %>
+  <h3><%= loc.species.name %></h3>
+  <% unless loc.localisation_synonyms.length == 0 %>
+    <p>Also known as <%= loc.localisation_synonyms.reach.name.sort.join(', ') %>.</p>
+  <% end %>
+  <ul>
+    <% loc.expression_contexts.reach.coding_region.uniq.each do |code| %>
+      <li><%= link_to code.string_id, :action => :gene, :id => code.string_id %></li>
+    <% end %>
+  </ul>
+<% end %>

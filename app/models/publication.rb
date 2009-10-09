@@ -52,6 +52,12 @@ class Publication < ActiveRecord::Base
       return "#{id}"
     end
   end
+
+  # Sorting is used so that the newest publications are first
+  # in the apiloc page
+  def <=>(another_publication)
+    definition <=> another_publication.definition
+  end
 end
 
 
