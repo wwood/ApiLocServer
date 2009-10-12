@@ -38,19 +38,34 @@ class Species < ActiveRecord::Base
     VIVAX_NAME => 'pviv',
     BERGHEI_NAME => 'pber',
     YOELII_NAME => 'pyoe',
-    fdasfsd
+    KNOWLESI_NAME => 'pkno',
+    CYRYPTOSPORIDIUM_HOMINIS_NAME => 'chom',
+    CYRYPTOSPORIDIUM_PARVUM_NAME => 'cpar',
+    CYRYPTOSPORIDIUM_MURIS_NAME => 'cmur',
+    THEILERIA_PARVA_NAME => 'tpar',
+    THEILERIA_ANNULATA_NAME => 'tann',
     ELEGANS_NAME => 'cele',
     TOXOPLASMA_GONDII_NAME => 'tgon',
-    YEAST_NAME=> 'scer',
-    MOUSE_NAME=> 'mmus',
-    DROSOPHILA_NAME=> 'dmel'
+    YEAST_NAME => 'scer',
+    MOUSE_NAME => 'mmus',
+    DROSOPHILA_NAME => 'dmel'
   }
-  
+
+  # deprecated, because orthomcl now uses four letters for each species
   def update_known_three_letters
     ORTHOMCL_THREE_LETTERS.each do |name, three|
       sp = Species.find_by_name(name)
       raise Exception, "Couldn't find species #{name} to three letter name" if !sp
       sp.orthomcl_three_letter = three
+      sp.save!
+    end
+  end
+
+  def update_known_four_letters
+    ORTHOMCL_FOUR_LETTERS.each do |name, four|
+      sp = Species.find_or_create_by_name(name)
+      raise Exception, "Couldn't find species #{name} to three letter name" if !sp
+      sp.orthomcl_three_letter = four
       sp.save!
     end
   end

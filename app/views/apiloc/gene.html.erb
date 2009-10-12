@@ -18,9 +18,19 @@
 <%# end %>
 
 <h4>OrthoMCL</h4>
-<%
-if  %>
-<% end %>
+<% ogenes = @code.calculate_official_orthomcl_genes
+if ogenes.length == 0 %>
+  No entry found in OrthoMCL.
+<% elsif ogenes.length == 1
+  ogene = ogenes[0]
+group = ogene.
+%>
+  <%= link_to 'OrthoMCL Group', 
+    "http://beta.orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=sequenceList&groupac=#{ogene.orthomcl_groups.official.first.orthomcl_name}" %>
+<% else
+  raise
+end%>
+
 
 <h3>Links</h3>
 <ul>

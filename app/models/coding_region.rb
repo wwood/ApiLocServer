@@ -489,30 +489,7 @@ class CodingRegion < ActiveRecord::Base
   def tmhmm
     minus_sp = sequence_without_signal_peptide
     TmHmmWrapper.new.calculate(minus_sp)
-  end
-  
-  
-  # Given a coding region, return the orthologs in another species, as given
-  # by orthomcl
-  def orthomcls(species_common_name)
-    CodingRegion.all(
-      :joins => [
-        {:gene => {:scaffold => :species}},
-        {:orthomcl_genes => {:orthomcl_group => [
-              :orthomcl_run,
-              {:orthomcl_genes => :coding_regions}
-            ]
-          }}
-      ],
-      :conditions => ['species.name = ? and orthomcl_runs.name = ? and coding_regions_orthomcl_genes.id = ?',
-        species_common_name, 
-        OrthomclRun.official_run_v2_name,
-        id
-      ]
-    )
-  end
-  
-  
+  end  
   
   # return all the names (string_id and alternate string_ids) of this record
   def names
@@ -1168,6 +1145,13 @@ class CodingRegion < ActiveRecord::Base
       return false if annotation.nil? or annotation.annotation.nil?
       return !(annotation.annotation.gsub('[^A-Z ]','').match(/ bir /i).nil?)
     end
+  end
+
+  def calculate_official_orthomcl_genes
+    four = species.orthomcl_three_letter
+    raise Exception, "Couldn't find orthomcl species code for #{string_id}, #{id}" if four.nil? or four == ''
+
+    OrthomclGene.find_all_by_orthomcl_name("#{four}|#{string_id}")
   end
 end
 
