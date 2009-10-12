@@ -14,6 +14,7 @@ class CodingRegion < ActiveRecord::Base
   has_many :cds, :dependent => :destroy
   has_many :coding_region_alternate_string_ids, :dependent => :destroy
   has_many :literature_defined_coding_region_alternate_string_ids, :dependent => :destroy
+  has_many :case_sensitive_literature_defined_coding_region_alternate_string_ids, :dependent => :destroy
   has_many :derisi20063d7_logmeans
   has_many :plasmodb_gene_list_entries
   has_many :plasmodb_gene_lists, :through => :plasmodb_gene_list_entries
@@ -28,6 +29,7 @@ class CodingRegion < ActiveRecord::Base
   has_many :microarray_measurements, :dependent => :destroy
   has_many :microarray_timepoints, :through => :microarray_measurements
   has_many :expression_contexts, :dependent => :destroy
+  has_many :localisation_annotations, :dependent => :destroy
   has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation
   has_many :integer_coding_region_measurements, :dependent => :destroy
   has_many :proteomic_experiment_results, :dependent => :destroy

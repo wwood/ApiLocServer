@@ -1,0 +1,9 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  literature_defined_coding_region_alternate_string_id_id: 1
+  name: MyString
+
+two:
+  literature_defined_coding_region_alternate_string_id_id: 1
+  name: MyString

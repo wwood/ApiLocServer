@@ -1,3 +1,3 @@
 class Comment < ActiveRecord::Base
-  belongs_to :expression_context
+  belongs_to :localisation_annotation
 end

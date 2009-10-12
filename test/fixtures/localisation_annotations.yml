@@ -1,0 +1,17 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  expression_context_id: 1
+  localisation: MyString
+  microscopy_type: MyString
+  microscopy_method: MyString
+  quote: MyText
+  strain: MyString
+
+two:
+  expression_context_id: 1
+  localisation: MyString
+  microscopy_type: MyString
+  microscopy_method: MyString
+  quote: MyText
+  strain: MyString

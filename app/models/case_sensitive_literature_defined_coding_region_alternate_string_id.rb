@@ -1,0 +1,2 @@
+class CaseSensitiveLiteratureDefinedCodingRegionAlternateStringId < CodingRegionAlternateStringId
+end

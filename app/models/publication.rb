@@ -58,6 +58,23 @@ class Publication < ActiveRecord::Base
   def <=>(another_publication)
     definition <=> another_publication.definition
   end
+
+  # Assuming that the pubmed ID has been recorded, fill in the abstract, title,
+  # and authors columns with the required info from the interwebs
+  def fill_in_extras
+    unless pubmed_id.nil?
+      pm = Bio::MEDLINE.new(Bio::PubMed.query(pubmed_id))
+      self.abstract = pm.abstract
+      self.title = pm.title
+      self.authors = pm.authors.join(', ') # I don't care to store them separately
+    end
+
+    self #convenience
+  end
+
+  def self.fill_in_all_extras!
+    Publication.all.reach.fill_in_extras.save!
+  end
 end
 
 

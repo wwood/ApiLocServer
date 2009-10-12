@@ -1,18 +1,25 @@
-<h2><%= @code.string_id%></h2>
+<h2><%= "#{@code.string_id} (#{@code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ')})" %></h2>
 <%= @code.annotation.annotation %>
 
-<h3>Localisation Summary</h3>
 <%= @code.localisation_english %>
 
-<h3>Publications Directly Localising this Protein</h3>
-<% @code.expression_contexts.reach.publication.uniq.each.sort.each do |publication| %>
-  <h4><%= link_to publication.definition, :action => :publication, :id => publication.definition %></h4>
-  <%# contexts = ExpressionContext.find_all_by_publication_id_and_coding_region_id(
-  # publication.id, @code.id
-  #)
-  # mapping, quote, strain etc. here
+<% @code.expression_contexts.reach.publication.uniq.each do |publication| %>
+  <h3><%= link_to publication.title, :action => :publication, :id => publication.definition %></h3>
+  <p><%= publication.authors %></p>
+  <%= ExpressionContext.find_all_by_publication_id_and_coding_region_id(
+    publication.id, @code.id
+  ).reach.english.join(', ') %>
+<% end %>
 
-  %>
+<h3>Orthology</h3>
+<h4>BLAST hits to localised proteins</h4>
+<%# @code.apiloc_blast_hits.each do |blast_code| %>
+<%#= link_to blast_code.string_id %>
+<%# end %>
+
+<h4>OrthoMCL</h4>
+<%
+if  %>
 <% end %>
 
 <h3>Links</h3>

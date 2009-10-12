@@ -64,6 +64,12 @@ class LocalisationSpreadsheet
           common, code.id
         )
       end
+
+      info.case_sensitive_common_names.each do |common|
+        CaseSensitiveLiteratureDefinedCodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
+          common, code.id
+        )
+      end
     end
 
     # second pass. Upload each common name where there is more than 1,
@@ -74,39 +80,52 @@ class LocalisationSpreadsheet
       next if info.gene_id
       next if info.common_names.length < 2
 
-      # First, find the gene id
-      code = nil
-      conflict = false
-      info.common_names.each do |common|
-        c = CodingRegion.find_by_name_or_alternate_and_organism(
-          common, species_name
-        )
-        if code and c
-          # search for conflicts.
-          unless c.id == code.id
-            $stderr.puts "Conflicting names for common name #{common}. Coding regions #{c.string_id} and #{code.string_id}, #{c.id} and #{code.id}"
-            conflict = true
-          end
-        elsif c
-          code = c
-        end
-      end
+      begin
+        # First, find the gene id
+        code = locate_coding_region(info, species_name)
 
-      if code
-        if !conflict
-          # found the coding region. All is well
+        if code
           info.common_names.each do |common|
             LiteratureDefinedCodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
               common, code.id
             )
           end
+
+          info.case_sensitive_common_names.each do |common|
+            CaseSensitiveLiteratureDefinedCodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
+              common, code.id
+            )
+          end
         else
-          $stderr.puts "Skipping. You should know why, because I have already told you"
+          $stderr.puts "Couldn't find matching gene id for #{info.common_names.inspect} in the second pass, skipping."
         end
-      else
-        $stderr.puts "Couldn't find matching gene id for #{info.common_names.inspect} in the second pass, skipping."
+      rescue CodingRegionConflictException => e
+        $stderr.puts e.to_s
       end
     end
+  end
+
+  # try to find (not create) the coding region that corresponds to this
+  # spreadsheet row. raise a CodingRegionConflict if multiple are found.
+  def locate_coding_region(localisation_spreadsheet_row, species_name)
+    code = nil
+    
+    localisation_spreadsheet_row.common_names.each do |common|
+      c = CodingRegion.find_by_name_or_alternate_and_organism(
+        common, species_name
+      )
+      if code and c
+        # search for conflicts.
+        unless c.id == code.id
+          raise CodingRegionConflictException,
+            "Conflicting names for common name #{common}. Coding regions #{c.string_id} and #{code.string_id}, #{c.id} and #{code.id}"
+        end
+      elsif c
+        code = c
+      end
+    end
+
+    return code
   end
 
   def upload_list_localisations(sp, filename)
@@ -117,7 +136,7 @@ class LocalisationSpreadsheet
     parse_spreadsheet(species_name, filename) do |info, line_number|
       next unless info.normal_localisation_line?
 
-#      $stderr.puts info.inspect
+      #      $stderr.puts info.inspect
       if info.localisation_and_timing.nil?
         $stderr.puts "No localisation data found. I expected some. Ignoring this line"
         next
@@ -150,25 +169,36 @@ class LocalisationSpreadsheet
         next
       end
 
+      # create the localisation annotations for this line.
+      # Each expression context is tied to this line
+      la = LocalisationAnnotation.find_or_create_by_localisation_and_gene_mapping_comments_and_microscopy_type_and_microscopy_method_and_quote_and_strain_and_coding_region_id(
+        info.localisation_and_timing,
+        info.mapping_comments,
+        info.microscopy_types_raw,
+        info.localisation_method,
+        info.quote,
+        info.strains_raw,
+        code.id
+      ) or raise
+
+      info.comments.each do |comment|
+        next if !comment
+        Comment.find_or_create_by_localisation_annotation_id_and_comment(
+          la.id,
+          comment
+        ) or raise
+      end
+
       # add the coding region and publication for each of the names
       loc.parse_name(info.localisation_and_timing, sp).each do |context|
         pubs.each do |pub|
-          if code.string_id == 'PFA0445w'
-            puts "'PFA0445w' found: #{pub} #{context.inspect}"
-          end
-          e = ExpressionContext.find_or_create_by_coding_region_id_and_developmental_stage_id_and_localisation_id_and_publication_id(
+          e = ExpressionContext.find_or_create_by_coding_region_id_and_developmental_stage_id_and_localisation_id_and_publication_id_and_localisation_annotation_id(
             code.id,
             context.developmental_stage_id,
             context.localisation_id,
-            pub.id
-          )
-          info.comments.each do |comment|
-            next if !comment
-            Comment.find_or_create_by_expression_context_id_and_comment(
-              e.id,
-              comment
-            )
-          end
+            pub.id,
+            la.id
+          ) or raise
         end
       end
     end
@@ -179,9 +209,11 @@ end
 # as possible but only using the structure of the spreadsheet, without
 # regard to the meaning of that data
 class LocalisationSpreadsheetRow
-  attr_accessor :common_names, :gene_id, :pubmed_id,
-    :localisation_and_timing, :mapping_comments, :microscopy_types,
-    :localisation_method, :quote, :strains, :comments
+  attr_accessor :case_sensitive_common_names,
+    :gene_id, :pubmed_id,
+    :localisation_and_timing, :mapping_comments, 
+    :microscopy_types, :microscopy_types_raw,
+    :localisation_method, :quote, :strains_raw, :comments
 
   NO_LOC_JUST_GENE_MODEL = 'no localisation done, just a confirmation of gene model'
   THIS_ENTRY_IS_A_COMMON_NAME_MATCHING_THING = 'these common names refer to the same gene'
@@ -192,16 +224,17 @@ class LocalisationSpreadsheetRow
       @species_name = array[start_column]; start_column += 1
     end
     #    p array
-    @common_names = parse_common_name_column(species_name, array[start_column]); start_column += 1
+    names = array[start_column]; start_column += 1
+    @case_sensitive_common_names = parse_common_names_column(species_name, names)
     @gene_id = array[start_column]; start_column += 1
     @gene_id.strip! unless @gene_id.nil?
     @pubmed_id = array[start_column]; start_column += 1
     @localisation_and_timing = array[start_column]; start_column += 1
     @mapping_comments = array[start_column]; start_column += 1
-    @microscopy_types = parse_microscopy_type_column(array[start_column]); start_column += 1
+    @microscopy_types_raw = array[start_column]; start_column += 1
     @localisation_method = array[start_column]; start_column += 1
     @quote = array[start_column]; start_column += 1
-    @strains = parse_strain_column(array[start_column]); start_column += 1
+    @strains_raw = array[start_column]; start_column += 1
     @comments = array[start_column..(array.length-1)]; start_column += 1
     @comments ||= [] #stupid nil arrays
 
@@ -211,10 +244,10 @@ class LocalisationSpreadsheetRow
       $stderr.puts "No pubmed for gene model only row: #{array}" unless @pubmed_id
       $stderr.puts "No mapping comments for gene model only row: #{array}" unless @mapping_comments
     elsif @comments.include?(THIS_ENTRY_IS_A_COMMON_NAME_MATCHING_THING)
-      $stderr.puts "Not enough names to make a pair in #{array}, expected 2 or more." unless @common_names.length > 1
+      $stderr.puts "Not enough names to make a pair in #{array}, expected 2 or more." unless @case_sensitive_common_names.length > 1
     else
       # a normal loc line should contain various things
-      if @common_names.empty? and @gene_id.nil?
+      if @case_sensitive_common_names.empty? and @gene_id.nil?
         $stderr.puts "No gene model or common name for #{array}"
       end
 
@@ -227,10 +260,10 @@ class LocalisationSpreadsheetRow
       if @pubmed_id.nil?
         $stderr.puts "No pubmed found for #{array}"
       end
-      if @microscopy_types.empty?
+      if microscopy_types.empty?
         $stderr.puts "No microscopy types for localisation line #{array}"
       end
-      if @strains.empty? and !(@comments.include?('strain information not found'))
+      if strains.empty? and !(@comments.include?('strain information not found'))
         $stderr.puts "Strain info missing for #{array.inspect}. Comments #{@comments.inspect}"
       end
     end
@@ -238,12 +271,26 @@ class LocalisationSpreadsheetRow
     return self #for convenience
   end
 
+  def microscopy_types
+    parse_microscopy_type_column(@microscopy_types_raw)
+  end
+
+  # return the strains as an array
+  def strains
+    parse_strain_column(@strains_raw)
+  end
+
+  # lower case common names in this row
+  def common_names
+    @case_sensitive_common_names.reach.downcase.retract
+  end
+
   # A localisation spreadsheet has a common name column. Return a list of
-  # common names that come from one cell
-  def parse_common_name_column(species_name, common_name)
+  # common names that come from one cell (with upper and lower case)
+  def parse_common_names_column(species_name, common_name)
     return [] unless common_name
     common_name.split(',').reach.strip.collect do |c|
-      (remove_species_prefix species_name, c).downcase
+      remove_species_prefix species_name, c
     end
   end
 
@@ -289,3 +336,5 @@ class LocalisationSpreadsheetRow
     return true
   end
 end
+
+class CodingRegionConflictException < Exception; end

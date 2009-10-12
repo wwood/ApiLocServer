@@ -6,8 +6,7 @@ class ExpressionContext < ActiveRecord::Base
   belongs_to :coding_region
   belongs_to :localisation
   belongs_to :localisation_modifier
-  
-  has_many :comments
+  belongs_to :localisation_annotation
   
   # mainly for testing - order of things not particularly relevant
   def <=>(another)

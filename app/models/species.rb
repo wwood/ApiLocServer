@@ -32,6 +32,19 @@ class Species < ActiveRecord::Base
     MOUSE_NAME=> 'mmu',
     DROSOPHILA_NAME=> 'dme'
   }
+
+  ORTHOMCL_FOUR_LETTERS = {
+    FALCIPARUM => 'pfal',
+    VIVAX_NAME => 'pviv',
+    BERGHEI_NAME => 'pber',
+    YOELII_NAME => 'pyoe',
+    fdasfsd
+    ELEGANS_NAME => 'cele',
+    TOXOPLASMA_GONDII_NAME => 'tgon',
+    YEAST_NAME=> 'scer',
+    MOUSE_NAME=> 'mmus',
+    DROSOPHILA_NAME=> 'dmel'
+  }
   
   def update_known_three_letters
     ORTHOMCL_THREE_LETTERS.each do |name, three|
