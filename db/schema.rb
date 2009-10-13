@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20091012054656) do
+ActiveRecord::Schema.define(:version => 20091013012002) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -777,6 +777,7 @@ ActiveRecord::Schema.define(:version => 20091012054656) do
     t.text     "title"
     t.text     "authors"
     t.text     "abstract"
+    t.string   "date"
   end
 
   create_table "scaffolds", :force => true do |t|

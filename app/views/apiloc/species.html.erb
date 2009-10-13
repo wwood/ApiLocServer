@@ -1,0 +1,15 @@
+<h1><i><%= @species.name %></i></h1>
+
+<% @localisations.each do |loc| %>
+  <h3><%= loc.name %></h3>
+  <% unless loc.localisation_synonyms.length == 0 %>
+    <p>Also known as <%= loc.localisation_synonyms.reach.name.sort.join(', ') %>.</p>
+  <% end %>
+  <ul>
+    <% loc.expression_contexts.reach.coding_region.uniq.each do |code| %>
+      <li><%= code_name(code) %>
+        <%= code.annotation.annotation %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

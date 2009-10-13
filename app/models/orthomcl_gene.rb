@@ -8,18 +8,19 @@ class OrthomclGene < ActiveRecord::Base
   has_one :orthomcl_gene_official_data
   
   MAMMALIAN_THREE_LETTER_CODES = ['hsa', 'mmu', 'rno']
+
   OFFICIAL_ORTHOMCL_APICOMPLEXAN_CODES = [
-    'cpa',
-    'cho',
-    'tgo',
-    'pfa',
-    'pyo',
-    'pvi',
-    'pkn',
-    'pbe',
-    'pch',
-    'the',
-    'tan'
+    'pfal',
+    'pviv',
+    'pber',
+    'pyoe',
+    'pkno',
+    'chom',
+    'cpar',
+    'cmur',
+    'tpar',
+    'tann',
+    'tgon',
   ]
   
   named_scope :code, lambda { |three_letter_species_code| {
@@ -38,7 +39,7 @@ class OrthomclGene < ActiveRecord::Base
   #alias_method(:three_letter_codes, :codes)
   named_scope :official, {
     :include => :orthomcl_run,
-    :conditions => ['orthomcl_runs.name = ?', OrthomclRun.official_run_v2_name]
+    :conditions => ['orthomcl_runs.name = ?', OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME]
   }
   named_scope :run, lambda { |run_name|
     {
@@ -61,74 +62,57 @@ class OrthomclGene < ActiveRecord::Base
     {:conditions => [pre, post].flatten}
   }
   
-  def accepted_database_id
-    matches = orthomcl_name.match('pfa\|(.*)$')
-    if matches
-      return matches[1]
-    end
-    
-    matches = orthomcl_name.match('ath\|(.*)$')
-    if matches
-      return matches[1].upcase
-    end
-    
-    return nil
-  end
-  
-  # Get the coding region that is associated with this gene, whether it is a
+  # Get the coding region that is associated with this gene, assuming that
+  # the orthomcl gene is from the official (because of the naming scheme)
   # 
   def compute_coding_regions    
-    if orthomcl_run.name === OrthomclRun.official_run_v2_name
-      matches = orthomcl_name.match('(.*)\|(.*)')
+    matches = orthomcl_name.match('(.*)\|(.*)')
       
-      if !matches
-        raise Exception, "Badly parsed orthomcl official type name: #{orthomcl_name}"
-      end
+    if !matches
+      raise Exception, "Badly parsed orthomcl official type name: #{orthomcl_name}"
+    end
       
-      #      # Only compute interesti'ng cases
-      #      if !(['pfa','pvi','the','tan','cpa','cho','ath'].include?(matches[1]))
-      #        return nil #meh for the moment, don't want to waste time
-      #      end
+    #      # Only compute interesti'ng cases
+    #      if !(['pfa','pvi','the','tan','cpa','cho','ath'].include?(matches[1]))
+    #        return nil #meh for the moment, don't want to waste time
+    #      end
       
-      name = matches[2]
+    name = matches[2]
       
-      #species specific workarounds below
-      if matches[1] === 'dme'
-        # for drosophila drop the -PA or -PB at the end of it
-        matches = name.match(/^(.*)\-(.*)$/)
-        if matches
-          return CodingRegion.find_all_by_name_or_alternate_and_species(matches[1], Species.fly_name)
-        else
-          raise Exception, "Badly parsed dme orthomcl_name: #{inspect}"
-        end
-      elsif matches[1] == 'mmu'
-        #iterate over each orthomcl protein id (eg dme|CGxxxx)
-        #get gene name by first getting orthomcl protein id from OrthomclGene table and then then using that to get the gene id from the annotation information in the OrthomclGeneOfficialData table  
-
-        e = orthomcl_gene_official_data
-        raise Exception, "Data bug in mmu orthomcl data - no orthomcl_gene_official_data found. Has it already been uploaded like it should be?" if e.nil?
-
-        #the annotation line in orthomcl_gene_official_data =
-        #|  CG1977|ENSF00000000161|Spectrin alpha chain. [Source:Uniprot/SWISSPROT;Acc:P13395] |
-
-        #split on bars and extract first without spaces
-        splits = e.annotation.split('|')
-        name = splits[0].strip #this is the gene id
-        #create coding region for this gene id and the protein name
-
-        #extract protein id
-        matches = orthomcl_name.match('(.*)\|(.*)')
-        pname = matches[2]
-
-        # get primary id for gene
-        return CodingRegion.find_all_by_name_or_alternate_and_species(name, Species.mouse_name)
+    #species specific workarounds below
+    if matches[1] === 'dmel'
+      # for drosophila drop the -PA or -PB at the end of it
+      matches = name.match(/^(.*)\-(.*)$/)
+      if matches
+        return CodingRegion.find_all_by_name_or_alternate_and_species(matches[1], Species.fly_name)
       else
-        # Add the normally linked ones that don't require a workaround
-        sp = Species.find_by_orthomcl_three_letter matches[1]
-        return CodingRegion.find_all_by_name_or_alternate_and_species(name, sp.name)
+        raise Exception, "Badly parsed dme orthomcl_name: #{inspect}"
       end
-    else # For non-official runs do nothing at the moment
-      return []
+    elsif matches[1] == 'mmus'
+      #iterate over each orthomcl protein id (eg dme|CGxxxx)
+      #get gene name by first getting orthomcl protein id from OrthomclGene table and then then using that to get the gene id from the annotation information in the OrthomclGeneOfficialData table
+
+      e = orthomcl_gene_official_data
+      raise Exception, "Data bug in mmu orthomcl data - no orthomcl_gene_official_data found. Has it already been uploaded like it should be?" if e.nil?
+
+      #the annotation line in orthomcl_gene_official_data =
+      #|  CG1977|ENSF00000000161|Spectrin alpha chain. [Source:Uniprot/SWISSPROT;Acc:P13395] |
+
+      #split on bars and extract first without spaces
+      splits = e.annotation.split('|')
+      name = splits[0].strip #this is the gene id
+      #create coding region for this gene id and the protein name
+
+      #extract protein id
+      matches = orthomcl_name.match('(.*)\|(.*)')
+      pname = matches[2]
+
+      # get primary id for gene
+      return CodingRegion.find_all_by_name_or_alternate_and_species(name, Species.mouse_name)
+    else
+      # Add the normally linked ones that don't require a workaround
+      sp = Species.find_by_orthomcl_three_letter matches[1]
+      return CodingRegion.find_all_by_name_or_alternate_and_species(name, sp.name)
     end
   end
   
@@ -212,15 +196,14 @@ class OrthomclGene < ActiveRecord::Base
   
   # Basically fill out the orthomcl_gene_coding_regions table appropriately
   # for only the official one
-
-  def link_orthomcl_and_coding_regions(interesting_orgs=['cel'])
+  def link_orthomcl_and_coding_regions(interesting_orgs)
     goods = 0; nones = 0; too_manies = 0
     
     if !interesting_orgs or interesting_orgs.empty?
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho','ath']
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
       #    interesting_orgs = ['ath']
-      interesting_orgs = ['cel']
+      interesting_orgs = ['cele']
     end
     
     puts "linking genes for species: #{interesting_orgs.inspect}"

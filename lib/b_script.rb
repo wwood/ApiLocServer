@@ -8399,4 +8399,15 @@ PFL2395c
       ].join("\t")
     end
   end
+
+  def toxo_apicoplast_falciparum_nuclear_encoded
+    all_genes = OrthomclGene.all(
+      :conditions => ['orthomcl_name like ?', 'tgon|TGRH%'],
+      :select => 'distinct(orthomcl_genes.*)'
+    )
+    puts "How many orthomcl groups have a toxo apicoplast gene?"
+    puts all_genes.length
+
+    puts all_genes.reach.orthomcl_name.join("\n")
+  end
 end

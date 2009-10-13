@@ -3,6 +3,7 @@ require 'gmars'
 require 'n_c_b_i'
 require 'go'
 require 'tempfile'
+require 'expression_context_group'
 
 class CodingRegion < ActiveRecord::Base
   
@@ -350,6 +351,17 @@ class CodingRegion < ActiveRecord::Base
       end
     end
   end
+
+  def self.find_all_by_name_or_alternate_maybe_with_species_prefix(string_id)
+    sp = Species.find_species_from_prefix(string_id)
+    if sp
+      return find_all_by_name_or_alternate_and_species(
+        sp.remove_species_prefix(string_id), sp.name
+      )
+    else
+      return find_all_by_name_or_alternate(string_id)
+    end
+  end
   
   # Return the coding region associated with the string id. The string_id
   # can be either a real id, or an alternate id.
@@ -642,8 +654,11 @@ class CodingRegion < ActiveRecord::Base
   
   # Print a coding region out like it is in my other localisation spreadsheet
   def localisation_english
-    contexts = expression_contexts
-    return contexts.reach.english.reject{|e| e.nil?}.join(', ')
+    ExpressionContextGroup.new(expression_contexts).english
+  end
+
+  def localisation_html
+    ExpressionContextGroup.new(expression_contexts).html
   end
   
   # return true if there is only 1 top level localisation associated with this coding region
@@ -1152,6 +1167,10 @@ class CodingRegion < ActiveRecord::Base
     raise Exception, "Couldn't find orthomcl species code for #{string_id}, #{id}" if four.nil? or four == ''
 
     OrthomclGene.find_all_by_orthomcl_name("#{four}|#{string_id}")
+  end
+
+  def calculate_official_orthomcl_gene!
+    calculate_official_orthomcl_genes[0]
   end
 end
 

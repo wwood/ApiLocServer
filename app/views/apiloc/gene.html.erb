@@ -1,35 +1,78 @@
 <h2><%= "#{@code.string_id} (#{@code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ')})" %></h2>
 <%= @code.annotation.annotation %>
 
-<%= @code.localisation_english %>
+<p><%= @code.localisation_html %></p>
 
+<h3>Associated publications</h3>
 <% @code.expression_contexts.reach.publication.uniq.each do |publication| %>
-  <h3><%= link_to publication.title, :action => :publication, :id => publication.definition %></h3>
-  <p><%= publication.authors %></p>
-  <%= ExpressionContext.find_all_by_publication_id_and_coding_region_id(
-    publication.id, @code.id
-  ).reach.english.join(', ') %>
-<% end %>
+  <p><%= publication.authors %> (<%= publication.date %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><br />
+    <b><%= ExpressionContextGroup.new(ExpressionContext.find_all_by_publication_id_and_coding_region_id(
+          publication.id, @code.id
+        )).english %></b></p>
+  <% end %>
 
 <h3>Orthology</h3>
-<h4>BLAST hits to localised proteins</h4>
-<%# @code.apiloc_blast_hits.each do |blast_code| %>
-<%#= link_to blast_code.string_id %>
-<%# end %>
-
 <h4>OrthoMCL</h4>
 <% ogenes = @code.calculate_official_orthomcl_genes
 if ogenes.length == 0 %>
   No entry found in OrthoMCL.
 <% elsif ogenes.length == 1
   ogene = ogenes[0]
-group = ogene.
-%>
-  <%= link_to 'OrthoMCL Group', 
-    "http://beta.orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=sequenceList&groupac=#{ogene.orthomcl_groups.official.first.orthomcl_name}" %>
-<% else
-  raise
-end%>
+  groups = ogene.orthomcl_groups
+  raise unless groups.length == 1
+  group = groups[0] %>
+  <h5>Localised Genes in this <%= link_to 'Group',
+    "http://beta.orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=sequenceList&groupac=#{group.orthomcl_name}" %></h5>
+  <ul>
+    <% codes = CodingRegion.all(
+      :joins => [
+        {:orthomcl_genes => :orthomcl_groups},
+        :expression_contexts
+      ],
+      :conditions => {:orthomcl_groups => {:id => group.id}},
+      :select => 'distinct(coding_regions.*)'
+    )
+    if codes.length > 0
+      codes.each do |code| %>
+        <li><%= code_name(code) %> <%= code.localisation_html %> </li>
+      <% end %>
+    <% else %>
+      No genes in this OrthoMCL group have been localised.
+    <% end %>
+  </ul>
+  <h5>Other Apicomplexan Genes in this <%= link_to 'Group',
+    "http://beta.orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=sequenceList&groupac=#{group.orthomcl_name}" %></h5>
+  <% codes2 = CodingRegion.all(
+    :joins => [
+      {:orthomcl_genes => :orthomcl_groups},
+      :expression_contexts
+    ],
+    :conditions =>
+      codes.empty? ?
+      ["orthomcl_groups.id = ?", group.id] :
+      ["orthomcl_groups.id = ? and coding_regions.id NOT IN "+
+        codes.collect{|c| c.id}.to_sql_in_string,
+      group.id
+    ],
+    :select => 'distinct(coding_regions.*)'
+  ) %>
+  <% if codes2.empty? %>
+    There are no other <i>Apicomplexan</i> genes.
+  <% else %>
+    <ul>
+      <% codes2.each do |code| %>
+        <li><%= code_name(code) %></li>
+      <% end %>
+    </ul>
+  <% end %>
+<% else %>
+  This gene does not have an OrthoMCL group.
+<% end %>
+
+<h4>BLAST hits to localised proteins</h4>
+<%# @code.apiloc_blast_hits.each do |blast_code| %>
+<%#= link_to blast_code.string_id %>
+<%# end %>
 
 
 <h3>Links</h3>

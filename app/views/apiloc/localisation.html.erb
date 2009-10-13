@@ -1,5 +1,5 @@
 <h1><%= @localisations[0].name.capitalize %></h1>
-Proteins in this localisation are known in <%= @localisations.reach.species.name.join(', ') %>.
+Proteins in this localisation are known in <%= @localisations.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.join(', ') %>.
 <% @localisations.each do |loc| %>
   <h3><%= loc.species.name %></h3>
   <% unless loc.localisation_synonyms.length == 0 %>

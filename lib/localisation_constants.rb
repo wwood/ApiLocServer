@@ -142,6 +142,7 @@ module LocalisationConstants
       'innermost apicoplast membrane',
       'apicoplast membrane',
       'apicoplast intermembrane space',
+      'apicoplast lumen',
       'mitochondria',
       'anterior adjacent to mitochondria',
       'adjacent to mitochondria',

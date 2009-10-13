@@ -3,7 +3,43 @@ module ApilocHelper
     [
       'apicoplast',
       'mitochondrion',
-      'nucleus'
+      'nucleus',
+      'exported',
+      'endoplasmic reticulum',
+      'Golgi apparatus',
+      'inner membrane complex',
+      'cytoplasm but not organellar',
+      'food vacuole',
+      'parasite plasma membrane'
+    ]
+  end
+
+  def popular_developmental_stages
+    [
+      'ring',
+      'trophozoite',
+      'schizont',
+      'merozoite',
+      'gametocyte',
+      'sporozoite'
+    ]
+  end
+
+  def popular_microscopy_types
+    [
+      'Light microscopy using an antibody to protein or part thereof',
+      'Light microscopy using an epitope tag',
+      'Electron microscopy',
+    ]
+  end
+
+  def popular_species
+    [
+      'Plasmodium falciparum',
+      'Plasmodium berghei',
+      'Plasmodium vivax',
+      'Plasmodium yoelii',
+      'Toxoplasma gondii',
     ]
   end
 

@@ -21,8 +21,25 @@ class Species < ActiveRecord::Base
   CYRYPTOSPORIDIUM_HOMINIS_NAME = 'Cryptosporidium hominis'
   CYRYPTOSPORIDIUM_PARVUM_NAME = 'Cryptosporidium parvum'
   CYRYPTOSPORIDIUM_MURIS_NAME = 'Cryptosporidium muris'
+
+  APICOMPLEXAN_NAMES = [
+    TOXOPLASMA_GONDII,
+    FALCIPARUM,
+    VIVAX,
+    BERGHEI_NAME,
+    YOELII_NAME,
+    BABESIA_BOVIS_NAME,
+    CYRYPTOSPORIDIUM_HOMINIS_NAME,
+    CYRYPTOSPORIDIUM_PARVUM_NAME,
+    THEILERIA_PARVA_NAME,
+    THEILERIA_ANNULATA_NAME,
+  ]
   
   has_many :scaffolds, :dependent => :destroy
+
+  named_scope :apicomplexan, {
+    :conditions => "species.name in #{Species::APICOMPLEXAN_NAMES.to_sql_in_string}"
+  }
   
   ORTHOMCL_THREE_LETTERS = {
     FALCIPARUM => 'pfa',
@@ -49,6 +66,11 @@ class Species < ActiveRecord::Base
     YEAST_NAME => 'scer',
     MOUSE_NAME => 'mmus',
     DROSOPHILA_NAME => 'dmel'
+  }
+
+  SPECIES_PREFIXES = {
+    FALCIPARUM_NAME => 'Pf',
+    TOXOPLASMA_GONDII_NAME => 'Tg',
   }
 
   # deprecated, because orthomcl now uses four letters for each species
@@ -123,18 +145,7 @@ class Species < ActiveRecord::Base
   end
   
   def self.apicomplexan_names
-    [
-      TOXOPLASMA_GONDII,
-      FALCIPARUM,
-      VIVAX,
-      BERGHEI_NAME,
-      YOELII_NAME,
-      BABESIA_BOVIS_NAME,
-      CYRYPTOSPORIDIUM_HOMINIS_NAME,
-      CYRYPTOSPORIDIUM_PARVUM_NAME,
-      THEILERIA_PARVA_NAME,
-      THEILERIA_ANNULATA_NAME,
-    ]
+    APICOMPLEXAN_NAMES
   end
 
   def plasmodb?
@@ -161,5 +172,24 @@ class Species < ActiveRecord::Base
       CYRYPTOSPORIDIUM_PARVUM_NAME,
       CYRYPTOSPORIDIUM_MURIS_NAME
     ].include?(name)
+  end
+
+  # Find the species from the gene name, assuming it has a
+  # prefix like PfGyrA -> falciparum gene
+  #
+  # assumes that species prefixes are unique and there is no case where
+  # one is the start of another
+  def self.find_species_from_prefix(gene_name)
+    SPECIES_PREFIXES.each do |key, value|
+      if matches = gene_name.match(/^#{value}(.*)/)
+        return Species.find_by_name(key)
+      end
+    end
+    return nil #no species prefix found
+  end
+
+  # Remove the prefix from this species. Assume that it exists
+  def remove_species_prefix(gene_name)
+    gene_name.match(/^#{SPECIES_PREFIXES[name]}(.*)/)[1]
   end
 end

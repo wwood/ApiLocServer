@@ -67,13 +67,19 @@ class Publication < ActiveRecord::Base
       self.abstract = pm.abstract
       self.title = pm.title
       self.authors = pm.authors.join(', ') # I don't care to store them separately
+      self.date = pm.date
     end
 
     self #convenience
   end
 
   def self.fill_in_all_extras!
-    Publication.all.reach.fill_in_extras.save!
+    Publication.all.each do |p|
+      p.fill_in_extras.save!
+      print '.' #I hate no feedback
+      $stdout.flush
+    end
+    puts
   end
 end
 

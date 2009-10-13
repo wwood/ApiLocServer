@@ -1,6 +1,6 @@
 <h1>ApiLoc Publication</h1>
 <h2><%= @publication.title %></h2>
-<p><%= @publication.authors %></p>
+<p><%= @publication.authors %> (<%= @publication.date %>)</p>
 <p><%= @publication.abstract %></p>
 <p><%= link_to (@publication.pubmed_id? ? "PubMed: #{@publication.pubmed_id}" : @publication.url), @publication.linkout_url %></p>
 <h2>Localisation information gleaned</h2>

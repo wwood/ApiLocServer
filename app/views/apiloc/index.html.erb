@@ -1,8 +1,82 @@
-<h1>Apiloc - A Database of Protein Sub-Cellular Localisation in <i>Apicomplexa</i></h1>
-<ul>
-  <% popular_localisations.each do |loc_name| %>
-  <li><%= link_to loc_name, :action => :localisation, :id => loc_name %></li>
-  <% end %>
-</ul>
+<h1>ApiLoc - A Database of Protein Sub-Cellular Localisation in <i>Apicomplexa</i></h1>
+<% category_counter = 0 %>
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Species</h2>
+  <ul>
+    <% popular_species.each do |microscopy_type| %>
+      <li><i><%= link_to microscopy_type, :action => :species, :id => microscopy_type %></i></li>
+    <% end %>
+    <li>Other:
+      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
+        <% Species.apicomplexan.all(
+          :select => 'distinct(species.*) ',
+          :order => 'name',
+          :conditions => "name not in #{popular_species.to_sql_in_string}").each do |sp| %>
+          <option value="../apiloc/species/<%= sp.name %>"><i><%= sp.name %></i></option>
+        <% end %>
+      </select>
+    </li>
+  </ul>
+</div>
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Localisations</h2>
+  <ul>
+    <% popular_localisations.each do |microscopy_type| %>
+      <li><%= link_to microscopy_type, :action => :localisation, :id => microscopy_type %></li>
+    <% end %>
+    <li>Other:
+      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
+        <% Localisation.all(
+          :select => 'distinct(localisations.*)',
+          :order => 'name',
+          :conditions => "name not in #{popular_localisations.to_sql_in_string} and name not like 'not %'").each do |sp| %>
+          <option value="../apiloc/localisation/<%= sp.name %>"><%= sp.name %></option>
+        <% end %>
+      </select>
+    </li>
+  </ul>
+</div>
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Developmental Stages</h2>
+  <ul>
+    <% popular_developmental_stages.each do |microscopy_type| %>
+      <li><%= link_to microscopy_type, :action => :developmental_stage, :id => microscopy_type %></li>
+    <% end %>
+    <li>Other:
+      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
+        <% DevelopmentalStage.all(
+          :select => 'distinct(developmental_stages.*)',
+          :order => 'name',
+          :conditions => "name not in #{popular_developmental_stages.to_sql_in_string} and name not like 'not %'").each do |ann| %>
+          <option value="../apiloc/developmental_stage/<%= ann.name %>"><%= ann.name %></option>
+        <% end %>
+      </select>
+    </li>
+  </ul>
+</div>
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Microscopy</h2>
+  <ul>
+    <% popular_microscopy_types.each do |microscopy_type| %>
+      <li><%= link_to microscopy_type, :action => :developmental_stage, :id => microscopy_type %></li>
+    <% end %>
+    <li>Other:
+      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
+        <% LocalisationAnnotation.all(
+          :select => 'distinct(microscopy_type)',
+          :order => 'microscopy_type',
+          :conditions => "microscopy_type not in #{popular_microscopy_types.to_sql_in_string}").each do |ann| %>
+          <option value="../apiloc/microscopy_type/<%= ann.microscopy_type %>"><%= ann.microscopy_type %></option>
+        <% end %>
+      </select>
+    </li>
+  </ul>
+</div>
+
+
+
 
 <%= link_to 'Acknowledgements', :action => :acknowledgements %>

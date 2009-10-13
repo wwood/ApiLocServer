@@ -7,3 +7,13 @@ div.notice
 { 
   color: green;
 }
+div.categorytrue {
+  background-color: #eee;
+  padding: 10px;
+  /*font-size: 11px;*/
+}
+div.categoryfalse {
+  /*background-color: #eee;*/
+  padding: 10px;
+  /*font-size: 11px;*/
+}

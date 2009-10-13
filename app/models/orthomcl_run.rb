@@ -4,6 +4,7 @@ class OrthomclRun < ActiveRecord::Base
   has_one :orthomcl_groups, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
 
   ORTHOMCL_OFFICIAL_VERSION_3_NAME = 'Official OrthoMCL v3'
+  ORTHOMCL_OFFICIAL_NEWEST_NAME = ORTHOMCL_OFFICIAL_VERSION_3_NAME
 
   def self.official_run_v3
     OrthomclRun.find_or_create_by_name(ORTHOMCL_OFFICIAL_VERSION_3_NAME)
