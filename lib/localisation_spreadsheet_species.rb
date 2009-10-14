@@ -24,6 +24,16 @@ module LocalisationSpreadsheetSpecies
     TopLevelLocalisation.new.upload_localisations sp.name
   end
 
+  def upload_babesia_bovis(filename="#{ENV['HOME']}/phd/gene lists/Babesia_bovis.csv")
+    sp = Species.find_by_name(Species::BABESIA_BOVIS_NAME)
+    DevelopmentalStage.new.upload_known_developmental_stages sp
+    Localisation.new.upload_known_localisations sp
+    Localisation.new.upload_localisation_synonyms sp
+    LocalisationModifier.new.upload_known_modifiers
+    upload_localisations_for_species sp, filename
+    TopLevelLocalisation.new.upload_localisations sp.name
+  end
+
   # Mapping some genes to modern IDs is problematic and annoying. Blargh.
   # So uploaded a bunch manually to ToxoDB, and am now parsing the
   # results of that and other genes manually.

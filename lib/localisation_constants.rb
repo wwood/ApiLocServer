@@ -242,10 +242,27 @@ module LocalisationConstants
       'acrosome',
       'tubular structures in parasitophorous vacuole',
       'posterior extremity of cup-shaped inner membrane cytoskeleton scaffolds',
+    ],
+    Species::BABESIA_BOVIS_NAME => [
+      'apical',
+      'released into extracellular mileiu',
+      'cytoplasm',
+      'spherical body organelles',
+      'host erythrocyte membrane',
+      'plasma membrane', #ie. surface of parasite
+      'cytoplasmic accumulations',
+      'parasitophorous vacuole membrane',
+      'nucleus',
+      'cytoplasmic face of host erythrocyte membrane'
     ]
   }
 
   KNOWN_LOCALISATION_SYNONYMS = {
+    Species::BABESIA_BOVIS_NAME => {
+      'surface' => 'plasma membrane',
+      'host cell surface' => 'host erythrocyte membrane',
+      'inner surface of host cell cytoplasm' => 'parasitophorous vacuole membrane'
+    },
     Species::TOXOPLASMA_GONDII_NAME => {
       'rear end of parasite' => 'posterior',
       'limiting membrane of pv' => 'parasitophorous vacuole membrane',

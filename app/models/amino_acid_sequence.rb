@@ -139,6 +139,9 @@ class AminoAcidSequence < Sequence
       'toxoplasma' => {
         'transcript' => 'TgondiiME49AnnotatedTranscripts_ToxoDB-5.2.fasta',
         'protein' => 'TgondiiME49AnnotatedProteins_ToxoDB-5.2.fasta',
+      },
+      'babesia' => {
+        'protein' => 'BabesiaWGS.fasta_with_names'
       }
     }
     blast_array = databases[organism]
