@@ -1,4 +1,5 @@
 require 'bio'
+require 'gen_bank_to_gene_model_mapper'
 
 class BlastsController < ApplicationController
   def index
@@ -32,48 +33,21 @@ class BlastsController < ApplicationController
       return
     end
     
-    rets = Bio::NCBI::REST::efetch(@genbank_id, {:db => 'sequences', :rettype => 'fasta'})
-
-    # Not sure what is returned exactly. I believe a string
-    # is the most up to date.
-    str = rets
+    translateds = GenBankToGeneModelMapper.new.get_translated_sequences_from_genbank(
+      @genbank_id
+    )
 
     # make str = rets[0] unless rets is a String (this is old code?)
-    unless rets.class == String
-      unless rets.length == 1
-        flash[:error] = "#{rets.length} sequences found! Expected 1."
-        return
-      end
-      str = rets[0]
+    unless translateds.length == 1
+      flash[:error] = "#{translateds.length} sequences found! Expected 1."
+      return
     end
+    translated = translateds[0]
 
-    fasta = Bio::FastaFormat.new(str)
-    @seq = fasta.seq
-    @name = fasta.definition
+    @seq = translated.seq
+    @name = translated.definition
 
-    # if the sequence is nucleotide, then try to get the protein sequence
-    # associated with it. I'm mostly only interested in the protein sequence
-    # being correct.
-    seq2 = Bio::Sequence.auto(@seq)
-    if seq2.moltype == Bio::Sequence::NA and 
-        !%w(blastn tblastx blastx).include?(params[:program]) #and
-      # Commented out the line below because it was getting in the way of tblastn against the genome.
-      # why was it there again? Can't remember.
-      #  !%w(transcript genome).include?(params[:database])
-
-      # found a nucleotide sequence. What is the protein sequence attached
-      # to it?
-      rets = Bio::NCBI::REST::efetch(@genbank_id, {:db => 'nucleotide', :rettype => 'gb'})
-      raise unless rets.class == String #problems. If they occur I'll deal with it then
-      gb = Bio::GenBank.new(rets)
-      cds = gb.features.select{|f| f.feature == 'CDS'}
-      # for pseudogenes, they have nucleotide but no amino acid sequence.
-      # I get confused by 2 or more different CDSs.
-      if cds.length > 0
-        raise unless cds.length == 1 and cds[0].assoc['translation']
-        @seq = cds[0].assoc['translation']
-      end
-    end
+    logger.debug("Blasting with #{translated}")
 
     @blast_output = AminoAcidSequence.new.blast(@seq, params[:taxa], params[:program], params[:database])
   end

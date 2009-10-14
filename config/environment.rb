@@ -70,12 +70,10 @@ Rails::Initializer.run do |config|
   config.gem 'rio'
   config.gem 'narray' # only required as a dependency to romanbsd-gsl, and because the :sources flag doesn't work properly IMO. See https://rails.lighthouseapp.com/projects/8994/tickets/1891-configgem-with-multiple-sources
   config.gem 'romanbsd-gsl', :lib => 'gsl', :source => 'http://gems.github.com' # the original author doesn't offer a gem - I don't really need the other changes in romanbsd's github
-
-  # added so that the lib/ directory is reloaded each time in development
-  # mode
-  require_dependency RAILS_ROOT + "/lib/expression_context_group"
-  require_dependency RAILS_ROOT + "/vendor/plugins/ben_bioinformatics/lib/array_pair"
 end
+
+# Requires so I can run kawaii with all the methods I want.
+require 'array_pair'
 
 # Simple class defintions that don't really need their own file since they are too short
 class FlorianSecretedTransmembraneDomain < TransmembraneDomain; end
