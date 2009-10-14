@@ -1828,12 +1828,11 @@ class BScript
   # upload babesia fasta files to the database
   def babesia_to_database
     AminoAcidSequence.delete_all
+
+    sp = Species.find_or_create_by_name(Species::BABESIA_BOVIS_NAME)
     
     # Assume there is only 1
-    babScaff = Scaffold.find(:first,
-      :include => :species,
-      :conditions => "species.name='Babesia bovis'"
-    )
+    bab_scaff = Scaffold.find_or_create_by_species_id(sp.id)
     
     Bio::FlatFile.foreach("#{DATA_DIR}/bovis/genome/NCBI/BabesiaWGS.fasta_with_names") { |e| 
       codeHits = CodingRegion.find_all_by_string_id(e.entry_id)
@@ -1846,7 +1845,7 @@ class BScript
       elsif codeHits.length == 0
         g = Gene.find_or_create_by_name_and_scaffold_id(
           e.entry_id,
-          babScaff.id
+          bab_scaff.id
         )
         code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
           e.entry_id,

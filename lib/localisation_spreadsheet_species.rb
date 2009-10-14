@@ -25,12 +25,11 @@ module LocalisationSpreadsheetSpecies
   end
 
   def upload_babesia_bovis(filename="#{ENV['HOME']}/phd/gene lists/Babesia_bovis.csv")
-    sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
+    sp = Species.find_by_name(Species::BABESIA_BOVIS_NAME)
     DevelopmentalStage.new.upload_known_developmental_stages sp
     Localisation.new.upload_known_localisations sp
     Localisation.new.upload_localisation_synonyms sp
     LocalisationModifier.new.upload_known_modifiers
-    upload_manual_toxoplasma_gene_aliases
     upload_localisations_for_species sp, filename
     TopLevelLocalisation.new.upload_localisations sp.name
   end

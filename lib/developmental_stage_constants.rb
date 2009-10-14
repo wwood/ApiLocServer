@@ -155,10 +155,19 @@ module DevelopmentalStageConstants
       'mature schizont merozoite',
       'early merozoite',
       'schizont',
+    ],
+    Species::BABESIA_BOVIS_NAME => [
+      'merozoite',
+      'merozoite invasion',
+      'intracellular merozoite',
+      'sporozoite'
     ]
   }
 
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
+    Species::BABESIA_BOVIS_NAME => {
+      'invading merozoites' => 'merozoite invasion'
+    },
     Species::TOXOPLASMA_GONDII_NAME => {
       'tachyzoite host cell entry' => 'tachyzoite invasion',
       'tachyzoite gliding' => 'tachyzoite gliding motility',

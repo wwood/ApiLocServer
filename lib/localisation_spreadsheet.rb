@@ -316,6 +316,7 @@ class LocalisationSpreadsheetRow
   SPECIES_PREFIXES = {
     'falciparum' => 'Pf',
     'Toxoplasma gondii' => 'Tg',
+    'Babesia bovis' => 'Bb'
   }
 
   # Return the common name that does not have the species name in it
