@@ -9,6 +9,9 @@ class Scaffold < ActiveRecord::Base
   has_many :jiang_fcr3_ten_kb_bin_sfp_counts, :dependent => :destroy, :class_name => 'JiangFCR3TenKbBinSfpCount'
   has_many :jiang_dd2_ten_kb_bin_sfp_counts, :dependent => :destroy, :class_name => 'JiangDd2TenKbBinSfpCount'
   has_many :jiang_hb3_ten_kb_bin_sfp_counts, :dependent => :destroy, :class_name => 'JiangHB3TenKbBinSfpCount'
+
+  # Dummy scaffold name for genes that don't exist yet, when they should
+  UNANNOTATED_GENES_DUMMY_SCAFFOLD_NAME = "Dummy scaffold for genes that don't exist"
   
   named_scope :species_name, lambda {|species_common_name|
     {

@@ -22,8 +22,18 @@ class Species < ActiveRecord::Base
   CYRYPTOSPORIDIUM_PARVUM_NAME = 'Cryptosporidium parvum'
   CYRYPTOSPORIDIUM_MURIS_NAME = 'Cryptosporidium muris'
 
+  # Not ever uploaded as a species, just a useful constant
+  OTHER_SPECIES = 'Other species placeholder'
+
+  UNSEQUENCED_APICOMPLEXANS = [
+    'Plasmodium gallinaceum',
+    'Sarcocystus neurona',
+    'Sarcocystus muris',
+  ]
+
   APICOMPLEXAN_NAMES = [
     TOXOPLASMA_GONDII,
+    NEOSPORA_CANINUM_NAME,
     FALCIPARUM,
     VIVAX,
     BERGHEI_NAME,
@@ -63,9 +73,11 @@ class Species < ActiveRecord::Base
     THEILERIA_ANNULATA_NAME => 'tann',
     ELEGANS_NAME => 'cele',
     TOXOPLASMA_GONDII_NAME => 'tgon',
+    NEOSPORA_CANINUM_NAME => 'ncan',
     YEAST_NAME => 'scer',
     MOUSE_NAME => 'mmus',
-    DROSOPHILA_NAME => 'dmel'
+    DROSOPHILA_NAME => 'dmel',
+    NEOSPORA_CANINUM_NAME => 'ncan'
   }
 
   SPECIES_PREFIXES = {

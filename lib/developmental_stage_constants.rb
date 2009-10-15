@@ -161,10 +161,44 @@ module DevelopmentalStageConstants
       'merozoite invasion',
       'intracellular merozoite',
       'sporozoite'
-    ]
+    ],
+    Species::NEOSPORA_CANINUM_NAME => [
+      'tachyzoite',
+      'bradyzoite'
+    ],
+    Species::OTHER_SPECIES => { #for unsequenced species most likely
+      'Sarcocystis muris' => [
+      ],
+      'Babesia divergens' => [
+        'merozoite'
+      ],
+      'Babesia equi' => [
+        'merozoite',
+        'intracellular merozoite',
+      ],
+      'Babesia gibsoni' => [
+        'oocyte',
+        'intracellular merozoite',
+        'early single intracellular merozoite',
+        'ring intracellular merozoite',
+        'extracellular merozoite',
+        'merozoite',
+        'ring stage of trophozoite'
+      ],
+      'Babesia bigemina' => [
+        'merozoite'
+      ]
+    }
   }
 
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
+    Species::OTHER_SPECIES => {
+      'Babesia gibsoni' => {
+        'ring stage of trophozoites' => 'ring stage of trophozoite',
+        'ring stage intracellular merozoite' => 'ring intracellular merozoite'
+      }
+    },
+    Species::NEOSPORA_CANINUM_NAME => {},
     Species::BABESIA_BOVIS_NAME => {
       'invading merozoites' => 'merozoite invasion'
     },

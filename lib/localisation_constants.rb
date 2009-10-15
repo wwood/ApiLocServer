@@ -254,10 +254,73 @@ module LocalisationConstants
       'parasitophorous vacuole membrane',
       'nucleus',
       'cytoplasmic face of host erythrocyte membrane'
-    ]
+    ],
+    Species::NEOSPORA_CANINUM_NAME => [
+      'apical',
+      'microneme',
+      'dense granule',
+      'rhoptry',
+      'rhoptry neck',
+      'parasitophorous vacuole',
+      'area around nucleus',
+      'cell surface',
+      'cytoplasm',
+      'posterior cytoplasm',
+      'anterior cytoplasm',
+      'cyst wall',
+      'moving junction'
+    ],
+    Species::OTHER_SPECIES => { #for unsequenced species most likely
+      'Sarcocystis muris' => [
+        'cell surface',
+        'pellicle',
+        'microneme'
+      ],
+      'Sarcocystis neurona' => [
+        'apical',
+        'microneme',
+      ],
+      'Babesia divergens' => [
+        'cytosolic face of plasma membrane'
+      ],
+      'Babesia gibsoni' => [
+        'cell surface',
+        'plasma membrane',
+        'cytoplasm',
+        'host cell cytoplasm',
+        'apical',
+      ],
+      'Babesia equi' => [
+        'cell surface',
+        'host cell cytoplasm'
+      ],
+      'Babesia bigemina' => [
+        'cytoplasm'
+      ]
+    }
   }
 
   KNOWN_LOCALISATION_SYNONYMS = {
+    Species::OTHER_SPECIES => {
+      'Sarcocystis muris' => {
+        'surface' => 'cell surface'
+      },
+      'Babesia gibsoni' => {
+        'surface' => 'cell surface',
+        'erythrocyte cytoplasm' => 'host cell cytoplasm',
+        'pm' => 'plasma membrane',
+        'membrane' => 'plasma membrane'
+      },
+      'Babesia equi' => {
+        'surface' => 'cell surface'
+      },
+    },
+    Species::NEOSPORA_CANINUM_NAME => {
+      'cytoplasm mostly near nuclear membrane' => 'area around nucleus',
+      'mj' => 'moving junction',
+      'surface' => 'cell surface',
+      'parasite surface' => 'cell surface',
+    },
     Species::BABESIA_BOVIS_NAME => {
       'surface' => 'plasma membrane',
       'host cell surface' => 'host erythrocyte membrane',

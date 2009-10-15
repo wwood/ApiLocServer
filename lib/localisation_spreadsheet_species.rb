@@ -3,35 +3,46 @@ require 'reach'
 # Top level species-specific functions for uploading the localisation
 # spreadsheets
 module LocalisationSpreadsheetSpecies
-  def upload_falciparum(filename="#{ENV['HOME']}/phd/gene lists/falciparum.csv")
-    sp = Species.find_by_name(Species::FALCIPARUM_NAME)
-    DevelopmentalStage.new.upload_known_developmental_stages sp
-    Localisation.new.upload_known_localisations sp
-    Localisation.new.upload_localisation_synonyms sp
+  def upload_species(species, filename)
+    DevelopmentalStage.new.upload_known_developmental_stages species
+    Localisation.new.upload_known_localisations species
+    Localisation.new.upload_localisation_synonyms species
     LocalisationModifier.new.upload_known_modifiers
-    upload_localisations_for_species sp, filename
-    TopLevelLocalisation.new.upload_localisations sp.name
+    upload_localisations_for_species species, filename
+    TopLevelLocalisation.new.upload_localisations species.name
+  end
+
+  def upload_falciparum(filename="#{ENV['HOME']}/phd/gene lists/falciparum.csv")
+    upload_species(Species.find_by_name(Species::FALCIPARUM_NAME), filename)
   end
 
   def upload_toxo(filename="#{ENV['HOME']}/phd/gene lists/toxo.csv")
-    sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
-    DevelopmentalStage.new.upload_known_developmental_stages sp
-    Localisation.new.upload_known_localisations sp
-    Localisation.new.upload_localisation_synonyms sp
-    LocalisationModifier.new.upload_known_modifiers
-    upload_manual_toxoplasma_gene_aliases
-    upload_localisations_for_species sp, filename
-    TopLevelLocalisation.new.upload_localisations sp.name
+    upload_species(Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME), filename)
   end
 
   def upload_babesia_bovis(filename="#{ENV['HOME']}/phd/gene lists/Babesia_bovis.csv")
-    sp = Species.find_by_name(Species::BABESIA_BOVIS_NAME)
-    DevelopmentalStage.new.upload_known_developmental_stages sp
-    Localisation.new.upload_known_localisations sp
-    Localisation.new.upload_localisation_synonyms sp
+    upload_species(Species.find_by_name(Species::BABESIA_BOVIS_NAME), filename)
+  end
+
+  def upload_neospora_caninum(filename="#{ENV['HOME']}/phd/gene lists/Neospora_caninum.csv")
+    upload_species(Species.find_by_name(Species::NEOSPORA_CANINUM_NAME), filename)
+  end
+
+  def upload_unsequenced_species(filename)
+    DevelopmentalStage.new.upload_known_developmental_stages_unsequenced
+    Localisation.new.upload_known_localisations_unsequenced
+    Localisation.new.upload_localisation_synonyms_unsequenced
     LocalisationModifier.new.upload_known_modifiers
-    upload_localisations_for_species sp, filename
-    TopLevelLocalisation.new.upload_localisations sp.name
+    upload_localisations_for_species nil, filename
+    TopLevelLocalisation.new.upload_localisations_unsequenced
+  end
+
+  def upload_sarcocystis_spp(filename="#{ENV['HOME']}/phd/gene lists/Sarcocystis_spp.csv")
+    upload_unsequenced_species(filename)
+  end
+
+  def upload_babesia_spp(filename="#{ENV['HOME']}/phd/gene lists/Babesia_spp.csv")
+    upload_unsequenced_species(filename)
   end
 
   # Mapping some genes to modern IDs is problematic and annoying. Blargh.

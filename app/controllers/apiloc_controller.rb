@@ -49,13 +49,25 @@ class ApilocController < ApplicationController
       render :action => :index
     end
 
-    # only include positive localisations
-    @localisations = Localisation.all(
-      :joins => {:expression_contexts => {:coding_region => {:gene => {:scaffold => :species}}}},
-      :conditions => ['species.id = ? and localisations.name not like ?',
-        @species.id, 'not %'
-      ],
-      :select => 'distinct(localisations.*)'
-    )
+    if params[:negative] == 'true'
+      @localisations = Localisation.all(
+        :joins => {:expression_contexts => {:coding_region => {:gene => {:scaffold => :species}}}},
+        :conditions => ['species.id = ? and localisations.name like ?',
+          @species.id, 'not %'
+        ],
+        :select => 'distinct(localisations.*)'
+      )
+      @viewing_positive_localisations = false
+    else
+      # only include positive localisations
+      @localisations = Localisation.all(
+        :joins => {:expression_contexts => {:coding_region => {:gene => {:scaffold => :species}}}},
+        :conditions => ['species.id = ? and localisations.name not like ?',
+          @species.id, 'not %'
+        ],
+        :select => 'distinct(localisations.*)'
+      )
+      @viewing_positive_localisations = true
+    end
   end
 end

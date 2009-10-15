@@ -41,6 +41,22 @@ class Localisation < ActiveRecord::Base
       end
     end
   end
+
+  def upload_known_localisations_unsequenced
+    KNOWN_LOCALISATIONS[Species::OTHER_SPECIES].each do |species_name, locs|
+      species = Species.find_by_name(species_name)
+      locs.each do |loc|
+        if !Localisation.find_or_create_by_name_and_species_id(loc, species.id)
+          raise Exception, "Failed to upload loc '#{loc}' for some reason"
+        end
+
+        # not that localisation is also a localisation
+        if !Localisation.find_or_create_by_name_and_species_id("not #{loc}", species.id)
+          raise Exception, "Failed to upload NOT loc '#{loc}' for some reason"
+        end
+      end
+    end
+  end
   
   def upload_localisation_synonyms(species)
     KNOWN_LOCALISATION_SYNONYMS[species.name].each do |key, value|
@@ -55,6 +71,26 @@ class Localisation < ActiveRecord::Base
         end
       else
         raise Exception, "Could not find localisation #{l}"
+      end
+    end
+  end
+
+  def upload_localisation_synonyms_unsequenced
+    KNOWN_LOCALISATION_SYNONYMS[Species::OTHER_SPECIES].each do |species_name, loc_sins|
+      species = Species.find_by_name(species_name)
+      loc_sins.each do |key, value|
+        l = value.downcase
+        loc = Localisation.find_by_name_and_species_id(l, species.id)
+        if loc
+          if !LocalisationSynonym.find_or_create_by_localisation_id_and_name(
+              loc.id,
+              key.downcase
+            )
+            raise
+          end
+        else
+          raise Exception, "Could not find localisation #{l}"
+        end
       end
     end
   end
@@ -97,7 +133,7 @@ class Localisation < ActiveRecord::Base
           positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(stage, species)
 
           if positive_devs.empty?
-            $stderr.puts "No such dev stage '#{stage}' found."
+            $stderr.puts "No such dev stage '#{stage}' found in #{species.name}."
             next
           else
             positive_devs.each do |found|
@@ -115,7 +151,7 @@ class Localisation < ActiveRecord::Base
           if matches = stage.match(/^not (.+)/)
             positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(matches[1], species)
             if positive_devs.empty?
-              $stderr.puts "No such dev stage '#{matches[1]}' found."
+              $stderr.puts "No such dev stage '#{matches[1]}' found in #{species.name}"
               next
             end
             positive_devs.each do |found|
@@ -129,7 +165,7 @@ class Localisation < ActiveRecord::Base
             str, modifier_id = remove_strength_modifiers(stage)
             positive_devs = DevelopmentalStage.find_all_by_name_or_alternate(str, species)
             if positive_devs.empty?
-              $stderr.puts "No such dev stage '#{stage}' found."
+              $stderr.puts "No such dev stage '#{stage}' found in #{species.name}."
               next
             end
             positive_devs.each do |found|
@@ -169,7 +205,7 @@ class Localisation < ActiveRecord::Base
           end
 
           if d.empty?
-            $stderr.puts "No such dev stage '#{stage}' found."
+            $stderr.puts "No such dev stage '#{stage}' found in #{species.name}."
             next
           else
             stages.push d
@@ -251,7 +287,7 @@ class Localisation < ActiveRecord::Base
       end
     
       unless l
-        $stderr.puts "Localisation not understood: '#{str}' from '#{frag}'"
+        $stderr.puts "Localisation not understood: '#{str}' from '#{frag}' in #{species.name}"
       else
         e.localisation_id = l.id
       end

@@ -97,4 +97,8 @@ class BScript
 #      end
     end
   end
+
+  def neospora_caninum_to_database
+    apidb_species_to_database Species::NEOSPORA_CANINUM_NAME, "#{DATA_DIR}/Neospora caninum/genome/ToxoDB/5.2/NeosporaCaninum_ToxoDB-5.2.gff"
+  end
 end

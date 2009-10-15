@@ -15,6 +15,8 @@ class Gene < ActiveRecord::Base
     :class_name => 'GeneNetworkEdge',
     :foreign_key => 'gene_id_second', 
     :dependent => :destroy
+
+  UNANNOTATED_GENES_DUMMY_GENE_NAME = "Dummy gene for genes that don't exist"
     
   # create a dummy gene to satisfy validation
   def create_dummy(dummy_name)

@@ -205,6 +205,9 @@ class CodingRegion < ActiveRecord::Base
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'
   UNKNOWN_ORIENTATION = 'U'
+
+  UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME =
+    "A common gene for all genes not assigned to a gene model"
   
   concerned_with :machine_learning
   
@@ -372,7 +375,7 @@ class CodingRegion < ActiveRecord::Base
     else
       alts = CodingRegionAlternateStringId.s(species_common_name).find_all_by_name string_id
       if alts
-        return alts.pick(:coding_region)
+        return alts.pick(:coding_region).uniq
       else
         return []
       end
@@ -645,6 +648,8 @@ class CodingRegion < ActiveRecord::Base
     alias_method(:f, :find_by_name_or_alternate)
     alias_method(:fs, :find_by_name_or_alternate_and_organism)
     alias_method(:find_by_name_or_alternate_and_species, :find_by_name_or_alternate_and_organism)
+    alias_method :find_all_by_name_or_alternate_and_organism,
+      :find_all_by_name_or_alternate_and_species
   end
   
   # convenience method for falciparum

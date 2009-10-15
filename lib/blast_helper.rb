@@ -4,6 +4,7 @@
 class BlastHelper
   # An opinionated blast method
   def blast(sequence_input = nil, organism = 'apicomplexa', blast_program = nil, database=nil, alignment_program='blast', blast_options = {}, sequence_name = nil)
+    organism = nil if organism.strip == ''
     organism ||= 'apicomplexa' # in case nil is passed here
     alignment_program ||= 'blast'
 
@@ -25,11 +26,19 @@ class BlastHelper
       },
       'babesia' => {
         'protein' => 'BabesiaWGS.fasta_with_names'
+      },
+      'neospora' => {
+        'protein' => 'NeosporaCaninumAnnotatedProteins_ToxoDB-5.2.fasta',
+        'transcript' => 'NeosporaCaninumAnnotatedTranscripts_ToxoDB-5.2.fasta',
+        'genome' => 'NeosporaCaninumGenomic_ToxoDB-5.2.fasta',
       }
     }
     blast_array = databases[organism]
 
-    raise Exception, "Unknown database: #{organism}" if blast_array.nil?
+    # Some organisms don't exist yet. Reject these
+    unless organism and organism
+      raise Exception, "Unknown database: #{organism}" if blast_array.nil?
+    end
 
     program_to_database_index = {
       'tblastx' => 'transcript',

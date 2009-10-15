@@ -10,8 +10,6 @@ class LocalisationSpreadsheet
   # yield LocalisationSpreadsheetRow objects for each
   # row of a spreadsheet
   def parse_spreadsheet(species_name, filename)
-    has_species_column_first = true if species_name.nil?
-    raise if has_species_column_first
     line_number = 1 #start at 1 because there'll be a heading row
 
     #    FasterCSV.open(filename, :col_sep => "\t", :headers => true) do |row|
@@ -35,27 +33,97 @@ class LocalisationSpreadsheet
   end
 
   def upload_localisations_for_species(sp, filename)
+    if sp.nil?
+      create_genbank_type_coding_regions(filename)
+    end
     upload_list_gene_ids sp, filename
-    LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency sp.name
+
+    # this could be faster but eh.
+    # If sp.nil? that means the species are in each line.
+    if sp.nil?
+      collection = []
+      parse_spreadsheet(nil, filename) do |r,line_number|
+        collection.push r.species_name
+      end
+      collection.uniq.each do |name|
+        LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency name
+      end
+    else
+      LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency sp.name
+    end
     upload_list_localisations sp, filename
   end
 
-  def upload_list_gene_ids(sp, filename)
-    species_name = sp.name
+  # For species without genome projects, the GenBank ID is used as the
+  # Gene ID.
+  def create_genbank_type_coding_regions(filename)
+    parse_spreadsheet(nil, filename) do |info, line_number|
+      raise unless info.species_name
+      species = Species.find_or_create_by_name(info.species_name)
+      unless info.gene_id.nil?
+        scaf = Scaffold.find_or_create_by_species_id_and_name(
+          species.id, "Dummy"
+        )
+        gene = Gene.find_or_create_by_scaffold_id_and_name(
+          scaf.id, "Dummy"
+        )
+        CodingRegion.find_or_create_by_gene_id_and_string_id(
+          gene.id, info.gene_id
+        )
+      end
+    end
+  end
+
+  def deconvolve_species_and_name(overall_species, localisation_line)
+    if overall_species.nil?
+      return Species.find_by_name(localisation_line.species_name),
+        localisation_line.species_name
+    else
+      return overall_species, overall_species.name
+    end
+  end
+
+  # If species is nil, this indicates that the name of the species is in the
+  # first column of the spreadsheet itself.
+  def upload_list_gene_ids(overall_species, filename)
+    $stderr.puts "Starting to upload list ids--------------------------------------------------"
+    $stderr.puts "Species: #{overall_species}"
+    ignore_mapping_complaints = overall_species.nil? #don't care about mapping problems if there is just a genbank in the gene id column
+
+    overall_species_name = nil
+    overall_species_name = overall_species unless overall_species.nil?
      
     # first pass. Upload each row that has a gene id in it
-    parse_spreadsheet(species_name, filename) do |info, line_number|
+    parse_spreadsheet(overall_species_name, filename) do |info, line_number|
+      species, species_name = deconvolve_species_and_name(overall_species, info)
 
       # skip if there is no gene id or common name
       next unless info.gene_id and info.common_names
 
-      unless info.mapping_comments
+      unless info.mapping_comments or ignore_mapping_complaints
         $stderr.puts "Unexpected lack of gene mapping comment for #{info.gene_id} (#{info.common_names}). Line #{line_number}."
       end
 
+      # Try to find the coding region if possible just from the gene_id column
       code = CodingRegion.find_by_name_or_alternate_and_organism(info.gene_id, species_name)
+      # If there is no matching gene id, then find or create a dummy coding
+      # region that holds all of that information
+      if info.no_matching_gene_model?
+        scaf = Scaffold.find_or_create_by_species_id_and_name(
+          current_species.id, Scaffold::UNANNOTATED_GENES_DUMMY_SCAFFOLD_NAME
+        )
+        g = Gene.find_or_create_by_scaffold_id_and_name(
+          scaf.id, Gene::UNANNOTATED_GENES_DUMMY_GENE_NAME
+        )
+        code = CodingRegion.find_or_create_by_gene_id_and_string_id(
+          g.id, "A common gene for all genes not assigned to a gene model"
+        )
+      end
+
+      # If there is a gene model specified that I don't understand, then
+      # say so.
       unless code
-        $stderr.puts "Couldn't find coding region with ID #{info.gene_id}, skipping"
+        $stderr.puts "Couldn't find coding region with ID #{info.gene_id} from #{species_name}, skipping"
         next
       end
 
@@ -70,13 +138,28 @@ class LocalisationSpreadsheet
           common, code.id
         )
       end
+
+      # If there is no matching gene id, then find or create a dummy coding
+      # region that holds all of that information
+      if info.no_matching_gene_model?
+        scaf = Scaffold.find_or_create_by_species_id_and_name(
+          species.id, Scaffold::UNANNOTATED_GENES_DUMMY_SCAFFOLD_NAME
+        )
+        g = Gene.find_or_create_by_scaffold_id_and_name(
+          scaf.id, Gene::UNANNOTATED_GENES_DUMMY_GENE_NAME
+        )
+        code = CodingRegion.find_or_create_by_gene_id_and_string_id(
+          g.id, CodingRegion::UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME
+        )
+      end
     end
 
     # second pass. Upload each common name where there is more than 1,
     # because they are synonyms. As a side effect this checks that there
     # is no standalone name pairs (but not singletons, so this is not a
     # general solution
-    parse_spreadsheet(species_name, filename) do |info, line_number|
+    parse_spreadsheet(overall_species_name, filename) do |info, line_number|
+      species, species_name = deconvolve_species_and_name(overall_species, info)
       next if info.gene_id
       next if info.common_names.length < 2
 
@@ -97,7 +180,7 @@ class LocalisationSpreadsheet
             )
           end
         else
-          $stderr.puts "Couldn't find matching gene id for #{info.common_names.inspect} in the second pass, skipping."
+          $stderr.puts "Couldn't find matching gene id for '#{info.common_names.inspect}' in the second pass, skipping."
         end
       rescue CodingRegionConflictException => e
         $stderr.puts e.to_s
@@ -111,29 +194,38 @@ class LocalisationSpreadsheet
     code = nil
     
     localisation_spreadsheet_row.common_names.each do |common|
-      c = CodingRegion.find_by_name_or_alternate_and_organism(
+      codes = CodingRegion.find_all_by_name_or_alternate_and_organism(
         common, species_name
       )
-      if code and c
-        # search for conflicts.
-        unless c.id == code.id
-          raise CodingRegionConflictException,
-            "Conflicting names for common name #{common}. Coding regions #{c.string_id} and #{code.string_id}, #{c.id} and #{code.id}"
-        end
-      elsif c
-        code = c
+      unless codes.length == 1
+        $stderr.puts "Too many hits to the common name #{localisation_spreadsheet_row.common_names[0]}: #{codes.inspect}"
+        return nil
       end
+      code = codes[0]
+    end
+
+    # If no common names match, do we know already there is no gene model?
+    if localisation_spreadsheet_row.no_matching_gene_model?
+      code = CodingRegion.find_by_name_or_alternate_and_organism(
+        CodingRegion::UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME,
+        species_name
+      )
     end
 
     return code
   end
 
-  def upload_list_localisations(sp, filename)
+  def upload_list_localisations(overall_species, filename)
     loc = Localisation.new
-    species_name = sp.name
+    overall_species = nil
+    overall_species_name = overall_species.name unless overall_species.nil?
     
     # Upload each of the localisations as an expression context
-    parse_spreadsheet(species_name, filename) do |info, line_number|
+    parse_spreadsheet(overall_species_name, filename) do |info, line_number|
+      species, species_name = deconvolve_species_and_name(overall_species, info)
+      species_name ||= info.species_name
+      sp ||= Species.find_by_name(species_name)
+
       next unless info.normal_localisation_line?
 
       #      $stderr.puts info.inspect
@@ -143,23 +235,8 @@ class LocalisationSpreadsheet
       end
 
       # make sure the coding region is in the database properly.
-      code = nil
-      if info.gene_id
-        code = CodingRegion.find_by_name_or_alternate_and_organism(info.gene_id, species_name)
-        unless code
-          $stderr.puts "Couldn't find a coding region for #{info.gene_id} in #{info.inspect}"
-          next
-        end
-      else
-        codes = LiteratureDefinedCodingRegionAlternateStringId.find_all_by_name(info.common_names[0],
-          :joins => {:coding_region => {:gene => {:scaffold => :species}}},
-          :conditions => {:species => {:name => species_name}}).reach.coding_region.uniq
-        unless codes.length == 1
-          $stderr.puts "Too many hits to the common name #{info.common_names[0]}: #{codes.inspect}"
-          next
-        end
-        code = codes[0]
-      end
+      code = locate_coding_region(info, species_name)
+      next if code.nil?
 
       # Create the publication(s) we are relying on
       if info.pubmed_id
@@ -209,23 +286,28 @@ end
 # as possible but only using the structure of the spreadsheet, without
 # regard to the meaning of that data
 class LocalisationSpreadsheetRow
-  attr_accessor :case_sensitive_common_names,
+  attr_accessor :species_name,
+    :case_sensitive_common_names,
     :gene_id, :pubmed_id,
-    :localisation_and_timing, :mapping_comments, 
+    :localisation_and_timing, :mapping_comments,
     :microscopy_types, :microscopy_types_raw,
     :localisation_method, :quote, :strains_raw, :comments
 
   NO_LOC_JUST_GENE_MODEL = 'no localisation done, just a confirmation of gene model'
   THIS_ENTRY_IS_A_COMMON_NAME_MATCHING_THING = 'these common names refer to the same gene'
 
+  NO_MATCHING_GENE_MODEL = 'no matching gene model found'
+
   def create_from_array(species_name, array)
     start_column = 0
     unless species_name #if there's no species name, it'll just be in the firt column
       @species_name = array[start_column]; start_column += 1
+    else
+      @species_name = species_name
     end
-    #    p array
+    
     names = array[start_column]; start_column += 1
-    @case_sensitive_common_names = parse_common_names_column(species_name, names)
+    @case_sensitive_common_names = parse_common_names_column(@species_name, names)
     @gene_id = array[start_column]; start_column += 1
     @gene_id.strip! unless @gene_id.nil?
     @pubmed_id = array[start_column]; start_column += 1
@@ -241,18 +323,18 @@ class LocalisationSpreadsheetRow
     # checking. Unless it is just a gene model thing, there should be certain
     # columns that are filled
     if @comments.include?(NO_LOC_JUST_GENE_MODEL)
-      $stderr.puts "No pubmed for gene model only row: #{array}" unless @pubmed_id
-      $stderr.puts "No mapping comments for gene model only row: #{array}" unless @mapping_comments
+      $stderr.puts "No pubmed for gene model only row: #{array.inspect}" unless @pubmed_id
+      $stderr.puts "No mapping comments for gene model only row: #{array.inspect}" unless @mapping_comments
     elsif @comments.include?(THIS_ENTRY_IS_A_COMMON_NAME_MATCHING_THING)
-      $stderr.puts "Not enough names to make a pair in #{array}, expected 2 or more." unless @case_sensitive_common_names.length > 1
+      $stderr.puts "Not enough names to make a pair in #{array.inspect}, expected 2 or more." unless @case_sensitive_common_names.length > 1
     else
       # a normal loc line should contain various things
       if @case_sensitive_common_names.empty? and @gene_id.nil?
-        $stderr.puts "No gene model or common name for #{array}"
+        $stderr.puts "No gene model or common name for #{array.inspect}"
       end
 
       if @localisation_method.nil? and @microscopy_types != ['ChIP']
-        $stderr.puts "No localisation method found for #{array}"
+        $stderr.puts "No localisation method found for #{array.inspect}"
       end
       if @quote.nil?
         $stderr.puts "No quote found for #{array}"
@@ -261,7 +343,7 @@ class LocalisationSpreadsheetRow
         $stderr.puts "No pubmed found for #{array}"
       end
       if microscopy_types.empty?
-        $stderr.puts "No microscopy types for localisation line #{array}"
+        $stderr.puts "No microscopy types for localisation line #{array.inspect}"
       end
       if strains.empty? and !(@comments.include?('strain information not found'))
         $stderr.puts "Strain info missing for #{array.inspect}. Comments #{@comments.inspect}"
@@ -269,6 +351,10 @@ class LocalisationSpreadsheetRow
     end
 
     return self #for convenience
+  end
+
+  def no_matching_gene_model?
+    @gene_id == NO_MATCHING_GENE_MODEL
   end
 
   def microscopy_types
@@ -307,21 +393,25 @@ class LocalisationSpreadsheetRow
     column.split(',').reach.strip.retract
   end
 
-  # Common names sometimes have a species name prefix in front (e.g. PfACP
-  # is the same as ACP, provided it is known that falciparum is the species
-  # that we are dealing with.
-  #
-  # Manually created names here, but they are expected to match the official
-  # ones used in species.rb
-  SPECIES_PREFIXES = {
-    'falciparum' => 'Pf',
-    'Toxoplasma gondii' => 'Tg',
-    'Babesia bovis' => 'Bb'
-  }
+  #  # Common names sometimes have a species name prefix in front (e.g. PfACP
+  #  # is the same as ACP, provided it is known that falciparum is the species
+  #  # that we are dealing with.
+  #  #
+  #  # Manually created names here, but they are expected to match the official
+  #  # ones used in species.rb
+  #  SPECIES_PREFIXES = {
+  #    'falciparum' => 'Pf',
+  #    'Toxoplasma gondii' => 'Tg',
+  #    'Babesia bovis' => 'Bb',
+  #    'Neospora caninum' => 'Nc',
+  #    'Sarcocystis muris' => 'Sm',
+  #    'Sarcocystis neurona' => 'Sn',
+  #    'Sarcocystis suicanis' => 'Ss'
+  #  }
 
   # Return the common name that does not have the species name in it
   def remove_species_prefix(species_name, common_name)
-    prefix = SPECIES_PREFIXES[species_name]
+    prefix = generate_prefix_from_binomial_name(species_name)
     raise Exception,
       "Unknown species '#{species_name}'- can't remove common name prefix" unless prefix
     if matches = common_name.match(/^#{prefix}(.*)/)
@@ -329,6 +419,14 @@ class LocalisationSpreadsheetRow
     else
       return common_name
     end
+  end
+
+  def generate_prefix_from_binomial_name(species_name)
+    splits = species_name.split(' ')
+    raise unless splits.length == 2
+    raise Exception, "Incorrect first name in #{species_name}" unless splits[0][0..0].upcase!.nil?
+    raise unless splits[1][0..0].downcase!.nil?
+    "#{splits[0][0..0].upcase}#{splits[1][0..0]}"
   end
 
   def normal_localisation_line?
