@@ -72,10 +72,7 @@ Rails::Initializer.run do |config|
   config.gem 'romanbsd-gsl', :lib => 'gsl', :source => 'http://gems.github.com' # the original author doesn't offer a gem - I don't really need the other changes in romanbsd's github
 end
 
-<<<<<<< HEAD:config/environment.rb
 # Requires so I can run kawaii with all the methods I want.
-=======
->>>>>>> fb9642eb7d868d7ddf1f0de700b251f466294b1b:config/environment.rb
 require 'array_pair'
 
 # Simple class defintions that don't really need their own file since they are too short
