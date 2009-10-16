@@ -13,60 +13,63 @@
 
 <h3>Orthology</h3>
 <h4>OrthoMCL</h4>
-<% ogenes = @code.calculate_official_orthomcl_genes
-if ogenes.length == 0 %>
-  No entry found in OrthoMCL.
-<% elsif ogenes.length == 1
-  ogene = ogenes[0]
-  groups = ogene.orthomcl_groups
-  raise unless groups.length == 1
-  group = groups[0] %>
-  <h5>Localised Genes in this <%= link_to 'Group',
-    "http://beta.orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=sequenceList&groupac=#{group.orthomcl_name}" %></h5>
-  <ul>
-    <% codes = CodingRegion.all(
+<% if @code.species.orthomcl_three_letter.nil? %>
+  This species does not currently exist in the OrthoMCL database.
+<% else %>
+  <% ogenes = @code.calculate_official_orthomcl_genes
+  if ogenes.length == 0 %>
+    No entry found in OrthoMCL.
+  <% elsif ogenes.length == 1
+    ogene = ogenes[0]
+    groups = ogene.orthomcl_groups
+    raise unless groups.length == 1
+    group = groups[0] %>
+    <p>Part of OrthoMCL group <%= link_to group.orthomcl_name, "http://beta.orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=sequenceList&groupac=#{group.orthomcl_name}" %></p>
+    <h5>Localised Genes in this Group</h5>
+    <ul>
+      <% codes = CodingRegion.all(
+        :joins => [
+          {:orthomcl_genes => :orthomcl_groups},
+          :expression_contexts
+        ],
+        :conditions => {:orthomcl_groups => {:id => group.id}},
+        :select => 'distinct(coding_regions.*)'
+      )
+      if codes.length > 0
+        codes.each do |code| %>
+          <li><%= code_name(code) %> <%= code.localisation_html %> </li>
+        <% end %>
+      <% else %>
+        No genes in this OrthoMCL group have been localised.
+      <% end %>
+    </ul>
+    <h5>Other Apicomplexan Genes in this Group</h5>
+    <% codes2 = CodingRegion.all(
       :joins => [
         {:orthomcl_genes => :orthomcl_groups},
         :expression_contexts
       ],
-      :conditions => {:orthomcl_groups => {:id => group.id}},
+      :conditions =>
+        codes.empty? ?
+        ["orthomcl_groups.id = ?", group.id] :
+        ["orthomcl_groups.id = ? and coding_regions.id NOT IN "+
+          codes.collect{|c| c.id}.to_sql_in_string,
+        group.id
+      ],
       :select => 'distinct(coding_regions.*)'
-    )
-    if codes.length > 0
-      codes.each do |code| %>
-        <li><%= code_name(code) %> <%= code.localisation_html %> </li>
-      <% end %>
+    ) %>
+    <% if codes2.empty? %>
+      There are no other apicomplexan genes.
     <% else %>
-      No genes in this OrthoMCL group have been localised.
+      <ul>
+        <% codes2.each do |code| %>
+          <li><%= code_name(code) %></li>
+        <% end %>
+      </ul>
     <% end %>
-  </ul>
-  <h5>Other Apicomplexan Genes in this <%= link_to 'Group',
-    "http://beta.orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=sequenceList&groupac=#{group.orthomcl_name}" %></h5>
-  <% codes2 = CodingRegion.all(
-    :joins => [
-      {:orthomcl_genes => :orthomcl_groups},
-      :expression_contexts
-    ],
-    :conditions =>
-      codes.empty? ?
-      ["orthomcl_groups.id = ?", group.id] :
-      ["orthomcl_groups.id = ? and coding_regions.id NOT IN "+
-        codes.collect{|c| c.id}.to_sql_in_string,
-      group.id
-    ],
-    :select => 'distinct(coding_regions.*)'
-  ) %>
-  <% if codes2.empty? %>
-    There are no other <i>Apicomplexan</i> genes.
   <% else %>
-    <ul>
-      <% codes2.each do |code| %>
-        <li><%= code_name(code) %></li>
-      <% end %>
-    </ul>
+    This gene does not have an OrthoMCL group.
   <% end %>
-<% else %>
-  This gene does not have an OrthoMCL group.
 <% end %>
 
 <h4>BLAST hits to localised proteins</h4>

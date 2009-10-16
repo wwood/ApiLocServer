@@ -31,7 +31,12 @@ class BlastHelper
         'protein' => 'NeosporaCaninumAnnotatedProteins_ToxoDB-5.2.fasta',
         'transcript' => 'NeosporaCaninumAnnotatedTranscripts_ToxoDB-5.2.fasta',
         'genome' => 'NeosporaCaninumGenomic_ToxoDB-5.2.fasta',
-      }
+      },
+      'crypto' => {
+        'protein' => 'CparvumAnnotatedProteins_CryptoDB-4.2.fasta',
+        'transcript' => 'CparvumAnnotatedTranscripts_CryptoDB-4.2.fasta',
+        'genome' => 'CparvumGenomic_CryptoDB-4.2.fasta',
+      },
     }
     blast_array = databases[organism]
 

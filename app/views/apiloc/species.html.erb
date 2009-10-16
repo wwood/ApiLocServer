@@ -15,6 +15,7 @@ See all <%= link_to 'positive localisations', :action => :species, :id => @speci
   <% unless loc.localisation_synonyms.length == 0 %>
     <p>Also known as <%= loc.localisation_synonyms.reach.name.sort.join(', ') %>.</p>
   <% end %>
+    <p>View proteins from all species in <%= link_to loc.name, :action => :localisation, :id => loc.name %></p>
   <ul>
     <% loc.expression_contexts.reach.coding_region.uniq.each do |code| %>
       <li><%= code_name(code) %>
