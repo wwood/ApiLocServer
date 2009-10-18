@@ -1,5 +1,5 @@
 class Species < ActiveRecord::Base
-  FALCIPARUM = 'falciparum'
+  FALCIPARUM = 'Plasmodium falciparum'
   FALCIPARUM_NAME = FALCIPARUM
   VIVAX = 'Plasmodium vivax'
   VIVAX_NAME = VIVAX

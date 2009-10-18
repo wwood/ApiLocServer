@@ -321,7 +321,7 @@ class BScript
   
   def analyse_mf_upstream_lengths
     
-    sp = Species.find_by_name 'falciparum'
+    sp = Species.find_by_name Species::FALCIPARUM_NAME
     BraflUpstreamDistance.delete_all
     map = GoMap.find_by_name MOLECULAR_FUNCTION
     

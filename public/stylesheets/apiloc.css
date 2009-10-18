@@ -10,10 +10,21 @@ div.notice
 div.categorytrue {
   background-color: #eee;
   padding: 10px;
-  /*font-size: 11px;*/
+  font-size: 11px;
 }
 div.categoryfalse {
   /*background-color: #eee;*/
   padding: 10px;
   /*font-size: 11px;*/
 }
+body { background-color: #fff; color: #333; }
+
+body, p, ol, ul, td {
+  font-family: verdana, arial, helvetica, sans-serif;
+  font-size:   13px;
+  line-height: 18px;
+}
+
+a { color: #000; }
+a:visited { color: #666; }
+a:hover { color: #fff; background-color:#000; }

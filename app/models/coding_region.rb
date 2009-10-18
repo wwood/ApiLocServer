@@ -4,6 +4,7 @@ require 'n_c_b_i'
 require 'go'
 require 'tempfile'
 require 'expression_context_group'
+require 'reach'
 
 class CodingRegion < ActiveRecord::Base
   
@@ -1176,6 +1177,12 @@ class CodingRegion < ActiveRecord::Base
 
   def calculate_official_orthomcl_gene!
     calculate_official_orthomcl_genes[0]
+  end
+
+  def gene_model_inconsistent?
+    !expression_contexts.reach.localisation_annotation.select{|a|
+      a.gene_mapping_comments.match(/gene model inconsistent/)
+    }.empty?
   end
 end
 

@@ -1,4 +1,7 @@
-<h2><%= "#{@code.string_id} (#{@code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ')})" %></h2>
+<h2><%= @code.string_id %> (<%=  @code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ') %>) <% if @code.gene_model_inconsistent? %>*<% end %></h2>
+<% if @code.gene_model_inconsistent? %>
+<p>* The amino acid sequence is recorded as differing between ApiLoc and the genome database. See the gene model mapping comments in each localisation for more information.</p>
+<% end %>
 <%= @code.annotation.annotation %>
 
 <p><%= @code.localisation_html %></p>
