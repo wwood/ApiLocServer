@@ -748,13 +748,13 @@ class Verification
   def crypto
     # ben@ben:~/phd/data/Cryptosporidium hominis/genome/cryptoDB/4.0$ grep '  CDS     ' c_hominis_tu502.gff |wc -l
     # 3886
-    raise unless CodingRegion.s(Species::CYRYPTOSPORIDIUM_HOMINIS_NAME).count == 3886
+    raise unless CodingRegion.s(Species::CRYPTOSPORIDIUM_HOMINIS_NAME).count == 3886
     # ben@ben:~/phd/data/Cryptosporidium hominis/genome/cryptoDB/4.0$ grep '>' /home/ben/phd/data/Cryptosporidium\ parvum/genome/cryptoDB/4.0/CparvumAnnotatedProteins_CryptoDB-4.0.fasta |wc -l
     # 3805
-    raise unless CodingRegion.s(Species::CYRYPTOSPORIDIUM_PARVUM_NAME).count == 3805
+    raise unless CodingRegion.s(Species::CRYPTOSPORIDIUM_PARVUM_NAME).count == 3805
 
-    raise unless AminoAcidSequence.count(:joins => {:coding_region => {:gene => {:scaffold => :species}}}, :conditions => ['species.name = ?', Species::CYRYPTOSPORIDIUM_HOMINIS_NAME]) == 3886
-    raise unless AminoAcidSequence.count(:joins => {:coding_region => {:gene => {:scaffold => :species}}}, :conditions => ['species.name = ?', Species::CYRYPTOSPORIDIUM_PARVUM_NAME]) == 3805
+    raise unless AminoAcidSequence.count(:joins => {:coding_region => {:gene => {:scaffold => :species}}}, :conditions => ['species.name = ?', Species::CRYPTOSPORIDIUM_HOMINIS_NAME]) == 3886
+    raise unless AminoAcidSequence.count(:joins => {:coding_region => {:gene => {:scaffold => :species}}}, :conditions => ['species.name = ?', Species::CRYPTOSPORIDIUM_PARVUM_NAME]) == 3805
   end
   
   def winzeler_2003_microarray

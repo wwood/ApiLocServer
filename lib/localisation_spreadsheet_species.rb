@@ -28,6 +28,10 @@ module LocalisationSpreadsheetSpecies
     upload_species(Species.find_by_name(Species::NEOSPORA_CANINUM_NAME), filename)
   end
 
+  def upload_cryptosporidium_parvum(filename="#{ENV['HOME']}/phd/gene lists/Cryptosporidium_parvum.csv")
+    upload_species(Species.find_by_name(Species::CRYPTOSPORIDIUM_PARVUM_NAME), filename)
+  end
+
   def upload_unsequenced_species(filename)
     DevelopmentalStage.new.upload_known_developmental_stages_unsequenced
     Localisation.new.upload_known_localisations_unsequenced

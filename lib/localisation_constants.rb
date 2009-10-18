@@ -297,10 +297,52 @@ module LocalisationConstants
       'Babesia bigemina' => [
         'cytoplasm'
       ]
-    }
+    },
+    Species::CRYPTOSPORIDIUM_PARVUM_NAME => [
+      'surface',
+      'cytosol',
+      'cytoplasm',
+      'perinuclear',
+      'nucleus',
+      'anterior to nucleus',
+      'apical',
+      'apical surface',
+      'microneme',
+      'mitochondrion',
+      'dense band',
+      'posterior vacuole',
+      'intracellular',
+      'feeder organelle',
+      'parasitophorous vacuole',
+      'oocyst wall',
+      'wall forming bodies',
+      'cytoplasmic inclusion',
+      'periphery of amylopectin-like granules',
+      'cytoplasm proximal to amylopectin-like granules',
+      'peripheral',
+      'between pellicle and parasitophorous vacuole membrane',
+      'parasitophorous vacuole membrane',
+      'plasma membrane',
+      'crystalloid body',
+      'residual body',
+      'anterior vacuole',
+      'surrounding',
+    ],
   }
 
   KNOWN_LOCALISATION_SYNONYMS = {
+    Species::CRYPTOSPORIDIUM_PARVUM_NAME => {
+      'relict mitochondrian' => 'mitochondrion',
+      'mitochondrion-like structure' => 'mitochondrion',
+      'mitochondria' => 'mitochondrion',
+      'pv' => 'parasitophorous vacuole',
+      'anterior of surface' => 'apical surface',
+      'periphery of parasite subjacent to the parasitophorous vacuole' => 'peripheral',
+      'anterior to the nucleus' => 'anterior to nucleus',
+      'periphery' => 'peripheral',
+      'pvm' => 'parasitophorous vacuole membrane',
+      'membrane' => 'plasma membrane',
+    },
     Species::OTHER_SPECIES => {
       'Sarcocystis muris' => {
         'surface' => 'cell surface'
@@ -529,6 +571,7 @@ module LocalisationConstants
   # I hate parsers. Don't you?
   LOCALISATIONS_WITH_AND_IN_THEIR_NAME = [
     'between er and golgi',
-    'between parasite pellicle and PVM'
+    'between parasite pellicle and PVM',
+    'between pellicle and parasitophorous vacuole membrane'
   ]
 end

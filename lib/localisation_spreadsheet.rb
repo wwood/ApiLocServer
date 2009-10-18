@@ -86,12 +86,10 @@ class LocalisationSpreadsheet
   # If species is nil, this indicates that the name of the species is in the
   # first column of the spreadsheet itself.
   def upload_list_gene_ids(overall_species, filename)
-    $stderr.puts "Starting to upload list ids--------------------------------------------------"
-    $stderr.puts "Species: #{overall_species}"
     ignore_mapping_complaints = overall_species.nil? #don't care about mapping problems if there is just a genbank in the gene id column
 
     overall_species_name = nil
-    overall_species_name = overall_species unless overall_species.nil?
+    overall_species_name = overall_species.name unless overall_species.nil?
      
     # first pass. Upload each row that has a gene id in it
     parse_spreadsheet(overall_species_name, filename) do |info, line_number|
@@ -191,17 +189,13 @@ class LocalisationSpreadsheet
   # try to find (not create) the coding region that corresponds to this
   # spreadsheet row. raise a CodingRegionConflict if multiple are found.
   def locate_coding_region(localisation_spreadsheet_row, species_name)
-    code = nil
+    collected_coding_regions = []
     
     localisation_spreadsheet_row.common_names.each do |common|
       codes = CodingRegion.find_all_by_name_or_alternate_and_organism(
         common, species_name
       )
-      unless codes.length == 1
-        $stderr.puts "Too many hits to the common name #{localisation_spreadsheet_row.common_names[0]}: #{codes.inspect}"
-        return nil
-      end
-      code = codes[0]
+      collected_coding_regions << codes[0]
     end
 
     # If no common names match, do we know already there is no gene model?
@@ -212,12 +206,18 @@ class LocalisationSpreadsheet
       )
     end
 
-    return code
+    collected_coding_regions = collected_coding_regions.flatten.uniq.reject{|c| c.nil?}
+    unless collected_coding_regions.length == 1
+      $stderr.puts "Unexpected number of hits to the common name #{localisation_spreadsheet_row.common_names[0]}: #{collected_coding_regions.inspect}"
+      return nil
+    end
+
+    return collected_coding_regions[0]
   end
 
   def upload_list_localisations(overall_species, filename)
     loc = Localisation.new
-    overall_species = nil
+    overall_species_name = nil
     overall_species_name = overall_species.name unless overall_species.nil?
     
     # Upload each of the localisations as an expression context
@@ -297,6 +297,7 @@ class LocalisationSpreadsheetRow
   THIS_ENTRY_IS_A_COMMON_NAME_MATCHING_THING = 'these common names refer to the same gene'
 
   NO_MATCHING_GENE_MODEL = 'no matching gene model found'
+  NO_LOC_METHOD = "localisation method not found"
 
   def create_from_array(species_name, array)
     start_column = 0
@@ -330,10 +331,13 @@ class LocalisationSpreadsheetRow
     else
       # a normal loc line should contain various things
       if @case_sensitive_common_names.empty? and @gene_id.nil?
+        p @comments
         $stderr.puts "No gene model or common name for #{array.inspect}"
       end
 
-      if @localisation_method.nil? and @microscopy_types != ['ChIP']
+      if @localisation_method.nil? and 
+          @microscopy_types != ['ChIP'] and
+          !@comments.include?(NO_LOC_METHOD)
         $stderr.puts "No localisation method found for #{array.inspect}"
       end
       if @quote.nil?

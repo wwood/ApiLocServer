@@ -188,10 +188,36 @@ module DevelopmentalStageConstants
       'Babesia bigemina' => [
         'merozoite'
       ]
-    }
+    },
+    Species::CRYPTOSPORIDIUM_PARVUM_NAME => [
+      'sporozoite',
+      'extracellular sporozoite',
+      'unexcysted sporozoite',
+      'freshly excysted sporozoite',
+      'sporozoite invasion',
+      'oocyst',
+      'immature oocyst',
+      'empty oocyst',
+      'fully sporulated oocyst',
+      'intracellular meront',
+      'intracellular stages',
+      'merozoite containing meront',
+      'meront',
+      'mature type i meront',
+      'merozoite',
+      'type i merozoite',
+      'early macrogametocyte',
+      'early macrogamete',
+      'late macrogamete',
+      'trophozoite',
+    ]
   }
 
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
+    Species::CRYPTOSPORIDIUM_PARVUM_NAME => {
+      'free sporozoite' => 'extracellular sporozoite',
+      'sporozoite internalization' => 'sporozoite invasion',
+    },
     Species::OTHER_SPECIES => {
       'Babesia gibsoni' => {
         'ring stage of trophozoites' => 'ring stage of trophozoite',

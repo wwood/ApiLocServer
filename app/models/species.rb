@@ -18,9 +18,9 @@ class Species < ActiveRecord::Base
   YEAST_NAME= 'yeast'
   MOUSE_NAME = 'mouse'
   DROSOPHILA_NAME= 'fly'
-  CYRYPTOSPORIDIUM_HOMINIS_NAME = 'Cryptosporidium hominis'
-  CYRYPTOSPORIDIUM_PARVUM_NAME = 'Cryptosporidium parvum'
-  CYRYPTOSPORIDIUM_MURIS_NAME = 'Cryptosporidium muris'
+  CRYPTOSPORIDIUM_HOMINIS_NAME = 'Cryptosporidium hominis'
+  CRYPTOSPORIDIUM_PARVUM_NAME = 'Cryptosporidium parvum'
+  CRYPTOSPORIDIUM_MURIS_NAME = 'Cryptosporidium muris'
 
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'
@@ -39,8 +39,8 @@ class Species < ActiveRecord::Base
     BERGHEI_NAME,
     YOELII_NAME,
     BABESIA_BOVIS_NAME,
-    CYRYPTOSPORIDIUM_HOMINIS_NAME,
-    CYRYPTOSPORIDIUM_PARVUM_NAME,
+    CRYPTOSPORIDIUM_HOMINIS_NAME,
+    CRYPTOSPORIDIUM_PARVUM_NAME,
     THEILERIA_PARVA_NAME,
     THEILERIA_ANNULATA_NAME,
   ]
@@ -66,9 +66,9 @@ class Species < ActiveRecord::Base
     BERGHEI_NAME => 'pber',
     YOELII_NAME => 'pyoe',
     KNOWLESI_NAME => 'pkno',
-    CYRYPTOSPORIDIUM_HOMINIS_NAME => 'chom',
-    CYRYPTOSPORIDIUM_PARVUM_NAME => 'cpar',
-    CYRYPTOSPORIDIUM_MURIS_NAME => 'cmur',
+    CRYPTOSPORIDIUM_HOMINIS_NAME => 'chom',
+    CRYPTOSPORIDIUM_PARVUM_NAME => 'cpar',
+    CRYPTOSPORIDIUM_MURIS_NAME => 'cmur',
     THEILERIA_PARVA_NAME => 'tpar',
     THEILERIA_ANNULATA_NAME => 'tann',
     ELEGANS_NAME => 'cele',
@@ -125,11 +125,11 @@ class Species < ActiveRecord::Base
   end
   
   def self.cryptosporidium_parvum_name
-    CYRYPTOSPORIDIUM_PARVUM_NAME
+    CRYPTOSPORIDIUM_PARVUM_NAME
   end
   
   def self.cryptosporidium_hominis_name
-    CYRYPTOSPORIDIUM_HOMINIS_NAME
+    CRYPTOSPORIDIUM_HOMINIS_NAME
   end
   
   def self.arabidopsis_name
@@ -180,9 +180,9 @@ class Species < ActiveRecord::Base
 
   def cryptodb?
     [
-      CYRYPTOSPORIDIUM_HOMINIS_NAME,
-      CYRYPTOSPORIDIUM_PARVUM_NAME,
-      CYRYPTOSPORIDIUM_MURIS_NAME
+      CRYPTOSPORIDIUM_HOMINIS_NAME,
+      CRYPTOSPORIDIUM_PARVUM_NAME,
+      CRYPTOSPORIDIUM_MURIS_NAME
     ].include?(name)
   end
 

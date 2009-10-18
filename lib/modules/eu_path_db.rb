@@ -101,4 +101,8 @@ class BScript
   def neospora_caninum_to_database
     apidb_species_to_database Species::NEOSPORA_CANINUM_NAME, "#{DATA_DIR}/Neospora caninum/genome/ToxoDB/5.2/NeosporaCaninum_ToxoDB-5.2.gff"
   end
+
+  def cryptosporidium_parvum_to_database
+    apidb_species_to_database Species::CRYPTOSPORIDIUM_PARVUM_NAME, "#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/4.2/c_parvum_iowa_ii.gff"
+  end
 end
