@@ -11,10 +11,7 @@ Proteins in this localisation are known in <%= @localisations.reach.species.coll
       View <%= link_to 'all', :action => :species, :id => loc.species.name %> proteins localised in <%= loc.species.name %>.</p>
     <ul>
       <% loc.expression_contexts.reach.coding_region.uniq.each do |code| %>
-        <li><%= link_to code.string_id, :action => :gene, :id => code.string_id %>
-          (<%= code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ') %>)
-          <%= code.annotation.annotation %>
-        </li>
+        <li><%= code_name_annotation(code) %></li>
       <% end %>
     </ul>
   </div>

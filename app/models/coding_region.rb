@@ -1181,7 +1181,8 @@ class CodingRegion < ActiveRecord::Base
 
   def gene_model_inconsistent?
     !expression_contexts.reach.localisation_annotation.select{|a|
-      a.gene_mapping_comments.match(/gene model inconsistent/)
+      a.gene_mapping_comments and
+        a.gene_mapping_comments.match(/gene model inconsistent/)
     }.empty?
   end
 end

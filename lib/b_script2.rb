@@ -347,7 +347,7 @@ PFI1740c).include?(f)
   end
 
   def map_localisations_to_go_terms
-    Localisation::KNOWN_LOCALISATIONS['falciparum'].each do |loc_name|
+    Localisation::KNOWN_LOCALISATIONS[Species::FALCIPARUM_NAME].each do |loc_name|
       terms = Localisation.find_by_name(loc_name).map_to_go_term_multiple
       if terms.empty?
         puts "#{loc_name}"

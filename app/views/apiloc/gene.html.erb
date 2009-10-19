@@ -49,8 +49,7 @@
     <h5>Other Apicomplexan Genes in this Group</h5>
     <% codes2 = CodingRegion.all(
       :joins => [
-        {:orthomcl_genes => :orthomcl_groups},
-        :expression_contexts
+        {:orthomcl_genes => :orthomcl_groups}
       ],
       :conditions =>
         codes.empty? ?

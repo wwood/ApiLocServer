@@ -35,6 +35,11 @@ class ApilocController < ApplicationController
 
   def developmental_stage
     @developmental_stages = DevelopmentalStage.find_all_by_name(params[:id])
+    logger.info params.inspect
+    if @developmental_stages.empty? and params[:format]
+      @developmental_stages = DevelopmentalStage.find_all_by_name("#{params[:id]}.#{params[:format]}")
+      params[:format] = 'html'
+    end
     raise Exception, "No localisations found by the name of '#{params[:id]}'" if @developmental_stages.length == 0
   end
 

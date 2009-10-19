@@ -3,7 +3,7 @@ class LocalisationModifier < ActiveRecord::Base
     weak sometimes some little sporadically reduced variable partially
     strong substantial mainly throughout predominantly bright especially
     punctate homogenous homogenously diffuse uniform heterogenous entire
-    semi-punctate smooth beaded patchy varied
+    semi-punctate smooth beaded patchy varied dotty
   )
 
   def upload_known_modifiers

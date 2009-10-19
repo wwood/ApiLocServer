@@ -19,7 +19,7 @@ See all <%= link_to 'positive localisations', :action => :species, :id => @speci
   <ul>
     <% loc.expression_contexts.reach.coding_region.uniq.each do |code| %>
       <li><%= code_name(code) %>
-        <%= code.annotation.annotation %>
+        <%= code.annotation.nil? ? nil : code.annotation.annotation %>
       </li>
     <% end %>
   </ul>

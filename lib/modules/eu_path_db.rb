@@ -4,19 +4,29 @@ require 'eu_path_d_b_gene_information_table'
 require 'zlib'
 
 class BScript
+  PLASMODB_VERSION = '6.1'
+  TOXODB_VERSION = '4.2'
+  CRYPTODB_VERSION = '4.2'
+
 
   def falciparum_to_database
-    # abstraction!
-    #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
-    #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
-    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/6.0/Pfalciparum_PlasmoDB-6.0.gff"
+    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/#{PLASMODB_VERSION}/Pfalciparum_PlasmoDB-#{PLASMODB_VERSION}.gff"
   end
 
   def berghei_to_database
-    # abstraction!
-    #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.4/Pfalciparum_3D7_plasmoDB-5.4.gff"
-    #    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/5.5/Pfalciparum_PlasmoDB-5.5.gff"
-    apidb_species_to_database Species::BERGHEI_NAME, "#{DATA_DIR}/berghei/genome/plasmodb/6.0/Pberghei_PlasmoDB-6.0.gff"
+    apidb_species_to_database Species::BERGHEI_NAME, "#{DATA_DIR}/yoelii/genome/plasmodb/#{PLASMODB_VERSION}/Pberghei_PlasmoDB-#{PLASMODB_VERSION}.gff"
+  end
+
+  def yoelii_to_database
+    apidb_species_to_database Species::YOELII_NAME, "#{DATA_DIR}/yoelii/genome/plasmodb/#{PLASMODB_VERSION}/Pyoelii_PlasmoDB-#{PLASMODB_VERSION}.gff"
+  end
+
+  def neospora_caninum_to_database
+    apidb_species_to_database Species::NEOSPORA_CANINUM_NAME, "#{DATA_DIR}/Neospora caninum/genome/ToxoDB/5.2/NeosporaCaninum_ToxoDB-5.2.gff"
+  end
+
+  def cryptosporidium_parvum_to_database
+    apidb_species_to_database Species::CRYPTOSPORIDIUM_PARVUM_NAME, "#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/4.2/c_parvum_iowa_ii.gff"
   end
 
   def berghei_fasta_to_database
@@ -51,23 +61,51 @@ class BScript
     upload_cds_fasta_general!(fa, sp)
   end
 
-
-  # Use the gene table to upload the GO terms to the database
-  def upload_gondii_gene_table_to_database
+  def upload_gene_information_table(species, gzfile)
     oracle = EuPathDBGeneInformationTable.new(
       Zlib::GzipReader.open(
-        "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.2/TgondiiME49Gene_ToxoDB-5.2.txt.gz"
+        gzfile
       ))
 
     oracle.each do |info|
       # find the gene
       gene_id = info.get_info('ID')
-      code = CodingRegion.fs(gene_id, Species::TOXOPLASMA_GONDII_NAME)
-      unless code and code.species.name == Species::TOXOPLASMA_GONDII_NAME
+      if info.get_info('Gene') # Toxo is 'ID', whereas falciparum is 'Gene'.
+        raise unless gene_id.nil?
+        gene_id = info.get_info('Gene')
+      end
+      code = CodingRegion.fs(gene_id, species.name)
+      unless code and code.species.name == species.name
         $stderr.puts "Couldn't find coding region #{gene_id}, skipping"
         next
       end
 
+      associates = info.get_table('GO Terms')
+      associates.each do |a|
+        go_id = a['GO ID']
+        go = GoTerm.find_by_go_identifier_or_alternate(go_id)
+        unless go
+          $stderr.puts "Couldn't find go term: #{go_id}, skipping"
+          next
+        end
+
+        CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
+          code.id,
+          go.id,
+          a['Evidence Code']
+        )
+      end
+    end
+  end
+
+
+  # Use the gene table to upload the GO terms to the database, including
+  # old release 4 identifiers
+  def upload_gondii_gene_table_to_database
+    upload_gene_information_table(
+      Species.find_by_name(Species::TOXOPLASMA_GONDII),
+      "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.2/TgondiiME49Gene_ToxoDB-5.2.txt.gz"
+    ) do |info, code|
       release_fours = info.get_info('Release4 IDs')
       r4 = release_fours.split(/\s/).reject{|s|s.nil? or s==''}
       if r4 == ['null']
@@ -79,30 +117,12 @@ class BScript
           ) or raise
         end
       end
-
-#      associates = info.get_table('GO Terms')
-#      associates.each do |a|
-#        go_id = a['GO ID']
-#        go = GoTerm.find_by_go_identifier_or_alternate(go_id)
-#        unless go
-#          $stderr.puts "Couldn't find go term: #{go_id}, skipping"
-#          next
-#        end
-#
-#        CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
-#          code.id,
-#          go.id,
-#          a['Evidence Code']
-#        )
-#      end
     end
   end
 
-  def neospora_caninum_to_database
-    apidb_species_to_database Species::NEOSPORA_CANINUM_NAME, "#{DATA_DIR}/Neospora caninum/genome/ToxoDB/5.2/NeosporaCaninum_ToxoDB-5.2.gff"
-  end
-
-  def cryptosporidium_parvum_to_database
-    apidb_species_to_database Species::CRYPTOSPORIDIUM_PARVUM_NAME, "#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/4.2/c_parvum_iowa_ii.gff"
+  def upload_falciparum_gene_table_to_database
+    upload_gene_information_table(Species.find_by_name(Species::FALCIPARUM_NAME),
+      "#{DATA_DIR}/Plasmodium falciparum/genome/plasmodb/6.1/PfalciparumGene_PlasmoDB-6.1.txt.gz"
+    )
   end
 end

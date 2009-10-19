@@ -1,0 +1,88 @@
+<h1>Sitemap for ApiLoc - A Database of Protein Sub-Cellular Localisation in <i>Apicomplexa</i></h1>
+<% category_counter = 0 %>
+
+
+<%= link_to :action => :index %><br />
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Species</h2>
+  <ul>
+    <% Species.all(
+      :select => 'distinct(species.*) ',
+      :order => 'name',
+      :joins => :localisations
+    ).each do |sp| %>
+      <li><i><%= link_to sp.name, :action => :species, :id => sp.name %></i></li>
+    <% end %>
+  </ul>
+</div>
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Localisations</h2>
+  <ul>
+    <% Localisation.all(
+      :select => 'distinct(localisations.name)',
+      :order => 'name',
+      :joins => :expression_contexts,
+      :conditions => "name not like 'not %'").each do |loc| %>
+      <li><%= link_to loc.name, :action => :localisation, :id => loc.name %></li>
+    <% end %>
+  </ul>
+</div>
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Negative Localisations</h2>
+  <ul>
+    <% Localisation.all(
+      :select => 'distinct(localisations.name)',
+      :order => 'name',
+      :joins => :expression_contexts,
+      :conditions => "name like 'not %'").each do |loc| %>
+      <li><%= link_to loc.name, :action => :localisation, :id => loc.name %></li>
+    <% end %>
+  </ul>
+</div>
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Developmental Stages</h2>
+  <ul>
+    <% DevelopmentalStage.all(
+      :select => 'distinct(developmental_stages.*)',
+      :order => 'name',
+      :joins => :expression_contexts,
+      :conditions => "name not like 'not %'").each do |ann| %>
+      <li><%= link_to ann.name, :action => :developmental_stage, :id => ann.name %></li>
+    <% end %>
+  </ul>
+</div>
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Negative Developmental Stages</h2>
+  <ul>
+    <% DevelopmentalStage.all(
+      :select => 'distinct(developmental_stages.*)',
+      :order => 'name',
+      :joins => :expression_contexts,
+      :conditions => "name like 'not %'").each do |ann| %>
+      <li><%= link_to ann.name, :action => :developmental_stage, :id => ann.name %></li>
+    <% end %>
+  </ul>
+</div>
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Microscopy</h2>
+  <ul>
+    <% LocalisationAnnotation.all(
+      :select => 'distinct(microscopy_type)',
+      :order => 'microscopy_type',
+      :conditions => 'microscopy_type is not null'
+    ).each do |ann| %>
+      <li><%= link_to ann.microscopy_type, :action => :microscopy, :id => ann.microscopy_type %></li>
+    <% end %>
+  </ul>
+</div>
+
+
+
+
+<%= link_to 'Acknowledgements', :action => :acknowledgements %>

@@ -108,7 +108,7 @@ class LocalisationSpreadsheet
       # region that holds all of that information
       if info.no_matching_gene_model?
         scaf = Scaffold.find_or_create_by_species_id_and_name(
-          current_species.id, Scaffold::UNANNOTATED_GENES_DUMMY_SCAFFOLD_NAME
+          species.id, Scaffold::UNANNOTATED_GENES_DUMMY_SCAFFOLD_NAME
         )
         g = Gene.find_or_create_by_scaffold_id_and_name(
           scaf.id, Gene::UNANNOTATED_GENES_DUMMY_GENE_NAME
@@ -190,6 +190,13 @@ class LocalisationSpreadsheet
   # spreadsheet row. raise a CodingRegionConflict if multiple are found.
   def locate_coding_region(localisation_spreadsheet_row, species_name)
     collected_coding_regions = []
+
+    # Start with the coding regions from the gene_id - the easiest
+    unless localisation_spreadsheet_row.gene_id.nil?
+      collected_coding_regions << CodingRegion.find_all_by_name_or_alternate_and_species(
+        localisation_spreadsheet_row.gene_id, species_name)
+    end
+
     
     localisation_spreadsheet_row.common_names.each do |common|
       codes = CodingRegion.find_all_by_name_or_alternate_and_organism(
@@ -208,7 +215,7 @@ class LocalisationSpreadsheet
 
     collected_coding_regions = collected_coding_regions.flatten.uniq.reject{|c| c.nil?}
     unless collected_coding_regions.length == 1
-      $stderr.puts "Unexpected number of hits to the common name #{localisation_spreadsheet_row.common_names[0]}: #{collected_coding_regions.inspect}"
+      $stderr.puts "Unexpected number of hits to the common name #{localisation_spreadsheet_row.common_names[0]}: #{collected_coding_regions.inspect} from #{localisation_spreadsheet_row.common_names.inspect}, #{localisation_spreadsheet_row.gene_id}"
       return nil
     end
 
@@ -396,22 +403,6 @@ class LocalisationSpreadsheetRow
     return [] if column.nil?
     column.split(',').reach.strip.retract
   end
-
-  #  # Common names sometimes have a species name prefix in front (e.g. PfACP
-  #  # is the same as ACP, provided it is known that falciparum is the species
-  #  # that we are dealing with.
-  #  #
-  #  # Manually created names here, but they are expected to match the official
-  #  # ones used in species.rb
-  #  SPECIES_PREFIXES = {
-  #    'falciparum' => 'Pf',
-  #    'Toxoplasma gondii' => 'Tg',
-  #    'Babesia bovis' => 'Bb',
-  #    'Neospora caninum' => 'Nc',
-  #    'Sarcocystis muris' => 'Sm',
-  #    'Sarcocystis neurona' => 'Sn',
-  #    'Sarcocystis suicanis' => 'Ss'
-  #  }
 
   # Return the common name that does not have the species name in it
   def remove_species_prefix(species_name, common_name)

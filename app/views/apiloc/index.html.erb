@@ -28,10 +28,10 @@
     <li>Other:
       <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
         <% Localisation.all(
-          :select => 'distinct(localisations.*)',
+          :select => 'distinct(localisations.name)',
           :order => 'name',
-          :conditions => "name not in #{popular_localisations.to_sql_in_string} and name not like 'not %'").each do |sp| %>
-          <option value="../apiloc/localisation/<%= sp.name %>"><%= sp.name %></option>
+          :conditions => "name not in #{popular_localisations.to_sql_in_string} and name not like 'not %'").each do |loc| %>
+          <option value="../apiloc/localisation/<%= loc.name %>"><%= loc.name %></option>
         <% end %>
       </select>
     </li>

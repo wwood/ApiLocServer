@@ -44,6 +44,21 @@ module ApilocHelper
   end
 
   def code_name(code)
-    "#{link_to code.string_id, :action => :gene, :id => code.string_id} (#{code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ')})"
+    name = "#{link_to code.string_id, :action => :gene, :id => code.string_id}"
+    unless code.case_sensitive_literature_defined_coding_region_alternate_string_ids.empty?
+      name += " (#{code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ')})"
+    end
+    name
+  end
+
+  def code_name_annotation(code)
+    name = "#{link_to code.string_id, :action => :gene, :id => code.string_id}"
+    unless code.case_sensitive_literature_defined_coding_region_alternate_string_ids.empty?
+      name += " (#{code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ')})"
+    end
+    unless code.annotation.nil?
+      name += " #{code.annotation.annotation}"
+    end
+    name
   end
 end

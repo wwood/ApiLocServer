@@ -6,7 +6,7 @@
 <h2>Localisation information gleaned</h2>
 <% @publication.expression_contexts.reach.localisation_annotation.uniq.each do |a|
   code = a.coding_region %>
-  <h3><%= link_to code.string_id, :action => :gene, :id => code.string_id %> (<%= "#{code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ')}" %>) <%= code.annotation.annotation %></h3>
+  <h3><%= code_name_annotation(code) %></h3>
   <b>Experimental localisation: </b><%= a.expression_contexts.uniq.reach.english.join(', ') %>
   <ul>
     <li><b>Quote inferring localisation: </b>"<%= a.quote %>"</li>

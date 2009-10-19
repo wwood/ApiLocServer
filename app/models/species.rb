@@ -46,6 +46,7 @@ class Species < ActiveRecord::Base
   ]
   
   has_many :scaffolds, :dependent => :destroy
+  has_many :localisations
 
   named_scope :apicomplexan, {
     :conditions => "species.name in #{Species::APICOMPLEXAN_NAMES.to_sql_in_string}"
