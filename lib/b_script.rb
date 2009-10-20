@@ -1147,11 +1147,7 @@ class BScript
   end
   
   
-  def vivax_to_database
-    #apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.4/Pvivax_Salvador1_plasmoDB-5.4.gff")
-    #apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/5.5/Pvivax_PlasmoDB-5.5.gff")
-    apidb_species_to_database(Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/6.0/Pvivax_PlasmoDB-6.0.gff")
-  end
+
   
   
   def theileria_parva_gene_aliases
@@ -7111,25 +7107,27 @@ PFL2395c
         gene.description
       )
 
-      if gene.go_identifiers
-        gene.go_identifiers.each do |goid|
-          go = GoTerm.find_by_go_identifier_or_alternate goid
-          if !go
-            raise Exception, "No go term found for #{goid}"
-          end
-
-          # This should get rid of alternate+real GO term being attributed
-          # to the same gene, and therefore causing a duplicate.
-          if !CodingRegionGoTerm.find_by_go_term_id_and_coding_region_id(
-              go.id, code.id)
-
-            CodingRegionGoTerm.create!(
-              :go_term_id => go.id,
-              :coding_region_id => code.id
-            )
-          end
-        end
-      end
+      # GO terms are no longer uploaded from GFF, but from the Gene info
+      # file, because that file includes annotation codes
+      #      if gene.go_identifiers
+      #        gene.go_identifiers.each do |goid|
+      #          go = GoTerm.find_by_go_identifier_or_alternate goid
+      #          if !go
+      #            raise Exception, "No go term found for #{goid}"
+      #          end
+      #
+      #          # This should get rid of alternate+real GO term being attributed
+      #          # to the same gene, and therefore causing a duplicate.
+      #          if !CodingRegionGoTerm.find_by_go_term_id_and_coding_region_id(
+      #              go.id, code.id)
+      #
+      #            CodingRegionGoTerm.create!(
+      #              :go_term_id => go.id,
+      #              :coding_region_id => code.id
+      #            )
+      #          end
+      #        end
+      #      end
 
 
       if gene.alternate_ids

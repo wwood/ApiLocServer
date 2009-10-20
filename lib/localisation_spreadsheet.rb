@@ -9,7 +9,7 @@ class LocalisationSpreadsheet
 
   # yield LocalisationSpreadsheetRow objects for each
   # row of a spreadsheet
-  def parse_spreadsheet(species_name, filename)
+  def parse_spreadsheet(species_name, filename, whiny=true)
     line_number = 1 #start at 1 because there'll be a heading row
 
     #    FasterCSV.open(filename, :col_sep => "\t", :headers => true) do |row|
@@ -18,7 +18,7 @@ class LocalisationSpreadsheet
       unless comment_line?(row)
         yield(
           LocalisationSpreadsheetRow.new.create_from_array(
-            species_name, row
+            species_name, row, whiny
           ),
           line_number)
       end
@@ -39,10 +39,10 @@ class LocalisationSpreadsheet
     upload_list_gene_ids sp, filename
 
     # this could be faster but eh.
-    # If sp.nil? that means the species are in each line.
+    # If sp.nil? == true that means the species are in each line.
     if sp.nil?
       collection = []
-      parse_spreadsheet(nil, filename) do |r,line_number|
+      parse_spreadsheet(nil, filename, false) do |r,line_number|
         collection.push r.species_name
       end
       collection.uniq.each do |name|
@@ -191,18 +191,19 @@ class LocalisationSpreadsheet
   def locate_coding_region(localisation_spreadsheet_row, species_name)
     collected_coding_regions = []
 
-    # Start with the coding regions from the gene_id - the easiest
+    # Start with the coding regions from the gene_id - the easiest. If there
+    # is one, use it, and don't bother trying to find it by the common name
+    # method. Otherwise it'll complain when it finds multiple gene models.
     unless localisation_spreadsheet_row.gene_id.nil?
       collected_coding_regions << CodingRegion.find_all_by_name_or_alternate_and_species(
         localisation_spreadsheet_row.gene_id, species_name)
-    end
-
-    
-    localisation_spreadsheet_row.common_names.each do |common|
-      codes = CodingRegion.find_all_by_name_or_alternate_and_organism(
-        common, species_name
-      )
-      collected_coding_regions << codes[0]
+    else
+      localisation_spreadsheet_row.common_names.each do |common|
+        codes = CodingRegion.find_all_by_name_or_alternate_and_organism(
+          common, species_name
+        )
+        collected_coding_regions << codes[0]
+      end
     end
 
     # If no common names match, do we know already there is no gene model?
@@ -228,7 +229,7 @@ class LocalisationSpreadsheet
     overall_species_name = overall_species.name unless overall_species.nil?
     
     # Upload each of the localisations as an expression context
-    parse_spreadsheet(overall_species_name, filename) do |info, line_number|
+    parse_spreadsheet(overall_species_name, filename, false) do |info, line_number|
       species, species_name = deconvolve_species_and_name(overall_species, info)
       species_name ||= info.species_name
       sp ||= Species.find_by_name(species_name)
@@ -306,7 +307,7 @@ class LocalisationSpreadsheetRow
   NO_MATCHING_GENE_MODEL = 'no matching gene model found'
   NO_LOC_METHOD = "localisation method not found"
 
-  def create_from_array(species_name, array)
+  def create_from_array(species_name, array, whiny)
     start_column = 0
     unless species_name #if there's no species name, it'll just be in the firt column
       @species_name = array[start_column]; start_column += 1
@@ -330,38 +331,44 @@ class LocalisationSpreadsheetRow
 
     # checking. Unless it is just a gene model thing, there should be certain
     # columns that are filled
-    if @comments.include?(NO_LOC_JUST_GENE_MODEL)
-      $stderr.puts "No pubmed for gene model only row: #{array.inspect}" unless @pubmed_id
-      $stderr.puts "No mapping comments for gene model only row: #{array.inspect}" unless @mapping_comments
-    elsif @comments.include?(THIS_ENTRY_IS_A_COMMON_NAME_MATCHING_THING)
-      $stderr.puts "Not enough names to make a pair in #{array.inspect}, expected 2 or more." unless @case_sensitive_common_names.length > 1
-    else
-      # a normal loc line should contain various things
-      if @case_sensitive_common_names.empty? and @gene_id.nil?
-        p @comments
-        $stderr.puts "No gene model or common name for #{array.inspect}"
-      end
+    if whiny
+      if @comments.include?(NO_LOC_JUST_GENE_MODEL)
+        $stderr.puts "No pubmed for gene model only row: #{array.inspect}" unless @pubmed_id
+        $stderr.puts "No mapping comments for gene model only row: #{array.inspect}" unless @mapping_comments
+      elsif @comments.include?(THIS_ENTRY_IS_A_COMMON_NAME_MATCHING_THING)
+        $stderr.puts "Not enough names to make a pair in #{array.inspect}, expected 2 or more." unless @case_sensitive_common_names.length > 1
+      else
+        # a normal loc line should contain various things
+        if @case_sensitive_common_names.empty? and @gene_id.nil?
+          $stderr.puts "No gene model or common name for #{array.inspect}"
+        end
 
-      if @localisation_method.nil? and 
-          @microscopy_types != ['ChIP'] and
-          !@comments.include?(NO_LOC_METHOD)
-        $stderr.puts "No localisation method found for #{array.inspect}"
-      end
-      if @quote.nil?
-        $stderr.puts "No quote found for #{array}"
-      end
-      if @pubmed_id.nil?
-        $stderr.puts "No pubmed found for #{array}"
-      end
-      if microscopy_types.empty?
-        $stderr.puts "No microscopy types for localisation line #{array.inspect}"
-      end
-      if strains.empty? and !(@comments.include?('strain information not found'))
-        $stderr.puts "Strain info missing for #{array.inspect}. Comments #{@comments.inspect}"
+        if @localisation_method.nil? and
+            @microscopy_types != ['ChIP'] and
+            !@comments.include?(NO_LOC_METHOD)
+          $stderr.puts "No localisation method found for #{array.inspect}"
+        end
+        if @quote.nil?
+          $stderr.puts "No quote found for #{array}"
+        end
+        if @pubmed_id.nil?
+          $stderr.puts "No pubmed found for #{array}"
+        end
+        if microscopy_types.empty?
+          $stderr.puts "No microscopy types for localisation line #{array.inspect}"
+        end
+        if strains.empty? and !(@comments.include?('strain information not found'))
+          $stderr.puts "Strain info missing for #{array.inspect}. Comments #{@comments.inspect}"
+        end
       end
     end
-
+    
     return self #for convenience
+  end
+
+  def gene_id
+    return nil if no_matching_gene_model?
+    return @gene_id
   end
 
   def no_matching_gene_model?

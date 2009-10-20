@@ -5,7 +5,7 @@ require 'zlib'
 
 class BScript
   PLASMODB_VERSION = '6.1'
-  TOXODB_VERSION = '4.2'
+  TOXODB_VERSION = '5.2'
   CRYPTODB_VERSION = '4.2'
 
 
@@ -14,49 +14,53 @@ class BScript
   end
 
   def berghei_to_database
-    apidb_species_to_database Species::BERGHEI_NAME, "#{DATA_DIR}/yoelii/genome/plasmodb/#{PLASMODB_VERSION}/Pberghei_PlasmoDB-#{PLASMODB_VERSION}.gff"
+    apidb_species_to_database Species::BERGHEI_NAME, "#{DATA_DIR}/berghei/genome/plasmodb/#{PLASMODB_VERSION}/Pberghei_PlasmoDB-#{PLASMODB_VERSION}.gff"
   end
 
   def yoelii_to_database
     apidb_species_to_database Species::YOELII_NAME, "#{DATA_DIR}/yoelii/genome/plasmodb/#{PLASMODB_VERSION}/Pyoelii_PlasmoDB-#{PLASMODB_VERSION}.gff"
   end
 
+  def vivax_to_database
+    apidb_species_to_database Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/#{PLASMODB_VERSION}/Pvivax_PlasmoDB-#{PLASMODB_VERSION}.gff"
+  end
+
+  def chabaudi_to_database
+    apidb_species_to_database Species.vivax_name, "#{DATA_DIR}/Plasmodium chabaudi/genome/plasmodb/#{PLASMODB_VERSION}/Pchabaudi_PlasmoDB-#{PLASMODB_VERSION}.gff"
+  end
+
   def neospora_caninum_to_database
-    apidb_species_to_database Species::NEOSPORA_CANINUM_NAME, "#{DATA_DIR}/Neospora caninum/genome/ToxoDB/5.2/NeosporaCaninum_ToxoDB-5.2.gff"
+    apidb_species_to_database Species::NEOSPORA_CANINUM_NAME, "#{DATA_DIR}/Neospora caninum/genome/ToxoDB/#{TOXODB_VERSION}/NeosporaCaninum_ToxoDB-#{TOXODB_VERSION}.gff"
   end
 
   def cryptosporidium_parvum_to_database
-    apidb_species_to_database Species::CRYPTOSPORIDIUM_PARVUM_NAME, "#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/4.2/c_parvum_iowa_ii.gff"
+    apidb_species_to_database Species::CRYPTOSPORIDIUM_PARVUM_NAME, "#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/#{CRYPTODB_VERSION}/c_parvum_iowa_ii.gff"
+  end
+
+  def gondii_to_database
+    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49_ToxoDB-#{TOXODB_VERSION}.gff"
   end
 
   def berghei_fasta_to_database
-    fa = EuPathDb2009.new('Plasmodium_berghei_str._ANKA','psu').load("#{DATA_DIR}/berghei/genome/plasmodb/6.0/PbergheiAnnotatedProteins_PlasmoDB-6.0.fasta")
+    fa = EuPathDb2009.new('Plasmodium_berghei_str._ANKA','psu').load("#{DATA_DIR}/berghei/genome/plasmodb/#{PLASMODB_VERSION}/PbergheiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta")
     sp = Species.find_by_name(Species::BERGHEI_NAME)
     upload_fasta_general!(fa, sp)
   end
 
   def vivax_fasta_to_database
-    fa = EuPathDb2009.new('Plasmodium_vivax_SaI-1','gb').load("#{DATA_DIR}/vivax/genome/plasmodb/6.0/PvivaxAnnotatedProteins_PlasmoDB-6.0.fasta")
+    fa = EuPathDb2009.new('Plasmodium_vivax_SaI-1','gb').load("#{DATA_DIR}/vivax/genome/plasmodb/#{PLASMODB_VERSION}/PvivaxAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta")
     sp = Species.find_by_name(Species::VIVAX_NAME)
     upload_fasta_general!(fa, sp)
   end
 
-  def gondii_to_database
-    #    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/ToxoplasmaGondii_ME49_ToxoDB-4.3.gff"
-    #    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49_ToxoDB-5.0.gff"
-    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.2/TgondiiME49_ToxoDB-5.2.gff"
-  end
-
   def gondii_fasta_to_database
-    #    fa = ToxoDbFasta4p3.new.load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/4.3/TgondiiME49/TgondiiAnnotatedProteins_toxoDB-4.3.fasta")
-    #    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.0/TgondiiME49AnnotatedProteins_ToxoDB-5.0.fasta")
-    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.2/TgondiiME49AnnotatedProteins_ToxoDB-5.2.fasta")
+    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49AnnotatedProteins_ToxoDB-#{TOXODB_VERSION}.fasta")
     sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
     upload_fasta_general!(fa, sp)
   end
 
   def gondii_cds_to_database
-    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.2/TgondiiME49AnnotatedCDS_ToxoDB-5.2.fasta")
+    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49AnnotatedCDS_ToxoDB-#{TOXODB_VERSION}.fasta")
     sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
     upload_cds_fasta_general!(fa, sp)
   end
@@ -124,5 +128,23 @@ class BScript
     upload_gene_information_table(Species.find_by_name(Species::FALCIPARUM_NAME),
       "#{DATA_DIR}/Plasmodium falciparum/genome/plasmodb/6.1/PfalciparumGene_PlasmoDB-6.1.txt.gz"
     )
+  end
+
+
+  def upload_apiloc_from_scratch
+    # Upload basic gene identifiers
+    upload_apiloc_gffs
+  end
+
+  def upload_apiloc_gffs
+    falciparum_to_database
+    berghei_to_database
+    yoelii_to_database
+    vivax_to_database
+    chabaudi_to_database
+    gondii_to_database
+    neospora_caninum_to_database
+    cryptosporidium_parvum_to_database
+    theileria_parva_gene_aliases
   end
 end

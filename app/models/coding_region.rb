@@ -914,7 +914,7 @@ class CodingRegion < ActiveRecord::Base
     return false unless annotation # ignore unannotated sequences
     
     a = annotation.annotation
-    [/var /i,/pfemp1/i, /pseudogene/i, /rifin/i, /stevor/i, /surfin/i, /RESA/].each do |crap|
+    [/var /i,/pfemp1/i, /pseudogene/i, /rifin/i, /stevor/i, /surfin/i].each do |crap|
       if annotation.annotation.match(crap)
         return true
       end

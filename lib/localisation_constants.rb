@@ -4,6 +4,8 @@
 module LocalisationConstants
   KNOWN_LOCALISATIONS = {
     Species::FALCIPARUM_NAME => [
+      'cell poles', #antierior + posterior
+      'posterior',
       'knob', #start of ring, troph, schizont stage locs
       'erythrocyte cytoplasm',
       'erythrocyte cytosol',
@@ -26,11 +28,9 @@ module LocalisationConstants
       'parasitophorous vacuole subdomains',
       'parasitophorous vacuole membrane',
       'parasite plasma membrane',
-      'patchy on parasite plasma membrane',
       'apicoplast membrane',
       'proximal to plasma membrane',
       'apical plasma membrane',
-      'diffuse cytoplasm',
       'under parasite plasma membrane',
       'microtubule',
       'replication foci in nucleus',
@@ -40,7 +40,7 @@ module LocalisationConstants
       'food vacuole',
       'food vacuole membrane',
       'food vacuole lumen',
-      'spot in parasitophorous vacuole close to food vacuole',
+      'parasitophorous vacuole close to food vacuole',
       'cytostome',
       'mitochondria',
       'mitochondrial inner membrane',
@@ -66,7 +66,6 @@ module LocalisationConstants
       'intracellular vacuole',
       'intracellular vacuole membrane',
       'intracellular inclusions',
-      'punctate intracellular inclusions',
       'vesicles near parasite surface',
       'peripheral',
       'merozoite associated material',
@@ -74,6 +73,7 @@ module LocalisationConstants
       'moving junction',
       'inner membrane complex',
       'pellicle',
+      'pellicle membrane',
       'rhoptry',
       'rhoptry neck',
       'rhoptry bulb',
@@ -85,16 +85,15 @@ module LocalisationConstants
       'apical parasite plasma membrane',
       'posterior structure',
       'anterior structure',
-      'gametocyte osmiophilic body',
       'gametocyte attached erythrocytic vesicles',
       'sporozoite surface', #sporozoite locs
       'oocyst wall',
-      'osmiophilic bodies',
       'zygote remnant', # the zygote part when the ookinete is budding off from the zygote
       'ookinete protrusion', # the opposite of zygote remnant
       'oocyst protrusion', # during ookinete to oocyst transition, oocyst starts out as a round protrusion
       'peripheral of oocyst protrusion', # possibly an analogue of IMC?
-      'trail', # the trail that sporozoites leave behind when they move
+      'trail', # the trail that sporozoites/merozoites/etc. leave behind when they move
+      'nowhere except sporozoite plasma membrane',
       'cytoplasmic vesicles',
       'erythrocyte cytoplasmic vesicles',
       'intraerythrocytic cysternae',
@@ -104,14 +103,11 @@ module LocalisationConstants
       'perinuclear',
       'far nuclear periphery',
       'interior of nucleus',
-      'foci near nucleus',
       'internal organelles',
       'intracellular',
       'cytoplasmic structures',
       'spread around parasite',
       'throughout parasite',
-      'poles',
-      'discrete compartments at parasite periphery',
       'around cytomeres',
       'around merozoite',
       'exoneme',
@@ -424,7 +420,6 @@ module LocalisationConstants
       'ring structure at posterior imc' => 'ring structure at posterior inner membrane complex',
     },
     Species::FALCIPARUM_NAME => {
-      'merozoite surface' => 'parasite plasma membrane',
       'cis golgi' => 'cis-golgi',
       'discrete dots on ppm' => 'parasite plasma membrane',
       'spotted in the erythrocyte cytoplasm' => 'erythrocyte cytoplasmic structures',
@@ -543,9 +538,6 @@ module LocalisationConstants
       'fv membrane' => 'food vacuole membrane',
       'limiting membranes' => 'parasite plasma membrane',
       'dense granules' => 'dense granule',
-      'rhoptry neck' => 'rhoptry',
-      'rhoptry bulb' => 'rhoptry',
-      'osmiophilic body' => 'gametocyte osmiophilic body',
       'cytosol diffuse' => 'cytosol',
       'vesicles under rbc surface' => 'vesicles under erythrocyte surface',
       'punctate peripheral cytoplasm' => 'cytoplasm',
@@ -565,6 +557,12 @@ module LocalisationConstants
       'rbc periphery' => 'erythrocyte periphery',
       'cytostomal vacuole' => 'cytostome',
       'pv subdomains' => 'parasitophorous vacuole subdomains',
+      'red cell membrane' => 'erythrocyte plasma membrane',
+      'membranous structures in red blood cell' => 'maurer\'s clefts',
+      'plasmalemma' => 'parasite plasma membrane',
+      'only external sporozoite membrane' => 'nowhere except sporozoite plasma membrane',
+      'poles' => 'cell poles',
+      'spot in parasitophorous vacuole close to food vacuole' => 'parasitophorous vacuole close to food vacuole'
     }
   }
 

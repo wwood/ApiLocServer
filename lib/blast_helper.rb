@@ -10,7 +10,6 @@ class BlastHelper
 
 
     databases = {
-      # species name => [blastn name, blastp name]
       'apicomplexa' => {
         'transcript' => 'apicomplexa.nucleotide.fa',
         'protein' => 'apicomplexa.protein.fa',
@@ -37,8 +36,14 @@ class BlastHelper
         'transcript' => 'CparvumAnnotatedTranscripts_CryptoDB-4.2.fasta',
         'genome' => 'CparvumGenomic_CryptoDB-4.2.fasta',
       },
+      'theileria' => {
+        'protein' => 'theileria.pep'
+      }
     }
+#    p organism
+#    p databases
     blast_array = databases[organism]
+#    p blast_array
 
     # Some organisms don't exist yet. Reject these
     unless organism and organism

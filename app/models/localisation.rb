@@ -20,6 +20,9 @@ class Localisation < ActiveRecord::Base
   named_scope :recent, lambda { { :conditions => ['created_at > ?', 1.week.ago] } }
   named_scope :known, lambda { { :conditions => [
         'name in (?)', KNOWN_LOCALISATIONS[Species::FALCIPARUM_NAME]] } }
+  named_scope :positive, {
+    :conditions => ['localisations.name not like ?', 'not %']
+  }
   
   # Return a list of ORFs that have this and only this localisation
   def get_individual_localisations
@@ -30,16 +33,20 @@ class Localisation < ActiveRecord::Base
   end
   
   def upload_known_localisations(species)
+    failed = false
     KNOWN_LOCALISATIONS[species.name].each do |loc|
       if !Localisation.find_or_create_by_name_and_species_id(loc, species.id)
-        raise Exception, "Failed to upload loc '#{loc}' for some reason"
+        $stderr.puts "Failed to upload loc '#{loc}' for some reason"
+        failed = true
       end
       
       # not that localisation is also a localisation
       if !Localisation.find_or_create_by_name_and_species_id("not #{loc}", species.id)
-        raise Exception, "Failed to upload NOT loc '#{loc}' for some reason"
+        $stderr.puts "Failed to upload NOT loc '#{loc}' for some reason"
+        failed = true
       end
     end
+    raise if failed
   end
 
   def upload_known_localisations_unsequenced
@@ -59,20 +66,23 @@ class Localisation < ActiveRecord::Base
   end
   
   def upload_localisation_synonyms(species)
+    failed = false
     KNOWN_LOCALISATION_SYNONYMS[species.name].each do |key, value|
       l = value.downcase
       loc = Localisation.find_by_name_and_species_id(l, species.id)
       if loc
         if !LocalisationSynonym.find_or_create_by_localisation_id_and_name(
-            loc.id, 
+            loc.id,
             key.downcase
           )
           raise
         end
       else
-        raise Exception, "Could not find localisation #{l}"
+        $stderr.puts "Could not find localisation #{l}"
+        failed = true
       end
     end
+    raise if failed
   end
 
   def upload_localisation_synonyms_unsequenced
@@ -236,7 +246,6 @@ class Localisation < ActiveRecord::Base
     
     return contexts.flatten
   end
-  
   
   def self.find_by_name_or_alternate(localisation_string, species)
     raise unless species.class == Species
