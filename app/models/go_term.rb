@@ -9,6 +9,9 @@ class GoTerm < ActiveRecord::Base
   
   has_many :go_alternates, :dependent => :destroy
   has_many :go_synonyms, :dependent => :destroy
+  
+  has_many  :go_term_localisations, :dependent => :destroy
+  has_many :localisations, :through => :go_term_localisations
 
   ENZYME_GO_TERM = 'GO:0003824'
   GPCR_GO_TERM = 'GO:0004930'

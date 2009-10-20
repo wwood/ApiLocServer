@@ -20,7 +20,7 @@ class LocalisationTest < ActiveSupport::TestCase
     err = capture_stderr do
       @l.parse_name('not a localisation', @sp)
     end
-    assert_equal "Localisation not understood: 'not a localisation' from 'not a localisation'\n", err
+    assert_equal "Localisation not understood: 'not a localisation' from 'not a localisation' in Plasmodium falciparum\n", err
   end
 
   #during
@@ -46,7 +46,7 @@ class LocalisationTest < ActiveSupport::TestCase
     err = capture_stderr do
       @l.parse_name('not a localisation', @sp)
     end
-    assert_equal "Localisation not understood: 'not a localisation' from 'not a localisation'\n", err
+    assert_equal "Localisation not understood: 'not a localisation' from 'not a localisation' in Plasmodium falciparum\n", err
   end
 
   def test_sort
@@ -189,6 +189,8 @@ class LocalisationTest < ActiveSupport::TestCase
     assert_equal ['yey', nil], Localisation.new.remove_strength_modifiers('yey')
     assert_equal ['yey', LocalisationModifier.find_by_modifier('weak').id],
       Localisation.new.remove_strength_modifiers('weak yey')
+    assert_equal ['rubbish', LocalisationModifier.find_by_modifier('spot in').id],
+      Localisation.new.remove_strength_modifiers('spot in rubbish')
   end
 
   def test_weak_during

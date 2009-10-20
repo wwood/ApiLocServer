@@ -16,6 +16,9 @@ class Localisation < ActiveRecord::Base
     :source => :top_level_localisation
   
   has_many :localisation_synonyms, :dependent => :destroy
+
+  has_many  :go_term_localisations, :dependent => :destroy
+  has_many :localisations, :through => :go_term_localisations
   
   named_scope :recent, lambda { { :conditions => ['created_at > ?', 1.week.ago] } }
   named_scope :known, lambda { { :conditions => [
@@ -119,13 +122,14 @@ class Localisation < ActiveRecord::Base
   #
   # Returns the modified localisation string
   def remove_strength_modifiers(localisation_string)
-    mod = LocalisationModifier.find_by_modifier(localisation_string.strip.split(' ')[0])
-    if mod
-      tor = localisation_string.gsub(/^#{mod.modifier} /,'').gsub(/^#{mod.modifier}/,''), mod.id
-      return tor
-    else
-      return localisation_string, nil
+    LocalisationModifier.all(:order => 'id desc').each do |mod|
+      if localisation_string.match(/^#{mod.modifier}/)
+        tor = localisation_string.gsub(/^#{mod.modifier} /,'').gsub(/^#{mod.modifier}/,''), mod.id
+        return tor
+      end
     end
+    # no modifiers found. 
+    return localisation_string, nil
   end
   
   # Parse a line from the dirty localisation files. Return an array of (unsaved) ExpressionContext objects

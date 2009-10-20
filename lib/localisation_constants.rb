@@ -473,7 +473,6 @@ module LocalisationConstants
       'parasite' => 'intracellular',
       'in association with the parasite plasmalemma' => 'parasite plasma membrane',
       'parasite membrane' => 'parasite plasma membrane',
-      'patchy on plasma membrane' => 'patchy on parasite plasma membrane',
       'apical end of surface' => 'apical plasma membrane',
       'outside of erythrocyte membranes' => 'beyond erythrocyte membrane',
       'rim' => 'proximal to plasma membrane',
@@ -486,7 +485,6 @@ module LocalisationConstants
       'exposed rbc surface' => 'exposed erythrocyte plasma membrane',
       'rbc vesicles' => 'erythrocyte cytoplasmic structures',
       'spread around each individual merozoite' => 'spread around parasite',
-      'spot in pv close to fv' => 'spot in parasitophorous vacuole close to food vacuole',
       'rbc vesicles connected to the gametocyte' => 'gametocyte attached erythrocytic vesicles',
       'cleft like pvm protrusions' => 'cleft like parasitophorous vacuole membrane protrusions',
       'red blood cell cytosol' => 'erythrocyte cytosol',
@@ -562,7 +560,6 @@ module LocalisationConstants
       'plasmalemma' => 'parasite plasma membrane',
       'only external sporozoite membrane' => 'nowhere except sporozoite plasma membrane',
       'poles' => 'cell poles',
-      'spot in parasitophorous vacuole close to food vacuole' => 'parasitophorous vacuole close to food vacuole'
     }
   }
 

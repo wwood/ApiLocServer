@@ -2,7 +2,7 @@
 
 falciparum:
   id: 1
-  name: falciparum
+  name: Plasmodium falciparum
   orthomcl_three_letter: pfa
 sponge:
   id: 2

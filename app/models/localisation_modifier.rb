@@ -4,7 +4,9 @@ class LocalisationModifier < ActiveRecord::Base
     strong substantial mainly throughout predominantly bright especially
     punctate homogenous homogenously diffuse uniform heterogenous entire
     semi-punctate smooth beaded patchy varied dotty
-  )
+  ).push([
+      'spot in'
+    ]).flatten
 
   def upload_known_modifiers
     KNOWN_MODIFIERS.each do |mod|
