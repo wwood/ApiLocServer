@@ -96,7 +96,8 @@ class LocalisationSpreadsheet
       species, species_name = deconvolve_species_and_name(overall_species, info)
 
       # skip if there is no gene id or common name
-      next unless info.gene_id and info.common_names
+      next unless info.common_names
+      next unless info.gene_id or info.no_matching_gene_model?
 
       unless info.mapping_comments or ignore_mapping_complaints
         $stderr.puts "Unexpected lack of gene mapping comment for #{info.gene_id} (#{info.common_names}). Line #{line_number}."

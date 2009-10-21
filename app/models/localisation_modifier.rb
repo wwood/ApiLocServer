@@ -5,7 +5,10 @@ class LocalisationModifier < ActiveRecord::Base
     punctate homogenous homogenously diffuse uniform heterogenous entire
     semi-punctate smooth beaded patchy varied dotty foci
   ).push([
-      'sometimes' #sometimes has be after some -> higher ids are implemented first
+      'sometimes', #sometimes has be after some -> higher ids are implemented first
+      'strongly', #has to be after strong
+      'strongest',
+      'strongest near'
     ]).push([
       'spot in',
       'discrete compartments at',

@@ -151,6 +151,7 @@ module LocalisationConstants
       'nucleolus',
       'nuclear envelope',
       'posterior to nucleus',
+      'nowhere except nucleus',
       'replication foci',
       'apical',
       'sub-apical',
@@ -179,6 +180,7 @@ module LocalisationConstants
       'adjacent to the inner membrane complex',
       'cytoplasmic face of inner membrane complex',
       'nowhere except cytoplasmic face of inner membrane complex',
+      'inner membrane complex microtubules',
       'centrocone',
       'apical end of the nuclear envelope',
       'parasitophorous vacuole membrane',
@@ -241,6 +243,10 @@ module LocalisationConstants
       'acrosome',
       'tubular structure in parasitophorous vacuole',
       'posterior extremity of cup-shaped inner membrane cytoskeleton scaffolds',
+      'cyst matrix',
+      'nascent conoid',
+      'vesicle-like structure just under the parasite membrane',
+      'apical conoid',
     ],
     Species::BABESIA_BOVIS_NAME => [
       'apical',
@@ -391,6 +397,7 @@ module LocalisationConstants
       'inner surface of host cell cytoplasm' => 'parasitophorous vacuole membrane'
     },
     Species::TOXOPLASMA_GONDII_NAME => {
+      'vesicle-like structures just under the parasite membrane' => 'vesicle-like structure just under the parasite membrane',
       'attachment site of subpellicular microtubules' => 'attachment site of subpellicular microtubule',
       'subpellicular microtubules' => 'subpellicular microtubule',
       'endosomal membranes' => 'endosomal membrane',
