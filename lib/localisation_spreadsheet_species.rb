@@ -1,4 +1,5 @@
 require 'reach'
+require 'csv'
 
 # Top level species-specific functions for uploading the localisation
 # spreadsheets
@@ -17,6 +18,7 @@ module LocalisationSpreadsheetSpecies
   end
 
   def upload_toxo(filename="#{ENV['HOME']}/phd/gene lists/toxo.csv")
+    upload_manual_toxoplasma_gene_aliases
     upload_species(Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME), filename)
   end
 
@@ -32,7 +34,18 @@ module LocalisationSpreadsheetSpecies
     upload_species(Species.find_by_name(Species::CRYPTOSPORIDIUM_PARVUM_NAME), filename)
   end
 
+  def upload_theileria_annulata(filename="#{ENV['HOME']}/phd/gene lists/Theileria_annulata.csv")
+    upload_species(Species.find_by_name(Species::THEILERIA_ANNULATA_NAME), filename)
+  end
+
+  def upload_theileria_parva(filename="#{ENV['HOME']}/phd/gene lists/Theileria_parva.csv")
+    upload_species(Species.find_by_name(Species::THEILERIA_PARVA_NAME), filename)
+  end
+
   def upload_unsequenced_species(filename)
+    Species::UNSEQUENCED_APICOMPLEXANS.each do |a|
+      Species.find_or_create_by_name(a)
+    end
     DevelopmentalStage.new.upload_known_developmental_stages_unsequenced
     Localisation.new.upload_known_localisations_unsequenced
     Localisation.new.upload_localisation_synonyms_unsequenced
@@ -48,6 +61,12 @@ module LocalisationSpreadsheetSpecies
   def upload_babesia_spp(filename="#{ENV['HOME']}/phd/gene lists/Babesia_spp.csv")
     upload_unsequenced_species(filename)
   end
+
+  def upload_theileria_spp(filename="#{ENV['HOME']}/phd/gene lists/Theileria_spp.csv")
+    upload_unsequenced_species(filename)
+  end
+
+
 
   # Mapping some genes to modern IDs is problematic and annoying. Blargh.
   # So uploaded a bunch manually to ToxoDB, and am now parsing the

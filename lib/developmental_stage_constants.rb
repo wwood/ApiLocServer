@@ -119,8 +119,8 @@ module DevelopmentalStageConstants
       'non-dividing tachyzoite',
       'intracellular tachyzoite until 0.5-4 hours',
       'intracellular tachyzoite after 0.5-4 hours',
-      '20h after tachyzoite infection',
-      '16h after tachyzoite infection',
+      '20 hours after tachyzoite infection',
+      '16 hours after tachyzoite infection',
       'tachyzoite 24 hours after invasion',
       'extracellular tachyzoite',
       'intracellular tachyzoite',
@@ -142,6 +142,8 @@ module DevelopmentalStageConstants
       'early tachyzoite invasion',
       'tachyzoite attachment', #during invasion
       'shortly after invasion of tachyzoite',
+      'mother tachyzoite',
+      'daughter tachyzoite',
       'first division of bradyzoite',
       'macrogamete',
       'microgamete',
@@ -190,6 +192,9 @@ module DevelopmentalStageConstants
       ],
       'Babesia bigemina' => [
         'merozoite'
+      ],
+      'Theileria lestoquardi' => [
+        'macroschizont',
       ]
     },
     Species::CRYPTOSPORIDIUM_PARVUM_NAME => [
@@ -213,10 +218,18 @@ module DevelopmentalStageConstants
       'early macrogamete',
       'late macrogamete',
       'trophozoite',
+    ],
+    Species::THEILERIA_ANNULATA_NAME => [
+      'macroschizont',
+      'schizont'
+    ],
+    Species::THEILERIA_PARVA_NAME => [
     ]
   }
 
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
+    Species::THEILERIA_ANNULATA_NAME => {},
+    Species::THEILERIA_PARVA_NAME => {},
     Species::CRYPTOSPORIDIUM_PARVUM_NAME => {
       'free sporozoite' => 'extracellular sporozoite',
       'sporozoite internalization' => 'sporozoite invasion',
@@ -232,6 +245,8 @@ module DevelopmentalStageConstants
       'invading merozoites' => 'merozoite invasion'
     },
     Species::TOXOPLASMA_GONDII_NAME => {
+      '16h after tachyzoite infection' => '16 hours after tachyzoite infection',
+      '20h after tachyzoite infection' => '20 hours after tachyzoite infection',
       'tachyzoite host cell entry' => 'tachyzoite invasion',
       'tachyzoite gliding' => 'tachyzoite gliding motility',
       'tachyzoite 24h after invasion' => 'tachyzoite 24 hours after invasion',

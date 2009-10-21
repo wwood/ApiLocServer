@@ -2,12 +2,12 @@
 <% if @code.gene_model_inconsistent? %>
 <p>* The amino acid sequence is recorded as differing between ApiLoc and the genome database. See the gene model mapping comments in each localisation for more information.</p>
 <% end %>
-<%= @code.annotation.annotation %>
+<%= @code.annotation.annotation unless @code.annotation.nil? %>
 
 <p><%= @code.localisation_html %></p>
 
 <h3>Associated publications</h3>
-<% @code.expression_contexts.reach.publication.uniq.each do |publication| %>
+<% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b.pubmed_id <=> a.pubmed_id}.each do |publication| %>
   <p><%= publication.authors %> (<%= publication.date %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><br />
     <b><%= ExpressionContextGroup.new(ExpressionContext.find_all_by_publication_id_and_coding_region_id(
           publication.id, @code.id

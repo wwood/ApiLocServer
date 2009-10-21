@@ -99,6 +99,8 @@ class BScript
           a['Evidence Code']
         )
       end
+
+      yield info, code if block_given?
     end
   end
 
@@ -108,7 +110,7 @@ class BScript
   def upload_gondii_gene_table_to_database
     upload_gene_information_table(
       Species.find_by_name(Species::TOXOPLASMA_GONDII),
-      "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/5.2/TgondiiME49Gene_ToxoDB-5.2.txt.gz"
+      "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49Gene_ToxoDB-#{TOXODB_VERSION}.txt.gz"
     ) do |info, code|
       release_fours = info.get_info('Release4 IDs')
       r4 = release_fours.split(/\s/).reject{|s|s.nil? or s==''}
@@ -134,6 +136,7 @@ class BScript
   def upload_apiloc_from_scratch
     # Upload basic gene identifiers
     upload_apiloc_gffs
+    upload_gondii_gene_table_to_database
   end
 
   def upload_apiloc_gffs
@@ -146,5 +149,6 @@ class BScript
     neospora_caninum_to_database
     cryptosporidium_parvum_to_database
     theileria_parva_gene_aliases
+    upload_theileria_fasta
   end
 end

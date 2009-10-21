@@ -27,8 +27,9 @@ class Species < ActiveRecord::Base
 
   UNSEQUENCED_APICOMPLEXANS = [
     'Plasmodium gallinaceum',
-    'Sarcocystus neurona',
-    'Sarcocystus muris',
+    'Sarcocystis neurona',
+    'Sarcocystis muris',
+    'Theileria lestoquardi'
   ]
 
   APICOMPLEXAN_NAMES = [
@@ -49,7 +50,7 @@ class Species < ActiveRecord::Base
   has_many :localisations
 
   named_scope :apicomplexan, {
-    :conditions => "species.name in #{Species::APICOMPLEXAN_NAMES.to_sql_in_string}"
+    :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES, UNSEQUENCED_APICOMPLEXANS].flatten.to_sql_in_string}"
   }
   
   ORTHOMCL_THREE_LETTERS = {

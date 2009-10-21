@@ -1948,19 +1948,20 @@ class BScript
   
   
   def upload_theileria_fasta
+    # create species if they don't already exist
+    sp = Species.find_or_create_by_name(Species::THEILERIA_ANNULATA_NAME)
     t = TigrFasta.new
     fa = t.load("#{DATA_DIR}/Theileria annulata/TANN.GeneDB.pep")
-    scaff = Scaffold.find(:first,
-      :include => :species,
-      :conditions => "species.name='Theileria annulata'"
+    scaff = Scaffold.find_or_create_by_name_and_species_id(
+      'Theiliera annulata dummy', sp.id
     )
     upload_fasta_simplistic(fa, scaff)
 
     t = TigrFasta.new
+    sp = Species.find_or_create_by_name(Species::THEILERIA_PARVA_NAME)
     fa = t.load("#{DATA_DIR}/Theileria parva/TPA1.pep")
-    scaff = Scaffold.find(:first,
-      :include => :species,
-      :conditions => "species.name='Theileria annulata'"
+    scaff = Scaffold.find_or_create_by_name_and_species_id(
+      'Theiliera parva dummy', sp.id
     )
     upload_fasta_simplistic(fa, scaff)
   end
@@ -1968,7 +1969,7 @@ class BScript
   # Upload a fasta file in the simplistic manner
   def upload_fasta_simplistic(fa, scaff)
     while f = fa.next_entry
-      code = CodingRegion.find_by_name_or_alternate(f.name)
+      code = CodingRegion.find_by_name_or_alternate_and_organism(f.name, scaff.species.name)
       if !code
         g = Gene.find_or_create_by_scaffold_id_and_name(
           scaff.id,
