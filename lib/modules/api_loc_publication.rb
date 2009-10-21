@@ -1,5 +1,23 @@
 # Methods used in the ApiLoc publication
 class BScript
+  def apiloc_stats
+    puts "For each species, how many genes, publications"
+    Species.apicomplexan.all(:order => 'name').each do |s|
+      puts [
+        s.name,
+        CodingRegion.s(s.name).count(
+          :select => 'distinct(coding_regions.id)',
+          :joins => {:expression_contexts => :localisation}
+        ),
+        Publication.count(
+          :select => 'distinct(publications.id)',
+          :joins => {:expression_contexts => :localisation},
+          :conditions => {:localisations => {:species_id => s.id}}
+        ),
+      ].join("\t")
+    end
+  end
+
   def how_many_falciparum_genes_have_toxo_orthologs
     puts ".. all according to orthomcl v2"
       

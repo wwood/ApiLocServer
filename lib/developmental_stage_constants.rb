@@ -235,10 +235,16 @@ module DevelopmentalStageConstants
       'schizont'
     ],
     Species::THEILERIA_PARVA_NAME => [
+    ],
+    Species::PLASMODIUM_BERGHEI_NAME => [
+      
     ]
   }
 
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
+    Species::PLASMODIUM_BERGHEI_NAME => {
+
+    },
     Species::THEILERIA_ANNULATA_NAME => {},
     Species::THEILERIA_PARVA_NAME => {},
     Species::CRYPTOSPORIDIUM_PARVUM_NAME => {
@@ -265,7 +271,7 @@ module DevelopmentalStageConstants
       'tachyzoite gliding' => 'tachyzoite gliding motility',
       'tachyzoite 24h after invasion' => 'tachyzoite 24 hours after invasion',
       'intracellular tachyzoite after invasion' => 'after tachyzoite invasion',
-      '16h post infection intracellular tachyzoite' => '16h after tachyzoite infection',
+      '16h post infection intracellular tachyzoite' => '16 hours after tachyzoite infection',
       'tachyzoite daughter imc formation' => 'tachyzoite daughter cell inner membrane complex formation',
       'imc formation before arrival of imc1' => 'inner membrane complex formation before arrival of IMC1',
       'daughter IMC formation' => 'tachyzoite daughter cell inner membrane complex formation',

@@ -4,6 +4,28 @@ require 'csv'
 # Top level species-specific functions for uploading the localisation
 # spreadsheets
 module LocalisationSpreadsheetSpecies
+  def restart
+    LocalisationAnnotation.destroy_all
+    ExpressionContext.destroy_all
+    Localisation.destroy_all
+    LocalisationSynonym.destroy_all
+    DevelopmentalStage.destroy_all
+    DevelopmentalStageSynonym.destroy_all
+  end
+
+  def upload
+    upload_falciparum
+    upload_toxo
+    upload_babesia_bovis
+    upload_neospora_caninum
+    upload_cryptosporidium_parvum
+    upload_theileria_annulata
+    upload_theileria_parva
+    upload_sarcocystis_spp
+    upload_babesia_spp
+    upload_theileria_spp
+  end
+
   def upload_species(species, filename)
     DevelopmentalStage.new.upload_known_developmental_stages species
     Localisation.new.upload_known_localisations species
@@ -15,6 +37,10 @@ module LocalisationSpreadsheetSpecies
 
   def upload_falciparum(filename="#{ENV['HOME']}/phd/gene lists/falciparum.csv")
     upload_species(Species.find_by_name(Species::FALCIPARUM_NAME), filename)
+  end
+
+  def upload_berghei(filename="#{ENV['HOME']}/phd/gene lists/berghei.csv")
+    upload_species(Species.find_by_name(Species::BERGHEI_NAME), filename)
   end
 
   def upload_toxo(filename="#{ENV['HOME']}/phd/gene lists/toxo.csv")

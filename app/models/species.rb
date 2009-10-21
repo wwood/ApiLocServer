@@ -4,6 +4,7 @@ class Species < ActiveRecord::Base
   VIVAX = 'Plasmodium vivax'
   VIVAX_NAME = VIVAX
   BERGHEI_NAME = 'Plasmodium berghei'
+  PLASMODIUM_BERGHEI_NAME = BERGHEI_NAME
   YOELII_NAME = 'Plasmodium yoelii'
   CHABAUDI_NAME = 'Plasmodium chabaudi'
   KNOWLESI_NAME = 'Plasmodium knowlesi'

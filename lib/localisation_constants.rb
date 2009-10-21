@@ -350,9 +350,15 @@ module LocalisationConstants
     Species::THEILERIA_PARVA_NAME => [
       'apical'
     ],
+    Species::PLASMODIUM_BERGHEI_NAME => [
+
+    ]
   }
 
   KNOWN_LOCALISATION_SYNONYMS = {
+    Species::PLASMODIUM_BERGHEI_NAME => {
+
+    },
     Species::THEILERIA_ANNULATA_NAME => {
       'mitochondria' => 'mitochondrion',
       'parasite cytoplasm' => 'cytoplasm',
@@ -393,6 +399,8 @@ module LocalisationConstants
       'parasite surface' => 'cell surface',
     },
     Species::BABESIA_BOVIS_NAME => {
+      'cytoplasmic accumulations' => 'cytoplasmic accumulation',
+      'spherical body organelles' => 'spherical body organelle',
       'surface' => 'plasma membrane',
       'host cell surface' => 'host erythrocyte membrane',
       'inner surface of host cell cytoplasm' => 'parasitophorous vacuole membrane'
