@@ -1823,8 +1823,6 @@ class BScript
   
   # upload babesia fasta files to the database
   def babesia_to_database
-    AminoAcidSequence.delete_all
-
     sp = Species.find_or_create_by_name(Species::BABESIA_BOVIS_NAME)
     
     # Assume there is only 1

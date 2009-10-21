@@ -150,5 +150,6 @@ class BScript
     cryptosporidium_parvum_to_database
     theileria_parva_gene_aliases
     upload_theileria_fasta
+    babesia_to_database
   end
 end

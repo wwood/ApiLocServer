@@ -167,7 +167,7 @@ module LocalisationConstants
       'apical end of endoplasmic reticulum',
       'cortical endoplasmic reticulum',
       'perinuclear endoplasmic reticulum',
-      'between endplasmic reticulum and golgi',
+      'between endoplasmic reticulum and golgi',
       'golgi',
       'cytoplasmic region close to the golgi',
       'cisternal rims of the late golgi',
@@ -370,6 +370,7 @@ module LocalisationConstants
       'periphery' => 'peripheral',
       'pvm' => 'parasitophorous vacuole membrane',
       'membrane' => 'plasma membrane',
+      'wall forming bodies' => 'wall forming body',
     },
     Species::OTHER_SPECIES => {
       'Sarcocystis muris' => {
@@ -397,6 +398,19 @@ module LocalisationConstants
       'inner surface of host cell cytoplasm' => 'parasitophorous vacuole membrane'
     },
     Species::TOXOPLASMA_GONDII_NAME => {
+      'cytoplasmic structures' => 'cytoplasmic structure',
+      'vesicles' => 'vesicle',
+      'cytoplasmic vesicles' => 'cytoplasmic vesicle',
+      'anterior adjacent to mitochondria' => 'anterior adjacent to mitochondrion',
+      'secretory organelles' => 'secretory organelle',
+      'endosome-related compartments' => 'endosome-related compartment',
+      'transport vesicles' => 'transport vesicle',
+      'micronemes' => 'microneme',
+      'acidocalcisomes' => 'acidocalcisome',
+      'vesicles budding off zoite posterior' => 'vesicle budding off zoite posterior',
+      'anterior vesicles' => 'anterior vesicle',
+      'wall forming bodies' => 'wall forming body',
+      'between er and golgi' => 'between endoplasmic reticulum and golgi',
       'vesicle-like structures just under the parasite membrane' => 'vesicle-like structure just under the parasite membrane',
       'attachment site of subpellicular microtubules' => 'attachment site of subpellicular microtubule',
       'subpellicular microtubules' => 'subpellicular microtubule',

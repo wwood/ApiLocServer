@@ -180,6 +180,9 @@ module DevelopmentalStageConstants
       'bradyzoite'
     ],
     Species::OTHER_SPECIES => { #for unsequenced species most likely
+      'Sarcocystis neurona' => [
+        'merozoite'
+      ],
       'Sarcocystis muris' => [
       ],
       'Babesia divergens' => [
@@ -246,7 +249,10 @@ module DevelopmentalStageConstants
       'Babesia gibsoni' => {
         'ring stage of trophozoites' => 'ring stage of trophozoite',
         'ring stage intracellular merozoite' => 'ring intracellular merozoite'
-      }
+      },
+      'Sarcocystis neurona' => {
+        'merozoites' => 'merozoite'
+      },
     },
     Species::NEOSPORA_CANINUM_NAME => {},
     Species::BABESIA_BOVIS_NAME => {

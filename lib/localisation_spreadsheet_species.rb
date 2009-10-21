@@ -10,7 +10,7 @@ module LocalisationSpreadsheetSpecies
     Localisation.new.upload_localisation_synonyms species
     LocalisationModifier.new.upload_known_modifiers
     upload_localisations_for_species species, filename
-    TopLevelLocalisation.new.upload_localisations species.name
+#    TopLevelLocalisation.new.upload_localisations species.name
   end
 
   def upload_falciparum(filename="#{ENV['HOME']}/phd/gene lists/falciparum.csv")
@@ -51,7 +51,7 @@ module LocalisationSpreadsheetSpecies
     Localisation.new.upload_localisation_synonyms_unsequenced
     LocalisationModifier.new.upload_known_modifiers
     upload_localisations_for_species nil, filename
-    TopLevelLocalisation.new.upload_localisations_unsequenced
+#    TopLevelLocalisation.new.upload_localisations_unsequenced
   end
 
   def upload_sarcocystis_spp(filename="#{ENV['HOME']}/phd/gene lists/Sarcocystis_spp.csv")
