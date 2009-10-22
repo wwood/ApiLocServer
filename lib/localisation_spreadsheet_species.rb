@@ -51,6 +51,14 @@ module LocalisationSpreadsheetSpecies
     upload_species(Species.find_by_name(Species::YOELII_NAME), filename)
   end
 
+  def upload_knowlesi(filename="#{ENV['HOME']}/phd/gene lists/knowlesi.csv")
+    upload_species(Species.find_by_name(Species::KNOWLESI_NAME), filename)
+  end
+
+  def upload_chabaudi(filename="#{ENV['HOME']}/phd/gene lists/chabaudi.csv")
+    upload_species(Species.find_by_name(Species::CHABAUDI_NAME), filename)
+  end
+
   def upload_toxo(filename="#{ENV['HOME']}/phd/gene lists/toxo.csv")
     upload_manual_toxoplasma_gene_aliases
     upload_species(Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME), filename)
@@ -92,11 +100,19 @@ module LocalisationSpreadsheetSpecies
     upload_unsequenced_species(filename)
   end
 
+  def upload_plasmodium_spp(filename="#{ENV['HOME']}/phd/gene lists/Plasmodium_spp.csv")
+    upload_unsequenced_species(filename)
+  end
+
   def upload_babesia_spp(filename="#{ENV['HOME']}/phd/gene lists/Babesia_spp.csv")
     upload_unsequenced_species(filename)
   end
 
   def upload_theileria_spp(filename="#{ENV['HOME']}/phd/gene lists/Theileria_spp.csv")
+    upload_unsequenced_species(filename)
+  end
+
+  def upload_eimeria_spp(filename="#{ENV['HOME']}/phd/gene lists/Eimeria_spp.csv")
     upload_unsequenced_species(filename)
   end
 

@@ -180,6 +180,21 @@ module DevelopmentalStageConstants
       'bradyzoite'
     ],
     Species::OTHER_SPECIES => { #for unsequenced species most likely
+      'Plasmodium gallinaceum' => [
+        'early ring',
+        'trophozoite',
+        'schizont',
+        'ookinete',
+        'mature ookinete',
+        'oocyst sporozoite',
+        'salivary gland sporozoite',
+      ],
+      'Plasmodium malariae' => [
+        'oocyst maturation',
+        'sporoblast',
+        'sporozoites ruptured into the midgut lumen',
+        'sporozoites ruptured into midgut epithelial cells',
+      ],
       'Sarcocystis neurona' => [
         'merozoite'
       ],
@@ -206,6 +221,58 @@ module DevelopmentalStageConstants
       ],
       'Theileria lestoquardi' => [
         'macroschizont',
+      ],
+      'Eimeria ascervulina' => [
+        'daughter cell formation',
+        'macrogamete',
+        'proliferative microgametocyte',
+        'flagellate growth',
+        'microgametogeny',
+        'mature microgametogeny',
+        'free microgamete',
+      ],
+      'Eimeria maxima' => [
+        'merozoite',
+        'macrogamete',
+        'proliferative microgametocyte',
+        'flagellate growth',
+        'microgametogeny',
+        'mature microgametogeny',
+        'free microgamete',
+      ],
+      'Eimeria tenella' => [
+        'sporozoite',
+        'extracellular sporozoite',
+        'intracellular sporozoite',
+        'host cell exposed extracellular sporozoite',
+        'sporozoite invasion',
+        'after sporozoite invasion',
+        'schizont',
+        'early first generation schizont',
+        'mature first generation schizont',
+        'early second generation schizont',
+        'mature second generation schizont',
+        'developing schizont',
+        'mid stage schizont',
+        'enlarging schizont',
+        'mature schizont',
+        'daughter cell formation',
+        'merozoite',
+        'early merozoite',
+        'first generation merozoite',
+        'second generation merozoite',
+        'proliferative microgametocyte',
+        'flagellate growth',
+        'microgametogeny',
+        'mature microgametogeny',
+        'free microgamete',
+        'gametocyte',
+        'microgamete',
+        'early microgamete',
+        'mature microgamete',
+        'macrogamete',
+        'mature macrogamete',
+        'oocyst'
       ]
     },
     Species::CRYPTOSPORIDIUM_PARVUM_NAME => [
@@ -287,11 +354,41 @@ module DevelopmentalStageConstants
       'ookinete'
     ],
     Species::YOELII_NAME => [
-    ]
+      'ring',
+      'trophozoite',
+      'early trophozoite',
+      'schizont',
+      'early schizont',
+      'late schizont',
+      'merozoite',
+      'sporozoite',
+      'ookinete',
+      '7 day old oocyst',
+      'oocyst sporozoite',
+      'hemolymph sporozoite',
+      'salivary gland sporozoite',
+      'hepatic',
+    ],
+    Species::KNOWLESI_NAME => [
+      'merozoite',
+      'blood stages',
+      'sporozoite',
+    ],
+    Species::CHABAUDI_NAME => [
+      'blood stages',
+      'intraerythrocytic',
+      'maturing parasites',
+      'merozoite',
+    ],
   }
 
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
+    Species::CHABAUDI_NAME => {},
+    Species::KNOWLESI_NAME => {},
     Species::YOELII_NAME => {
+      'immature schizont' => 'early schizont',
+      'mature schizont' => 'late schizont',
+      'liver stages' => 'hepatic'
     },
     Species::VIVAX_NAME => {
       'rbc stages' => %w(ring trophozoite schizont).push('extracellular merozoite'),
@@ -326,6 +423,9 @@ module DevelopmentalStageConstants
       'sporozoite internalization' => 'sporozoite invasion',
     },
     Species::OTHER_SPECIES => {
+      'Plasmodium gallinaceum' => {
+        'troph' => 'trophozoite'
+      },
       'Babesia gibsoni' => {
         'ring stage of trophozoites' => 'ring stage of trophozoite',
         'ring stage intracellular merozoite' => 'ring intracellular merozoite'
@@ -333,6 +433,11 @@ module DevelopmentalStageConstants
       'Sarcocystis neurona' => {
         'merozoites' => 'merozoite'
       },
+      'Eimeria tenella' => {
+        'isolated extracellular sporozoite' => 'extracellular sporozoite',
+        'host-cell exposed extracellular sporozoite' => 'host cell exposed extracellular sporozoite',
+        'sporozoites' => 'sporozoite',
+      }
     },
     Species::NEOSPORA_CANINUM_NAME => {},
     Species::BABESIA_BOVIS_NAME => {

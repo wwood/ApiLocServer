@@ -21,10 +21,16 @@ class BlastHelper
         'protein' => 'apicomplexa.protein.fa',
         'genome' => 'apicomplexa.genome.fa',
       },
-#      'yoelii' => {
-#        'transcript' => "PyoeliiAnnotatedTranscripts_PlasmoDB-#.fasta",
-#        'protein' => "PyoeliiAnnotatedProteins_PlasmoDB-5.5.fasta',
-#      },
+      'yoelii' => {
+        'transcript' => "PyoeliiAllTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+        'protein' => "PyoeliiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+        'genome' => "PyoeliiGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+      },
+      'knowlesi' => {
+        'transcript' => "PknowlesiAllTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+        'protein' => "PknowlesiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+        'genome' => "PknowlesiGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+      },
       'toxoplasma' => {
         'transcript' => "TgondiiME49AnnotatedTranscripts_ToxoDB-#{TOXODB_VERSION}.fasta",
         'protein' => "TgondiiME49AnnotatedProteins_ToxoDB-#{TOXODB_VERSION}.fasta",
@@ -49,6 +55,11 @@ class BlastHelper
         'transcript' => "PbergheiAllTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
         'protein' => "PbergheiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
         'genome' => "PbergheiGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta"
+      },
+      'chabaudi' => {
+        'transcript' => "PchabaudiAnnotatedTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+        'protein' => "PchabaudiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+        'genome' => "PchabaudiGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta"
       }
     }
     #    p organism

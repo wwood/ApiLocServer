@@ -26,7 +26,11 @@ class BScript
   end
 
   def chabaudi_to_database
-    apidb_species_to_database Species.vivax_name, "#{DATA_DIR}/Plasmodium chabaudi/genome/plasmodb/#{PLASMODB_VERSION}/Pchabaudi_PlasmoDB-#{PLASMODB_VERSION}.gff"
+    apidb_species_to_database Species::CHABAUDI_NAME, "#{DATA_DIR}/Plasmodium chabaudi/genome/plasmodb/#{PLASMODB_VERSION}/Pchabaudi_PlasmoDB-#{PLASMODB_VERSION}.gff"
+  end
+
+  def knowlesi_to_database
+    apidb_species_to_database Species::KNOWLESI_NAME, "#{DATA_DIR}/knowlesi/genome/plasmodb/#{PLASMODB_VERSION}/Pknowlesi_PlasmoDB-#{PLASMODB_VERSION}.gff"
   end
 
   def neospora_caninum_to_database

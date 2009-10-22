@@ -28,9 +28,18 @@ class Species < ActiveRecord::Base
 
   UNSEQUENCED_APICOMPLEXANS = [
     'Plasmodium gallinaceum',
+    'Plasmodium cynomolgi',
+    'Plasmodium malariae',
     'Sarcocystis neurona',
     'Sarcocystis muris',
-    'Theileria lestoquardi'
+    'Theileria lestoquardi',
+    'Babesia bigemina',
+    'Babesia divergens',
+    'Babesia gibsoni',
+    'Babesia equi',
+    'Eimeria ascervulina',
+    'Eimeria maxima',
+    'Eimeria tenella',
   ]
 
   APICOMPLEXAN_NAMES = [
@@ -40,6 +49,7 @@ class Species < ActiveRecord::Base
     VIVAX,
     BERGHEI_NAME,
     YOELII_NAME,
+    CHABAUDI_NAME,
     BABESIA_BOVIS_NAME,
     CRYPTOSPORIDIUM_HOMINIS_NAME,
     CRYPTOSPORIDIUM_PARVUM_NAME,

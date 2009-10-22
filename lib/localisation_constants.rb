@@ -276,6 +276,25 @@ module LocalisationConstants
       'moving junction'
     ],
     Species::OTHER_SPECIES => { #for unsequenced species most likely
+      'Plasmodium gallinaceum' => [
+        'microneme',
+        'microneme membrane',
+        'microneme lumen',
+        'sub-pellicular region at the anterior',
+        'nucleus',
+        'surface',
+        'apical',
+        'conoid collar',
+        'extracellular',
+      ],
+      'Plasmodium cynomolgi' => [
+        'merozoite surface'
+      ],
+      "Plasmodium malariae" => [
+        'inner surface of peripheral vacuoles',
+        'surface',
+        'plasma membrane',
+      ],
       'Sarcocystis muris' => [
         'cell surface',
         'pellicle',
@@ -304,6 +323,45 @@ module LocalisationConstants
       ],
       'Theileria lestoquardi' => [
         'plasma membrane'
+      ],
+      'Eimeria ascervulina' => [
+        'inner membrane complex',
+        'nuclear pole',
+        'flagellar basal bodies',
+        'electron dense collar',
+        'adjacent to mitochondrion',
+        'anterior adjacent to mitochondria',
+        
+      ],
+      'Eimeria maxima' => [
+        'microneme',
+        'nuclear pole',
+        'flagellar basal bodies',
+        'electron dense collar',
+        'adjacent to mitochondrion',
+        'anterior adjacent to mitochondria',
+      ],
+      'Eimeria tenella' => [
+        'apical',
+        'microneme',
+        'surface',
+        'cytoplasm',
+        'peripheral',
+        'sporozoite surface',
+        'apicoplast',
+        'wall-forming body type ii',
+        'cytosol',
+        'parasitophorous vacuole',
+        'parasitophorous vacuole membrane',
+        'merozoite cytosol',
+        'host cell surface',
+        'nucleus',
+        'free end of inner membrane complex',
+        'nuclear pole',
+        'flagellar basal bodies',
+        'electron dense collar',
+        'adjacent to mitochondrion',
+        'anterior adjacent to mitochondria',
       ]
     },
     Species::CRYPTOSPORIDIUM_PARVUM_NAME => [
@@ -400,11 +458,63 @@ module LocalisationConstants
       'nucleus',
     ],
     Species::YOELII_NAME => [
-    ]
+      'apical',
+      'microneme',
+      'rhoptry',
+      'basal',
+      'plasma membrane',
+      'underneath plasma membrane',
+      'merozoite surface',
+      'nucleus',
+      'surface',
+      'parasitophorous vacuole',
+      'parasitophorous vacuole membrane',
+      'inner membrane complex',
+      'host cell membrane',
+      'host cell cytoplasm',
+      'endoplasmic reticulum',
+      'cytoplasmic matrix',
+      'subcapsular areas',
+      'intracellular',
+      'cytoplasm',
+    ],
+    Species::KNOWLESI_NAME => [
+      'microneme',
+      'apical',
+      'surface'
+    ],
+    Species::CHABAUDI_NAME => [
+      'cytoplasm',
+      'nucleus',
+      'maurer\'s cleft',
+      'parasitophorous vacuole membrane',
+      'parasitophorous vacuole',
+      'dense granule',
+      'cytoplasmic side of host cell membrane',
+    ],
   }
 
   KNOWN_LOCALISATION_SYNONYMS = {
+    Species::CHABAUDI_NAME => {
+      'pv' => 'parasitophorous vacuole',
+      'pvm' => 'parasitophorous vacuole membrane',
+      'nuclear' => 'nucleus',
+      'dense granules' => 'dense granule',
+      'cytoplasmic side of host erythrocyte membrane' =>
+        'cytoplasmic side of host cell membrane'
+    },
+    Species::KNOWLESI_NAME => {},
     Species::YOELII_NAME => {
+      'membrane of infected erythrocytes' => 'host cell membrane',
+      'cytoplasm of erythrocyte' => 'host cell cytoplasm',
+      'trophozoite' => 'intracellular',
+      'trophozoite membrane' => 'plasma membrane',
+      'merozoite membrane' => 'merozoite surface',
+      'er' => 'endoplasmic reticulum',
+      'erythrocyte membrane' => 'host cell membrane',
+      'pvm' => 'parasitophorous vacuole membrane',
+      'pv' => 'parasitophorous vacuole',
+      'imc' => 'inner membrane complex'
     },
     Species::VIVAX_NAME => {
       'erythrocyte cytoplasm' => 'host cell cytoplasm',
@@ -460,6 +570,20 @@ module LocalisationConstants
       },
       'Babesia equi' => {
         'surface' => 'cell surface'
+      },
+      'Plasmodium gallinaceum' => {
+        'sub-pellicular region at the anterior portion' => 'sub-pellicular region at the anterior',
+        'nuclear' => 'nucleus'
+      },
+      'Eimeria ascervulina' => {
+        'imc' => 'inner membrane complex',
+      },
+      'Eimeria tenella' => {
+        'pv' => 'parasitophorous vacuole',
+        'pvm' => 'parasitophorous vacuole membrane',
+        'cytosol in merozoite' => 'merozoite cytosol',
+        'apex' => 'apical',
+        'free end of imc' => 'free end of inner membrane complex'
       }
     },
     Species::NEOSPORA_CANINUM_NAME => {
