@@ -43,6 +43,14 @@ module LocalisationSpreadsheetSpecies
     upload_species(Species.find_by_name(Species::BERGHEI_NAME), filename)
   end
 
+  def upload_vivax(filename="#{ENV['HOME']}/phd/gene lists/vivax.csv")
+    upload_species(Species.find_by_name(Species::VIVAX_NAME), filename)
+  end
+
+  def upload_yoelii(filename="#{ENV['HOME']}/phd/gene lists/yoelii.csv")
+    upload_species(Species.find_by_name(Species::YOELII_NAME), filename)
+  end
+
   def upload_toxo(filename="#{ENV['HOME']}/phd/gene lists/toxo.csv")
     upload_manual_toxoplasma_gene_aliases
     upload_species(Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME), filename)

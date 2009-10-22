@@ -2,11 +2,17 @@
 # and open the template in the editor.
 
 class BlastHelper
+  PLASMODB_VERSION = 6.1
+  CRYPTODB_VERSION = 4.2
+  TOXODB_VERSION = 5.2
+
   # An opinionated blast method
   def blast(sequence_input = nil, organism = 'apicomplexa', blast_program = nil, database=nil, alignment_program='blast', blast_options = {}, sequence_name = nil)
-    organism = nil if organism.strip == ''
+    organism = nil if organism and organism.strip == ''
     organism ||= 'apicomplexa' # in case nil is passed here
     alignment_program ||= 'blast'
+
+
 
 
     databases = {
@@ -15,35 +21,40 @@ class BlastHelper
         'protein' => 'apicomplexa.protein.fa',
         'genome' => 'apicomplexa.genome.fa',
       },
-      'yoelii' => {
-        'transcript' => 'PyoeliiAnnotatedTranscripts_PlasmoDB-5.5.fasta',
-        'protein' => 'PyoeliiAnnotatedProteins_PlasmoDB-5.5.fasta',
-      },
+#      'yoelii' => {
+#        'transcript' => "PyoeliiAnnotatedTranscripts_PlasmoDB-#.fasta",
+#        'protein' => "PyoeliiAnnotatedProteins_PlasmoDB-5.5.fasta',
+#      },
       'toxoplasma' => {
-        'transcript' => 'TgondiiME49AnnotatedTranscripts_ToxoDB-5.2.fasta',
-        'protein' => 'TgondiiME49AnnotatedProteins_ToxoDB-5.2.fasta',
+        'transcript' => "TgondiiME49AnnotatedTranscripts_ToxoDB-#{TOXODB_VERSION}.fasta",
+        'protein' => "TgondiiME49AnnotatedProteins_ToxoDB-#{TOXODB_VERSION}.fasta",
       },
       'babesia' => {
         'protein' => 'BabesiaWGS.fasta_with_names'
       },
       'neospora' => {
-        'protein' => 'NeosporaCaninumAnnotatedProteins_ToxoDB-5.2.fasta',
-        'transcript' => 'NeosporaCaninumAnnotatedTranscripts_ToxoDB-5.2.fasta',
-        'genome' => 'NeosporaCaninumGenomic_ToxoDB-5.2.fasta',
+        'protein' => "NeosporaCaninumAnnotatedProteins_ToxoDB-#{TOXODB_VERSION}.fasta",
+        'transcript' => "NeosporaCaninumAnnotatedTranscripts_ToxoDB-#{TOXODB_VERSION}.fasta",
+        'genome' => "NeosporaCaninumGenomic_ToxoDB-#{TOXODB_VERSION}.fasta",
       },
       'crypto' => {
-        'protein' => 'CparvumAnnotatedProteins_CryptoDB-4.2.fasta',
-        'transcript' => 'CparvumAnnotatedTranscripts_CryptoDB-4.2.fasta',
-        'genome' => 'CparvumGenomic_CryptoDB-4.2.fasta',
+        'protein' => "CparvumAnnotatedProteins_CryptoDB-#{CRYPTODB_VERSION}.fasta",
+        'transcript' => "CparvumAnnotatedTranscripts_CryptoDB-#{CRYPTODB_VERSION}.fasta",
+        'genome' => "CparvumGenomic_CryptoDB-#{CRYPTODB_VERSION}.fasta",
       },
       'theileria' => {
         'protein' => 'theileria.pep'
+      },
+      'berghei' => {
+        'transcript' => "PbergheiAllTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+        'protein' => "PbergheiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+        'genome' => "PbergheiGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta"
       }
     }
-#    p organism
-#    p databases
+    #    p organism
+    #    p databases
     blast_array = databases[organism]
-#    p blast_array
+    #    p blast_array
 
     # Some organisms don't exist yet. Reject these
     unless organism and organism

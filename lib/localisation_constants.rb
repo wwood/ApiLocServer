@@ -351,18 +351,88 @@ module LocalisationConstants
       'apical'
     ],
     Species::PLASMODIUM_BERGHEI_NAME => [
-
+      'apical',
+      'microneme',
+      'peripheral of microneme',
+      'rhoptry',
+      'high electron dense microneme',
+      'peripheral',
+      'extracellular apical pole of ookinete protrusion',
+      'osmiophilic body',
+      'gliding trail',
+      'cytoplasm',
+      'surface',
+      'parasitophorous vacuole',
+      'close to parasitophorous vacuole membrane',
+      'zygote side',
+      'oocyst protrusion',
+      'anterior to nucleus',
+      'nucleus',
+      'outer nuclear envelope',
+      'nuclear membrane',
+      'inner membrane complex',
+      'sporozoite surface',
+      'ookinete surface',
+      'vesicles near parasite surface',
+      'plasma membrane',
+      'food vacuole',
+      'parasitophorous vacuole membrane',
+      'pellicle',
+      'ookinete protrusion',
+      'peripheral of oocyst protrusion',
+      'maurer\'s cleft',
+      'intracellular',
+      'host cell cytoplasm',
+      'host cell nucleus',
+      'microtubule',
+      'endoplasmic reticulum',
+      'transformation bulb',
+    ],
+    Species::VIVAX_NAME => [
+      'surface',
+      'ookinete surface',
+      'intracellular',
+      'apical',
+      'microneme',
+      'rhoptry',
+      'cytoplasm',
+      'host cell cytoplasm',
+      'nucleus',
+    ],
+    Species::YOELII_NAME => [
     ]
   }
 
   KNOWN_LOCALISATION_SYNONYMS = {
+    Species::YOELII_NAME => {
+    },
+    Species::VIVAX_NAME => {
+      'erythrocyte cytoplasm' => 'host cell cytoplasm',
+      'parasite surface' => 'surface',
+      'nuclear' => 'nucleus'
+    },
     Species::PLASMODIUM_BERGHEI_NAME => {
-
+      'sporozoite trail' => 'gliding trail',
+      'er' => 'endoplasmic reticulum',
+      'parasite surface' => 'surface',
+      'peripheral microneme' => 'peripheral of microneme',
+      'parasite plasma membrane' => 'plasma membrane',
+      'apical tip' => 'apical',
+      'peripheral cytoplasm' => 'peripheral',
+      'peripheral foci' => 'peripheral',
+      'osmiophilic bodies' => 'osmiophilic body',
+      'pv' => 'parasitophorous vacuole',
+      'close to pvm' => 'close to parasitophorous vacuole membrane',
+      'imc' => 'inner membrane complex',
+      'pvm' => 'parasitophorous vacuole membrane',
+      'pv membrane' => 'parasitophorous vacuole membrane',
+      'fv' => 'food vacuole',
+      'trail' => 'gliding trail',
     },
     Species::THEILERIA_ANNULATA_NAME => {
       'mitochondria' => 'mitochondrion',
       'parasite cytoplasm' => 'cytoplasm',
-      'parasite plasma membrane' => 'plasma membrane'
+      'parasite plasma membrane' => 'plasma membrane',
     },
     Species::THEILERIA_PARVA_NAME => {},
     Species::CRYPTOSPORIDIUM_PARVUM_NAME => {

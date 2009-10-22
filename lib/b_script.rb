@@ -1576,14 +1576,7 @@ class BScript
   end
   
   
-  # upload the fasta sequences from falciparum file to the database
-  def falciparum_fasta_to_database
-    #    fa = ApiDbFasta.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.4/PfalciparumAnnotatedProteins_plasmoDB-5.4.fasta")
-    #    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/5.5/PfalciparumAnnotatedProteins_PlasmoDB-5.5.fasta")
-    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/6.0/PfalciparumAnnotatedProteins_PlasmoDB-6.0.fasta")
-    sp = Species.find_by_name(Species.falciparum_name)
-    upload_fasta_general!(fa, sp)
-  end 
+
   
   def crypto_fasta_to_database
     fa = CryptoDbFasta4p0.new.load("#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/4.0/CparvumAnnotatedProteins_CryptoDB-4.0.fasta")
@@ -2035,15 +2028,18 @@ class BScript
         name = yield f.name
       end
       code = CodingRegion.fs(name, species.name)
-      raise Exception, "No coding region found to attach a sequence/annotation to: #{f.name}" if !code
+      if code.nil?
+        $stderr.puts "No coding region found to attach a sequence/annotation to: #{f.name}"
+        next
+      end
       AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
         code.id,
         f.sequence
-      )
+      ) or raise
       Annotation.find_or_create_by_coding_region_id_and_annotation(
         code.id,
         f.annotation
-      )
+      ) or raise
     end
   end
   

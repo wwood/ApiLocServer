@@ -13,10 +13,12 @@ class BlastsController < ApplicationController
     # database. Do that as priority. If not, just use the regular one
     if @input.match /[01-9]/
       if code = CodingRegion.find_by_name_or_alternate(@input)
-        logger.debug "Using coding region #{code} from #{code.species.name} to blast with"
+        logger.debug "Using coding region #{code} from #{code.species.name} to blast with."
         @input = code.aaseq
       end
     end
+
+    logger.debug("Blasting with sequence: #{@input}")
 
     # parse the name of the organism that is being blasted against
     @output = AminoAcidSequence.new.blast(@input, params[:taxa], params[:program], params[:database])

@@ -13,7 +13,9 @@ class LocalisationModifier < ActiveRecord::Base
       'spot in',
       'discrete compartments at',
       'strong diffuse',
-      'foci in'
+      'foci in',
+      'large foci',
+      'random in',
     ]).flatten
 
   def upload_known_modifiers

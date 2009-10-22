@@ -128,7 +128,7 @@ class BScript
 
   def upload_falciparum_gene_table_to_database
     upload_gene_information_table(Species.find_by_name(Species::FALCIPARUM_NAME),
-      "#{DATA_DIR}/Plasmodium falciparum/genome/plasmodb/6.1/PfalciparumGene_PlasmoDB-6.1.txt.gz"
+      "#{DATA_DIR}/Plasmodium falciparum/genome/plasmodb/#{PLASMODB_VERSION}/PfalciparumGene_PlasmoDB-#{PLASMODB_VERSION}.txt.gz"
     )
   end
 
@@ -152,4 +152,11 @@ class BScript
     upload_theileria_fasta
     babesia_to_database
   end
+
+  # upload the fasta sequences from falciparum file to the database
+  def falciparum_fasta_to_database
+    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/#{PLASMODB_VERSION}/PfalciparumAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta")
+    sp = Species.find_by_name(Species.falciparum_name)
+    upload_fasta_general!(fa, sp)
+  end 
 end
