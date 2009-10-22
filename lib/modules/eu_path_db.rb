@@ -116,6 +116,7 @@ class BScript
       Species.find_by_name(Species::TOXOPLASMA_GONDII),
       "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49Gene_ToxoDB-#{TOXODB_VERSION}.txt.gz"
     ) do |info, code|
+      # Add release 4 IDs as direct aliases
       release_fours = info.get_info('Release4 IDs')
       r4 = release_fours.split(/\s/).reject{|s|s.nil? or s==''}
       if r4 == ['null']
@@ -124,6 +125,19 @@ class BScript
           CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
             code.id,
             four
+          ) or raise
+        end
+      end
+
+      # Add strain orthologue information from non ME49 strains,
+      # (initially at least this was done so that OrthoMCL v3 could be
+      # uploaded properly.
+      strains_table = info.get_table('Strains summary')
+      strains_table.each do |row|
+        name = row['Gene']
+        unless name == code.string_id
+          CodingRegionStrainOrthologue.find_or_create_by_name_and_coding_region_id(
+            name, code.id
           ) or raise
         end
       end

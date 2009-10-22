@@ -17,6 +17,7 @@ class CodingRegion < ActiveRecord::Base
   has_many :coding_region_alternate_string_ids, :dependent => :destroy
   has_many :literature_defined_coding_region_alternate_string_ids, :dependent => :destroy
   has_many :case_sensitive_literature_defined_coding_region_alternate_string_ids, :dependent => :destroy
+  has_many :coding_region_strain_orthologues, :dependent => :destroy
   has_many :derisi20063d7_logmeans
   has_many :plasmodb_gene_list_entries
   has_many :plasmodb_gene_lists, :through => :plasmodb_gene_list_entries
@@ -381,6 +382,18 @@ class CodingRegion < ActiveRecord::Base
         return []
       end
     end
+  end
+
+  def find_all_by_name_or_alternate_or_strain_orthologue_and_species(string_id, species_common_name)
+    simple = find_all_by_name_or_alternate_and_species(string_id, species_common_name)
+    return simple unless simple.empty?
+
+    # I reckon this will be faster than a join all the way through because
+    # the there is unlikely to be many duplicate strain orthologue names
+    # from different species.
+    return CodingRegionStrainOrthologue.find_all_by_name(string_id).select{|o|
+      o.coding_region.species.name == species_common_name
+    }
   end
   
   def self.find_by_name_or_alternate_and_organism(string_id, organism_common_name)

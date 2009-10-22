@@ -112,7 +112,7 @@ class OrthomclGene < ActiveRecord::Base
     else
       # Add the normally linked ones that don't require a workaround
       sp = Species.find_by_orthomcl_three_letter matches[1]
-      return CodingRegion.find_all_by_name_or_alternate_and_species(name, sp.name)
+      return CodingRegion.find_all_by_name_or_alternate_or_strain_orthologue_and_species(name, sp.name)
     end
   end
   
