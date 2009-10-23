@@ -384,7 +384,7 @@ class CodingRegion < ActiveRecord::Base
     end
   end
 
-  def find_all_by_name_or_alternate_or_strain_orthologue_and_species(string_id, species_common_name)
+  def self.find_all_by_name_or_alternate_or_strain_orthologue_and_species(string_id, species_common_name)
     simple = find_all_by_name_or_alternate_and_species(string_id, species_common_name)
     return simple unless simple.empty?
 

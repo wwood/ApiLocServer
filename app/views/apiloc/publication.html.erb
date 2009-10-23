@@ -3,20 +3,23 @@
 <p><%= @publication.authors %> (<%= @publication.date %>)</p>
 <p><%= @publication.abstract %></p>
 <p><%= link_to (@publication.pubmed_id? ? "PubMed: #{@publication.pubmed_id}" : @publication.url), @publication.linkout_url %></p>
-<h2>Localisation information gleaned</h2>
+
+<h2>Localisation information</h2>
 <% @publication.expression_contexts.reach.localisation_annotation.uniq.each do |a|
   code = a.coding_region %>
-  <h3><%= code_name_annotation(code) %></h3>
-  <b>Experimental localisation: </b><%= a.expression_contexts.uniq.reach.english.join(', ') %>
-  <ul>
-    <li><b>Quote inferring localisation: </b>"<%= a.quote %>"</li>
-    <li><b>Microscopy type:</b> <%= a.microscopy_type %></li>
-    <li><b>Microscopy method:</b> <%= a.microscopy_method %></li>
-    <li><b>Strain:</b> <%= a.strain %></li>
-    <li><b>Gene model mapping comments:</b> <%= a.gene_mapping_comments ? a.gene_mapping_comments : 'inferred from another publication' %></li>
-    <li><b>Localisation record:</b> <%= a.localisation %></li>
-    <% a.comments.each do |c| %>
-      <li><b>Comment:</b> <%= c.comment %></li>
-    <% end %>
-  </ul>
+  <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
+    <h3><%= code_name_annotation(code) %></h3>
+    <b>Experimental localisation: </b><%= a.expression_contexts.uniq.reach.english.join(', ') %>
+    <ul>
+      <li><b>Quote inferring localisation: </b>"<%= a.quote %>"</li>
+      <li><b>Microscopy type:</b> <%= a.microscopy_type %></li>
+      <li><b>Microscopy method:</b> <%= a.microscopy_method %></li>
+      <li><b>Strain:</b> <%= a.strain %></li>
+      <li><b>Gene model mapping comments:</b> <%= a.gene_mapping_comments ? a.gene_mapping_comments : 'inferred from another publication' %></li>
+      <li><b>Localisation record:</b> <%= a.localisation %></li>
+      <% a.comments.each do |c| %>
+        <li><b>Comment:</b> <%= c.comment %></li>
+      <% end %>
+    </ul>
+  </div>
 <% end %>

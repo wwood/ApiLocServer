@@ -3,8 +3,8 @@
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <h2>Species</h2>
   <ul>
-    <% popular_species.each do |microscopy_type| %>
-      <li><i><%= link_to microscopy_type, :action => :species, :id => microscopy_type %></i></li>
+    <% popular_species.each do |species_name| %>
+      <li><i><%= link_to species_name, :action => :species, :id => species_name %></i> (<%= Species.find_by_name(species_name).number_or_proteins_localised_in_apiloc %>)</li>
     <% end %>
     <li>Other:
       <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
@@ -12,7 +12,7 @@
           :select => 'distinct(species.*) ',
           :order => 'name',
           :conditions => "name not in #{popular_species.to_sql_in_string}").each do |sp| %>
-          <option value="../apiloc/species/<%= sp.name %>"><i><%= sp.name %></i></option>
+          <option value="../apiloc/species/<%= sp.name %>"><i><%= "#{sp.name} (#{sp.number_or_proteins_localised_in_apiloc})" %></i></option>
         <% end %>
       </select>
     </li>
@@ -22,8 +22,8 @@
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <h2>Localisations</h2>
   <ul>
-    <% popular_localisations.each do |microscopy_type| %>
-      <li><%= link_to microscopy_type, :action => :localisation, :id => microscopy_type %></li>
+    <% popular_localisations.each do |species_name| %>
+      <li><%= link_to species_name, :action => :localisation, :id => species_name %></li>
     <% end %>
     <li>Other:
       <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
@@ -41,8 +41,8 @@
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <h2>Developmental Stages</h2>
   <ul>
-    <% popular_developmental_stages.each do |microscopy_type| %>
-      <li><%= link_to microscopy_type, :action => :developmental_stage, :id => microscopy_type %></li>
+    <% popular_developmental_stages.each do |species_name| %>
+      <li><%= link_to species_name, :action => :developmental_stage, :id => species_name %></li>
     <% end %>
     <li>Other:
       <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
@@ -60,8 +60,8 @@
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <h2>Microscopy</h2>
   <ul>
-    <% popular_microscopy_types.each do |microscopy_type| %>
-      <li><%= link_to microscopy_type, :action => :developmental_stage, :id => microscopy_type %></li>
+    <% popular_microscopy_types.each do |species_name| %>
+      <li><%= link_to species_name, :action => :developmental_stage, :id => species_name %></li>
     <% end %>
     <li>Other:
       <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">

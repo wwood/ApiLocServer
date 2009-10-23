@@ -41,8 +41,45 @@ class BScript
     apidb_species_to_database Species::CRYPTOSPORIDIUM_PARVUM_NAME, "#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/#{CRYPTODB_VERSION}/c_parvum_iowa_ii.gff"
   end
 
+  def cryptosporidium_hominis_to_database
+    apidb_species_to_database Species::CRYPTOSPORIDIUM_HOMINIS_NAME, "#{DATA_DIR}/Cryptosporidium hominis/genome/cryptoDB/#{CRYPTODB_VERSION}/c_hominis_tu502.gff"
+  end
+
+  def cryptosporidium_muris_to_database
+    apidb_species_to_database Species::CRYPTOSPORIDIUM_MURIS_NAME, "#{DATA_DIR}/Cryptosporidium muris/genome/cryptodb/#{CRYPTODB_VERSION}/c_muris.gff"
+  end
+
   def gondii_to_database
     apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49_ToxoDB-#{TOXODB_VERSION}.gff"
+  end
+
+  def theileria_parva_genbank_gff_to_database
+    [
+      'NC_007344.gff',
+      'NC_007345.gff',
+      'NC_007758.gff'
+    ].each do |gff_file|
+      gff_file_path = "#{DATA_DIR}/Theileria parva/genome/ncbi/#{gff_file}"
+      GFF3ParserLight.new(File.open(gff_file_path)).each_feature('CDS') do |feature|
+        locus_tag = feature.attributes['locus_tag']
+        code = CodingRegion.fs(locus_tag, Species::THEILERIA_PARVA_NAME)
+        unless code
+          $stderr.puts "Couldn't find coding region #{locus_tag}"
+          next
+        end
+
+        protein_id = feature.attributes['protein_id']
+        if matches = protein_id.match(/(.*)\.[123456789]$/)
+          pro = matches[1]
+          $stderr.puts "adding #{pro} for #{code.string_id}"
+          CodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
+            pro, code.id
+          ) or raise
+        else
+          raise Exception, "couldn't parse #{protein_id} (take the .1 or whatever off the end)"
+        end
+      end
+    end
   end
 
   def berghei_fasta_to_database
@@ -69,13 +106,24 @@ class BScript
     upload_cds_fasta_general!(fa, sp)
   end
 
-  def upload_gene_information_table(species, gzfile)
+  # low level method. don't create coding regions or GO terms, just
+  # parse the file
+  def upload_gene_information_table_plumbing(gzfile)
     oracle = EuPathDBGeneInformationTable.new(
       Zlib::GzipReader.open(
         gzfile
       ))
 
     oracle.each do |info|
+      yield info #have to give a block, otherwise why are you calling me?
+    end
+  end
+
+  # High level for general EuPathDB use. Find coding regions and upload
+  # GO terms associated and give a yield for further uploads on a gene
+  # entry basis.
+  def upload_gene_information_table(species, gzfile)
+    upload_gene_information_table_plumbing(gzfile) do |info|
       # find the gene
       gene_id = info.get_info('ID')
       if info.get_info('Gene') # Toxo is 'ID', whereas falciparum is 'Gene'.
@@ -141,6 +189,9 @@ class BScript
           ) or raise
         end
       end
+
+      # Add within-ToxoDB Orthologue info as well
+      
     end
   end
 
@@ -176,5 +227,73 @@ class BScript
     fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/#{PLASMODB_VERSION}/PfalciparumAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta")
     sp = Species.find_by_name(Species.falciparum_name)
     upload_fasta_general!(fa, sp)
-  end 
+  end
+
+  # OrthoMCL identifiers can be found in the gene information table.
+  # this is more better than matching through names manually because there is
+  # a non-redundant set of toxo genes in there, not from any one species.
+  def map_toxodb_to_orthomcl_version3_temporary
+    %w(ME49 GT1 VEG RH).each do |strain|
+      #    %w(VEG RH).each do |strain|
+      upload_gene_information_table_plumbing(
+        "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/Tgondii#{strain}Gene_ToxoDB-#{TOXODB_VERSION}.txt.gz"
+      ) do |info|
+
+
+        orthomcl_group = info.get_info('Temporary Ortholog Group')
+        next unless orthomcl_group.match(/^OG/) #ignore the tmp ones - not sure what they mean
+        
+        groups = OrthomclGroup.official.find_all_by_orthomcl_name(orthomcl_group).uniq
+        raise if groups.length > 1
+        if groups.length == 0
+          raise Exception, "Couldn't find orthomcl group #{orthomcl_group}"
+        end
+
+        # all good. create the link if I can find an entry with a name like I
+        # expect
+        gene_name = info.get_info('ID')
+        genes = OrthomclGene.official_and_group(orthomcl_group).find_all_by_orthomcl_name(
+          "tgon|#{gene_name}"
+        )
+        if genes.length == 0
+          $stderr.puts "can't find #{gene_name} in #{orthomcl_group}, not sure I was expecting to though"
+        elsif genes.length > 1
+          raise
+        else
+          #ok, now I'm happy with orthomcl
+          $stderr.puts "Happy with #{gene_name} in #{orthomcl_group}"
+
+          codes = nil
+          if strain == 'ME49'
+            codes = CodingRegion.find_all_by_name_or_alternate_and_organism(gene_name, Species::TOXOPLASMA_GONDII_NAME) or raise
+            raise unless codes.length == 1
+          else
+            # find it from the microarray column
+            mic_table = info.get_table('ME49 Microarray Expression Data')
+            mes = mic_table.collect do |m|
+              m['ME49 Gene Model']
+            end
+            if mes.length == 0
+              $stderr.puts "found an entry, but can't find the corresponding me49 gene from the microarray table for #{gene_name} in #{orthomcl_group}"
+              next
+            elsif mes.length > 1
+              codes = mes.collect do |me|
+                CodingRegion.find_all_by_name_or_alternate_and_organism(me, Species::TOXOPLASMA_GONDII_NAME) or raise
+              end
+              codes.flatten!.uniq!
+            else
+              codes = CodingRegion.find_all_by_name_or_alternate_and_organism(mes[0], Species::TOXOPLASMA_GONDII_NAME) or raise
+              raise unless codes.length == 1
+            end
+          end
+          codes.each do |code|
+            OrthomclGeneCodingRegion.find_or_create_by_coding_region_id_and_orthomcl_gene_id(
+              code.id, genes[0].id
+            ) or raise
+          end
+        end
+
+      end
+    end
+  end
 end

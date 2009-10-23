@@ -1,85 +1,104 @@
 <h2><%= @code.string_id %> (<%=  @code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ') %>) <% if @code.gene_model_inconsistent? %>*<% end %></h2>
 <% if @code.gene_model_inconsistent? %>
-<p>* The amino acid sequence is recorded as differing between ApiLoc and the genome database. See the gene model mapping comments in each localisation for more information.</p>
+  <p>* The amino acid sequence is recorded as differing between ApiLoc and the genome database. See the gene model mapping comments in each localisation for more information.</p>
 <% end %>
 <%= @code.annotation.annotation unless @code.annotation.nil? %>
 
 <p><%= @code.localisation_html %></p>
+<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
+  <h3>Associated publications</h3>
+  <% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b.pubmed_id <=> a.pubmed_id}.each do |publication| %>
+    <p><%= publication.authors %> (<%= publication.date %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><br />
+      <b><%= ExpressionContextGroup.new(ExpressionContext.find_all_by_publication_id_and_coding_region_id(
+            publication.id, @code.id
+          )).english %></b></p>
+    <% end %>
+</div>
 
-<h3>Associated publications</h3>
-<% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b.pubmed_id <=> a.pubmed_id}.each do |publication| %>
-  <p><%= publication.authors %> (<%= publication.date %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><br />
-    <b><%= ExpressionContextGroup.new(ExpressionContext.find_all_by_publication_id_and_coding_region_id(
-          publication.id, @code.id
-        )).english %></b></p>
-  <% end %>
-
-<h3>Orthology</h3>
-<h4>OrthoMCL</h4>
-<% if @code.species.orthomcl_three_letter.nil? %>
-  This species does not currently exist in the OrthoMCL database.
-<% else %>
-  <% ogenes = @code.calculate_official_orthomcl_genes
-  if ogenes.length == 0 %>
-    No entry found in OrthoMCL.
-  <% elsif ogenes.length == 1
-    ogene = ogenes[0]
-    groups = ogene.orthomcl_groups
-    raise unless groups.length == 1
-    group = groups[0] %>
-    <p>Part of OrthoMCL group <%= link_to group.orthomcl_name, "http://beta.orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=sequenceList&groupac=#{group.orthomcl_name}" %></p>
-    <h5>Localised Genes in this Group</h5>
-    <ul>
-      <% codes = CodingRegion.all(
-        :joins => [
-          {:orthomcl_genes => :orthomcl_groups},
-          :expression_contexts
-        ],
-        :conditions => {:orthomcl_groups => {:id => group.id}},
-        :select => 'distinct(coding_regions.*)'
-      )
-      if codes.length > 0
-        codes.each do |code| %>
-          <li><%= code_name(code) %> <%= code.localisation_html %> </li>
-        <% end %>
-      <% else %>
-        No genes in this OrthoMCL group have been localised.
-      <% end %>
-    </ul>
-    <h5>Other Apicomplexan Genes in this Group</h5>
-    <% codes2 = CodingRegion.all(
-      :joins => [
-        {:orthomcl_genes => :orthomcl_groups}
-      ],
-      :conditions =>
-        codes.empty? ?
-        ["orthomcl_groups.id = ?", group.id] :
-        ["orthomcl_groups.id = ? and coding_regions.id NOT IN "+
-          codes.collect{|c| c.id}.to_sql_in_string,
-        group.id
-      ],
-      :select => 'distinct(coding_regions.*)'
-    ) %>
-    <% if codes2.empty? %>
-      There are no other apicomplexan genes.
-    <% else %>
+<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
+  <h3>Orthology</h3>
+  <h4>OrthoMCL</h4>
+  <% if @code.species.orthomcl_three_letter.nil? %>
+    This species does not currently exist in the OrthoMCL database.
+  <% else %>
+    <% ogenes = @code.calculate_official_orthomcl_genes
+    if ogenes.length == 0 %>
+      No entry found in OrthoMCL.
+    <% elsif ogenes.length == 1
+      ogene = ogenes[0]
+      groups = ogene.orthomcl_groups
+      raise unless groups.length == 1
+      group = groups[0] %>
+      <p>Part of OrthoMCL group <%= link_to group.orthomcl_name, "http://beta.orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=sequenceList&groupac=#{group.orthomcl_name}" %></p>
+      <h5>Localised Genes in this Group</h5>
       <ul>
-        <% codes2.each do |code| %>
-          <li><%= code_name(code) %></li>
+        <% codes = CodingRegion.all(
+          :joins => [
+            {:orthomcl_genes => :orthomcl_groups},
+            :expression_contexts
+          ],
+          :conditions => {:orthomcl_groups => {:id => group.id}},
+          :select => 'distinct(coding_regions.*)'
+        )
+        if codes.length > 0
+          codes.each do |code| %>
+            <li><%= code_name(code) %> <%= code.localisation_html %> </li>
+          <% end %>
+        <% else %>
+          No genes in this OrthoMCL group have been localised.
         <% end %>
       </ul>
+      <h5>Other Apicomplexan Genes in this Group</h5>
+      <% codes2 = CodingRegion.all(
+        :joins => [
+          {:orthomcl_genes => :orthomcl_groups}
+        ],
+        :conditions =>
+          codes.empty? ?
+          ["orthomcl_groups.id = ?", group.id] :
+          ["orthomcl_groups.id = ? and coding_regions.id NOT IN "+
+            codes.collect{|c| c.id}.to_sql_in_string,
+          group.id
+        ],
+        :select => 'distinct(coding_regions.*)'
+      ) %>
+      <% if codes2.empty? %>
+        There are no other apicomplexan genes.
+      <% else %>
+        <ul>
+          <% codes2.each do |code| %>
+            <li><%= code_name_annotation(code) %></li>
+          <% end %>
+        </ul>
+      <% end %>
+    <% else %>
+      This gene does not have an OrthoMCL group.
     <% end %>
-  <% else %>
-    This gene does not have an OrthoMCL group.
   <% end %>
-<% end %>
 
-<h4>BLAST hits to localised proteins</h4>
+  <h4>BLAST hits to localised proteins</h4>
 <%# @code.apiloc_blast_hits.each do |blast_code| %>
 <%#= link_to blast_code.string_id %>
 <%# end %>
+</div>
 
+<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
+  <h3>Gene Model Mapping</h3>
+  The common name of this protein has been via these means:
+  <ul>
+    <% LocalisationAnnotation.all(:joins => :expression_contexts,
+      :conditions => [
+        'expression_contexts.coding_region_id = ? and gene_mapping_comments is not null',
+        @code.id]
+      ).uniq.sort{|a,b|
+        a.expression_contexts[0].publication.pubmed_id <=> b.expression_contexts[0].publication.pubmed_id
+      }.each do |an| %>
+    <li><%= an.gene_mapping_comments %></li>
+    <% end %>
+  </ul>
+</div>
 
+<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
 <h3>Links</h3>
 <ul>
   <% if @code.species.plasmodb? %>
@@ -92,3 +111,4 @@
     <li><%= link_to 'GenBank', "http://www.ncbi.nlm.nih.gov/sites/entrez?db=nuccore&term=#{@code.string_id}" %></li>
   <% end %>
 </ul>
+</div>

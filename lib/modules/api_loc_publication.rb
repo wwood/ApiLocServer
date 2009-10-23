@@ -5,16 +5,73 @@ class BScript
     Species.apicomplexan.all(:order => 'name').each do |s|
       puts [
         s.name,
-        CodingRegion.s(s.name).count(
-          :select => 'distinct(coding_regions.id)',
-          :joins => {:expression_contexts => :localisation}
-        ),
-        Publication.count(
-          :select => 'distinct(publications.id)',
-          :joins => {:expression_contexts => :localisation},
-          :conditions => {:localisations => {:species_id => s.id}}
-        ),
+        s.number_or_proteins_localised_in_apiloc,
+        s.number_or_publications_in_apiloc,
       ].join("\t")
+    end
+  end
+
+  def species_localisation_breakdown
+    #    names = Localisation.all(:joins => :apiloc_top_level_localisation).reach.name.uniq.push(nil)
+    #    print "species\t"
+    #    puts names.join("\t")
+    top_names = [
+      'apical',
+      'inner membrane complex',
+      'merozoite surface',
+      'parasite plasma membrane',
+      'parasitophorous vacuole',
+      'exported',
+      'cytoplasm',
+      'food vacuole',
+      'mitochondrion',
+      'apicoplast',
+      'golgi',
+      'endoplasmic reticulum',
+      'other',
+      'nucleus'
+    ]
+
+    interests = [
+      'Plasmodium falciparum',
+      'Toxoplasma gondii',
+      'Plasmodium berghei',
+      'Cryptosporidium parvum'
+    ]
+    puts [nil].push(interests).flatten.join("\t")
+
+    top_names.each do |top_name|
+      top = TopLevelLocalisation.find_by_name(top_name)
+      print top_name
+
+      interests.each do |name|
+        s = Species.find_by_name(name)
+        
+        if top.name == 'other'
+          count = 0
+          CodingRegion.all(
+            :select => 'distinct(coding_regions.id)',
+            :joins => {:expression_contexts => {:localisation => :apiloc_top_level_localisation}},
+            :conditions => ['top_level_localisation_id = ? and species_id = ?', top.id, s.id]
+          ).each do |code|
+            tops = code.expressed_localisations.reach.apiloc_top_level_localisation.flatten
+            if tops.length == 1
+              raise unless tops[0].name == 'other'
+              count += 1
+            end
+          end
+          print "\t#{count}"
+        else
+          count = CodingRegion.count(
+            :select => 'distinct(coding_regions.id)',
+            :joins => {:expression_contexts => {:localisation => :apiloc_top_level_localisation}},
+            :conditions => ['top_level_localisation_id = ? and species_id = ?', top.id, s.id]
+          )
+          print "\t#{count}"
+        end
+      end
+
+      puts
     end
   end
 

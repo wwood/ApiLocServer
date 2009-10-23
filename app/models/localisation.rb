@@ -14,6 +14,11 @@ class Localisation < ActiveRecord::Base
   has_one :malaria_top_level_localisation, 
     :through => :malaria_localisation_top_level_localisation,
     :source => :top_level_localisation
+
+  has_one :apiloc_localisation_top_level_localisation
+  has_one :apiloc_top_level_localisation,
+    :through => :apiloc_localisation_top_level_localisation,
+    :source => :top_level_localisation
   
   has_many :localisation_synonyms, :dependent => :destroy
 

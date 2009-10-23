@@ -62,6 +62,16 @@ class OrthomclGene < ActiveRecord::Base
     {:conditions => [pre, post].flatten}
   }
   
+  named_scope :official_and_group, lambda { |group_name|{
+      :joins => {:orthomcl_gene_orthomcl_group_orthomcl_runs => [
+          :orthomcl_group,
+          :orthomcl_run
+        ]},
+      :conditions => ['orthomcl_groups.orthomcl_name = ? and orthomcl_runs.name = ?',
+        group_name, OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME
+      ]
+    }}
+  
   # Get the coding region that is associated with this gene, assuming that
   # the orthomcl gene is from the official (because of the naming scheme)
   # 
@@ -213,9 +223,9 @@ class OrthomclGene < ActiveRecord::Base
     
       codes = orthomcl_gene.compute_coding_regions
       if !codes or codes.length == 0
-        #        next #ignore for the moment
-        #                raise Exception, "No coding region found for #{orthomcl_gene.inspect}"
-        #        $stderr.puts "No coding region found for #{orthomcl_gene.inspect}"
+        # print problems to stdout. I'm getting too many problems to ignore
+        # annoyingly.
+        $stderr.puts "No coding region found for #{orthomcl_gene.orthomcl_name}"
         nones += 1
         next
       elsif codes.length > 1

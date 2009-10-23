@@ -217,4 +217,19 @@ class Species < ActiveRecord::Base
   def remove_species_prefix(gene_name)
     gene_name.match(/^#{SPECIES_PREFIXES[name]}(.*)/)[1]
   end
+
+  def number_or_proteins_localised_in_apiloc
+    CodingRegion.s(name).count(
+      :select => 'distinct(coding_regions.id)',
+      :joins => {:expression_contexts => :localisation}
+    )
+  end
+
+  def number_or_publications_in_apiloc
+    Publication.count(
+      :select => 'distinct(publications.id)',
+      :joins => {:expression_contexts => :localisation},
+      :conditions => {:localisations => {:species_id => id}}
+    )
+  end
 end

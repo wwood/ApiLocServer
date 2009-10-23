@@ -21,7 +21,9 @@ module ApilocHelper
       'schizont',
       'merozoite',
       'gametocyte',
-      'sporozoite'
+      'sporozoite',
+      'tachyzoite',
+      'bradyzoite',
     ]
   end
 
@@ -36,10 +38,11 @@ module ApilocHelper
   def popular_species
     [
       'Plasmodium falciparum',
-      'Plasmodium berghei',
-      'Plasmodium vivax',
-      'Plasmodium yoelii',
       'Toxoplasma gondii',
+      'Plasmodium berghei',
+      'Plasmodium yoelii',
+      'Cryptosporidium parvum',
+      'Neospora caninum',
     ]
   end
 
