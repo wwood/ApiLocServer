@@ -1,11 +1,11 @@
 class OrthomclGene < ActiveRecord::Base
   has_many :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
-  has_many :orthomcl_groups, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs
+  has_many :orthomcl_groups, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
   has_one :orthomcl_run, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs
   
-  has_many :orthomcl_gene_coding_regions
+  has_many :orthomcl_gene_coding_regions, :dependent => :destroy
   has_many :coding_regions, :through => :orthomcl_gene_coding_regions
-  has_one :orthomcl_gene_official_data
+  has_one :orthomcl_gene_official_data, :dependent => :destroy
   
   MAMMALIAN_THREE_LETTER_CODES = ['hsa', 'mmu', 'rno']
 
@@ -127,8 +127,10 @@ class OrthomclGene < ActiveRecord::Base
   end
   
   # With the official names, split them up into the 2 parts
-  # return nil if it didn't match properly
-  def official_split(name)
+  # return nil if it didn't match properly.
+  #
+  # if no name is given, just use the split from this object
+  def official_split(name=orthomcl_name)
     ems = name.match('(.*)\|(.*)')
     if ems
       return ems[1], ems[2]

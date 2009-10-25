@@ -245,4 +245,88 @@ class BScript
     puts
 
   end
+
+
+  # Print out a fasta file of all the sequences that are in apiloc
+  def apiloc_fasta
+    CodingRegion.all(:joins => :expression_contexts).each do |code|
+      if code.amino_acid_sequence
+        puts code.amino_acid_sequence.fasta
+      elsif code.string_id == CodingRegion::NO_MATCHING_GENE_MODEL
+        #
+      end
+      raise
+    end
+
+    # For all genes that don't have a gene model
+  end
+
+  def apiloc_mapping_orthomcl_v3
+    # Starting with falciparum, how many genes have localised orthologues?
+    CodingRegion.falciparum.all(
+      :joins => {:expression_contexts => :localisation},
+      :select => 'distinct(coding_regions.*)'
+    ).each do |code|
+      next if ["PF14_0078",'PF13_0011'].include?(code.string_id) #fair enough there is no orthomcl for this - just the way v3 is.
+
+      # Is this in orthomcl
+      ogene = nil
+      begin
+        ogene = code.single_orthomcl
+      rescue CodingRegion::UnexpectedOrthomclGeneCount
+        next
+      end
+      if ogene
+        groups = ogene.orthomcl_groups
+        raise unless groups.length == 1
+        group = groups[0]
+        others = group.orthomcl_genes.apicomplexan.all.reject{|r| r.id==ogene.id}
+        next if others.empty?
+
+        orthologues = CodingRegion.all(
+          :joins => [
+            {:expression_contexts => :localisation},
+            :orthomcl_genes,
+          ],
+          :conditions => "orthomcl_genes.id in (#{others.collect{|o|o.id}.join(',')})",
+          :select => 'distinct(coding_regions.*)'
+        )
+        if orthologues.empty?
+          $stderr.puts "Nothing useful found for #{code.names.join(', ')}"
+        else
+          # output the whole group, including localisations where known
+          puts [
+            code.string_id,
+            code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', '),
+            code.annotation.annotation,
+            code.localisation_english
+          ].join("\t")
+          group.orthomcl_genes.apicomplexan.all.each do |oge|
+            next if %w(cmur chom).include?(oge.official_split[0])
+            c = nil
+            if oge.official_split[1] == 'TGGT1_036620' #stupid v3
+              c = CodingRegion.find_by_name_or_alternate("TGME49_084810")
+            else
+              c = oge.single_code!
+            end
+            if c.nil?
+              # if no coding region is returned, then don't complain too much,
+              # but I will check these manually later
+              puts oge.orthomcl_name
+            else
+              next if c.id == code.id #don't duplicate the query
+              print c.string_id
+              puts [
+                nil,
+                c.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', '),
+                c.annotation.annotation,
+                c.localisation_english
+              ].join("\t")
+            end
+          end
+          puts
+        end
+      end
+    end
+  end
 end

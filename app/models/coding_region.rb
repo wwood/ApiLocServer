@@ -5,6 +5,7 @@ require 'go'
 require 'tempfile'
 require 'expression_context_group'
 require 'reach'
+require 'localisation_spreadsheet'
 
 class CodingRegion < ActiveRecord::Base
   
@@ -207,6 +208,8 @@ class CodingRegion < ActiveRecord::Base
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'
   UNKNOWN_ORIENTATION = 'U'
+
+  NO_MATCHING_GENE_MODEL = LocalisationSpreadsheetRow::NO_MATCHING_GENE_MODEL
 
   UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME =
     "A common gene for all genes not assigned to a gene model"
@@ -700,7 +703,7 @@ class CodingRegion < ActiveRecord::Base
   
   # convenience method for getting the single orthomcl gene associated with this coding region.
   # optional argument run_name is the name of the orthomcl_run to be searched for.
-  def single_orthomcl(run_name = OrthomclRun.official_run_v2_name, options = {})
+  def single_orthomcl(run_name = OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME, options = {})
     genes = orthomcl_genes.run(run_name).all(options)
     if genes.length != 1
       raise CodingRegion::UnexpectedOrthomclGeneCount, "Unexpected number of orthomcl genes found for #{inspect}: #{genes.inspect}"
