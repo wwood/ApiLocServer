@@ -158,6 +158,13 @@ class CodingRegion < ActiveRecord::Base
       :conditions => ['top_level_localisations.name = ?', top_name]
     }
   }
+  # Has a specific top level localisation in apiloc
+  named_scope :topa, lambda {|top_name|
+    {
+      :joins => {:expressed_localisations => :apiloc_top_level_localisation},
+      :conditions => ['top_level_localisations.name = ?', top_name]
+    }
+  }
   # Has any recorded top level localisation
   named_scope :topped, {
     :joins => {:expressed_localisations => :malaria_top_level_localisation}

@@ -366,4 +366,43 @@ PFI1740c).include?(f)
       end
     end
   end
+
+
+  def conserved_counts_4_species
+    [
+      'endoplasmic reticulum',
+      'inner membrane complex',
+      'cytoplasm',
+      'parasitophorous vacuole',
+      'mitochondrion',
+      'exported',
+      'apical',
+      'apicoplast'
+    ].each do |localisation|
+      print localisation
+      total = 0
+      %w(pber tgon cpar atha).each do |orth_code|
+        yes = 0
+        no = 0
+        CodingRegion.falciparum.topa(localisation).all.uniq.each do |code|
+          begin
+            o = code.single_orthomcl
+            unless o.nil?
+              if o.orthomcl_groups.first.orthomcl_genes.code(orth_code).count > 0
+                yes += 1
+              else
+                no += 1
+              end
+            end
+          rescue
+          end
+        end
+        total = yes+no
+        print "\t#{yes.to_f/(no.to_f+yes.to_f)*100.0}"
+      end
+      print "\t#{total}"
+      puts
+    end
+
+  end
 end

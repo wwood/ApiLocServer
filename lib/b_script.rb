@@ -32,6 +32,7 @@ require 'modules/api_loc_publication'
 require 'modules/eu_path_db'
 require 'modules/positional_dependence'
 require 'modules/orthomcl'
+require 'b_script2'
 
 
 MOLECULAR_FUNCTION = 'molecular_function'
