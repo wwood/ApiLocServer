@@ -381,10 +381,11 @@ PFI1740c).include?(f)
     ].each do |localisation|
       print localisation
       total = 0
-      %w(pber tgon cpar atha).each do |orth_code|
+      %w(pber tgon cpar tthe atha).each do |orth_code|
         yes = 0
         no = 0
-        CodingRegion.falciparum.topa(localisation).all.uniq.each do |code|
+#        CodingRegion.falciparum.topa(localisation).all.uniq.each do |code|
+        CodingRegion.s(Species::TOXOPLASMA_GONDII_NAME).topa(localisation).all.uniq.each do |code|
           begin
             o = code.single_orthomcl
             unless o.nil?
