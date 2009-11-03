@@ -1,6 +1,5 @@
 class ApilocController < ApplicationController
   def index
-    raise
   end
 
   def gene
