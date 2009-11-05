@@ -222,6 +222,7 @@ class CodingRegion < ActiveRecord::Base
     "A common gene for all genes not assigned to a gene model"
   
   concerned_with :machine_learning
+  concerned_with :orthology
   
   def calculate_upstream_region
     scaffold_id = gene.scaffold_id

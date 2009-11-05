@@ -384,7 +384,7 @@ PFI1740c).include?(f)
       %w(pber tgon cpar tthe atha).each do |orth_code|
         yes = 0
         no = 0
-#        CodingRegion.falciparum.topa(localisation).all.uniq.each do |code|
+        #        CodingRegion.falciparum.topa(localisation).all.uniq.each do |code|
         CodingRegion.s(Species::TOXOPLASMA_GONDII_NAME).topa(localisation).all.uniq.each do |code|
           begin
             o = code.single_orthomcl
@@ -418,6 +418,31 @@ PFI1740c).include?(f)
         puts [
           code.annotation.annotation,
           code.localisation_english
+        ].join("\t")
+      end
+    end
+  end
+
+  def voss_proteomics_spreadsheet
+    $stdin.each do |plasmodb_id|
+      plasmodb_id.strip!
+      code = CodingRegion.ff(plasmodb_id)
+      print "#{plasmodb_id}\t"
+      if code.nil?
+        puts "Couldn't find this gene ID"
+      else
+        localised_orths = code.localised_apicomplexan_orthomcl_orthologues
+        puts [
+          code.annotation.annotation,
+          code.localisation_english,
+          localised_orths.nil?  ?
+            'no entry in OrthoMCL v3' :
+            localised_orths.reject{
+            |c| c.id == code.id
+          }.reach.localisation_english.join(' | '),
+          code.plasmo_a_p.signal?,
+          code.signalp_however.signal?,
+          code.tmhmm.transmembrane_domains.length,
         ].join("\t")
       end
     end
