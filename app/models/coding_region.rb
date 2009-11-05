@@ -360,7 +360,7 @@ class CodingRegion < ActiveRecord::Base
     else
       alts = CodingRegionAlternateStringId.find_all_by_name string_id
       if alts
-        return alts.pick(:coding_region)
+        return alts.pick(:coding_region).uniq
       else
         return []
       end
@@ -375,6 +375,23 @@ class CodingRegion < ActiveRecord::Base
       )
     else
       return find_all_by_name_or_alternate(string_id)
+    end
+  end
+
+  # Given a gene name that may or may not have a prefix and a species
+  # common name, return all genes that fit the criteria
+  def self.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(string_id, species_common_name)
+    sp = Species.find_species_from_prefix(string_id)
+    sp2 = Species.find_by_name(species_common_name)
+    if sp
+      # if there is a prefix and it isn't the same as the common name, something has gone wrong.
+      raise Exception,
+        "Prefix of gene name does not fit species common name: #{string_id}, #{species_common_name}" unless sp2 == sp or sp.nil?
+      return find_all_by_name_or_alternate_and_species(
+        sp.remove_species_prefix(string_id), species_common_name
+      )
+    else
+      return find_all_by_name_or_alternate_and_species(string_id, species_common_name)
     end
   end
   

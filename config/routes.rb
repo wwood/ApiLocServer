@@ -66,8 +66,13 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :taxon_names
 
   # for annoying gene names like berghei e.g. PB000857.0.0
+  map.connect 'apiloc/gene/:id', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:id.:id2', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:id.:id2.:id3', :controller => 'apiloc', :action => 'gene'
+
+  map.connect 'apiloc/gene/:species/:id', :controller => 'apiloc', :action => 'gene'
+  map.connect 'apiloc/gene/:species/:id.:id2', :controller => 'apiloc', :action => 'gene'
+  map.connect 'apiloc/gene/:species/:id.:id2.:id3', :controller => 'apiloc', :action => 'gene'
 
   map.connect 'expression_contexts/show', :controller => 'expression_contexts', :action => 'show'
   map.resources :expression_contexts

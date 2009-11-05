@@ -406,4 +406,20 @@ PFI1740c).include?(f)
     end
 
   end
+
+  def are_proteins_localised?
+    $stdin.each do |plasmodb_id|
+      plasmodb_id.strip!
+      code = CodingRegion.ff(plasmodb_id)
+      print "#{plasmodb_id}\t"
+      if code.nil?
+        puts "Couldn't find this gene ID"
+      else
+        puts [
+          code.annotation.annotation,
+          code.localisation_english
+        ].join("\t")
+      end
+    end
+  end
 end
