@@ -1,5 +1,6 @@
 class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
-  @@loc_hash = {'apicoplast' => [
+  APILOC_TOP_LEVEL_LOCALISATION_HASH = {
+    'apicoplast' => [
       'apicoplast',
       'apicoplast intermembrane space',
       'apicoplast lumen',
@@ -192,7 +193,7 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'replication foci',
       'replication foci in nucleus',
       'telomeric cluster',
-
+      'perinuclear'
     ],
 
 
@@ -227,15 +228,26 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
     ],
 
   }
+  @@loc_hash = APILOC_TOP_LEVEL_LOCALISATION_HASH
 
   def upload_apiloc_top_level_localisations
     @@loc_hash.each do |top, underlings|
       t = TopLevelLocalisation.find_or_create_by_name(top)
+      t_negative = TopLevelLocalisation.find_or_create_by_name("not #{top}")
       underlings.each do |underling|
+        # positive
         els = Localisation.find_all_by_name(underling)
         els.each do |l|
           ApilocLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
             l.id, t.id
+          )
+        end
+
+        # negative
+        els = Localisation.find_all_by_name("not #{underling}")
+        els.each do |l|
+          ApilocLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
+            l.id, t_negative.id
           )
         end
       end
@@ -243,10 +255,15 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
 
     # Add 'others'
     other = TopLevelLocalisation.find_or_create_by_name('other')
+    other_negative = TopLevelLocalisation.find_or_create_by_name('not other')
     Localisation.all.each do |loc|
       if loc.apiloc_top_level_localisation.nil?
         ApilocLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
           loc.id, other.id
+        )
+        l_negative = loc.negation
+        ApilocLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
+          l_negative.id, other_negative.id
         )
       end
     end

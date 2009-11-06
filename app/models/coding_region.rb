@@ -223,6 +223,7 @@ class CodingRegion < ActiveRecord::Base
   
   concerned_with :machine_learning
   concerned_with :orthology
+  concerned_with :localisation
   
   def calculate_upstream_region
     scaffold_id = gene.scaffold_id
@@ -716,6 +717,13 @@ class CodingRegion < ActiveRecord::Base
   def tops
     TopLevelLocalisation.all(
       :joins => {:malaria_localisations => :expression_contexts},
+      :conditions => ['expression_contexts.coding_region_id = ?', id]
+    )
+  end
+
+  def topsa
+    TopLevelLocalisation.all(
+      :joins => {:apiloc_localisations => :expression_contexts},
       :conditions => ['expression_contexts.coding_region_id = ?', id]
     )
   end

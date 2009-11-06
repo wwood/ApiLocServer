@@ -424,6 +424,27 @@ PFI1740c).include?(f)
   end
 
   def voss_proteomics_spreadsheet
+
+    apis = ApilocLocalisationTopLevelLocalisation.all.reach.top_level_localisation.uniq
+    top_names = (%w(nucleus cytoplasm).push apis.reject{
+        |top| [
+          'nucleus',
+          'cytoplasm',
+        ].include?(top.name) or top.negative?
+      }.reach.name.retract).flatten
+
+    puts [
+      'PlasmoDB',
+      'Annotation',
+      'Common names',
+      'Localisation(s)',
+      'Localisation in Apicomplexan Orthologues',
+      'PlasmoAP?',
+      'SignalP?',
+      'Transmembrane domain # (TMHMM)',
+      top_names.collect{|n| "'#{n}' Agreement"}
+    ].flatten.join("\t")
+
     $stdin.each do |plasmodb_id|
       plasmodb_id.strip!
       code = CodingRegion.ff(plasmodb_id)
@@ -431,19 +452,37 @@ PFI1740c).include?(f)
       if code.nil?
         puts "Couldn't find this gene ID"
       else
-        localised_orths = code.localised_apicomplexan_orthomcl_orthologues
+        puts code.amino_acid_sequence.exportpred.predicted?
+        next
+        orth_str = nil
+        begin
+          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
+          if localised_orths.nil?
+            orth_str = 'no entry in OrthoMCL v3'
+          else
+            orth_str = localised_orths.reject{
+              |c| c.id == code.id
+            }.reach.localisation_english.join(' | ')
+          end
+        rescue OrthomclGene::UnexpectedCodingRegionCount
+          orth_str = 'multiple OrthoMCL orthologues found'
+        end
+
+
         puts [
           code.annotation.annotation,
+          code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', '),
           code.localisation_english,
-          localised_orths.nil?  ?
-            'no entry in OrthoMCL v3' :
-            localised_orths.reject{
-            |c| c.id == code.id
-          }.reach.localisation_english.join(' | '),
+          orth_str,
           code.plasmo_a_p.signal?,
           code.signalp_however.signal?,
           code.tmhmm.transmembrane_domains.length,
-        ].join("\t")
+          top_names.collect{|top_name|
+            code.agreement_with_top_level_localisation(
+              TopLevelLocalisation.find_by_name(top_name)
+            )
+          }
+        ].flatten.join("\t")
       end
     end
   end
