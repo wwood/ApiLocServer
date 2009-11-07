@@ -330,5 +330,9 @@ class BScript
     end
   end
 
-  
+  # Get all of the sequences that are recorded in ApiLoc and put them into
+  # a blast file.
+  def create_apiloc_blast_database
+    
+  end
 end
