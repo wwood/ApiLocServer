@@ -727,6 +727,13 @@ class CodingRegion < ActiveRecord::Base
       :conditions => ['expression_contexts.coding_region_id = ?', id]
     )
   end
+
+  def topsap
+    TopLevelLocalisation.all(
+      :joins => {:apiloc_localisations => :expression_contexts},
+      :conditions => ['expression_contexts.coding_region_id = ?', id]
+    ).uniq.reject{|t| t.negative?}
+  end
   
   def single_top_level_localisation
     stuffs = tops.uniq

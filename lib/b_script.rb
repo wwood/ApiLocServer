@@ -6755,13 +6755,13 @@ PFL2395c
   end
   
   def create_redundancy_reduced_apiloc_list
-    upload_other_meta
+    #    upload_other_meta
     File.open("#{PHD_DIR}/gene lists/ApiLocLocalisedProteinsUniqTop.fa", 'w') do |f|
       f.print localisation_fasta_programmatic(true, true)
     end
     entries = []
     Dir.chdir("#{PHD_DIR}/gene lists") do
-      system("blastclust -i ApiLocLocalisedProteinsUniqTop.fa -S 10 >ApiLocLocalisedProteinsUniqTop.fa.blastclust")
+      #      system("blastclust -i ApiLocLocalisedProteinsUniqTop.fa -S 10 >ApiLocLocalisedProteinsUniqTop.fa.blastclust")
       
       File.open("ApiLocLocalisedProteinsUniqTop.fa.blastclust").each_line do |line|
         entries.push line.split(' ')[0]
@@ -6770,6 +6770,18 @@ PFL2395c
     # Get rid of the previous ones because they just get in the way
     PlasmodbGeneList.all(:conditions => {:description => PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME}).reach.destroy
     
+    # Upload the newest and best version
+    PlasmodbGeneList.create_gene_list(PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME, Species.falciparum_name, entries)
+  end
+
+  def upload_confirmation_list
+    entries = []
+    File.open("#{PHD_DIR}/gene lists/ApiLocLocalisedProteinsUniqTop.fa.blastclust").each_line do |line|
+      entries.push line.split(' ')[0]
+    end
+    # Get rid of the previous ones because they just get in the way
+    PlasmodbGeneList.destroy_all(:description => PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME)
+
     # Upload the newest and best version
     PlasmodbGeneList.create_gene_list(PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME, Species.falciparum_name, entries)
   end

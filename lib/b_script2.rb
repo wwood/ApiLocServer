@@ -486,4 +486,26 @@ PFI1740c).include?(f)
       end
     end
   end
+
+  # read in a blastclust file and print out the different annotations
+  def clusters_to_annotation
+    File.foreach(ARGV[0]) do |line|
+      splits = line.strip.split(' ')
+      splits.each do |split|
+        name = split.strip.gsub(/^psu\|/,'')
+        code = CodingRegion.ff(name)
+        if code
+          puts [
+            code.string_id,
+            code.agreement_with_top_level_localisation(TopLevelLocalisation.find_by_name('nucleus')),
+            code.annotation.annotation,
+          ].join("\t")
+        else
+          puts "coudn't find #{name}"
+        end
+      end
+
+      puts '----------------------------------------------------'
+    end
+  end
 end
