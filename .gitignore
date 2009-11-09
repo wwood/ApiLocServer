@@ -9,3 +9,8 @@ db.data*
 .Rhistory
 my_input_output_files_not_part_of_rails_appln
 vendor/plugins/ben_bioinformatics/**
+error.log
+MyRakefile
+public/apiloc.html
+public/apiloc/
+public/images/model_apicomplexan.tif

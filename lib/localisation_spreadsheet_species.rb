@@ -13,6 +13,15 @@ module LocalisationSpreadsheetSpecies
     DevelopmentalStageSynonym.destroy_all
   end
 
+  def expire_webpage_caches
+    File.rm "#{RAILS_ROOT}/public/index.html"
+    File.rm Dir.glob("#{RAILS_ROOT}/public/apiloc/species/*")
+
+    # I really care about the fron page of my website
+    File.rm "/var/www/apiloc_real/public/index.html"
+    File.rm Dir.glob("/var/www/apiloc_real/public/apiloc/species/*")
+  end
+
   def upload
     upload_falciparum
     upload_toxo
@@ -24,6 +33,9 @@ module LocalisationSpreadsheetSpecies
     upload_sarcocystis_spp
     upload_babesia_spp
     upload_theileria_spp
+
+    # expire the caches
+    expire_webpage_caches
   end
 
   def upload_species(species, filename)
@@ -32,7 +44,7 @@ module LocalisationSpreadsheetSpecies
     Localisation.new.upload_localisation_synonyms species
     LocalisationModifier.new.upload_known_modifiers
     upload_localisations_for_species species, filename
-#    TopLevelLocalisation.new.upload_localisations species.name
+    #    TopLevelLocalisation.new.upload_localisations species.name
   end
 
   def upload_falciparum(filename="#{ENV['HOME']}/phd/gene lists/falciparum.csv")
@@ -93,7 +105,7 @@ module LocalisationSpreadsheetSpecies
     Localisation.new.upload_localisation_synonyms_unsequenced
     LocalisationModifier.new.upload_known_modifiers
     upload_localisations_for_species nil, filename
-#    TopLevelLocalisation.new.upload_localisations_unsequenced
+    #    TopLevelLocalisation.new.upload_localisations_unsequenced
   end
 
   def upload_sarcocystis_spp(filename="#{ENV['HOME']}/phd/gene lists/Sarcocystis_spp.csv")

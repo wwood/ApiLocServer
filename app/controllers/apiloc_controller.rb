@@ -1,4 +1,7 @@
 class ApilocController < ApplicationController
+  caches_page :index
+  caches_page :species
+
   def index
   end
 
