@@ -1,5 +1,9 @@
 class ApilocController < ApplicationController
+  caches_page :index
+  caches_page :species
+
   def index
+    redirect_to :controller => :apiloc, :action => :index
   end
 
   def gene
@@ -15,12 +19,18 @@ class ApilocController < ApplicationController
       return
     end
 
-    codes = CodingRegion.find_all_by_name_or_alternate_maybe_with_species_prefix(gene_id)
+    codes = nil
+    if params[:species]
+      codes = CodingRegion.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
+    else
+      codes = CodingRegion.find_all_by_name_or_alternate_maybe_with_species_prefix(gene_id)
+    end
+    
     # possible problem here - what happens for legitimately conflicting names like PfSPP?
     unless codes.length == 1
-      flash[:error] = "Error: Unexpected number of coding regions for #{gene_id}: #{codes.inspect}"
-      logger.debug "Error: Unexpected number of coding regions for #{gene_id}: #{codes.inspect}"
-      render :action => :index
+      @gene_id = gene_id
+      @codes = codes
+      render :action => :choose_species
       return
     end
 

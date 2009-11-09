@@ -1,0 +1,14 @@
+
+<% if @codes.length > 0 %>
+<h2>Which gene do you mean?</h2>
+<p>I found genes by that name in these species:</p>
+
+<ul>
+<% @codes.each do |code| %>
+<li><%= code.species.name %> <%= code_name_annotation code %> <%= code.id %></li>
+<% end %>
+</ul>
+<% else %>
+<h2>Error</h2>
+I couldn't find any gene called '<%= @gene_id %>'. If that is an abbreviation for a species, then try using all lower-case letters. The EuPathDB gene identifier would be best. If you think this is a mistake in ApiLoc, please contact us as we are eager for feedback.
+<% end %>

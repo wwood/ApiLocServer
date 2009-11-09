@@ -2,6 +2,7 @@ ActionController::Routing::Routes.draw do |map|
   # apiloc routes
   # for annoying gene names like berghei e.g. PB000857.0.0
   map.connect '', :controller => 'apiloc', :action => 'index'
+  map.connect 'apiloc/gene/:id', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:id.:id2', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:id.:id2.:id3', :controller => 'apiloc', :action => 'gene'
   map.resources :apiloc
