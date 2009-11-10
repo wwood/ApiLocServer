@@ -1,10 +1,18 @@
-<h1>ApiLoc - A Database of Protein Sub-Cellular Localisation in <i>Apicomplexa</i></h1>
+
+
 <% category_counter = 0 %>
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+   <form action="apiloc/gene">
+     <label>Gene ID:</label><input type="text" name="id" value="PF11_0344"/><input type="submit" value="search"/>
+   </form>
+</div>
+
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <h2>Species</h2>
   <ul>
     <% popular_species.each do |species_name| %>
-      <li><i><%= link_to species_name, :action => :species, :id => species_name %></i> (<%= Species.find_by_name(species_name).number_or_proteins_localised_in_apiloc %>)</li>
+      <li><i><%= link_to species_name, :action => :species, :controller => :apiloc, :id => species_name %></i> (<%= Species.find_by_name(species_name).number_or_proteins_localised_in_apiloc %>)</li>
     <% end %>
     <li>Other:
       <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
