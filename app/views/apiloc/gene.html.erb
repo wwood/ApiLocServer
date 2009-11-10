@@ -7,7 +7,7 @@
 <p><%= @code.localisation_html %></p>
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
   <h3>Associated publications</h3>
-  <% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b.pubmed_id <=> a.pubmed_id}.each do |publication| %>
+  <% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b.pubmed_id.nil? or a.pubmed_id.nil? ? -1 : b.pubmed_id <=> a.pubmed_id}.each do |publication| %>
     <p><%= publication.authors %> (<%= publication.date %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><br />
       <b><%= ExpressionContextGroup.new(ExpressionContext.find_all_by_publication_id_and_coding_region_id(
             publication.id, @code.id
