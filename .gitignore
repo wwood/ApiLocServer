@@ -13,3 +13,8 @@ error.log
 public/apiloc
 public/index.html
 tmp
+MyRakefile
+public/apiloc.html
+public/apiloc/
+public/images/model_apicomplexan.tif
+
