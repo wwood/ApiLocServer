@@ -26,6 +26,11 @@ class BlastHelper
         'protein' => "PyoeliiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
         'genome' => "PyoeliiGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta",
       },
+      'falciparum' => {
+        'transcript' => "PfalciparumAnnotatedTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+        'protein' => "PfalciparumAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+        'genome' => "PfalciparumGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta",
+      },
       'knowlesi' => {
         'transcript' => "PknowlesiAllTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
         'protein' => "PknowlesiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
