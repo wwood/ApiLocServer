@@ -3,7 +3,6 @@ class ApilocController < ApplicationController
   caches_page :species
 
   def index
-    redirect_to :controller => :apiloc, :action => :index
   end
 
   def gene

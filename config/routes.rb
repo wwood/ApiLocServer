@@ -6,11 +6,16 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'apiloc/gene/:id.:id2', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:id.:id2.:id3', :controller => 'apiloc', :action => 'gene'
   map.resources :apiloc
+  map.connect 'gene', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/:action/:id', :controller => 'apiloc', :action => 'index'
   map.connect 'apiloc/:action/:id.:format', :controller => 'apiloc', :action => 'index'
 
   # blast routes for quick blasting
   map.connect 'blasts/:action/:id', :controller => 'blasts', :action => 'index'
+
+  # I'm grasping at straws, but there is some there
+  map.connect ':action/:id', :controller => 'apiloc'
+
 
   # The priority is based upon order of creation: first created -> highest priority.
 
