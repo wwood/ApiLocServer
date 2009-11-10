@@ -384,7 +384,7 @@ PFI1740c).include?(f)
       %w(pber tgon cpar tthe atha).each do |orth_code|
         yes = 0
         no = 0
-#        CodingRegion.falciparum.topa(localisation).all.uniq.each do |code|
+        #        CodingRegion.falciparum.topa(localisation).all.uniq.each do |code|
         CodingRegion.s(Species::TOXOPLASMA_GONDII_NAME).topa(localisation).all.uniq.each do |code|
           begin
             o = code.single_orthomcl
@@ -420,6 +420,92 @@ PFI1740c).include?(f)
           code.localisation_english
         ].join("\t")
       end
+    end
+  end
+
+  def voss_proteomics_spreadsheet
+
+    apis = ApilocLocalisationTopLevelLocalisation.all.reach.top_level_localisation.uniq
+    top_names = (%w(nucleus cytoplasm).push apis.reject{
+        |top| [
+          'nucleus',
+          'cytoplasm',
+        ].include?(top.name) or top.negative?
+      }.reach.name.retract).flatten
+
+    puts [
+      'PlasmoDB',
+      'Annotation',
+      'Common names',
+      'Localisation(s)',
+      'Localisation in Apicomplexan Orthologues',
+      'PlasmoAP?',
+      'SignalP?',
+      'Transmembrane domain # (TMHMM)',
+      top_names.collect{|n| "'#{n}' Agreement"}
+    ].flatten.join("\t")
+
+    $stdin.each do |plasmodb_id|
+      plasmodb_id.strip!
+      code = CodingRegion.ff(plasmodb_id)
+      print "#{plasmodb_id}\t"
+      if code.nil?
+        puts "Couldn't find this gene ID"
+      else
+        puts code.amino_acid_sequence.exportpred.predicted?
+        next
+        orth_str = nil
+        begin
+          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
+          if localised_orths.nil?
+            orth_str = 'no entry in OrthoMCL v3'
+          else
+            orth_str = localised_orths.reject{
+              |c| c.id == code.id
+            }.reach.localisation_english.join(' | ')
+          end
+        rescue OrthomclGene::UnexpectedCodingRegionCount
+          orth_str = 'multiple OrthoMCL orthologues found'
+        end
+
+
+        puts [
+          code.annotation.annotation,
+          code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', '),
+          code.localisation_english,
+          orth_str,
+          code.plasmo_a_p.signal?,
+          code.signalp_however.signal?,
+          code.tmhmm.transmembrane_domains.length,
+          top_names.collect{|top_name|
+            code.agreement_with_top_level_localisation(
+              TopLevelLocalisation.find_by_name(top_name)
+            )
+          }
+        ].flatten.join("\t")
+      end
+    end
+  end
+
+  # read in a blastclust file and print out the different annotations
+  def clusters_to_annotation
+    File.foreach(ARGV[0]) do |line|
+      splits = line.strip.split(' ')
+      splits.each do |split|
+        name = split.strip.gsub(/^psu\|/,'')
+        code = CodingRegion.ff(name)
+        if code
+          puts [
+            code.string_id,
+            code.agreement_with_top_level_localisation(TopLevelLocalisation.find_by_name('nucleus')),
+            code.annotation.annotation,
+          ].join("\t")
+        else
+          puts "coudn't find #{name}"
+        end
+      end
+
+      puts '----------------------------------------------------'
     end
   end
 end

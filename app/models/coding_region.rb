@@ -222,6 +222,8 @@ class CodingRegion < ActiveRecord::Base
     "A common gene for all genes not assigned to a gene model"
   
   concerned_with :machine_learning
+  concerned_with :orthology
+  concerned_with :localisation
   
   def calculate_upstream_region
     scaffold_id = gene.scaffold_id
@@ -717,6 +719,20 @@ class CodingRegion < ActiveRecord::Base
       :joins => {:malaria_localisations => :expression_contexts},
       :conditions => ['expression_contexts.coding_region_id = ?', id]
     )
+  end
+
+  def topsa
+    TopLevelLocalisation.all(
+      :joins => {:apiloc_localisations => :expression_contexts},
+      :conditions => ['expression_contexts.coding_region_id = ?', id]
+    )
+  end
+
+  def topsap
+    TopLevelLocalisation.all(
+      :joins => {:apiloc_localisations => :expression_contexts},
+      :conditions => ['expression_contexts.coding_region_id = ?', id]
+    ).uniq.reject{|t| t.negative?}
   end
   
   def single_top_level_localisation

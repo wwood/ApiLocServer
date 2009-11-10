@@ -84,4 +84,20 @@ class TopLevelLocalisation < ActiveRecord::Base
       ) or raise
     end
   end
+
+  def negation
+    if matches = name.match(/^not (.*)/)
+      t = TopLevelLocalisation.find_by_name(matches[1])
+      raise if t.nil?
+      return t
+    else
+      t = TopLevelLocalisation.find_by_name("not #{name}")
+      raise if t.nil?
+      return t
+    end
+  end
+
+  def negative?
+    name.match(/^not /)
+  end
 end
