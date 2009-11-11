@@ -214,6 +214,7 @@ class BScript
     yoelii_to_database
     vivax_to_database
     chabaudi_to_database
+    knowlesi_to_database
     gondii_to_database
     neospora_caninum_to_database
     cryptosporidium_parvum_to_database
@@ -294,6 +295,24 @@ class BScript
         end
 
       end
+    end
+  end
+
+  SPECIES_DATA = {
+    'yoelii' => {
+      :directory => 'yoelii',
+
+      :name => 'Plasmodium vivax',
+      :sequencing_centre_abbreviation => 'gb',
+      :protein_names => lambda {|version| "Pvivax"}
+    }
+  }
+
+  # a catch-all for the pesky uploading of gff and amino acid sequences
+  def method_missing(symbol, *args)
+    meth = symbol.to_s
+    if matches = meth.match(/(.+)_fasta_to_database/)
+      # upload the sequence
     end
   end
 end

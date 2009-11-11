@@ -82,33 +82,57 @@
 <%# end %>
 </div>
 
+
+<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
+  <h3>Amino Acid Sequence</h3>
+  <% if @code.amino_acid_sequence.nil? %>
+    amino acid sequence not recorded
+  <% else %>
+    ><%= @code.string_id %> <%= @code.annotation.annotation %><br />
+    <%= @code.amino_acid_sequence.sequence.wrap.gsub(/\n/,'<br >') %>
+  <% end %>
+</div>
+
+
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
   <h3>Gene Model Mapping</h3>
-  The common name of this protein has been via these means:
+  The common name of this protein has mapped to a sequence via these means:
   <ul>
-    <% LocalisationAnnotation.all(:joins => :expression_contexts,
-      :conditions => [
-        'expression_contexts.coding_region_id = ? and gene_mapping_comments is not null',
-        @code.id]
+    <% if Species::UNSEQUENCED_APICOMPLEXANS.include?(@code.species.name) %>
+      <% LocalisationAnnotation.all(:joins => :expression_contexts,
+        :conditions => [
+          'expression_contexts.coding_region_id = ?',
+          @code.id]
       ).uniq.sort{|a,b|
         a.expression_contexts[0].publication <=> b.expression_contexts[0].publication
       }.each do |an| %>
-    <li><%= an.gene_mapping_comments %></li>
+        <li><%= mapping_comments(an) %></li>
+      <% end %>
+    <% else %>
+      <% LocalisationAnnotation.all(:joins => :expression_contexts,
+        :conditions => [
+          'expression_contexts.coding_region_id = ? and gene_mapping_comments is not null',
+          @code.id]
+      ).uniq.sort{|a,b|
+        a.expression_contexts[0].publication <=> b.expression_contexts[0].publication
+      }.each do |an| %>
+        <li><%= mapping_comments(an) %></li>
+      <% end %>
     <% end %>
   </ul>
 </div>
 
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
-<h3>Links</h3>
-<ul>
-  <% if @code.species.plasmodb? %>
-    <li><%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@code.string_id}" %></li>
-  <% elsif @code.species.toxodb? %>
-    <li><%= link_to 'ToxoDB', "http://toxodb.org/gene/#{@code.string_id}" %></li>
-  <% elsif @code.species.cryptodb? %>
-    <li><%= link_to 'CryptoDB', "http://cryptodb.org/gene/#{@code.string_id}" %></li>
-  <% else %>
-    <li><%= link_to 'GenBank', "http://www.ncbi.nlm.nih.gov/sites/entrez?db=nuccore&term=#{@code.string_id}" %></li>
-  <% end %>
-</ul>
+  <h3>Links</h3>
+  <ul>
+    <% if @code.species.plasmodb? %>
+      <li><%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@code.string_id}" %></li>
+    <% elsif @code.species.toxodb? %>
+      <li><%= link_to 'ToxoDB', "http://toxodb.org/gene/#{@code.string_id}" %></li>
+    <% elsif @code.species.cryptodb? %>
+      <li><%= link_to 'CryptoDB', "http://cryptodb.org/gene/#{@code.string_id}" %></li>
+    <% else %>
+      <li><%= link_to 'GenBank', "http://www.ncbi.nlm.nih.gov/sites/entrez?db=nuccore&term=#{@code.string_id}" %></li>
+    <% end %>
+  </ul>
 </div>
