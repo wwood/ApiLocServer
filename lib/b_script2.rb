@@ -487,6 +487,47 @@ PFI1740c).include?(f)
     end
   end
 
+  def localisation_for_list
+    $stdin.each do |plasmodb_id|
+      plasmodb_id.strip!
+
+      code = CodingRegion.ff(plasmodb_id)
+      print "#{plasmodb_id}\t"
+
+      if code.nil?
+        puts "Couldn't find this gene ID"
+      else
+
+        orth_str = nil
+        orth_pubs = nil
+        begin
+          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
+          if localised_orths.nil?
+            orth_str = 'no entry in OrthoMCL v3'
+          else
+            orth_str = localised_orths.reject{
+              |c| c.id == code.id
+            }.reach.localisation_english.join(' | ')
+            orth_pubs = localised_orths.reject{
+              |c| c.id == code.id
+            }.reach.expression_contexts.flatten.reach.publication.definition.uniq.join(', ')
+          end
+        rescue OrthomclGene::UnexpectedCodingRegionCount
+          orth_str = 'multiple OrthoMCL orthologues found'
+        end
+
+        puts [
+          code.annotation.annotation,
+          code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', '),
+          code.localisation_english,
+          code.expression_contexts.reach.publication.definition.uniq.join(', '),
+          orth_str,
+          orth_pubs
+        ].join("\t")
+      end
+    end
+  end
+
   # read in a blastclust file and print out the different annotations
   def clusters_to_annotation
     File.foreach(ARGV[0]) do |line|

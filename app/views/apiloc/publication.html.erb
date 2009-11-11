@@ -15,7 +15,7 @@
       <li><b>Microscopy type:</b> <%= a.microscopy_type %></li>
       <li><b>Microscopy method:</b> <%= a.microscopy_method %></li>
       <li><b>Strain:</b> <%= a.strain %></li>
-      <li><b>Gene model mapping comments:</b> <%= a.gene_mapping_comments ? a.gene_mapping_comments : 'inferred from another publication' %></li>
+      <li><b>Gene model mapping comments:</b> <%= mapping_comments(a) %></li>
       <li><b>Localisation record:</b> <%= a.localisation %></li>
       <% a.comments.each do |c| %>
         <li><b>Comment:</b> <%= c.comment %></li>

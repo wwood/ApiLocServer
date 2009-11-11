@@ -100,7 +100,7 @@ class LocalisationSpreadsheet
       next unless info.gene_id or info.no_matching_gene_model?
 
       unless info.mapping_comments or ignore_mapping_complaints
-        $stderr.puts "Unexpected lack of gene mapping comment for #{info.gene_id} (#{info.common_names}). Line #{line_number}."
+        puts "Unexpected lack of gene mapping comment for #{info.gene_id} (#{info.common_names}). Line #{line_number}."
       end
 
       # Try to find the coding region if possible just from the gene_id column
@@ -251,7 +251,7 @@ class LocalisationSpreadsheet
       if info.pubmed_id
         pubs = Publication.find_create_from_ids_or_urls info.pubmed_id
       else
-        $stderr.puts "No publications found for line #{info.inspect}, ignoring this line"
+        puts "No publications found for line #{info.inspect}, ignoring this line"
         next
       end
 
@@ -334,32 +334,32 @@ class LocalisationSpreadsheetRow
     # columns that are filled
     if whiny
       if @comments.include?(NO_LOC_JUST_GENE_MODEL)
-        $stderr.puts "No pubmed for gene model only row: #{array.inspect}" unless @pubmed_id
-        $stderr.puts "No mapping comments for gene model only row: #{array.inspect}" unless @mapping_comments
+        puts "No pubmed for gene model only row: #{array.inspect}" unless @pubmed_id
+        puts "No mapping comments for gene model only row: #{array.inspect}" unless @mapping_comments
       elsif @comments.include?(THIS_ENTRY_IS_A_COMMON_NAME_MATCHING_THING)
-        $stderr.puts "Not enough names to make a pair in #{array.inspect}, expected 2 or more." unless @case_sensitive_common_names.length > 1
+        puts "Not enough names to make a pair in #{array.inspect}, expected 2 or more." unless @case_sensitive_common_names.length > 1
       else
         # a normal loc line should contain various things
         if @case_sensitive_common_names.empty? and @gene_id.nil?
-          $stderr.puts "No gene model or common name for #{array.inspect}"
+          puts "No gene model or common name for #{array.inspect}"
         end
 
         if @localisation_method.nil? and
             @microscopy_types != ['ChIP'] and
             !@comments.include?(NO_LOC_METHOD)
-          $stderr.puts "No localisation method found for #{array.inspect}"
+          puts "No localisation method found for #{array.inspect}"
         end
         if @quote.nil?
-          $stderr.puts "No quote found for #{array}"
+          puts "No quote found for #{array}"
         end
         if @pubmed_id.nil?
-          $stderr.puts "No pubmed found for #{array}"
+          puts "No pubmed found for #{array}"
         end
         if microscopy_types.empty?
-          $stderr.puts "No microscopy types for localisation line #{array.inspect}"
+          puts "No microscopy types for localisation line #{array.inspect}"
         end
         if strains.empty? and !(@comments.include?('strain information not found'))
-          $stderr.puts "Strain info missing for #{array.inspect}. Comments #{@comments.inspect}"
+          puts "Strain info missing for #{array.inspect}. Comments #{@comments.inspect}"
         end
       end
     end

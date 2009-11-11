@@ -16,6 +16,7 @@ module DevelopmentalStageConstants
       'late trophozoite',
       'late trophozoite or early schizont',
       'late trophozoite or schizont',
+      'after trophozoite',
       'schizont',
       'early schizont',
       'late schizont',
@@ -361,9 +362,11 @@ module DevelopmentalStageConstants
       'early schizont',
       'late schizont',
       'merozoite',
-      'sporozoite',
+      'gametocyte',
+      'zygote',
       'ookinete',
       '7 day old oocyst',
+      'sporozoite',
       'oocyst sporozoite',
       'hemolymph sporozoite',
       'salivary gland sporozoite',
@@ -388,7 +391,7 @@ module DevelopmentalStageConstants
     Species::YOELII_NAME => {
       'immature schizont' => 'early schizont',
       'mature schizont' => 'late schizont',
-      'liver stages' => 'hepatic'
+      'liver stages' => 'hepatic',
     },
     Species::VIVAX_NAME => {
       'rbc stages' => %w(ring trophozoite schizont).push('extracellular merozoite'),

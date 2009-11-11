@@ -477,6 +477,7 @@ module LocalisationConstants
       'subcapsular areas',
       'intracellular',
       'cytoplasm',
+      'plasma membrane',
     ],
     Species::KNOWLESI_NAME => [
       'microneme',
@@ -514,7 +515,9 @@ module LocalisationConstants
       'erythrocyte membrane' => 'host cell membrane',
       'pvm' => 'parasitophorous vacuole membrane',
       'pv' => 'parasitophorous vacuole',
-      'imc' => 'inner membrane complex'
+      'imc' => 'inner membrane complex',
+      'nuclei' => 'nucleus',
+      'plasma membranes' => 'plasma membrane',
     },
     Species::VIVAX_NAME => {
       'erythrocyte cytoplasm' => 'host cell cytoplasm',
@@ -824,6 +827,7 @@ module LocalisationConstants
       'vesicles' => 'vesicle',
       'erythrocyte cytoplasmic vesicles' => 'erythrocyte cytoplasmic vesicle',
       'erythrocyte cytoplasmic structures' => 'erythrocyte cytoplasmic structure',
+      'alveoli' => 'inner membrane complex',
     }
   }
 

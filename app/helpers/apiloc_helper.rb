@@ -70,4 +70,20 @@ module ApilocHelper
     end
     name
   end
+
+  # How was the mapping from the gene in the paper to the gene in the database
+  # done.
+  def mapping_comments(localisation_annotation)
+    if localisation_annotation.gene_mapping_comments
+      return localisation_annotation.gene_mapping_comments
+    else
+      if Species::UNSEQUENCED_APICOMPLEXANS.include?(
+          localisation_annotation.coding_region.species.name
+        )
+        return "#{localisation_annotation.coding_region.string_id} taken directly from publication"
+      else
+        return 'inferred from another publication'
+      end
+    end
+  end
 end

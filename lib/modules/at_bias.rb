@@ -118,4 +118,23 @@ module AtBias
       puts "#{a[0]} #{a[1]}"
     end
   end
+
+  def codon_usage(species=Species::FALCIPARUM_NAME)
+    codons = {}
+    CodingRegion.s(species).all(
+      :joins => [:amino_acid_sequence, :annotation],
+      :include => [:amino_acid_sequence, :annotation]
+    ).each do |code|
+      code.aaseq.each_char do |a|
+        codons[a] ||= 0
+        codons[a] += 1
+      end
+    end
+
+    codons.to_a.sort{|a,b|
+      a[1]<=> b[1]
+    }.each do |a|
+      puts "#{a[0]} #{a[1]}"
+    end
+  end
 end

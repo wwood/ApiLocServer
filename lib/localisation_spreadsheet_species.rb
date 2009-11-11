@@ -24,16 +24,27 @@ module LocalisationSpreadsheetSpecies
 
   def upload
     upload_falciparum
+    upload_knowlesi
+    upload_yoelii
+    upload_berghei
+    upload_vivax
+    upload_chabaudi
+    
     upload_toxo
     upload_babesia_bovis
     upload_neospora_caninum
     upload_cryptosporidium_parvum
     upload_theileria_annulata
     upload_theileria_parva
+
     upload_sarcocystis_spp
     upload_babesia_spp
     upload_theileria_spp
+    upload_plasmodium_spp
+    upload_eimeria_spp
 
+    gather_genbank_sequences_and_names
+    
     # expire the caches
     expire_webpage_caches
   end
@@ -146,6 +157,43 @@ module LocalisationSpreadsheetSpecies
           old, code.id
         )
       end
+    end
+  end
+
+  # For all unsequenced genomes, retrieve their amino acid sequences
+  # so that a fasta file of localised amino acid sequences can be gotten,
+  # and annotation is available
+  def gather_genbank_sequences_and_names
+    Species::UNSEQUENCED_APICOMPLEXANS.each do |sp|
+      CodingRegion.s(sp).all.each do |code|
+        
+        if code.aaseq
+          puts "Skipping #{code.string_id}"
+        else
+          raise unless code.annotation.nil? #No idea why this would be the case, but uno..
+          translateds = GenBankToGeneModelMapper.new.get_translated_sequences_from_genbank(code.string_id)
+          if translateds.length == 1
+            # All good
+            trans = translateds[0]
+            puts "Uploading #{code.string_id} #{trans.seq.length} #{trans.definition}"
+            AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(code.id, trans.seq)
+            Annotation.find_or_create_by_coding_region_id_and_annotation(code.id, trans.definition)
+          else
+            # damn genbank
+            $stderr.puts "Unexpected number of genbanks found for #{code.string_id}: #{translateds.length}: #{translateds.inspect}"
+          end
+        end
+      end
+    end
+  end
+
+  def create_apiloc_blast_database
+    # open a file called apiloc_new.fa, then move that to apiloc.fa
+    # so that nothing strange happens when blasting the database at the
+    # same time as uploading to it.
+    File.open('/tmp/apiloc_new.fa','w') do |file|
+      CodingRegion.all(:joins => [:expression_contexts, :amino_acid_sequence]
+        )
     end
   end
 end
