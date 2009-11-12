@@ -198,15 +198,15 @@ module LocalisationSpreadsheetSpecies
     # create the blast databases
     Dir.chdir('/tmp') do
       `formatdb -i apiloc.fa`
-    end
 
-    %w(
-    apiloc.fa
-    apiloc.fa.nhr
-    apiloc.fa.nin
-    apiloc.fa.nsq
-    ).each do |filename|
-      `mv #{filename} /var/www/blast/db`
+      %w(
+        apiloc.fa
+        apiloc.fa.phr
+        apiloc.fa.pin
+        apiloc.fa.psq
+      ).each do |filename|
+        `mv #{filename} /var/www/blast/db`
+      end
     end
   end
 end
