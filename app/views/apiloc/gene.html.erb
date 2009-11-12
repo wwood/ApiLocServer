@@ -125,7 +125,7 @@
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
   <h2>Proteomics</h2>
 
-  <% @proteomics_partitions = popular_proteomic_experiments.partition {
+  <% @proteomics_partitions = popular_proteomic_experiments(@code.species.name).partition {
     |experiment|
     ProteomicExperimentResult.find_by_coding_region_id_and_proteomic_experiment_id(
       @code.id, experiment.id
