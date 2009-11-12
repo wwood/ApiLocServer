@@ -244,6 +244,7 @@ module LocalisationConstants
       'tubular structure in parasitophorous vacuole',
       'posterior extremity of cup-shaped inner membrane cytoskeleton scaffolds',
       'cyst matrix',
+      'developing cyst wall',
       'nascent conoid',
       'vesicle-like structure just under the parasite membrane',
       'apical conoid',
