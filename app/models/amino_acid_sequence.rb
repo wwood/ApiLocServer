@@ -62,7 +62,11 @@ class AminoAcidSequence < Sequence
   end
   
   def fasta
-    ">#{coding_region.string_id}\n#{sequence}"
+    if block_given?
+      ">#{yield coding_region}\n#{sequence}"
+    else
+      ">#{coding_region.string_id}\n#{sequence}"
+    end
   end
   
   # return the amino_acid_sequence object and bl2seq report for 
