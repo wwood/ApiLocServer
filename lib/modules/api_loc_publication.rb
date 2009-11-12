@@ -252,7 +252,7 @@ class BScript
     CodingRegion.all(
       :joins => :expression_contexts
     ).uniq.each do |code|
-      if code.amino_acid_sequence
+      if code.amino_acid_sequence and code.amino_acid_sequence.sequence.length > 0
         io.puts code.amino_acid_sequence.fasta
         #      elsif code.string_id == CodingRegion::NO_MATCHING_GENE_MODEL
         #        # ignore for the moment, but it is a small bug
