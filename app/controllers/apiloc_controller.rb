@@ -43,7 +43,10 @@ class ApilocController < ApplicationController
   end
 
   def localisation
-    @localisations = Localisation.find_all_by_name(params[:id])
+    @localisations = Localisation.find_all_by_name(params[:id],
+      :joins => :expression_contexts,
+      :select => 'distinct(localisations.*)'
+    )
     raise Exception, "No localisations found by the name of '#{params[:id]}'" if @localisations.length == 0
   end
 

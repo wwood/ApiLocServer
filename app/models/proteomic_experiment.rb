@@ -7,4 +7,6 @@ class ProteomicExperiment < ActiveRecord::Base
   FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME = 'P. falciparum Whole Cell Florens et al 2008 during Merozoite'
   FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME = 'P. falciparum Whole Cell Florens et al 2008 during Trophozoite'
   FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME = 'P. falciparum Whole Cell Florens et al 2008 during Gametocyte'
+
+  FALCIPARUM_MAURERS_CLEFT_2005_NAME = 'P. falciparum Maurer\'s Cleft Vinvensini et al 2005'
 end

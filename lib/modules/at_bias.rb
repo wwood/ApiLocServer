@@ -119,15 +119,39 @@ module AtBias
     end
   end
 
-  def codon_usage(species=Species::FALCIPARUM_NAME)
+  def codon_usage(species=Species::FALCIPARUM_NAME, amino_acid_numbers = nil)
     codons = {}
+    species ||= Species::FALCIPARUM
     CodingRegion.s(species).all(
       :joins => [:amino_acid_sequence, :annotation],
       :include => [:amino_acid_sequence, :annotation]
     ).each do |code|
-      code.aaseq.each_char do |a|
+      lamb = lambda{|a|
         codons[a] ||= 0
         codons[a] += 1
+      }
+      aaseq = code.aaseq
+      if amino_acid_numbers.nil?
+        aaseq.each_char do |a|
+          lamb.call(a)
+        end
+      else
+        raise unless amino_acid_numbers.kind_of?(Array)
+        min = amino_acid_numbers[0]
+        max = amino_acid_numbers[1]
+        if min > aaseq.length-1
+          raise
+        elsif max > aaseq.length-1
+          next
+          #          max = aaseq.length-1
+        end
+
+        str = aaseq[min..max]
+        next if str.match(/\*/)
+
+        aaseq[min..max].each_char do |a|
+          lamb.call(a)
+        end
       end
     end
 

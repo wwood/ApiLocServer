@@ -216,7 +216,7 @@ class CodingRegion < ActiveRecord::Base
   NEGATIVE_ORIENTATION = '-'
   UNKNOWN_ORIENTATION = 'U'
 
-  NO_MATCHING_GENE_MODEL = LocalisationSpreadsheetRow::NO_MATCHING_GENE_MODEL
+  NO_MATCHING_GENE_MODEL = "A common gene for all genes not assigned to a gene model"
 
   UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME =
     "A common gene for all genes not assigned to a gene model"

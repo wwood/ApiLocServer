@@ -115,7 +115,7 @@ class LocalisationSpreadsheet
           scaf.id, Gene::UNANNOTATED_GENES_DUMMY_GENE_NAME
         )
         code = CodingRegion.find_or_create_by_gene_id_and_string_id(
-          g.id, "A common gene for all genes not assigned to a gene model"
+          g.id, CodingRegion::NO_MATCHING_GENE_MODEL
         )
       end
 
