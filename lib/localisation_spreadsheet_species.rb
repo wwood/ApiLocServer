@@ -197,7 +197,7 @@ module LocalisationSpreadsheetSpecies
 
     # create the blast databases
     Dir.chdir('/tmp') do
-      `formatdb -i apiloc.fa`
+      `formatdb -i apiloc.protein.fa`
 
       %w(
         apiloc.protein.fa
