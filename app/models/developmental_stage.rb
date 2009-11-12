@@ -84,6 +84,12 @@ class DevelopmentalStage < ActiveRecord::Base
   def self.add_negation(name)
     "not #{name}"
   end
+
+  def compare_by_stage(another)
+    raise unless another.species == species
+    stages = KNOWN_DEVELOPMENTAL_STAGES[species.name]
+    stages.index(name) <=> stages.index(another.name)
+  end
   
   private
   # small method to DRY another method. species is a Species object
