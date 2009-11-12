@@ -87,11 +87,17 @@ module ApilocHelper
     end
   end
 
-  def popular_proteomic_experiments
-    [
-      ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME,
-      ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME
-    ].collect do |name|
+  def popular_proteomic_experiments(species_name)
+    hash = {
+      Species::FALCIPARUM_NAME =>
+        [
+        ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME,
+        ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME
+      ]
+    }
+    pros = hash[species_name]
+    return [] unless pros
+    return pros.collect do |name|
       ProteomicExperiment.find_by_name(name)
     end
   end

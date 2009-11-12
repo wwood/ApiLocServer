@@ -25,8 +25,12 @@ class ApilocController < ApplicationController
       codes = CodingRegion.find_all_by_name_or_alternate_maybe_with_species_prefix(gene_id)
       if codes.empty?
         codes = CodingRegion.all(
-          :joins => :annotation,
-          :conditions => ['annotations.annotation like ?',"%#{gene_id}%"]
+          :joins => [:annotation, :coding_region_alternate_string_ids],
+          :select => 'distinct(coding_regions.*)',
+          :conditions => [
+            'annotations.annotation like ? or coding_region_alternate_string_ids.name like ?',
+            "%#{gene_id}%", "%#{gene_id}%"
+          ]
         )
       end
     end
