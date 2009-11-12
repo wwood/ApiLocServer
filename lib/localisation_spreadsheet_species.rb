@@ -191,7 +191,7 @@ module LocalisationSpreadsheetSpecies
     # open a file called apiloc_new.fa, then move that to apiloc.fa
     # so that nothing strange happens when blasting the database at the
     # same time as uploading to it.
-    File.open('/tmp/apiloc.fa','w') do |file|
+    File.open('/tmp/apiloc.protein.fa','w') do |file|
       BScript.new.apiloc_fasta(file)
     end
 
