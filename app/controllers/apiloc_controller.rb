@@ -23,6 +23,12 @@ class ApilocController < ApplicationController
       codes = CodingRegion.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
     else
       codes = CodingRegion.find_all_by_name_or_alternate_maybe_with_species_prefix(gene_id)
+      if codes.empty?
+        codes = CodingRegion.all(
+          :joins => :annotation,
+          :conditions => ['annotations.annotation like ?',"%#{gene_id}%"]
+        )
+      end
     end
     
     # possible problem here - what happens for legitimately conflicting names like PfSPP?
