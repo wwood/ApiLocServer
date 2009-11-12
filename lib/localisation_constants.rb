@@ -518,6 +518,7 @@ module LocalisationConstants
       'imc' => 'inner membrane complex',
       'nuclei' => 'nucleus',
       'plasma membranes' => 'plasma membrane',
+      'rhoptries' => 'rhoptry'
     },
     Species::VIVAX_NAME => {
       'erythrocyte cytoplasm' => 'host cell cytoplasm',

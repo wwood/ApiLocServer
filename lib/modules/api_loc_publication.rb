@@ -248,17 +248,18 @@ class BScript
 
 
   # Print out a fasta file of all the sequences that are in apiloc
-  def apiloc_fasta
-    CodingRegion.all(:joins => :expression_contexts).each do |code|
+  def apiloc_fasta(io = $stdout)
+    CodingRegion.all(
+      :joins => :expression_contexts
+    ).uniq.each do |code|
       if code.amino_acid_sequence
-        puts code.amino_acid_sequence.fasta
-      elsif code.string_id == CodingRegion::NO_MATCHING_GENE_MODEL
-        #
+        io.puts code.amino_acid_sequence.fasta
+        #      elsif code.string_id == CodingRegion::NO_MATCHING_GENE_MODEL
+        #        # ignore for the moment, but it is a small bug
+      else
+        $stderr.puts "Couldn't find amino acid sequence for #{code.string_id}/#{code.id}"
       end
-      raise
     end
-
-    # For all genes that don't have a gene model
   end
 
   def apiloc_mapping_orthomcl_v3

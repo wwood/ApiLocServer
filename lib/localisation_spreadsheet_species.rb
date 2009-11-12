@@ -14,12 +14,11 @@ module LocalisationSpreadsheetSpecies
   end
 
   def expire_webpage_caches
-    File.rm "#{RAILS_ROOT}/public/index.html"
-    File.rm Dir.glob("#{RAILS_ROOT}/public/apiloc/species/*")
-
-    # I really care about the fron page of my website
-    File.rm "/var/www/apiloc_real/public/index.html"
-    File.rm Dir.glob("/var/www/apiloc_real/public/apiloc/species/*")
+    # I really care about the front page of my website
+    File.delete "/var/www/apiloc_real/public/index.html"
+    Dir.glob("/var/www/apiloc_real/public/apiloc/species/*").each {|file|
+      File.delete file
+    }
   end
 
   def upload

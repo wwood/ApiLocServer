@@ -123,6 +123,30 @@
 </div>
 
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
+  <h2>Proteomics</h2>
+
+  <% @proteomics_partitions = popular_proteomic_experiments.partition {
+    |experiment|
+    ProteomicExperimentResult.find_by_coding_region_id_and_proteomic_experiment_id(
+      @code.id, experiment.id
+    ).nil?
+  }%>
+  <h3>Found in:</h3>
+  <ul>
+    <% @proteomics_partitions[1].each do |experiment| %>
+      <li><%= proteomic_experiment_name_to_html(experiment.name) %></li>
+    <% end %>
+  </ul>
+  <h3>Not found in:</h3>
+  <ul>
+    <% @proteomics_partitions[0].each do |experiment| %>
+      <li><%= proteomic_experiment_name_to_html(experiment.name) %></li>
+    <% end %>
+  </ul>
+</div>
+
+
+<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
   <h3>Links</h3>
   <ul>
     <% if @code.species.plasmodb? %>

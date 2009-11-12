@@ -86,4 +86,24 @@ module ApilocHelper
       end
     end
   end
+
+  def popular_proteomic_experiments
+    [
+      ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME,
+      ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME
+    ].collect do |name|
+      ProteomicExperiment.find_by_name(name)
+    end
+  end
+
+  def proteomic_experiment_name_to_html(name)
+    hash = {
+      ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME =>
+        'Food vacuole, Lamarque et al 2008',
+      ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME =>
+        'Maurer\'s cleft, Vincensini et al 2005'
+    }
+    return hash[name] if hash[name]
+    return name
+  end
 end

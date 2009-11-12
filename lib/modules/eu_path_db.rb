@@ -206,6 +206,7 @@ class BScript
     # Upload basic gene identifiers
     upload_apiloc_gffs
     upload_gondii_gene_table_to_database
+    upload_apiloc_fasta_files
   end
 
   def upload_apiloc_gffs
@@ -221,6 +222,26 @@ class BScript
     theileria_parva_gene_aliases
     upload_theileria_fasta
     babesia_to_database
+  end
+
+  def upload_apiloc_fasta_files
+    falciparum_fasta_to_database
+    berghei_fasta_to_database
+    yoelii_fasta_to_database
+    vivax_fasta_to_database
+    chabaudi_fasta_to_database
+    knowlesi_fasta_to_database
+    gondii_fasta_to_database
+    neospora_caninum_fasta_to_database
+    cryptosporidium_parvum_fasta_to_database
+    # already uploaded as part of auploc_apiloc_gffs
+    # theileria_parva_fasta_gene_aliases
+    # upload_theileria_fasta 
+    #    babesia_fasta_to_database
+  end
+
+  def upload_proteomic_data
+    food_vacuole_proteome_to_database
   end
 
   # upload the fasta sequences from falciparum file to the database
@@ -298,21 +319,19 @@ class BScript
     end
   end
 
-  SPECIES_DATA = {
-    'yoelii' => {
-      :directory => 'yoelii',
-
-      :name => 'Plasmodium vivax',
-      :sequencing_centre_abbreviation => 'gb',
-      :protein_names => lambda {|version| "Pvivax"}
-    }
-  }
-
   # a catch-all for the pesky uploading of gff and amino acid sequences
   def method_missing(symbol, *args)
     meth = symbol.to_s
     if matches = meth.match(/(.+)_fasta_to_database/)
-      # upload the sequence
+      spd = SpeciesData.new(matches[1])
+      fa = EuPathDb2009.new(
+        spd.fasta_file_species_name,
+        spd.sequencing_centre_abbreviation
+      ).load(spd.protein_fasta_path)
+      sp = Species.find_by_name(spd.name)
+      upload_fasta_general!(fa, sp)
+    else
+      super
     end
   end
 end
