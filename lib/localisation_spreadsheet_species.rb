@@ -15,9 +15,10 @@ module LocalisationSpreadsheetSpecies
 
   def expire_webpage_caches
     # I really care about the front page of my website
-    File.delete "/var/www/apiloc_real/public/index.html"
+    file = "/var/www/apiloc_real/public/index.html"
+    File.delete file if File.exists?(file)
     Dir.glob("/var/www/apiloc_real/public/apiloc/species/*").each {|file|
-      File.delete file
+      File.delete file if File.exists?(file)
     }
   end
 
@@ -190,9 +191,22 @@ module LocalisationSpreadsheetSpecies
     # open a file called apiloc_new.fa, then move that to apiloc.fa
     # so that nothing strange happens when blasting the database at the
     # same time as uploading to it.
-    File.open('/tmp/apiloc_new.fa','w') do |file|
-      CodingRegion.all(:joins => [:expression_contexts, :amino_acid_sequence]
-        )
+    File.open('/tmp/apiloc.fa','w') do |file|
+      BScript.new.apiloc_fasta(file)
+    end
+
+    # create the blast databases
+    Dir.chdir('/tmp') do
+      `formatdb -i apiloc.fa`
+    end
+
+    %w(
+    apiloc.fa
+    apiloc.fa.nhr
+    apiloc.fa.nin
+    apiloc.fa.nsq
+    ).each do |filename|
+      `mv #{filename} /var/www/blast/db`
     end
   end
 end
