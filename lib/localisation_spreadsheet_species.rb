@@ -200,10 +200,10 @@ module LocalisationSpreadsheetSpecies
       `formatdb -i apiloc.fa`
 
       %w(
-        apiloc.fa
-        apiloc.fa.phr
-        apiloc.fa.pin
-        apiloc.fa.psq
+        apiloc.protein.fa
+        apiloc.protein.fa.phr
+        apiloc.protein.fa.pin
+        apiloc.protein.fa.psq
       ).each do |filename|
         `mv #{filename} /var/www/blast/db`
       end
