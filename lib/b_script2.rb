@@ -441,8 +441,12 @@ PFI1740c).include?(f)
       'Localisation in Apicomplexan Orthologues',
       'PlasmoAP?',
       'SignalP?',
-      'Transmembrane domain # (TMHMM)',
-      top_names.collect{|n| "'#{n}' Agreement"}
+      #      'Transmembrane domain # (TMHMM)',
+      'ExportPred score > 0?',
+      'Agreement with nuclear simple',
+      top_names.collect{|n| "'#{n}' Agreement"},
+      'In Lifecycle Proteomics at all?',
+      'In Lifecycle Proteomics with at least 2 peptides'
     ].flatten.join("\t")
 
     $stdin.each do |plasmodb_id|
@@ -452,8 +456,6 @@ PFI1740c).include?(f)
       if code.nil?
         puts "Couldn't find this gene ID"
       else
-        puts code.amino_acid_sequence.exportpred.predicted?
-        next
         orth_str = nil
         begin
           localised_orths = code.localised_apicomplexan_orthomcl_orthologues
@@ -476,12 +478,18 @@ PFI1740c).include?(f)
           orth_str,
           code.plasmo_a_p.signal?,
           code.signalp_however.signal?,
-          code.tmhmm.transmembrane_domains.length,
+          #          code.tmhmm.transmembrane_domains.length,
+          code.amino_acid_sequence.exportpred.predicted?,
+          code.agreement_with_top_level_localisation_simple(
+            TopLevelLocalisation.find_by_name('nucleus')
+          ),
           top_names.collect{|top_name|
             code.agreement_with_top_level_localisation(
               TopLevelLocalisation.find_by_name(top_name)
             )
-          }
+          },
+          code.proteomics(nil, 1).length > 0,
+          code.proteomics.length > 0
         ].flatten.join("\t")
       end
     end
@@ -547,6 +555,52 @@ PFI1740c).include?(f)
       end
 
       puts '----------------------------------------------------'
+    end
+  end
+
+  def pfmpred_to_plasmodb_ids(filename =
+      "#{DATA_DIR}/Plasmodium falciparum/pfmpred/mito-40")
+    Bio::FlatFile.foreach(filename) do |entry|
+      codes = CodingRegion.falciparum.all(
+        :joins => :amino_acid_sequence,
+        :conditions => [
+          'sequence = ?', entry.seq
+        ]
+      )
+      if codes.length == 1
+        puts [
+          entry.definition,
+          'yes',
+          codes[0].string_id,
+          codes[0].annotation.annotation,
+          codes[0].localisation_english
+        ].join("\t")
+      elsif codes.length == 0
+        plasmo = AminoAcidSequence.new(:sequence => entry.seq).best_blast_hit
+        if plasmo.nil?
+          puts [
+            entry.definition,
+            'no',
+            'no hits'
+          ]
+        else
+          code = CodingRegion.find_by_string_id(plasmo.gsub(/^psu\|/,''))
+          raise unless code
+          puts [
+            entry.definition,
+            'no',
+            code.string_id,
+            code.annotation.annotation,
+            code.localisation_english
+          ].join("\t")
+        end
+      else
+        raise #doesn't happen in practise
+        puts [
+          entry.definition,
+          codes.reach.string_id.retract
+        ].flatten
+      end
     end
   end
 end
