@@ -47,6 +47,25 @@ class SpreadsheetGenerator
     puts rarff_relation.to_arff
   end
 
+  def arff_falciparum
+    data = generate_spreadsheet(CodingRegion.falciparum.all) do |code|
+      @headings.push 'StringID' if @first
+      @current_row.push code.string_id  # Top level localisations
+      check_headings
+    end
+
+    rarff_relation = Rarff::Relation.new('PfalciparumLocalisationPredictions')
+    rarff_relation.instances = data
+    @headings.each_with_index do |heading, index|
+      rarff_relation.attributes[index].name = "\"#{heading}\""
+    end
+
+    # Make some attributes noiminal instead of String
+    rarff_relation.set_string_attributes_to_nominal
+
+    puts rarff_relation.to_arff
+  end
+
   def arff_eight_class
     eight_classes = [
       'exported',
@@ -223,24 +242,16 @@ class SpreadsheetGenerator
         #        'sce',
         #        'mmu'
       ]
-      
-      # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
-      if merged_genes.include?(code.string_id)
-        # Fill with non-empty cells
-        group = code.orthomcl_genes[0].orthomcl_group
-        interestings.each do |three|
-          @current_row.push group.orthomcl_genes.code(three).length
-        end
-      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl
-        # Fill with non-empty cells
-        group = single.orthomcl_group
-        interestings.each do |three|
-          @current_row.push group.orthomcl_genes.code(three).length
-        end
-      else
-        # fill with empty cells
+
+      ogene = code.single_orthomcl!
+      if ogene.nil?
         1..interestings.length.times do
           @current_row.push nil
+        end
+      else
+        group = ogene.official_group
+        interestings.each do |three|
+          @current_row.push group.orthomcl_genes.code(three).length
         end
       end
       check_headings

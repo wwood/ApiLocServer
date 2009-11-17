@@ -71,6 +71,13 @@ class OrthomclGene < ActiveRecord::Base
         group_name, OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME
       ]
     }}
+
+  def official_group
+    orthomcl_gene_orthomcl_group_orthomcl_runs.first(
+      :joins => [:orthomcl_run, :orthomcl_group],
+      :conditions => ['orthomcl_runs.name = ?', OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME]
+    ).orthomcl_group
+  end
   
   # Get the coding region that is associated with this gene, assuming that
   # the orthomcl gene is from the official (because of the naming scheme)

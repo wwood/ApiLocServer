@@ -666,4 +666,48 @@ PFI1740c).include?(f)
 
     Species.find_by_name(species_name).delete
   end
+
+  def falciparum_first30
+    CodingRegion.falciparum.all(
+      :joins => :amino_acid_sequence,
+      :include => :amino_acid_sequence
+    ).each do |code|
+      aa = code.amino_acid_sequence
+      next unless aa.sequence.length > 30
+      puts ">#{code.string_id}"
+      puts aa.sequence[0..29]
+    end
+  end
+
+  def plasmit_falciparum
+    plasmit_filename = "#{DATA_DIR}/falciparum/plasmit/20091117.html"
+    `rm #{plasmit_filename}`
+
+    CodingRegion.falciparum.all(
+      :joins => :amino_acid_sequence,
+      :include => :amino_acid_sequence
+    ).each do |code|
+      aa = code.amino_acid_sequence
+      # only the first 24 amino acids are used, but given that the length
+      # output recorded for a 24 amino acid length protein is 23, I'm playing
+      # it safe here
+      next unless aa.sequence.length > 25
+      Tempfile.open('plasmit') do |tempfile|
+        `wget 'http://gecco.org.chemie.uni-frankfurt.de/cgi-bin/plasmit/runanalysis.cgi?output=simple&sequence=>#{code.string_id}%0A#{aa.sequence[0..25]}' -O #{tempfile.path}`
+        `cat #{tempfile.path} >>#{plasmit_filename}`
+      end
+    end
+  end
+
+  def upload_plasmit_results
+    File.foreach("#{DATA_DIR}/falciparum/plasmit/20091117.html") do |line|
+      next unless line.match(/Lines read with presumably/)
+      matches = line.match(/>>(.*?)<\/TD><TD>(.*?)</)
+      raise unless matches
+      code = CodingRegion.ff(matches[1]) or raise
+      PlasmitResult.find_or_create_by_coding_region_id_and_prediction_string(
+        code.id, matches[2]
+      ) or raise
+    end
+  end
 end

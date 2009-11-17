@@ -129,6 +129,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :export_pred_cache, :dependent => :destroy
   has_one :signal_p_cache, :dependent => :destroy
   has_one :segmasker_low_complexity_percentage, :dependent => :destroy
+  has_one :plasmit_results, :dependent => :destroy
   
   # website stuff
   has_many :user_comments
@@ -747,6 +748,19 @@ class CodingRegion < ActiveRecord::Base
     genes = orthomcl_genes.run(run_name).all(options)
     if genes.length != 1
       raise CodingRegion::UnexpectedOrthomclGeneCount, "Unexpected number of orthomcl genes found for #{inspect}: #{genes.inspect}"
+    else
+      return genes[0]
+    end
+  end
+
+  # like single_orthomcl, except return nil if no orthomcl gene are found.
+  # raise if more than one are found
+  def single_orthomcl!(run_name = OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME, options = {})
+    genes = orthomcl_genes.run(run_name).all(options)
+    if genes.length > 1
+      raise CodingRegion::UnexpectedOrthomclGeneCount, "Unexpected number of orthomcl genes found for #{inspect}: #{genes.inspect}"
+    elsif genes.length == 0
+      return nil
     else
       return genes[0]
     end
