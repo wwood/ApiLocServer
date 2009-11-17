@@ -134,7 +134,12 @@ class SpreadsheetGenerator
     #String attributes aren't useful in arff files, because many classifiers and visualisations don't handle them
     # So make a list of outputs so they can be made nominal in the end.
     amino_acids = Bio::AminoAcid.names.keys.select{|code| code.length == 1}
-    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
+    derisi_timepoints = Microarray.find_by_description(
+      Microarray.derisi_2006_3D7_default
+    ).microarray_timepoints(
+      :select => 'distinct(name)').select do |timepoint|
+      %w(22 23 47 49).include?(timepoint.name.gsub(/^Timepoint /,''))
+    end
     
     # genes that are understandably not in the orthomcl databases, because
     # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
@@ -166,57 +171,57 @@ class SpreadsheetGenerator
       #      results.push code.amino_acid_sequence.sequence,
       
       
-      #      #      SignalP
-      #      @headings.push 'SignalP Prediction' if @first
-      #      @current_row.push(code.signal?)
-      #      check_headings
-      #
-      #      # PlasmoAP
-      #      @headings.push 'PlasmoAP Score' if @first
-      #      @current_row.push code.amino_acid_sequence.plasmo_a_p.points
-      #      check_headings
-      #
-      #      # ExportPred
-      #      @headings.push 'ExportPred?' if @first
-      #      @current_row.push code.export_pred_however.predicted?
-      #      check_headings
-      #
-      #      #WoLF_PSORT
-      #      @headings.push ['WoLF_PSORT prediction Plant',
-      #        'WoLF_PSORT prediction Animal',
-      #        'WoLF_PSORT prediction Fungi'] if @first
-      #      ['plant','animal','fungi'].each do |organism|
-      #        c = code.wolf_psort_localisation(organism)
-      #        @current_row.push c
-      #      end
-      #      check_headings
+      #      SignalP
+      @headings.push 'SignalP Prediction' if @first
+      @current_row.push(code.signal?)
+      check_headings
+
+      # PlasmoAP
+      @headings.push 'PlasmoAP Score' if @first
+      @current_row.push code.amino_acid_sequence.plasmo_a_p.points
+      check_headings
+      
+      # ExportPred
+      @headings.push 'ExportPred?' if @first
+      @current_row.push code.export_pred_however.predicted?
+      check_headings
+      
+      #WoLF_PSORT
+      @headings.push ['WoLF_PSORT prediction Plant',
+        'WoLF_PSORT prediction Animal',
+        'WoLF_PSORT prediction Fungi'] if @first
+      ['plant','animal','fungi'].each do |organism|
+        c = code.wolf_psort_localisation(organism)
+        @current_row.push c
+      end
+      check_headings
       
       # official orthomcl
       @headings.push [
-        'Number of P. falciparum Genes in Official Orthomcl Group',
+        #        'Number of P. falciparum Genes in Official Orthomcl Group',
         #        'Number of P. vivax Genes in Official Orthomcl Group',
         #        'Number of C. parvum Genes in Official Orthomcl Group',
         'Number of C. homonis Genes in Official Orthomcl Group',
         #        'Number of T. parva Genes in Official Orthomcl Group',
         #        'Number of T. annulata Genes in Official Orthomcl Group',
         #        'Number of T. gondii Genes in Official Orthomcl Group',
-        'Number of Tetrahymena thermophila Genes in Official Orthomcl Group',
-        'Number of Arabidopsis Genes in Official Orthomcl Group',
+        #        'Number of Tetrahymena thermophila Genes in Official Orthomcl Group',
+        #        'Number of Arabidopsis Genes in Official Orthomcl Group',
         #        'Number of Yeast Genes in Official Orthomcl Group',
         #        'Number of Mouse Genes in Official Orthomcl Group'
       ] if @first
       interestings = [
-        'pfa',
-#        'pvi',
-#        'cpa',
-        'cho',
-#        'the',
-#        'tan',
-#        'tgo',
-        'tth',
-        'ath',
-#        'sce',
-#        'mmu'
+        #        'pfa',
+        #        'pvi',
+        #        'cpa',
+        'chom',
+        #        'the',
+        #        'tan',
+        #        'tgo',
+        #        'tth',
+        #        'ath',
+        #        'sce',
+        #        'mmu'
       ]
       
       # Some genes have 2 entries in orthomcl, but only 1 in plasmodb 5.4
@@ -335,11 +340,11 @@ class SpreadsheetGenerator
       #      @headings.push 'Length of Protein' if @first
       #      @current_row.push code.amino_acid_sequence.sequence.length
       #      check_headings
-      #
-      #      @headings.push 'Chromosome' if @first
-      #      name = code.chromosome_name
-      #      @current_row.push name
-      #      check_headings
+      
+      @headings.push 'Chromosome' if @first
+      name = code.chromosome_name
+      @current_row.push name
+      check_headings
       #
       #      @headings.push 'Distance from chromosome end' if @first
       #      @current_row.push code.length_from_chromosome_end
@@ -379,24 +384,24 @@ class SpreadsheetGenerator
       #      @current_row.push rand
       #      check_headings
       #
-      #      # Microarray DeRisi
-      #      if @first
-      #        @headings.push derisi_timepoints.collect{|t|
-      #          'DeRisi 2006 3D7 '+t.name
-      #        }
-      #      end
-      #      derisi_timepoints.each do |timepoint|
-      #        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
-      #          code.id,
-      #          timepoint.id
-      #        )
-      #        if !measures.nil?
-      #          @current_row.push measures.measurement
-      #        else
-      #          @current_row.push nil
-      #        end
-      #      end
-      #      check_headings
+      # Microarray DeRisi
+      if @first
+        @headings.push derisi_timepoints.collect{|t|
+          'DeRisi 2006 3D7 '+t.name
+        }
+      end
+      derisi_timepoints.each do |timepoint|
+        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+          code.id,
+          timepoint.id
+        )
+        if !measures.nil?
+          @current_row.push measures.measurement
+        else
+          @current_row.push nil
+        end
+      end
+      check_headings
       #
       #      # Amino Acid Composition
       #      if @first

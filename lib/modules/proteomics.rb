@@ -106,11 +106,46 @@ class BScript
         if plasmodb_line_next
           plasmo = row[0]
           # skip some
-          if %w(PFD0845w PFD0965w).include?(plasmo)
+          # these gene models are now multiple gene models
+          # or have been removed or there is a gene name duplication
+          if %w(PFD0845w PFD0965w).push %w(
+            PF11_0405
+            PF11_0377
+            PF10_0014
+            PFC0710w
+            PF10_0349
+            PF10_0212
+            PFD0510c
+            PF10_0251
+            PF10_0387
+            ).include?(plasmo)
             $stderr.puts "Ignoring #{plasmo} as expected."
             skipping = true
             next
           end
+
+          manual_mappings = { # these are merged genes. Probably could have
+            # achieved the same thing by using the _v5.5 names as aliases
+            # too, but it's done now.
+            'PFA0215w' => 'PFA0220w',
+            'PF14_0436' => 'PF14_0437',
+            'PF14_0091' => 'PF14_0092',
+            'PF14_0445' => 'PF14_0444',
+            'PF10_0247' => 'PF10_0248',
+            'PF11_0525' => 'PF11_0535',
+            'PFE0325w' => 'PFE0320w',
+            'PFE0685w' => 'PFE0680w',
+            'PF10_0256' => 'PF10_0254',
+            'PF14_0263' => 'PF14_0262',
+            'MAL8P1.94' => 'PF08_0081',
+            'PF14_0172' => 'PF14_0173',
+            'PF11_0387' => 'PF11_0388',
+            'MAL13P1.123' => 'MAL13P1.124',
+            'PF10_0255' => 'PF10_0254',
+            'PF14_0687' => 'PF14_0686',
+          }
+          plasmo = manual_mappings[plasmo] if manual_mappings[plasmo]
+
           code = CodingRegion.ff(plasmo)
           if code.nil?
             $stderr.puts "Couldn't find #{plasmo} from #{row.inspect}"

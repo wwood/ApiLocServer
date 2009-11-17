@@ -1,5 +1,6 @@
 class ProteomicExperiment < ActiveRecord::Base
   has_many :proteomic_experiment_results, :dependent => :destroy
+  has_many :proteomic_experiment_peptides, :dependent => :destroy
 
   FALCIPARUM_FOOD_VACUOLE_2008_NAME = 'P. falciparum Food Vacuole Lamarque et al 2008'
   

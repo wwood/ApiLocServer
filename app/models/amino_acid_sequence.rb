@@ -89,6 +89,15 @@ class AminoAcidSequence < Sequence
     
     return other_amino_acid_sequences[max_index], bl2seqs[max_index]
   end
+
+  def best_blast_hit(organism='falciparum')
+    blast_output = BlastHelper.new.blast(sequence, organism)
+    Bio::Blast.reports(blast_output) do |report|
+      best_hit = report.hits[0]
+      return nil unless best_hit
+      return best_hit.target_id
+    end
+  end
   
   def tmhmm(seq=nil, offset=nil)
     seq ||= sequence

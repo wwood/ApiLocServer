@@ -19,7 +19,29 @@ class SpeciesDataTest < Test::Unit::TestCase
 
   def test_protein_data_path
     spd = SpeciesData.new('Plasmodium yoelii')
-    assert_equal '/home/ben/phd/data/Plasmodium yoelii/genome/PlasmoDB/6.1/PyoeliiAnnotatedProteins_PlasmoDB-6.1.fasta',
+    assert_equal "/home/ben/phd/data/Plasmodium yoelii/genome/PlasmoDB/#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/PyoeliiAnnotatedProteins_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.fasta",
       spd.protein_fasta_path
+  end
+
+  def test_one_word_name
+    spd = SpeciesData.new('Plasmodium chabaudi')
+    assert_equal 'Pchabaudi', spd.one_word_name
+  end
+
+  def test_download_directory
+    spd = SpeciesData.new('Plasmodium chabaudi')
+    assert_equal "http://plasmodb.org/common/downloads/release-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/Pchabaudi/", spd.eu_path_db_download_directory
+  end
+
+  def test_transcript_path_default
+    spd = SpeciesData.new('Plasmodium chabaudi')
+    assert_equal "/home/ben/phd/data/Plasmodium chabaudi/genome/PlasmoDB/#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/PchabaudiAnnotatedTranscripts_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.fasta",
+      spd.transcript_fasta_path
+  end
+
+  def test_transcript_fasta_filename
+    spd = SpeciesData.new('falciparum')
+    assert_equal "Pfalciparum_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.gff",
+      spd.gff_filename
   end
 end

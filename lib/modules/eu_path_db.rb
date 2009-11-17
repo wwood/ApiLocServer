@@ -2,16 +2,12 @@
 
 require 'eu_path_d_b_gene_information_table'
 require 'zlib'
+require 'species_data'
 
 class BScript
-  PLASMODB_VERSION = '6.1'
-  TOXODB_VERSION = '5.2'
-  CRYPTODB_VERSION = '4.2'
-
-
-  def falciparum_to_database
-    apidb_species_to_database Species.falciparum_name, "#{DATA_DIR}/falciparum/genome/plasmodb/#{PLASMODB_VERSION}/Pfalciparum_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
+  PLASMODB_VERSION = SpeciesData::SOURCE_VERSIONS['PlasmoDB']
+  TOXODB_VERSION = SpeciesData::SOURCE_VERSIONS['ToxoDB']
+  CRYPTODB_VERSION = SpeciesData::SOURCE_VERSIONS['CryptoDB']
 
   def berghei_to_database
     apidb_species_to_database Species::BERGHEI_NAME, "#{DATA_DIR}/berghei/genome/plasmodb/#{PLASMODB_VERSION}/Pberghei_PlasmoDB-#{PLASMODB_VERSION}.gff"
@@ -81,19 +77,7 @@ class BScript
       end
     end
   end
-
-  def berghei_fasta_to_database
-    fa = EuPathDb2009.new('Plasmodium_berghei_str._ANKA','psu').load("#{DATA_DIR}/berghei/genome/plasmodb/#{PLASMODB_VERSION}/PbergheiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta")
-    sp = Species.find_by_name(Species::BERGHEI_NAME)
-    upload_fasta_general!(fa, sp)
-  end
-
-  def vivax_fasta_to_database
-    fa = EuPathDb2009.new('Plasmodium_vivax_SaI-1','gb').load("#{DATA_DIR}/vivax/genome/plasmodb/#{PLASMODB_VERSION}/PvivaxAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta")
-    sp = Species.find_by_name(Species::VIVAX_NAME)
-    upload_fasta_general!(fa, sp)
-  end
-
+  
   def gondii_fasta_to_database
     fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49AnnotatedProteins_ToxoDB-#{TOXODB_VERSION}.fasta")
     sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
@@ -244,13 +228,6 @@ class BScript
     food_vacuole_proteome_to_database
   end
 
-  # upload the fasta sequences from falciparum file to the database
-  def falciparum_fasta_to_database
-    fa = ApiDbFasta5p5.new.load("#{DATA_DIR}/falciparum/genome/plasmodb/#{PLASMODB_VERSION}/PfalciparumAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta")
-    sp = Species.find_by_name(Species.falciparum_name)
-    upload_fasta_general!(fa, sp)
-  end
-
   # OrthoMCL identifiers can be found in the gene information table.
   # this is more better than matching through names manually because there is
   # a non-redundant set of toxo genes in there, not from any one species.
@@ -330,8 +307,78 @@ class BScript
       ).load(spd.protein_fasta_path)
       sp = Species.find_by_name(spd.name)
       upload_fasta_general!(fa, sp)
+    elsif matches = meth.match(/(.+)_to_database/)
+      spd = SpeciesData.new(matches[1])
+      apidb_species_to_database(
+        spd.name,
+        spd.gff_path
+      )
     else
       super
     end
+  end
+
+  def download(database_name)
+    # Download the new files from the relevant database
+    species_data_from_database(database_name).each do |spd|
+      unless File.exists?(spd.local_download_directory)
+        Dir.mkdir(spd.local_download_directory)
+      end
+
+      Dir.chdir(spd.local_download_directory) do
+        $stderr.puts "chdir: #{Dir.pwd}"
+        # protein
+        unless File.exists?(spd.protein_fasta_filename)
+          `wget #{spd.eu_path_db_download_directory}/#{spd.protein_fasta_filename}`
+        end
+        # gff
+        unless File.exists?(spd.gff_filename)
+          `wget #{spd.eu_path_db_download_directory}/#{spd.gff_filename}`
+        end
+        # transcripts
+        unless File.exists?(spd.transcript_fasta_filename)
+          `wget #{spd.eu_path_db_download_directory}/#{spd.transcript_fasta_filename}`
+        end
+      end
+    end
+  end
+
+  def species_data_from_database(database_name)
+    database_name.downcase!
+    raise unless %w(plasmodb toxodb cryptodb).include?(database_name)
+    species_names = {
+      'plasmodb' => Species::PLASMODB_SPECIES_NAMES,
+      'toxodb' => Species::TOXODB_SPECIES_NAMES,
+      'cryptodb' => Species::CRYPTODB_SPECIES_NAMES,
+    }[database_name]
+    species_names.collect do |name|
+      SpeciesData.new(name)
+    end
+  end
+
+  # A generalised upgrade method for upgrading EuPathDB data in gnr
+  def upgrade(database_name)
+    database_name.downcase!
+    # Destroy all the species in the database, using the named_scope
+    Species.send(database_name.to_sym).all.reach.destroy
+
+    # downloads go through only if the files don't already exist,
+    # so this isn't wasteful
+    download(database_name)
+
+    # upload each gff, amino acid, and nucleotide
+    spds = species_data_from_database(database_name)
+    spds.each do |spd|
+      # upload gff
+      send("#{spd.name.gsub(' ','_')}_to_database".to_sym)
+
+      # upload amino acids
+      send("#{spd.name.gsub(' ','_')}_fasta_to_database".to_sym)
+
+      # upload nucleotide sequences
+      #      send("spd.name.gsub(' ','_')_fasta_to_database".to_sym)
+    end
+
+    # upload localisation data
   end
 end

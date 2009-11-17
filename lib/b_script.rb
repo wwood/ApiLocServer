@@ -5191,8 +5191,8 @@ class BScript
   
 
   # for each of the nuclear proteins in the proteomics list, print out the average and list of winzeler 2003 cell
-  # cycle absolute counts
-  def nuclear_proteome_winzeler_data
+  # cycle absolute counts. If an io is given, do use that as input
+  def nuclear_proteome_winzeler_data(io=nil)
 
     
     array_constants = [
@@ -5231,26 +5231,30 @@ class BScript
       'PlasmoDB ID',
       array_constants
     ].flatten.join("\t")
-    
-    # For each gene in the proteome list
-    PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.falciparum.all(
-      :order => 'plasmodb_gene_list_entries.id').each do |code|
+
+    lamb = lambda do |code|
       results = [code.string_id]
-      
+
       array_constants.each do |timepoints|
         results.push code.microarray_measurements.timepoint_names([timepoints].flatten).all.reach.percentile.average
       end
-      
+
       puts results.join("\t")
     end
-  end
-  
-  def nuclear_proteome_winzeler_classification
-    
-  end
 
-  def elegans_only_and_lethal
-    #    elegans_specific_by_orthomcl do ||
+    # For each gene in the proteome list
+    if io
+      io.each do |plasmo|
+        plasmo.strip!
+        code = CodingRegion.ff(plasmo)
+        lamb.call(code) if code #ignore it if I don't find anything
+      end
+    else
+      PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_NUCLEAR_PROTEOME_OCTOBER_2008).coding_regions.falciparum.all(
+        :order => 'plasmodb_gene_list_entries.id').each do |code|
+        lamb.call(code)
+      end
+    end
   end
   
   def nuclear_wolf_psort_accuracy
@@ -5323,7 +5327,7 @@ class BScript
   # Will need to rerun the the blast with toxo included
   def babesia_loss
     
-  end  
+  end
   
   def falciparum_simple_fasta
     CodingRegion.s(Species::FALCIPARUM_NAME).all(:joins => :amino_acid_sequence).each do |code|
@@ -5348,7 +5352,7 @@ class BScript
         
         if toxos.length != 1
           no_orthologue_count += 1
-          next 
+          next
         end
         toxo = toxos[0].single_code
         
@@ -5394,7 +5398,7 @@ class BScript
         
         if toxos.length != 1
           no_orthologue_count += 1
-          next 
+          next
         end
         toxo = toxos[0].single_code
         
@@ -5445,7 +5449,7 @@ class BScript
           f.puts code.gmars_vector(max_gap, gmars).libsvm_format(1)
           exported_count += 1
         else
-          next if 
+          next if
           f.puts code.gmars_vector(max_gap, gmars).libsvm_format(-1)
           other_count += 1
         end
@@ -5572,10 +5576,10 @@ class BScript
   def babesia_apicoplast_candidate_selection
     auto_babesia_candidates.each do |c|
       puts [
-        c.query_def, 
-        c.hit_def, 
-        c.nterminal_query_start, 
-        c.nterminal_hit_start, 
+        c.query_def,
+        c.hit_def,
+        c.nterminal_query_start,
+        c.nterminal_hit_start,
         c.difference,
         c.bl2seq_result.hits.length,
         c.bl2seq_result.hits[0].hsps.length,
@@ -5590,13 +5594,13 @@ class BScript
       :joins => {:orthomcl_genes => {:coding_regions => :plasmodb_gene_lists}},
       :conditions => ['(plasmodb_gene_lists.description = ?'+
           ' or plasmodb_gene_lists.description = ?)'+
-          ' and orthomcl_runs.name = ?', 
+          ' and orthomcl_runs.name = ?',
         'Pvi_Pfa_Tpa_HIGH_confid_set3', 'Pvi_Pfa_Tpa_LOWER_confid_set',
         OrthomclRun.seven_species_filtering_name
       ]
     )
     
-    babesias = groups.select{|g| 
+    babesias = groups.select{|g|
       g.orthomcl_genes.count(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])>0
     }.collect{|group|
       group.orthomcl_genes.first(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])
@@ -5693,11 +5697,11 @@ class BScript
         group = code.single_orthomcl.orthomcl_group
         [
           code.string_id,
-          group.orthomcl_genes.code('sce').all.reach.orthomcl_name.join(', '), 
-          group.orthomcl_genes.code('ath').all.reach.orthomcl_name.join(', '), 
+          group.orthomcl_genes.code('sce').all.reach.orthomcl_name.join(', '),
+          group.orthomcl_genes.code('ath').all.reach.orthomcl_name.join(', '),
           group.orthomcl_genes.code('hsa').all.reach.orthomcl_name.join(', '),
           group.orthomcl_genes.codes(OrthomclGene.official_orthomcl_apicomplexa_codes).all.reach.orthomcl_name.join(', '),
-          group.orthomcl_genes.all.reach.orthomcl_name.reject{|name| 
+          group.orthomcl_genes.all.reach.orthomcl_name.reject{|name|
             ['sce','ath','hsa',OrthomclGene.official_orthomcl_apicomplexa_codes].flatten.include?(name[0..2])
           }.join(', ')
         ].join("\t")
@@ -5720,13 +5724,13 @@ class BScript
       :joins => {:orthomcl_genes => {:coding_regions => :plasmodb_gene_lists}},
       :conditions => ['(plasmodb_gene_lists.description = ?'+
           ' or plasmodb_gene_lists.description = ?)'+
-          ' and orthomcl_runs.name = ?', 
+          ' and orthomcl_runs.name = ?',
         'Pvi_Pfa_Tpa_HIGH_confid_set3', 'Pvi_Pfa_Tpa_LOWER_confid_set',
         OrthomclRun.seven_species_filtering_name
       ]
     )
     
-    babesias = groups.select{|g| 
+    babesias = groups.select{|g|
       g.orthomcl_genes.count(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])>0
     }.collect{|group|
       group.orthomcl_genes.first(:conditions => ['orthomcl_genes.orthomcl_name like ? ', 'BBOV%'])
@@ -5780,10 +5784,10 @@ class BScript
       'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
     ]
     #    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
-    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)', 
+    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)',
       :conditions => ['microarray_timepoints.name = ?', 'Phase']
     )
-    headings.push derisi_timepoints.collect{|t| 
+    headings.push derisi_timepoints.collect{|t|
       'DeRisi 2006 3D7 '+t.name
     }
     
@@ -5851,8 +5855,8 @@ class BScript
           else
             results.push 0
           end
-        end        
-      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
+        end
+      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl
         # Fill with non-empty cells
         group = single.orthomcl_group
         interestings.each do |three|
@@ -5865,7 +5869,7 @@ class BScript
       else
         # fill with empty cells
         1..interestings.length.times do
-          results.push nil #is this correct? Can the machine learning technique deal with this? 
+          results.push nil #is this correct? Can the machine learning technique deal with this?
         end
       end
       
@@ -6052,10 +6056,10 @@ class BScript
       'Number of Non-Synonymous Clinical SNPs according to Jeffares et al',
     ]
     #    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)')
-    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)', 
+    derisi_timepoints = Microarray.find_by_description(Microarray.derisi_2006_3D7_default).microarray_timepoints(:select => 'distinct(name)',
       :conditions => ['microarray_timepoints.name = ?', 'Phase']
     )
-    headings.push derisi_timepoints.collect{|t| 
+    headings.push derisi_timepoints.collect{|t|
       'DeRisi 2006 3D7 '+t.name
     }
     
@@ -6269,8 +6273,8 @@ PFL2395c
           else
             results.push 0
           end
-        end        
-      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl 
+        end
+      elsif !fivepfour.include?(code.string_id) and single = code.single_orthomcl
         # Fill with non-empty cells
         group = single.orthomcl_group
         interestings.each do |three|
@@ -6283,7 +6287,7 @@ PFL2395c
       else
         # fill with empty cells
         1..interestings.length.times do
-          results.push nil #is this correct? Can the machine learning technique deal with this? 
+          results.push nil #is this correct? Can the machine learning technique deal with this?
         end
       end
       
@@ -6527,7 +6531,7 @@ PFL2395c
     
     microarray = Microarray.find_or_create_by_description(Microarray::WINZELER_2005_GAMETOCYTE_NAME)
     
-    FasterCSV.foreach("#{DATA_DIR}/falciparum/microarray/WinzelerGametocyte/AllData.csv", 
+    FasterCSV.foreach("#{DATA_DIR}/falciparum/microarray/WinzelerGametocyte/AllData.csv",
       :col_sep => "\t", :headers => :first_row) do |row|
       
       raise if columns.length != row.length #checking
@@ -6602,8 +6606,8 @@ PFL2395c
     )
     
     [
-      :tmhmm, 
-      #      :tmpred, 
+      :tmhmm,
+      #      :tmpred,
       #      :toppred
     ].each do |predictor|
       FasterCSV.open("#{PHD_DIR}/yet_another_florian/#{predictor}.csv", "w", :col_sep => "\t") do |csv|
@@ -6852,22 +6856,22 @@ PFL2395c
     end
     
     r = RSRuby.instance
-    puts AminoAcidSequence::AMINO_ACIDS.collect{|amino_acid| 
+    puts AminoAcidSequence::AMINO_ACIDS.collect{|amino_acid|
       e = exporteds[amino_acid]
       l = localiseds[amino_acid]
       p = populations[amino_acid]
       kep = r.ks_test(e,p)
       klp = r.ks_test(l,p)
       [
-        amino_acid, 
-        kep['statistic']['D']-klp['statistic']['D'], 
-        kep['statistic']['D'], 
+        amino_acid,
+        kep['statistic']['D']-klp['statistic']['D'],
+        kep['statistic']['D'],
         klp['statistic']['D'],
-        kep['p.value']-klp['p.value'], 
-        kep['p.value'], 
+        kep['p.value']-klp['p.value'],
+        kep['p.value'],
         klp['p.value'],
       ]
-    }.sort{|a,b| 
+    }.sort{|a,b|
       b[1]<=>a[1]
     }.collect{|e|
       e.join("\t")
@@ -6916,13 +6920,13 @@ PFL2395c
     # Localisation
     rarff_relation.attributes[0].type = "{exported,not_exported}"
     
-    puts rarff_relation.to_arff    
+    puts rarff_relation.to_arff
   end
   
   # Find all proteins that are contained in the ribosomes, for use in the
   # 2nd tier dataset
   def ribosomal_protein_search
-    CodingRegion.falciparum.all(:include => :annotation, :conditions => ['annotation like ? or annotation like ?', "%ribosom%", "%Ribosom%"]).sort{|a,b| 
+    CodingRegion.falciparum.all(:include => :annotation, :conditions => ['annotation like ? or annotation like ?', "%ribosom%", "%Ribosom%"]).sort{|a,b|
       a.annotation.annotation <=> b.annotation.annotation}.each do |code|
       if code.aaseq.nil?
         $stderr.puts "No amino acid sequence found for #{code.string_id}"
@@ -6942,7 +6946,7 @@ PFL2395c
     end
   end
   
-  # Get out all the falciparum 
+  # Get out all the falciparum
   def yeast_ribosomal_proteome_fasta
     codes = []
     FasterCSV.open("#{PHD_DIR}/ribosomes/Scerevisiae.gene_association", :col_sep => "\t").each do |row|

@@ -441,8 +441,12 @@ PFI1740c).include?(f)
       'Localisation in Apicomplexan Orthologues',
       'PlasmoAP?',
       'SignalP?',
-      'Transmembrane domain # (TMHMM)',
-      top_names.collect{|n| "'#{n}' Agreement"}
+      #      'Transmembrane domain # (TMHMM)',
+      'ExportPred score > 0?',
+      'Agreement with nuclear simple',
+      top_names.collect{|n| "'#{n}' Agreement"},
+      'In Lifecycle Proteomics at all?',
+      'In Lifecycle Proteomics with at least 2 peptides'
     ].flatten.join("\t")
 
     $stdin.each do |plasmodb_id|
@@ -452,8 +456,6 @@ PFI1740c).include?(f)
       if code.nil?
         puts "Couldn't find this gene ID"
       else
-        puts code.amino_acid_sequence.exportpred.predicted?
-        next
         orth_str = nil
         begin
           localised_orths = code.localised_apicomplexan_orthomcl_orthologues
@@ -476,12 +478,18 @@ PFI1740c).include?(f)
           orth_str,
           code.plasmo_a_p.signal?,
           code.signalp_however.signal?,
-          code.tmhmm.transmembrane_domains.length,
+          #          code.tmhmm.transmembrane_domains.length,
+          code.amino_acid_sequence.exportpred.predicted?,
+          code.agreement_with_top_level_localisation_simple(
+            TopLevelLocalisation.find_by_name('nucleus')
+          ),
           top_names.collect{|top_name|
             code.agreement_with_top_level_localisation(
               TopLevelLocalisation.find_by_name(top_name)
             )
-          }
+          },
+          code.proteomics(nil, 1).length > 0,
+          code.proteomics.length > 0
         ].flatten.join("\t")
       end
     end
@@ -548,5 +556,114 @@ PFI1740c).include?(f)
 
       puts '----------------------------------------------------'
     end
+  end
+
+  def pfmpred_to_plasmodb_ids(filename =
+      "#{DATA_DIR}/Plasmodium falciparum/pfmpred/mito-40")
+    Bio::FlatFile.foreach(filename) do |entry|
+      codes = CodingRegion.falciparum.all(
+        :joins => :amino_acid_sequence,
+        :conditions => [
+          'sequence = ?', entry.seq
+        ]
+      )
+      if codes.length == 1
+        puts [
+          entry.definition,
+          'yes',
+          codes[0].string_id,
+          codes[0].annotation.annotation,
+          codes[0].localisation_english
+        ].join("\t")
+      elsif codes.length == 0
+        plasmo = AminoAcidSequence.new(:sequence => entry.seq).best_blast_hit
+        if plasmo.nil?
+          puts [
+            entry.definition,
+            'no',
+            'no hits'
+          ]
+        else
+          code = CodingRegion.find_by_string_id(plasmo.gsub(/^psu\|/,''))
+          raise unless code
+          puts [
+            entry.definition,
+            'no',
+            code.string_id,
+            code.annotation.annotation,
+            code.localisation_english
+          ].join("\t")
+        end
+      else
+        raise #doesn't happen in practise
+        puts [
+          entry.definition,
+          codes.reach.string_id.retract
+        ].flatten
+      end
+    end
+  end
+
+  def which_proteins_to_localise
+    # must be a 1 to 1 correspondence in the orthomcl group between toxo and
+    # falciparum
+    codes = OrthomclGroup.all_overlapping_groups(%w(tgon pfal)).select {|group|
+      group.orthomcl_genes.code('pfal').count == 1 and
+        group.orthomcl_genes.code('tgon').count == 1
+    }
+    $stderr.puts "Found #{codes.length} with 1 to 1 orthomcl genes"
+    
+    codes.collect! {|group|
+      begin
+        [
+          group.orthomcl_genes.code('pfal').first.single_code!,
+          group.orthomcl_genes.code('tgon').first.single_code!
+        ]
+      rescue OrthomclGene::UnexpectedCodingRegionCount
+        [nil, nil]
+      end
+    }
+
+    codes.reject! { |a|
+      a[0].nil? or a[1].nil?
+    }
+    $stderr.puts "After mapping to coding regions, found #{codes.length}"
+
+    # must not be localised currently
+    codes.reject! do |pair|
+      pair[0].localised_apicomplexan_orthomcl_orthologues #accounts for itself as well as the other gene in the group
+      pair.collect {|e|
+        e.expression_contexts.count
+      }.sum > 0
+    end
+    $stderr.puts "After making sure none are already localised, found #{codes.length}"
+
+    codes = codes.select do |pair|
+      pair[0].gene.scaffold.name.match(/Pf3D7/) and pair[1].gene.scaffold.name.match(/TGME49/)
+    end
+    $stderr.puts "After removing non-nuclear encoded genes, found #{codes.length}"
+
+    # must be predicted as nuclear or mitochondria by falg
+    codes.each do |pair|
+      puts [
+        pair[0].string_id,
+        pair[1].string_id,
+      ].join("\t")
+    end
+  end
+
+  def safe_proteins
+    puts PlasmodbGeneList.find_by_description(PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME).coding_regions.select{|c|
+      c.topsap.length == 1 and c.topsap[0].name == 'nucleus'
+    }.reach.string_id.join(' ')
+  end
+
+  def quick_delete(species_name)
+    CodingRegion.s(species_name).all.each do |code|
+      code.orthomcl_gene_coding_regions.all.reach.destroy
+      code.delete
+    end
+
+    Species.find_by_name(species_name).delete
   end
 end

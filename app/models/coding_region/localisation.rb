@@ -41,4 +41,27 @@ class CodingRegion < ActiveRecord::Base
       end
     end
   end
+
+  # like CodingRegion#agreement_with_top_level_localisation, except only return
+  # these strings: agree, disagree, conflict, "" (for not localised)
+  def agreement_with_top_level_localisation_simple(top_level_localisation)
+    agreement = agreement_with_top_level_localisation(top_level_localisation)
+    if [
+        "agree but not exclusively",
+        "agree exclusively"
+      ].include? agreement
+      return 'agree'
+    elsif [
+        "disagree specifically",
+        "disagree but not specifically"
+      ].include? agreement
+      return 'disagree'
+    elsif agreement == 'conflicting'
+      return 'conflict'
+    elsif agreement == 'not localised'
+      return nil
+    else
+      raise #bad programming has happened
+    end
+  end
 end

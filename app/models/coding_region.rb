@@ -1241,6 +1241,40 @@ class CodingRegion < ActiveRecord::Base
         a.gene_mapping_comments.match(/gene model inconsistent/)
     }.empty?
   end
+
+  # return the experiments if is 2 or more peptides in any of the
+  # P. falciparum lifecycle proteomics experiments. You can change the
+  # experiments or miin number of peptides if you'd like
+  def proteomics(
+      proteomic_experiment_names = [
+        ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME,
+        ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME,
+        ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_SPOROZOITE_NAME,
+        ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME,
+      ],
+      min_peptides = 2)
+    proteomic_experiment_names ||= [
+      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME,
+      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME,
+      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_SPOROZOITE_NAME,
+      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME,
+    ]
+      
+    ProteomicExperiment.all(
+      :joins => :proteomic_experiment_peptides,
+      :conditions => [
+        "proteomic_experiments.name in #{proteomic_experiment_names.to_sql_in_string} and coding_region_id = ?",
+        id
+      ]
+    ).select do |experiment|
+      ProteomicExperimentPeptide.count(
+        :conditions => [
+          'coding_region_id = ? and proteomic_experiment_id = ?',
+          id, experiment.id
+        ]
+      ) >= min_peptides
+    end
+  end
 end
 
 
