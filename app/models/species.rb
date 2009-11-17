@@ -98,6 +98,36 @@ class Species < ActiveRecord::Base
     TOXOPLASMA_GONDII_NAME => 'Tg',
   }
 
+  PLASMODB_SPECIES_NAMES = [
+    FALCIPARUM,
+    VIVAX,
+    BERGHEI_NAME,
+    YOELII_NAME,
+    CHABAUDI_NAME,
+    KNOWLESI_NAME,
+  ]
+
+  TOXODB_SPECIES_NAMES = [
+    TOXOPLASMA_GONDII_NAME,
+    NEOSPORA_CANINUM_NAME
+  ]
+
+  CRYPTODB_SPECIES_NAMES = [
+    CRYPTOSPORIDIUM_HOMINIS_NAME,
+    CRYPTOSPORIDIUM_PARVUM_NAME,
+    CRYPTOSPORIDIUM_MURIS_NAME
+  ]
+
+  named_scope :plasmodb, {
+    :conditions => "species.name in #{PLASMODB_SPECIES_NAMES.to_sql_in_string}"
+  }
+  named_scope :toxodb, {
+    :conditions => "species.name in #{TOXODB_SPECIES_NAMES.to_sql_in_string}"
+  }
+  named_scope :cryptodb, {
+    :conditions => "species.name in #{CRYPTODB_SPECIES_NAMES.to_sql_in_string}"
+  }
+
   # deprecated, because orthomcl now uses four letters for each species
   def update_known_three_letters
     ORTHOMCL_THREE_LETTERS.each do |name, three|
@@ -174,29 +204,15 @@ class Species < ActiveRecord::Base
   end
 
   def plasmodb?
-    [
-      FALCIPARUM,
-      VIVAX,
-      BERGHEI_NAME,
-      YOELII_NAME,
-      CHABAUDI_NAME,
-      KNOWLESI_NAME,
-    ].include?(name)
+    PLASMODB_SPECIES_NAMES.include?(name)
   end
 
   def toxodb?
-    [
-      TOXOPLASMA_GONDII_NAME,
-      NEOSPORA_CANINUM_NAME
-    ].include?(name)
+    TOXODB_SPECIES_NAMES.include?(name)
   end
 
   def cryptodb?
-    [
-      CRYPTOSPORIDIUM_HOMINIS_NAME,
-      CRYPTOSPORIDIUM_PARVUM_NAME,
-      CRYPTOSPORIDIUM_MURIS_NAME
-    ].include?(name)
+    CRYPTODB_SPECIES_NAMES.include?(name)
   end
 
   # Find the species from the gene name, assuming it has a

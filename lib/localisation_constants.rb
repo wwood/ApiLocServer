@@ -350,7 +350,7 @@ module LocalisationConstants
         'peripheral',
         'sporozoite surface',
         'apicoplast',
-        'wall-forming body type ii',
+        'wall forming body type ii',
         'cytosol',
         'parasitophorous vacuole',
         'parasitophorous vacuole membrane',
@@ -363,6 +363,8 @@ module LocalisationConstants
         'electron dense collar',
         'adjacent to mitochondrion',
         'anterior adjacent to mitochondria',
+        'intracellular',
+        'host tissue',
       ]
     },
     Species::CRYPTOSPORIDIUM_PARVUM_NAME => [
@@ -588,7 +590,9 @@ module LocalisationConstants
         'pvm' => 'parasitophorous vacuole membrane',
         'cytosol in merozoite' => 'merozoite cytosol',
         'apex' => 'apical',
-        'free end of imc' => 'free end of inner membrane complex'
+        'free end of imc' => 'free end of inner membrane complex',
+        'wfbii' => 'wall forming body type ii',
+        'wall-forming body type ii' => 'wall forming body type ii',
       }
     },
     Species::NEOSPORA_CANINUM_NAME => {

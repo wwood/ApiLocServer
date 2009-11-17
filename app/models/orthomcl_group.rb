@@ -33,7 +33,7 @@ class OrthomclGroup < ActiveRecord::Base
     end
     
     # add the conditions, for the run, the join, and the name like
-    sql += " where run.name = '#{OrthomclRun.official_run_v2_name}'"
+    sql += " where run.name = '#{OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME}'"
     orthomcl_species_identifiers.each do |spid|
       ogogor_table = "ogogor_#{spid}"
       sql += " and #{spid}.orthomcl_name like '#{spid}%'"+

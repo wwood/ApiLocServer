@@ -603,4 +603,67 @@ PFI1740c).include?(f)
       end
     end
   end
+
+  def which_proteins_to_localise
+    # must be a 1 to 1 correspondence in the orthomcl group between toxo and
+    # falciparum
+    codes = OrthomclGroup.all_overlapping_groups(%w(tgon pfal)).select {|group|
+      group.orthomcl_genes.code('pfal').count == 1 and
+        group.orthomcl_genes.code('tgon').count == 1
+    }
+    $stderr.puts "Found #{codes.length} with 1 to 1 orthomcl genes"
+    
+    codes.collect! {|group|
+      begin
+        [
+          group.orthomcl_genes.code('pfal').first.single_code!,
+          group.orthomcl_genes.code('tgon').first.single_code!
+        ]
+      rescue OrthomclGene::UnexpectedCodingRegionCount
+        [nil, nil]
+      end
+    }
+
+    codes.reject! { |a|
+      a[0].nil? or a[1].nil?
+    }
+    $stderr.puts "After mapping to coding regions, found #{codes.length}"
+
+    # must not be localised currently
+    codes.reject! do |pair|
+      pair[0].localised_apicomplexan_orthomcl_orthologues #accounts for itself as well as the other gene in the group
+      pair.collect {|e|
+        e.expression_contexts.count
+      }.sum > 0
+    end
+    $stderr.puts "After making sure none are already localised, found #{codes.length}"
+
+    codes = codes.select do |pair|
+      pair[0].gene.scaffold.name.match(/Pf3D7/) and pair[1].gene.scaffold.name.match(/TGME49/)
+    end
+    $stderr.puts "After removing non-nuclear encoded genes, found #{codes.length}"
+
+    # must be predicted as nuclear or mitochondria by falg
+    codes.each do |pair|
+      puts [
+        pair[0].string_id,
+        pair[1].string_id,
+      ].join("\t")
+    end
+  end
+
+  def safe_proteins
+    puts PlasmodbGeneList.find_by_description(PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME).coding_regions.select{|c|
+      c.topsap.length == 1 and c.topsap[0].name == 'nucleus'
+    }.reach.string_id.join(' ')
+  end
+
+  def quick_delete(species_name)
+    CodingRegion.s(species_name).all.each do |code|
+      code.orthomcl_gene_coding_regions.all.reach.destroy
+      code.delete
+    end
+
+    Species.find_by_name(species_name).delete
+  end
 end
