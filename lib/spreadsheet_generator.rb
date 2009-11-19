@@ -48,9 +48,19 @@ class SpreadsheetGenerator
   end
 
   def arff_falciparum
-    data = generate_spreadsheet(CodingRegion.falciparum.all) do |code|
-      @headings.push 'StringID' if @first
-      @current_row.push code.string_id  # Top level localisations
+    data = generate_spreadsheet(
+      CodingRegion.falciparum_nuclear_encoded.all(
+        :joins => :amino_acid_sequence,
+        :conditions => 'sequences.sequence is not null',
+        :include => [
+          :wolf_psort_predictions,
+          {:orthomcl_genes => [:orthomcl_groups, :orthomcl_run]}
+        ],
+        :limit => 20
+      )
+    ) do |code|
+      @headings.push 'Localisation' if @first
+      @current_row.push nil
       check_headings
     end
 
@@ -61,7 +71,7 @@ class SpreadsheetGenerator
     end
 
     # Make some attributes noiminal instead of String
-    rarff_relation.set_string_attributes_to_nominal
+    rarff_relation.set_string_attributes_to_nominal((0..(data[0].length)).reject{|a| a==@identifier_column_index})
 
     puts rarff_relation.to_arff
   end
@@ -71,24 +81,24 @@ class SpreadsheetGenerator
       'exported',
       'mitochondria',
       'apicoplast',
-      'cytosol',
+      'cytosplasm',
       'nucleus',
       'endoplasmic reticulum',
       'merozoite surface',
-      'inner membrane complex',
+      #      'inner membrane complex',
       'apical'
     ]
     
     codes = PlasmodbGeneList.find_by_description(
       PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
     ).coding_regions.select do |code|
-      code.tops.length == 1 and eight_classes.include?(code.tops[0].name)
+      code.topsap.length == 1 and eight_classes.include?(code.tops[0].name)
     end
     #    codes = [codes[0],codes[1]]
 
     data = generate_spreadsheet(codes) do |code|
       @headings.push 'Localisation' if @first
-      @current_row.push code.tops[0].name.gsub(' ','_')  # Top level localisations
+      @current_row.push code.topsap[0].name.gsub(' ','_')  # Top level localisations
       check_headings
     end
 
@@ -99,7 +109,7 @@ class SpreadsheetGenerator
     end
 
     # Make some attributes noiminal instead of String
-    rarff_relation.set_string_attributes_to_nominal
+    rarff_relation.set_string_attributes_to_nominal((0..(data[0].length)).reject{|a| a==@identifier_column_index})
 
     puts rarff_relation.to_arff
   end
@@ -160,31 +170,16 @@ class SpreadsheetGenerator
       %w(22 23 47 49).include?(timepoint.name.gsub(/^Timepoint /,''))
     end
     
-    # genes that are understandably not in the orthomcl databases, because
-    # they were invented in plasmodb 5.4 and weren't present in 5.2. Might be worth investigating
-    # if any of them has any old names that were included, but meh for the moment.
-    fivepfour = ['PFL0040c', 'PF14_0078', 'PF14_0744','PF10_0344','PFD1150c','PFD1145c','PFD0110w','PFI1780w','PFI1740c','PFI0105c','PFI0100c','MAL7P1.231']
-    # Genes that have 2 orthomcl entries but only 1 plasmoDB entry
-    merged_genes = ['PFD0100c']
-    
     # For all genes that only have 1 localisation and that are non-redundant
     coding_regions.each do |code|
       @finished = false
-      #    CodingRegion.species_name(Species.falciparum_name).all(
-      #      :select => 'distinct(coding_regions.*)',
-      #      :joins => {:expressed_localisations => :malaria_top_level_localisation}
-      #    ).each do |code|
+      @current_row = []
 
-      # Commented out below line, because it is too restrictive. This responsibility
-      # is now defered to the parent method.
-      #      next unless code.uniq_top?
-      
-      #      @headings.push 'PlasmoDB ID' if @first
-      #      'Annotation',
-      @current_row = [
-        #        code.string_id,
-        #        code.annotation.annotation
-      ]
+      if @first
+        @headings.push 'PlasmoDB ID'
+        @identifier_column_index = @headings.length - 1
+      end
+      @current_row.push "'#{code.string_id}'"
       check_headings
       
       #      results.push code.amino_acid_sequence.sequence,
@@ -210,9 +205,13 @@ class SpreadsheetGenerator
         'WoLF_PSORT prediction Animal',
         'WoLF_PSORT prediction Fungi'] if @first
       ['plant','animal','fungi'].each do |organism|
-        c = code.wolf_psort_localisation(organism)
+        c = code.wolf_psort_localisation!(organism)
         @current_row.push c
       end
+      check_headings
+
+      @headings.push 'Plasmit' if @first
+      @current_row.push code.plasmit?  # Top level localisations
       check_headings
       
       # official orthomcl

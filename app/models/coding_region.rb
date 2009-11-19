@@ -129,7 +129,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :export_pred_cache, :dependent => :destroy
   has_one :signal_p_cache, :dependent => :destroy
   has_one :segmasker_low_complexity_percentage, :dependent => :destroy
-  has_one :plasmit_results, :dependent => :destroy
+  has_one :plasmit_result, :dependent => :destroy
   
   # website stuff
   has_many :user_comments
@@ -202,6 +202,14 @@ class CodingRegion < ActiveRecord::Base
   named_scope :falciparum, {
     :joins => {:gene => {:scaffold => :species}},
     :conditions => ['species.name = ?', Species.falciparum_name]
+  }
+  named_scope :falciparum_nuclear_encoded, {
+    :joins => {:gene => {:scaffold => :species}},
+    :conditions => [
+      "species.name = ? and scaffolds.name not in #{
+      %w(apidb|PFC10_API_IRAB apidb|M76611).to_sql_in_string
+}",
+      Species.falciparum_name]
   }
   named_scope :list, lambda {|gene_list_name|
     {
@@ -825,6 +833,19 @@ class CodingRegion < ActiveRecord::Base
       end
     end
   end
+
+  # Retrieve but not calculate the winning WoLF_PSORT localisation for this coding
+  # region, given the sequence is already associated with this coding region
+  def wolf_psort_localisation!(psort_organism_type)
+    # Check if they have already been cached
+    preds = wolf_psort_predictions.all(:conditions => ['organism_type =?', psort_organism_type], :order => 'score desc')
+    if preds.length > 0
+      # cached
+      return preds[0].localisation
+    else
+     return nil
+    end
+  end
   
   # All the highest localisations, including those that came second that really
   # have the same score as the top one. If a dual localisation is there, then both are returned
@@ -1054,6 +1075,10 @@ class CodingRegion < ActiveRecord::Base
   
   def plasmo_a_p
     amino_acid_sequence.plasmo_a_p
+  end
+
+  def plasmit?
+    plasmit_result.nil? ? nil : plasmit_result.predicted?
   end
   
   # Comments on http://railscasts.com/episodes/35 says this is the way to make
