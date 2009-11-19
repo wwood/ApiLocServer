@@ -435,18 +435,19 @@ PFI1740c).include?(f)
 
     puts [
       'PlasmoDB',
-      'Annotation',
-      'Common names',
-      'Localisation(s)',
-      'Localisation in Apicomplexan Orthologues',
-      'PlasmoAP?',
-      'SignalP?',
-      #      'Transmembrane domain # (TMHMM)',
-      'ExportPred score > 0?',
+      #      'Annotation',
+      #      'Common names',
+      #      'Localisation(s)',
+      #      'Localisation in Apicomplexan Orthologues',
+      #      'PlasmoAP?',
+      #      'SignalP?',
+      #      #      'Transmembrane domain # (TMHMM)',
+      #      'ExportPred score > 0?',
       'Agreement with nuclear simple',
+      'Agreement with ER simple',
       top_names.collect{|n| "'#{n}' Agreement"},
-      'In Lifecycle Proteomics at all?',
-      'In Lifecycle Proteomics with at least 2 peptides'
+      #      'In Lifecycle Proteomics at all?',
+      #      'In Lifecycle Proteomics with at least 2 peptides'
     ].flatten.join("\t")
 
     $stdin.each do |plasmodb_id|
@@ -456,41 +457,63 @@ PFI1740c).include?(f)
       if code.nil?
         puts "Couldn't find this gene ID"
       else
-        orth_str = nil
-        begin
-          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
-          if localised_orths.nil?
-            orth_str = 'no entry in OrthoMCL v3'
-          else
-            orth_str = localised_orths.reject{
-              |c| c.id == code.id
-            }.reach.localisation_english.join(' | ')
-          end
-        rescue OrthomclGene::UnexpectedCodingRegionCount
-          orth_str = 'multiple OrthoMCL orthologues found'
-        end
+        #        orth_str = nil
+        #        begin
+        #          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
+        #          if localised_orths.nil?
+        #            orth_str = 'no entry in OrthoMCL v3'
+        #          else
+        #            orth_str = localised_orths.reject{
+        #              |c| c.id == code.id
+        #            }.reach.localisation_english.join(' | ')
+        #          end
+        #        rescue OrthomclGene::UnexpectedCodingRegionCount
+        #          orth_str = 'multiple OrthoMCL orthologues found'
+        #        end
 
 
         puts [
-          code.annotation.annotation,
-          code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', '),
-          code.localisation_english,
-          orth_str,
-          code.plasmo_a_p.signal?,
-          code.signalp_however.signal?,
+          #          code.annotation.annotation,
+          #          code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', '),
+          #          code.localisation_english,
+          #          orth_str,
+          #          code.plasmo_a_p.signal?,
+          #          code.signalp_however.signal?,
           #          code.tmhmm.transmembrane_domains.length,
-          code.amino_acid_sequence.exportpred.predicted?,
+          #          code.amino_acid_sequence.exportpred.predicted?,
           code.agreement_with_top_level_localisation_simple(
             TopLevelLocalisation.find_by_name('nucleus')
+          ),
+          code.agreement_with_top_level_localisation_simple(
+            TopLevelLocalisation.find_by_name('endoplasmic reticulum')
           ),
           top_names.collect{|top_name|
             code.agreement_with_top_level_localisation(
               TopLevelLocalisation.find_by_name(top_name)
             )
           },
-          code.proteomics(nil, 1).length > 0,
-          code.proteomics.length > 0
+          #          code.proteomics(nil, 1).length > 0,
+          #          code.proteomics.length > 0
         ].flatten.join("\t")
+      end
+    end
+  end
+
+  def nuclear_or_er
+    CodingRegion.falciparum.all.each do |code|
+      nuc = code.agreement_with_top_level_localisation_simple(
+        TopLevelLocalisation.find_by_name('nucleus')
+      )
+      er = code.agreement_with_top_level_localisation_simple(
+        TopLevelLocalisation.find_by_name('endoplasmic reticulum')
+      )
+      print "#{code.string_id}\t"
+      if nuc == 'agree' or er == 'agree'
+        puts 'agree'
+      elsif nuc == 'disagree' or er == 'disagree'
+        puts 'disagree'
+      else
+        puts
       end
     end
   end
@@ -665,5 +688,49 @@ PFI1740c).include?(f)
     end
 
     Species.find_by_name(species_name).delete
+  end
+
+  def falciparum_first30
+    CodingRegion.falciparum.all(
+      :joins => :amino_acid_sequence,
+      :include => :amino_acid_sequence
+    ).each do |code|
+      aa = code.amino_acid_sequence
+      next unless aa.sequence.length > 30
+      puts ">#{code.string_id}"
+      puts aa.sequence[0..29]
+    end
+  end
+
+  def plasmit_falciparum
+    plasmit_filename = "#{DATA_DIR}/falciparum/plasmit/20091117.html"
+    `rm #{plasmit_filename}`
+
+    CodingRegion.falciparum.all(
+      :joins => :amino_acid_sequence,
+      :include => :amino_acid_sequence
+    ).each do |code|
+      aa = code.amino_acid_sequence
+      # only the first 24 amino acids are used, but given that the length
+      # output recorded for a 24 amino acid length protein is 23, I'm playing
+      # it safe here
+      next unless aa.sequence.length > 25
+      Tempfile.open('plasmit') do |tempfile|
+        `wget 'http://gecco.org.chemie.uni-frankfurt.de/cgi-bin/plasmit/runanalysis.cgi?output=simple&sequence=>#{code.string_id}%0A#{aa.sequence[0..25]}' -O #{tempfile.path}`
+        `cat #{tempfile.path} >>#{plasmit_filename}`
+      end
+    end
+  end
+
+  def upload_plasmit_results
+    File.foreach("#{DATA_DIR}/falciparum/plasmit/20091117.html") do |line|
+      next unless line.match(/Lines read with presumably/)
+      matches = line.match(/>>(.*?)<\/TD><TD>(.*?)</)
+      raise unless matches
+      code = CodingRegion.ff(matches[1]) or raise
+      PlasmitResult.find_or_create_by_coding_region_id_and_prediction_string(
+        code.id, matches[2]
+      ) or raise
+    end
   end
 end
