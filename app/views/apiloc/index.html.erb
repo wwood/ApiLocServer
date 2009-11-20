@@ -3,9 +3,29 @@
 <% category_counter = 0 %>
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
-   <form action="apiloc/gene">
-     <label>Gene ID:</label><input type="text" name="id" value="PF11_0344"/><input type="submit" value="search"/> There is also a <%= link_to 'BLAST server', '/blast/blast_link.cgi' %>.
-   </form>
+  <form action="apiloc/gene">
+    <label>Gene ID:</label><input type="text" name="id" value="PF11_0344"/><input type="submit" value="search"/> There is also a <%= link_to 'BLAST server', '/blast/blast_link.cgi' %>.
+  </form>
+</div>
+
+
+<div align="right" class="category<%= category_counter+=1; category_counter.odd? %>">
+  <img src="<%= image_path('apicomplexan.png') %>" alt="a model apicomplexan" usemap="#apicomplexan" border="none"/>
+  <map name="apicomplexan">
+    <area shape="rect" coords="279,0,352,19" alt="conoid" href="/apiloc/localisation/conoid"/>
+    <area shape="rect" coords="290,20,356,38" alt="apical" href="/apiloc/localisation/apical"/>
+    <area shape="rect" coords="297,41,416,62" alt="microneme" href="/apiloc/localisation/microneme"/>
+    <area shape="rect" coords="302,62,524,84" alt="microtubular network" href="/apiloc/localisation/microtubular network"/>
+    <area shape="rect" coords="306,86,566,109" alt="inner membrane complex" href="/apiloc/localisation/inner membrane complex"/>
+    <area shape="rect" coords="311,114,396,136" alt="rhoptry" href="/apiloc/localisation/rhoptry"/>
+    <area shape="rect" coords="318,146,470,166" alt="dense granule" href="/apiloc/localisation/dense granule"/>
+    <area shape="rect" coords="0,188,142,212" alt="mitochondrion" href="/apiloc/localisation/mitochondrion"/>
+    <area shape="rect" coords="28,217,142,242" alt="apicoplast" href="/apiloc/localisation/apicoplast"/>
+    <area shape="rect" coords="14,248,139,267" alt="centrosome" href="/apiloc/localisation/centrosome"/>
+    <area shape="rect" coords="20,272,141,296" alt="centrocone" href="/apiloc/localisation/centrocone"/>
+    <area shape="rect" coords="66,300,152,320" alt="nucleus" href="/apiloc/localisation/nucleus"/>
+    <area shape="rect" coords="31,326,165,366" alt="endoplasmic reticulum" href="/apiloc/localisation/endoplasmic reticulum"/>
+  </map>
 </div>
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
