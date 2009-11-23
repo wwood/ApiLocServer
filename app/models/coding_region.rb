@@ -24,6 +24,10 @@ class CodingRegion < ActiveRecord::Base
   has_many :plasmodb_gene_lists, :through => :plasmodb_gene_list_entries
   has_many :localisations, :through => :coding_region_localisations
   has_many :coding_region_localisations, :dependent => :destroy
+  has_many :curated_top_level_localisations, :dependent => :destroy
+  has_many :curates,
+    :through => :curated_top_level_localisations,
+    :source => :top_level_localisation
   has_many :orthomcl_gene_coding_regions, :dependent => :destroy
   has_many :orthomcl_genes, :through => :orthomcl_gene_coding_regions
   has_one :annotation, :dependent => :destroy

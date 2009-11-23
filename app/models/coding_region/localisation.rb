@@ -64,4 +64,12 @@ class CodingRegion < ActiveRecord::Base
       raise #bad programming has happened
     end
   end
+
+  def apilocalisations
+    if curates.empty?
+      return topsap
+    else
+      return curates
+    end
+  end
 end

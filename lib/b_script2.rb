@@ -733,4 +733,53 @@ PFI1740c).include?(f)
       ) or raise
     end
   end
+
+  # print out each coding region that has been localised, and put them into
+  # columns so that manual curation is easy enough
+  def manual_localisation_sheet
+    puts [
+      'PlasmoDB ID',
+      'Name',
+      'Manual Curation',
+      'Top Level Localisation',
+      'Full Localisation'
+    ].join("\t")
+
+    CodingRegion.falciparum.all(
+      :joins => [
+        :expressed_localisations,
+        :plasmodb_gene_lists
+      ],
+      :conditions => ['plasmodb_gene_lists.description = ?',
+        PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+      ],
+      :select => 'distinct(coding_regions.*)'
+    ).each do |code|
+      puts [
+        code.string_id,
+        code.annotation.annotation,
+        code.curated_top_level_localisations.nil? ? 
+          nil :
+          code.curated_top_level_localisations.reach.name.sort.join(', '),
+        code.topsap.reach.name.join(', '),
+        code.localisation_english
+      ].join("\t")
+    end
+  end
+
+  def upload_manual_localisation_sheet(filename="#{PHD_DIR}/apiloc/manual_curation/confirmation_commented.csv")
+    FasterCSV.foreach(filename, :headers => true, :col_sep => "\t") do |row|
+      unless row[2].nil?
+        curations = row[2].strip.split(', ')
+        code = CodingRegion.ff(row[0]) or raise Exception, "Coudn't find #{row[0]}"
+        curations.each do |curate|
+          top = TopLevelLocalisation.find_by_name(curate)
+          raise unless top
+          CuratedTopLevelLocalisation.find_or_create_by_coding_region_id_and_top_level_localisation_id(
+            code.id, top.id
+          ) or raise
+        end
+      end
+    end
+  end
 end

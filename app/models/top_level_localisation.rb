@@ -8,6 +8,8 @@ class TopLevelLocalisation < ActiveRecord::Base
   has_many :apiloc_localisations,
     :through => :apiloc_localisation_top_level_localisations,
     :source => :localisation
+
+  has_many :curated_top_level_localisations
   
   named_scope :known, lambda { { :conditions => ['name in (?)', TOP_LEVEL_LOCALISATIONS] } }
   

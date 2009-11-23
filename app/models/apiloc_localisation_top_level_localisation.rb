@@ -7,9 +7,9 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'apicoplast membrane',
       'apicoplast periphery',
       'innermost apicoplast membrane',
-      'near apicoplast membranes',
+      #      'near apicoplast membranes', # the only example of this ferrochelatase, which isn't apicoplast.
       'outermost apicoplast membrane',
-
+      'nowhere except apicoplast'
     ],
 
     'apical' => [
@@ -41,6 +41,7 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'mononeme',
       'nascent conoid',
       'nascent rhoptry',
+      'nowhere except rhoptry',
       'pellicle',
       'pellicle membrane',
       'peripheral of microneme',
@@ -50,13 +51,16 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'rhoptry neck',
       'sub-apical',
       'sub-pellicular region at the anterior',
-    ],
 
-    'merozoite surface' => [
+      # merged merozoite surface locs below
+      #      'merozoite surface' => [
+      'merozoite surface',
       'apical plasma membrane',
       'apical surface',
       'around merozoite',
       'merozoite surface',
+      #      ],
+
     ],
 
     'inner membrane complex' => [
