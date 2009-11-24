@@ -134,6 +134,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :signal_p_cache, :dependent => :destroy
   has_one :segmasker_low_complexity_percentage, :dependent => :destroy
   has_one :plasmit_result, :dependent => :destroy
+  has_one :weka_prediction, :dependent => :destroy
   
   # website stuff
   has_many :user_comments

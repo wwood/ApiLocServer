@@ -782,4 +782,27 @@ PFI1740c).include?(f)
       end
     end
   end
+
+  # For files output by weka and manually chopped together using openoffice.
+  def upload_weka_prediction_csv(filename = "#{PHD_DIR}/weka/second/falciparum_trained1_output.csv")
+    FasterCSV.foreach(filename, :col_sep => "\t") do |row|
+      plasmo = row[0]
+      prediction = row[3]
+      code = CodingRegion.ff(plasmo.strip) or raise
+
+      matches = prediction.strip.match(/\d\:(.*)/) or raise
+      real_prediction = matches[1]
+      fixes = {
+        'cytoplas' => 'cytoplasm',
+        'apicopla' => 'apicoplast',
+        'mitochon' => 'mitochondrion',
+        'endoplas' => 'endoplasmic reticulum',
+      }
+      real_prediction = fixes[matches[1]] if fixes[matches[1]]
+
+      WekaPrediction.find_or_create_by_coding_region_id_and_measurement(
+        code.id, real_prediction
+      )
+    end
+  end
 end
