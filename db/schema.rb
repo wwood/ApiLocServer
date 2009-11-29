@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20091117055719) do
+ActiveRecord::Schema.define(:version => 20091122234451) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -249,6 +249,16 @@ ActiveRecord::Schema.define(:version => 20091117055719) do
   end
 
   add_index "conserved_domains", ["coding_region_id", "type"], :name => "index_conserved_domains_on_coding_region_id_and_type"
+
+  create_table "curated_top_level_localisations", :force => true do |t|
+    t.integer  "coding_region_id",          :null => false
+    t.integer  "top_level_localisation_id", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "curated_top_level_localisations", ["coding_region_id", "top_level_localisation_id"], :name => "index_curated_top_level_localisations_on_coding_region_id_and_t", :unique => true
+  add_index "curated_top_level_localisations", ["coding_region_id"], :name => "index_curated_top_level_localisations_on_coding_region_id"
 
   create_table "derisi20063d7logmean", :force => true do |t|
     t.datetime "created_at"

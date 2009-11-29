@@ -177,6 +177,15 @@ class Verification
     
     
   end
+
+  def curated_top_level_localisations
+    code = CodingRegion.ff('MAL13P1.326')
+    raise unless code.curated_top_level_localisations.length == 1 and code.curates[0].name == 'mitochondrion'
+    code = CodingRegion.ff('MAL7P1.176')
+    raise unless code.curated_top_level_localisations.length == 2 and code.curates.reach.name.sort.join(', ') == 'apical, merozoite surface'
+    code = CodingRegion.ff('PF10_0155')
+    raise unless code.curated_top_level_localisations.length == 0
+  end
   
   def go
     #    uyen@uyen:~/phd/gnr$ grep '^id:' /home/uyen/phd/data/GO/20080304/gene_ontology_edit.obo |wc -l

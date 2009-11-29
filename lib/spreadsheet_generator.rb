@@ -55,8 +55,8 @@ class SpreadsheetGenerator
         :include => [
           :wolf_psort_predictions,
           {:orthomcl_genes => [:orthomcl_groups, :orthomcl_run]}
-        ],
-        :limit => 20
+        ]
+#        :limit => 20
       )
     ) do |code|
       @headings.push 'Localisation' if @first
@@ -79,12 +79,12 @@ class SpreadsheetGenerator
   def arff_eight_class
     eight_classes = [
       'exported',
-      'mitochondria',
+      'mitochondrion',
       'apicoplast',
-      'cytosplasm',
+      'cytoplasm',
       'nucleus',
       'endoplasmic reticulum',
-      'merozoite surface',
+#      'merozoite surface',
       #      'inner membrane complex',
       'apical'
     ]
@@ -92,13 +92,13 @@ class SpreadsheetGenerator
     codes = PlasmodbGeneList.find_by_description(
       PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
     ).coding_regions.select do |code|
-      code.topsap.length == 1 and eight_classes.include?(code.tops[0].name)
+      code.apilocalisations.length == 1 and eight_classes.include?(code.apilocalisations[0].name)
     end
     #    codes = [codes[0],codes[1]]
 
     data = generate_spreadsheet(codes) do |code|
       @headings.push 'Localisation' if @first
-      @current_row.push code.topsap[0].name.gsub(' ','_')  # Top level localisations
+      @current_row.push code.apilocalisations[0].name.gsub(' ','_')  # Top level localisations
       check_headings
     end
 

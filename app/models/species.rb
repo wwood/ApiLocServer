@@ -248,4 +248,17 @@ class Species < ActiveRecord::Base
       :conditions => {:localisations => {:species_id => id}}
     )
   end
+
+  # Try to return the species with the name as requested
+#  def self.method_missing(method_id)
+#    rets = Species.all(
+#      :conditions => ['name like ?', "%#{method_id.to_s}%"]
+#    )
+#    if rets.length == 1
+#      return rets[0]
+#    else
+#      # well, I tried..
+#      super
+#    end
+#  end
 end

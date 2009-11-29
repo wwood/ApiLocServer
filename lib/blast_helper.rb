@@ -12,69 +12,11 @@ class BlastHelper
     organism ||= 'apicomplexa' # in case nil is passed here
     alignment_program ||= 'blast'
 
-
-
-
-    databases = {
-      'apicomplexa' => {
-        'transcript' => 'apicomplexa.nucleotide.fa',
-        'protein' => 'apicomplexa.protein.fa',
-        'genome' => 'apicomplexa.genome.fa',
-      },
-      'yoelii' => {
-        'transcript' => "PyoeliiAllTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-        'protein' => "PyoeliiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-        'genome' => "PyoeliiGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-      },
-      'falciparum' => {
-        'transcript' => "PfalciparumAnnotatedTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-        'protein' => "PfalciparumAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-        'genome' => "PfalciparumGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-      },
-      'knowlesi' => {
-        'transcript' => "PknowlesiAllTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-        'protein' => "PknowlesiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-        'genome' => "PknowlesiGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-      },
-      'toxoplasma' => {
-        'transcript' => "TgondiiME49AnnotatedTranscripts_ToxoDB-#{TOXODB_VERSION}.fasta",
-        'protein' => "TgondiiME49AnnotatedProteins_ToxoDB-#{TOXODB_VERSION}.fasta",
-      },
-      'babesia' => {
-        'protein' => 'BabesiaWGS.fasta_with_names'
-      },
-      'neospora' => {
-        'protein' => "NeosporaCaninumAnnotatedProteins_ToxoDB-#{TOXODB_VERSION}.fasta",
-        'transcript' => "NeosporaCaninumAnnotatedTranscripts_ToxoDB-#{TOXODB_VERSION}.fasta",
-        'genome' => "NeosporaCaninumGenomic_ToxoDB-#{TOXODB_VERSION}.fasta",
-      },
-      'crypto' => {
-        'protein' => "CparvumAnnotatedProteins_CryptoDB-#{CRYPTODB_VERSION}.fasta",
-        'transcript' => "CparvumAnnotatedTranscripts_CryptoDB-#{CRYPTODB_VERSION}.fasta",
-        'genome' => "CparvumGenomic_CryptoDB-#{CRYPTODB_VERSION}.fasta",
-      },
-      'theileria' => {
-        'protein' => 'theileria.pep'
-      },
-      'berghei' => {
-        'transcript' => "PbergheiAllTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-        'protein' => "PbergheiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-        'genome' => "PbergheiGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta"
-      },
-      'chabaudi' => {
-        'transcript' => "PchabaudiAnnotatedTranscripts_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-        'protein' => "PchabaudiAnnotatedProteins_PlasmoDB-#{PLASMODB_VERSION}.fasta",
-        'genome' => "PchabaudiGenomic_PlasmoDB-#{PLASMODB_VERSION}.fasta"
-      }
-    }
-    #    p organism
-    #    p databases
-    blast_array = databases[organism]
-    #    p blast_array
+    species_data = SpeciesData.new(organism)
 
     # Some organisms don't exist yet. Reject these
     unless organism and organism
-      raise Exception, "Unknown database: #{organism}" if blast_array.nil?
+      raise Exception, "Unknown database: #{organism}" if species_data.nil?
     end
 
     program_to_database_index = {
@@ -100,38 +42,36 @@ class BlastHelper
     factory_program = nil
     factory_database = nil
 
+    # Am I dealing with a sensible database here?
+    sensible_database = false
+    unless database.nil?
+      sensible_database = %(protein transcript genome).include?(database)
+    end
+
     # only use the blast_program given if it is defined and I understand it
     if blast_program and program_to_database_index[blast_program]
-      # if no recognizable database is specified
-      if database.nil? or blast_array[database].nil?
-        # default to protein or transcript, depending on the program
-        factory_program = blast_program
-        factory_database = "/blastdb/#{blast_array[program_to_database_index[blast_program]]}"
-      else
-        logger.debug "Using what you expect: #{blast_program}, #{sequence_input}"
-        factory_program = blast_program
-        factory_database = "/blastdb/#{blast_array[database]}"
-      end
+      factory_program = blast_program
+      factory_database = species_data.send("#{program_to_database_index[blast_program]}_blast_database_path".to_sym)
     else
       if seq.moltype == Bio::Sequence::NA
-        if database.nil? or blast_array[database].nil?
-          # default to protein
-          factory_program = 'blastn'
-          factory_database = "/blastdb/#{blast_array['transcript']}"
-        else
+        if sensible_database
           # accept database as given. Choose the program to suit
           factory_program = database_to_default_programs[database][0]
-          factory_database = "/blastdb/#{blast_array[database]}"
+          factory_database = species_data.send("#{database}_blast_database_path".to_sym)
+        else
+          # default to blastn search against transcripts
+          factory_program = 'blastn'
+          factory_database = species_data.transcript_blast_database_path
         end
       elsif seq.moltype == Bio::Sequence::AA
-        if database.nil? or blast_array[database].nil?
-          # default to protein
-          factory_program = 'blastp'
-          factory_database = "/blastdb/#{blast_array['protein']}"
-        else
+        if sensible_database
           # accept database as given
           factory_program = database_to_default_programs[database][1]
-          factory_database = "/blastdb/#{blast_array[database]}"
+          factory_database = species_data.send("#{database}_blast_database_path".to_sym)
+        else
+          # default to protein
+          factory_program = 'blastp'
+          factory_database = species_data.protein_blast_database_path
         end
       end
     end
@@ -147,9 +87,9 @@ class BlastHelper
       factory.format = 0
       factory.filter = 'F'
 
-      #    # What are we doing again?
-      #      logger.debug "BLAST search: database: #{database} program #{factory.inspect}"
-      #    logger.debug("SEQUENCE: #{seq}")
+      # What are we doing again?
+      logger.debug "BLAST search: database: #{database} program #{factory.inspect}"
+      logger.debug("SEQUENCE: #{seq}")
 
       report = factory.query(seq)
       output = factory.output
