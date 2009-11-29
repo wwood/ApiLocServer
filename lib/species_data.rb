@@ -71,7 +71,7 @@ class SpeciesData
   end
 
   SOURCE_VERSIONS = {
-    'PlasmoDB' => '6.2',
+    'PlasmoDB' => '6.1',
     'ToxoDB' => '5.2',
     'CryptoDB' => '4.2'
   }
@@ -105,6 +105,10 @@ class SpeciesData
   def protein_fasta_path
     local_download_directory + '/' + protein_fasta_filename
   end
+  
+  def protein_blast_database_path
+    "/blastdb/#{protein_fasta_filename}"
+  end
 
   def transcript_fasta_filename
     if @species_data[:transcript_fasta_filename]
@@ -116,6 +120,10 @@ class SpeciesData
 
   def transcript_fasta_path
     "#{local_download_directory}/#{transcript_fasta_filename}"
+  end
+  
+  def transcript_blast_database_path
+    "/blastdb/#{transcript_fasta_filename}"
   end
 
   def gff_filename
