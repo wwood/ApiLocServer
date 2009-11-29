@@ -88,8 +88,8 @@ class BlastHelper
       factory.filter = 'F'
 
       # What are we doing again?
-      logger.debug "BLAST search: database: #{database} program #{factory.inspect}"
-      logger.debug("SEQUENCE: #{seq}")
+      #logger.debug "BLAST search: database: #{database} program #{factory.inspect}"
+      #logger.debug("SEQUENCE: #{seq}")
 
       report = factory.query(seq)
       output = factory.output
