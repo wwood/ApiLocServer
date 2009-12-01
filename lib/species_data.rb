@@ -12,6 +12,7 @@ class SpeciesData
       :sequencing_centre_abbreviation => 'tgr',
       :fasta_file_species_name => 'Plasmodium_yoelii_yoelii_str._17XNL',
       :proteins_fasta_filename => lambda {|version| "PyoeliiAnnotatedProteins_PlasmoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "PyoeliiAllTranscripts_PlasmoDB-#{version}.fasta"},
       :source => 'PlasmoDB'
     },
     'Plasmodium vivax' => {
@@ -26,6 +27,7 @@ class SpeciesData
       :sequencing_centre_abbreviation => 'psu',
       :fasta_file_species_name => 'Plasmodium_berghei_str._ANKA',
       :proteins_fasta_filename => lambda {|version| "PbergheiAnnotatedProteins_PlasmoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "PbergheiAllTranscripts_PlasmoDB-#{version}.fasta"},
       :source => 'PlasmoDB'
     },
     'Plasmodium chabaudi' => {
@@ -123,8 +125,8 @@ class SpeciesData
   end
 
   def transcript_fasta_filename
-    if @species_data[:transcript_fasta_filename]
-      return "#{@species_data[:transcript_fasta_filename].call(version)}"
+    if @species_data[:transcripts_fasta_filename]
+      return "#{@species_data[:transcripts_fasta_filename].call(version)}"
     else
       return "#{one_word_name}AnnotatedTranscripts_#{database}-#{version}.fasta"
     end
