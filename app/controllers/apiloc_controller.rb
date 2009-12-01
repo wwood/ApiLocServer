@@ -47,9 +47,13 @@ class ApilocController < ApplicationController
   end
 
   def publication
-    @publication = Publication.find_by_pubmed_id(params[:id])
-    @publication ||= Publication.find_by_url(params[:id])
-    raise Exception, "no publication found! '#{publication}'" if @publication.nil?
+    myed = params[:id]
+    @publication = Publication.find_by_pubmed_id(myed.to_i)
+    @publication ||= Publication.find_by_url(myed)
+    if @publication.nil?
+      flash[:error] = "no publication found by the pubmed or URL '#{myed}'"
+      redirect_to :action => :index
+    end
   end
 
   def localisation
@@ -57,7 +61,10 @@ class ApilocController < ApplicationController
       :joins => :expression_contexts,
       :select => 'distinct(localisations.*)'
     )
-    raise Exception, "No localisations found by the name of '#{params[:id]}'" if @localisations.length == 0
+    if @localisations.length == 0
+      flash[:error] = "No localisations found by the name of '#{params[:id]}'"
+      redirect_to :action => :index
+    end
   end
 
   def developmental_stage

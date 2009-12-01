@@ -20,6 +20,12 @@
     <% end %>
 </div>
 
+<% if ENV['UNPUBLISHED'] %>
+<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
+  
+</div>
+<% end %>
+
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
   <h3>Orthology</h3>
   <h4>OrthoMCL</h4>

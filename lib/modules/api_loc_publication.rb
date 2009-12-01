@@ -247,21 +247,26 @@ class BScript
   end
 
 
-  # Print out a fasta file of all the sequences that are in apiloc
+  # Print out a fasta file of all the sequences that are in apiloc.
+  # If a block is given it takes each coding region so that it can be transformed
+  # into a fasta sequence header as in AminiAcidSequence#fasta, otherwise
+  # a default is used.
   def apiloc_fasta(io = $stdout)
     CodingRegion.all(
       :joins => :expression_contexts
     ).uniq.each do |code|
       if code.amino_acid_sequence and code.amino_acid_sequence.sequence.length > 0
-        io.puts code.amino_acid_sequence.fasta{|code|
-          [
+        io.print ">"
+        if block_given?
+          io.puts yield(code)
+        else
+          io.puts [
             code.species.name,
             code.string_id,
             code.annotation ? code.annotation.annotation : nil
           ].join(' | ')
-        }
-        #      elsif code.string_id == CodingRegion::NO_MATCHING_GENE_MODEL
-        #        # ignore for the moment, but it is a small bug
+        end
+        io.puts code.amino_acid_sequence.sequence
       else
         $stderr.puts "Couldn't find amino acid sequence for #{code.string_id}/#{code.id}"
       end
@@ -338,8 +343,29 @@ class BScript
   end
 
   # Get all of the sequences that are recorded in ApiLoc and put them into
-  # a blast file.
-  def create_apiloc_blast_database
+  # a blast file where the hits can be identified using a -m 8 blast output
+  def create_apiloc_m8_ready_blast_database
+    File.open('/tmp/apiloc_m8_ready.protein.fa','w') do |file|
+      BScript.new.apiloc_fasta(file) do |code|
+        "#{code.species.name.gsub(' ','_')}|#{code.string_id}"
+      end
+    end
+
+    Dir.chdir('/tmp') do
+      `formatdb -i apiloc_m8_ready.protein.fa`
+
+      %w(
+        apiloc_m8_ready.protein.fa
+        apiloc_m8_ready.protein.fa.phr
+        apiloc_m8_ready.protein.fa.pin
+        apiloc_m8_ready.protein.fa.psq
+      ).each do |filename|
+        `mv #{filename} /blastdb`
+      end
+    end
+  end
+
+  def blast_genomes_against_apiloc
     
   end
 end

@@ -165,7 +165,7 @@ class SpreadsheetGenerator
     amino_acids = Bio::AminoAcid.names.keys.select{|code| code.length == 1}
     derisi_timepoints = Microarray.find_by_description(
       Microarray.derisi_2006_3D7_default
-    ).microarray_timepoints(
+    ).microarray_timepoints.all(
       :select => 'distinct(name)').select do |timepoint|
       %w(22 23 47 49).include?(timepoint.name.gsub(/^Timepoint /,''))
     end

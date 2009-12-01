@@ -427,6 +427,7 @@ module LocalisationConstants
       'close to parasitophorous vacuole membrane',
       'zygote side',
       'oocyst protrusion',
+      'oocyst capsule',
       'anterior to nucleus',
       'nucleus',
       'outer nuclear envelope',
@@ -448,6 +449,7 @@ module LocalisationConstants
       'microtubule',
       'endoplasmic reticulum',
       'transformation bulb',
+      'crystalloid',
     ],
     Species::VIVAX_NAME => [
       'surface',
@@ -457,8 +459,10 @@ module LocalisationConstants
       'microneme',
       'rhoptry',
       'cytoplasm',
+      'cytosol',
       'host cell cytoplasm',
       'nucleus',
+      'food vacuole',
     ],
     Species::YOELII_NAME => [
       'apical',
@@ -526,9 +530,12 @@ module LocalisationConstants
     Species::VIVAX_NAME => {
       'erythrocyte cytoplasm' => 'host cell cytoplasm',
       'parasite surface' => 'surface',
-      'nuclear' => 'nucleus'
+      'nuclear' => 'nucleus',
+      'lysosome' => 'food vacuole',
+      'rhoptries' => 'rhoptry',
     },
     Species::PLASMODIUM_BERGHEI_NAME => {
+      'internalized' => 'cytoplasm',
       'sporozoite trail' => 'gliding trail',
       'er' => 'endoplasmic reticulum',
       'parasite surface' => 'surface',

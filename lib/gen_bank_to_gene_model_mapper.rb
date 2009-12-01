@@ -53,7 +53,7 @@ class GenBankToGeneModelMapper
     possibly_translated = Bio::NCBI::REST::efetch(genbank_id, {:db => 'sequences', :rettype => 'fasta'})
 
     # not sure if this is necessary / too onorous
-    raise Exception if possibly_translated.kind_of?(Array)
+    raise Exception, "found an array of hits from genbank id #{genbank_id}" if possibly_translated.kind_of?(Array)
 
     fastas = [Bio::FastaFormat.new(possibly_translated)]
 

@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  coding_region_id: 1
+  hit_coding_region_id: 1
+  evalue: 
+
+two:
+  coding_region_id: 1
+  hit_coding_region_id: 1
+  evalue: 

@@ -107,19 +107,8 @@ class BScript
   # GO terms associated and give a yield for further uploads on a gene
   # entry basis.
   def upload_gene_information_table(species, gzfile)
-    upload_gene_information_table_plumbing(gzfile) do |info|
-      # find the gene
-      gene_id = info.get_info('ID')
-      if info.get_info('Gene') # Toxo is 'ID', whereas falciparum is 'Gene'.
-        raise unless gene_id.nil?
-        gene_id = info.get_info('Gene')
-      end
-      code = CodingRegion.fs(gene_id, species.name)
-      unless code and code.species.name == species.name
-        $stderr.puts "Couldn't find coding region #{gene_id}, skipping"
-        next
-      end
-
+    upload_gene_information_table_coding_region(species, gzfile) do |info, code|
+      
       associates = info.get_table('GO Terms')
       associates.each do |a|
         go_id = a['GO ID']
@@ -134,6 +123,27 @@ class BScript
           go.id,
           a['Evidence Code']
         )
+      end
+
+      yield info, code if block_given?
+    end
+  end
+
+  # medium level method for gene information table - takes a gzfile
+  # path and species and a code fragment to execute for each. Does nothing
+  # else though - no GO terms and shit
+  def upload_gene_information_table_coding_region(species, gzfile)
+    upload_gene_information_table_plumbing(gzfile) do |info|
+      # find the gene
+      gene_id = info.get_info('ID')
+      if info.get_info('Gene') # Toxo is 'ID', whereas falciparum is 'Gene'.
+        raise unless gene_id.nil?
+        gene_id = info.get_info('Gene')
+      end
+      code = CodingRegion.fs(gene_id, species.name)
+      unless code and code.species.name == species.name
+        $stderr.puts "Couldn't find coding region #{gene_id}, skipping"
+        next
       end
 
       yield info, code if block_given?
@@ -176,6 +186,37 @@ class BScript
 
       # Add within-ToxoDB Orthologue info as well
       
+    end
+  end
+
+  # Upload the microarray percentiles from the different strains
+  def gondii_archetypal_lineage_percentiles_to_database
+    #TABLE: Three archetypal T. gondii lineages - Percentiles
+    #[Strain]	[Percentile]
+    #VEG	11.5
+    #CTG	23.2
+    #Prugniaud	71.9
+    #RH	78.7
+    #GT1	78.2
+    #ME49	82.7
+    species_data = SpeciesData.new(Species::TOXOPLASMA_GONDII_NAME)
+    array = Microarray.find_or_create_by_description(Microarray::TOXOPLASMA_ARCHETYPAL_LINEAGE_PERCENTILES_NAME)
+    upload_gene_information_table_coding_region(
+      Species.find_by_name(species_data.name),
+      species_data.gene_information_gzfile_path
+    ) do |info, code|
+      # Find the timepoints
+      table = info.get_table('Three archetypal T. gondii lineages - Percentiles')
+      raise unless table
+
+      table.each do |row|
+        timepoint = MicroarrayTimepoint.find_or_create_by_microarray_id_and_name(
+          array.id, row['Strain']
+        ) or raise
+        MicroarrayMeasurement.find_or_create_by_microarray_timepoint_id_and_coding_region_id_and_measurement(
+          timepoint.id, code.id, row['Percentile']
+        ) or raise
+      end
     end
   end
 

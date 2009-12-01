@@ -18,6 +18,7 @@ class LocalisationModifier < ActiveRecord::Base
       'random in',
       'spiralling on',
       'very weak',
+      'somewhat punctate'
     ]).flatten
 
   def upload_known_modifiers

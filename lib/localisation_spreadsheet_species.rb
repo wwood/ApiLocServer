@@ -44,6 +44,7 @@ module LocalisationSpreadsheetSpecies
     upload_eimeria_spp
 
     gather_genbank_sequences_and_names
+    Publication.fill_in_all_extras!
     
     # expire the caches
     expire_webpage_caches
