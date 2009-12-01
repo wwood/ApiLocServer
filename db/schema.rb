@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20091122234451) do
+ActiveRecord::Schema.define(:version => 20091130041553) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -30,6 +30,16 @@ ActiveRecord::Schema.define(:version => 20091122234451) do
 
   add_index "binary_coding_region_measurements", ["coding_region_id", "type"], :name => "index_binary_coding_region_measurements_on_coding_region_id_and"
   add_index "binary_coding_region_measurements", ["coding_region_id"], :name => "index_binary_coding_region_measurements_on_coding_region_id"
+
+  create_table "blast_hits", :force => true do |t|
+    t.integer  "coding_region_id",     :null => false
+    t.integer  "hit_coding_region_id", :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "blast_hits", ["coding_region_id", "hit_coding_region_id"], :name => "index_blast_hits_on_coding_region_id_and_hit_coding_region_id", :unique => true
+  add_index "blast_hits", ["coding_region_id"], :name => "index_blast_hits_on_coding_region_id"
 
   create_table "brafl_upstream_distances", :force => true do |t|
     t.integer  "go_term_id",        :null => false

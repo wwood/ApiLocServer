@@ -28,6 +28,8 @@
       a { color: #000; }
       a:visited { color: #666; }
       a:hover { color: #fff; background-color:#000; }
+
+      div.error {color: red;}
     </style>
 
   </head>
@@ -35,7 +37,7 @@
   <body>
 
     <table>
-      <tr><td><%= flash[:error] %></td></tr>
+      <tr><td><div class=error><%= flash[:error] %></div></td></tr>
       <tr><td>
           <h1><%= link_to 'ApiLoc', :action => :index %> - A Database of Protein Sub-Cellular Localisation in <i>Apicomplexa</i></h1>
         </td></tr>

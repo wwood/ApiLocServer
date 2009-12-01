@@ -30,7 +30,7 @@ class SpeciesDataTest < Test::Unit::TestCase
 
   def test_download_directory
     spd = SpeciesData.new('Plasmodium chabaudi')
-    assert_equal "http://plasmodb.org/common/downloads/release-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/Pchabaudi/", spd.eu_path_db_download_directory
+    assert_equal "http://plasmodb.org/common/downloads/release-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/Pchabaudi", spd.eu_path_db_download_directory
   end
 
   def test_transcript_path_default
@@ -43,5 +43,11 @@ class SpeciesDataTest < Test::Unit::TestCase
     spd = SpeciesData.new('falciparum')
     assert_equal "Pfalciparum_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.gff",
       spd.gff_filename
+  end
+
+  def test_gzfile_path_toxo
+    spd = SpeciesData.new('gondii')
+    assert_equal '/home/ben/phd/data/Toxoplasma gondii/genome/ToxoDB/5.2/TgondiiME49Gene_ToxoDB-5.2.txt.gz',
+      spd.gene_information_gzfile_path
   end
 end

@@ -805,4 +805,84 @@ PFI1740c).include?(f)
       )
     end
   end
+
+  # Try to get a list of proteins that I might like to test in the lab.
+  def gather_lab_testing_dataset1
+    # Criteria:
+    # must be predicted as mitochondrial or nuclear (I want a smattering of both)
+    candidates = CodingRegion.falciparum.all(
+      :joins => [:weka_prediction, :orthomcl_genes],
+      :conditions => ["string_coding_region_measurements.measurement in #{%w(nucleus mitochondrion).to_sql_in_string}"]
+#      :limit => 10
+    ).select do |code|
+      # must not already be localised
+      # must only have 1 to 1 mapping in orthomcl database to toxo
+      group = code.single_orthomcl.official_group
+      if code.expression_contexts.count == 0 and
+          group.orthomcl_genes.code('pfal').count == 1 and
+          group.orthomcl_genes.code('tgon').count == 1
+        true
+      else
+        false
+      end
+    end
+
+    parts = candidates.partition do |code|
+      code.weka_prediction.measurement == 'nucleus'
+    end
+    $stderr.puts "Found #{parts[0].length} nucleus, and #{parts[1].length} mitochondrion."
+
+    # must be expressed during tachyzoite stages and blood stages. Not sure how to do this yet
+
+    # headers
+    puts [
+      'PlasmoDB ID',
+      'Annotation',
+      'Prediction',
+      'Hit e-value between falciparum and toxo',
+      'falciparum start of best HSP',
+      'toxo start of best HSP',
+      'plasmit?',
+      'DeRisi 3D7 measurement at 47 hours',
+      'median Winzeler 2003 blood stage percentile'
+    ].join("\t")
+
+    # how close is the homology to the N terminus? More homology N terminally means more chance of the gene model being correct?
+    candidates.each do |code|
+      begin
+        print [
+          code.string_id,
+          code.annotation.annotation,
+          code.weka_prediction.measurement,
+          nil
+        ].join("\t")
+        gondii_code = code.single_orthomcl.official_group.orthomcl_genes.code('tgon').first.single_code
+        print [
+          gondii_code.string_id,
+          nil
+        ].join("\t")
+      rescue
+        puts "Failed to map from orthomcl"
+        next
+      end
+      
+      blast = code.amino_acid_sequence.blastp(gondii_code.amino_acid_sequence)
+
+      if blast.hits.length == 1
+        hit = blast.hits[0]
+
+        meas = code.microarray_measurements.first(:joins => :microarray_timepoint, :conditions => ['name = ?', 'Timepoint 47'])
+        puts [
+          hit.evalue,
+          hit.hsps[0].query_from,
+          hit.hsps[0].hit_from,
+          code.plasmit_result.predicted?,
+          meas.nil? ? nil : meas.measurement
+        ].join("\t")
+      else
+        puts "Unexpectedly found #{blast.hits.length} hits bl2seq'ing between falciparum and toxo."
+      end
+
+    end
+  end
 end

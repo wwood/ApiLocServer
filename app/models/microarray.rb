@@ -6,6 +6,8 @@ class Microarray < ActiveRecord::Base
   WINZELER_2009_TILING_NAME = "Winzeler Tiling Array 2009"
   DERISI_3D7_LOCALISATION_MEDIAN_TIMEPOINTS = 'DeRisi 3D7 Localisation Medians'
   DERISI_2006_3D7_DEFAULT_NAME = 'DeRisi 2006 3D7 Quality Control Published'
+
+  TOXOPLASMA_ARCHETYPAL_LINEAGE_PERCENTILES_NAME = 'Three archetypal T. gondii lineages - Percentiles'
   
   def self.yeast_alpha_arrest_name
     'Yeast Spellman Alpha Arrest'

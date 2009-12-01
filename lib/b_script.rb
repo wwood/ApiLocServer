@@ -5137,13 +5137,14 @@ class BScript
       if description.match(/Sporozoite/)
         description = "#{description} #{sporozoite_replicate}"
         sporozoite_replicate += 1
-      else
-        next #just uploading sporozoite replicates right now as a fix
+        #      else
+        #        next #just uploading sporozoite replicates right now as a fix
       end
       
       timepoint = MicroarrayTimepoint.find_or_create_by_name_and_microarray_id(description, microarray.id)
       
       FasterCSV.foreach("#{base_dir}/#{description_row[0]}.tsv", :col_sep => "\t") do |entry|
+        $stderr.puts "Finding '#{entry[0]}'"
         code = CodingRegion.ff(entry[0])
         
         if !code

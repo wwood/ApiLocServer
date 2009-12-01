@@ -49,6 +49,11 @@ class SpeciesData
       :proteins_fasta_filename => lambda {|version| "NeosporaCaninumAnnotatedProteins_ToxoDB-#{version}.fasta"},
       :source => 'ToxoDB'
     },
+    'Toxoplasma gondii' => {
+      :name => 'Toxoplasma gondii',
+      :gene_information_gzip_filename => lambda {|version| "TgondiiME49Gene_ToxoDB-#{version}.txt.gz"},
+      :source => 'ToxoDB'
+    },
     'Cryptosporidium parvum' => {
       :name => 'Cryptosporidium parvum',
       :sequencing_centre_abbreviation => 'gb',
@@ -88,6 +93,13 @@ class SpeciesData
     answer = @species_data[symbol]
     return answer unless answer.nil?
     raise
+  end
+
+  # The path to the EuPathDB gene information table (stored as a gzip)
+  def gene_information_gzfile_path
+    gz = @species_data[:gene_information_gzip_filename]
+    raise unless gz #a default will probably come around some time.
+    "#{local_download_directory}/#{gz.call(version)}"
   end
 
   def version
