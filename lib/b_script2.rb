@@ -813,7 +813,7 @@ PFI1740c).include?(f)
     candidates = CodingRegion.falciparum.all(
       :joins => [:weka_prediction, :orthomcl_genes],
       :conditions => ["string_coding_region_measurements.measurement in #{%w(nucleus mitochondrion).to_sql_in_string}"]
-#      :limit => 10
+      #      :limit => 10
     ).select do |code|
       # must not already be localised
       # must only have 1 to 1 mapping in orthomcl database to toxo
@@ -839,16 +839,20 @@ PFI1740c).include?(f)
       'PlasmoDB ID',
       'Annotation',
       'Prediction',
+      'Toxo orthologue',
+      'Toxo orthologue annotation',
       'Hit e-value between falciparum and toxo',
       'falciparum start of best HSP',
       'toxo start of best HSP',
       'plasmit?',
       'DeRisi 3D7 measurement at 47 hours',
-      'median Winzeler 2003 blood stage percentile'
-    ].join("\t")
+      ["VEG", "CTG", "Prugniaud", "RH", "GT1", "ME49"].collect{|s| "#{s} percentile"}
+    ].flatten.join("\t")
 
     # how close is the homology to the N terminus? More homology N terminally means more chance of the gene model being correct?
     candidates.each do |code|
+      gondii_code = nil
+      
       begin
         print [
           code.string_id,
@@ -859,6 +863,7 @@ PFI1740c).include?(f)
         gondii_code = code.single_orthomcl.official_group.orthomcl_genes.code('tgon').first.single_code
         print [
           gondii_code.string_id,
+          gondii_code.annotation.annotation,
           nil
         ].join("\t")
       rescue
@@ -872,17 +877,67 @@ PFI1740c).include?(f)
         hit = blast.hits[0]
 
         meas = code.microarray_measurements.first(:joins => :microarray_timepoint, :conditions => ['name = ?', 'Timepoint 47'])
-        puts [
+
+        strain_percentiles = ["VEG", "CTG", "Prugniaud", "RH", "GT1", "ME49"].collect do |strain|
+          measurement = MicroarrayMeasurement.find_by_coding_region_id(gondii_code.id,
+            :joins => :microarray_timepoint,
+            :conditions => ['microarray_timepoints.name = ?', strain]
+          )
+          measurement.nil? ? nil : measurement.measurement
+        end
+
+        print [
           hit.evalue,
           hit.hsps[0].query_from,
           hit.hsps[0].hit_from,
           code.plasmit_result.predicted?,
-          meas.nil? ? nil : meas.measurement
+          meas.nil? ? '' : meas.measurement,
+          nil,
         ].join("\t")
+        puts strain_percentiles.join("\t")
       else
         puts "Unexpectedly found #{blast.hits.length} hits bl2seq'ing between falciparum and toxo."
       end
 
     end
+  end
+
+  def anntotate_toxo_percentiles
+    puts ['ToxoDB ID',
+      ["VEG", "CTG", "Prugniaud", "RH", "GT1", "ME49"]
+    ].flatten.join("\t")
+
+    %w(TGME49_114250
+    TGME49_061780
+    TGME49_045490
+    TGME49_059020
+    TGME49_052640
+    TGME49_068860
+    TGME49_091040
+    TGME49_033460
+    TGME49_070240
+    TGME49_012910
+    TGME49_097520).each do |t|
+      code = CodingRegion.f(t) or raise
+
+
+      strain_percentiles = ["VEG", "CTG", "Prugniaud", "RH", "GT1", "ME49"].collect do |strain|
+        measurement = MicroarrayMeasurement.find_by_coding_region_id(code.id,
+          :joins => :microarray_timepoint,
+          :conditions => ['microarray_timepoints.name = ?', strain]
+        )
+        measurement.nil? ? nil : measurement.measurement
+      end
+
+      puts [
+        code.string_id,
+        code.gene_model_inconsistent?,
+        code.annotation.annotation,
+        code.expression_contexts.reach.localisation_annotation.strain.no_nils.sort.uniq.join(', '),
+        strain_percentiles
+      ].flatten.join("\t")
+
+    end
+
   end
 end
