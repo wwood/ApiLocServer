@@ -220,6 +220,25 @@ class BScript
     end
   end
 
+  def gondii_proteomics_data_to_database
+    species_data = SpeciesData.new(Species::TOXOPLASMA_GONDII_NAME)
+
+    upload_gene_information_table_coding_region(
+      Species.find_by_name(species_data.name),
+      species_data.gene_information_gzfile_path
+    ) do |info, code|
+      table = info.get_table('Mass Spec.-based Expression Evidence')
+      table.each do |row|
+        experiment = ProteomicExperiment.find_or_create_by_name(row['Experiment Name']) or raise
+        ProteomicExperimentPeptide.find_or_create_by_peptide_and_coding_region_id_and_proteomic_experiment_id(
+          row['Seqeunces'],
+          code.id,
+          experiment.id
+        ) or raise
+      end
+    end
+  end
+
   def upload_falciparum_gene_table_to_database
     upload_gene_information_table(Species.find_by_name(Species::FALCIPARUM_NAME),
       "#{DATA_DIR}/Plasmodium falciparum/genome/plasmodb/#{PLASMODB_VERSION}/PfalciparumGene_PlasmoDB-#{PLASMODB_VERSION}.txt.gz"
@@ -261,7 +280,7 @@ class BScript
     cryptosporidium_parvum_fasta_to_database
     # already uploaded as part of auploc_apiloc_gffs
     # theileria_parva_fasta_gene_aliases
-    # upload_theileria_fasta 
+    # upload_theileria_fasta
     #    babesia_fasta_to_database
   end
 
