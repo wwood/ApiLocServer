@@ -368,4 +368,27 @@ class BScript
   def blast_genomes_against_apiloc
     
   end
+
+  # Taking all the falciparum proteins, where are the orthologues localised?
+  def orthomcl_localisation_annotations
+    CodingRegion.falciparum.all(
+      :joins => :expressed_localisations,
+      :limit => 20,
+      :select => 'distinct(coding_regions.*)'
+    ).each do |code|
+      begin
+        falciparum_orthomcl_gene = code.single_orthomcl
+
+        puts [
+          code.string_id,
+          code.annotation.annotation,
+          falciparum_orthomcl_gene.official_group.orthomcl_genes.code('scer').all.collect { |sceg|
+            sceg.single_code.coding_region_go_terms.useful.all.reach.go_term.term.join(', ')
+          }.join(' | ')
+        ].join("\t")
+      rescue CodingRegion::UnexpectedOrthomclGeneCount => e
+        $stderr.puts "Couldn't map #{code.string_id}/#{code.annotation.annotation} to orthomcl"
+      end
+    end
+  end
 end

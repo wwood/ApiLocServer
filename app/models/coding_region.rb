@@ -42,6 +42,8 @@ class CodingRegion < ActiveRecord::Base
   has_many :integer_coding_region_measurements, :dependent => :destroy
   has_many :proteomic_experiment_results, :dependent => :destroy
   has_many :proteomic_experiment_peptides, :dependent => :destroy
+  has_one :tachyzoite_est_count, :dependent => :destroy
+  has_one :non_tachyzoite_est_count, :dependent => :destroy
 
   # Conserved domains
   has_many :conserved_domains, :dependent => :destroy

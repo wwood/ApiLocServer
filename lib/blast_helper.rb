@@ -12,7 +12,16 @@ class BlastHelper
     organism ||= 'apicomplexa' # in case nil is passed here
     alignment_program ||= 'blast'
 
-    species_data = SpeciesData.new(organism)
+    species_data = nil
+    if organism == 'apicomplexa'
+      species_data = SpeciesSurrogate.new(
+        '/blastdb/apicomplexa.protein.fa',
+        '/blastdb/apicomplexa.nucleotide.fa'
+      )
+    else
+      species_data = SpeciesData.new(organism)
+    end
+    
 
     # Some organisms don't exist yet. Reject these
     unless organism and organism
@@ -99,5 +108,15 @@ class BlastHelper
     end
 
     return output
+  end
+end
+
+
+class SpeciesSurrogate
+  attr_accessor :protein_blast_database_path, :transcript_blast_database_path
+
+  def initialize(protein_blast_database_path, transcript_blast_database_path)
+    @protein_blast_database_path = protein_blast_database_path
+    @transcript_blast_database_path = transcript_blast_database_path
   end
 end

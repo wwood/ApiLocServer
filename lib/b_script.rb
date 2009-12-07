@@ -615,7 +615,7 @@ class BScript
     sp = Species.find_or_create_by_name YEAST
     
     iter = YeastGenomeGenes.new(
-      "#{DATA_DIR}/yeast/genome/20090911/saccharomyces_cerevisiae.gff")
+      "#{DATA_DIR}/yeast/genome/20091207/saccharomyces_cerevisiae.gff")
     
    
     puts "Deleting..."
@@ -7170,20 +7170,25 @@ PFL2395c
     puts "finished. Uploaded #{coding_region_count} coding regions and #{cds_count} cds."
   end
 
-  def yeast_gene_ontology_to_database(filename = "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.sgd")
+  def yeast_gene_ontology_to_database(filename = "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.sgd.gz")
     gene_ontology_to_database Species::YEAST_NAME, filename
   end
 
   def elegans_gene_ontology_to_database
-    gene_ontology_to_database Species::ELEGANS_NAME, "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.wb"
+    gene_ontology_to_database Species::ELEGANS_NAME, "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.wb.gz"
   end
 
   # Upload the GO annotations for a given species
-  def gene_ontology_to_database(species_name, gene_association_filename)
+  def gene_ontology_to_database(species_name, gz_gene_association_filename)
     require 'gene_association'
     goods = 0
     bads = 0
-    Bio::GeneAssociation.new(File.open(gene_association_filename).read).entries.each do |entry|
+
+    io = Zlib::GzipReader.open(
+      gz_gene_association_filename
+    )
+
+    Bio::GeneAssociation.new(io).entries.each do |entry|
       names = [
         entry.primary_id,
         entry.gene_name,

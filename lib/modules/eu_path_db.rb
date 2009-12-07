@@ -220,6 +220,57 @@ class BScript
     end
   end
 
+  def gondii_proteomics_data_to_database
+    species_data = SpeciesData.new(Species::TOXOPLASMA_GONDII_NAME)
+
+    upload_gene_information_table_coding_region(
+      Species.find_by_name(species_data.name),
+      species_data.gene_information_gzfile_path
+    ) do |info, code|
+      table = info.get_table('Mass Spec.-based Expression Evidence')
+      table.each do |row|
+        experiment = ProteomicExperiment.find_or_create_by_name(row['Experiment Name']) or raise
+        ProteomicExperimentPeptide.find_or_create_by_peptide_and_coding_region_id_and_proteomic_experiment_id(
+          row['Sequences'],
+          code.id,
+          experiment.id
+        ) or raise
+        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id_and_number_of_peptides_and_spectrum(
+          code.id,
+          experiment.id,
+          row['Sequence Count'],
+          row['Spectrum Count']
+        ) or raise
+      end
+    end
+  end
+
+  def gondii_tachyzoite_and_not_est_counts_to_database
+    species = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
+    FasterCSV.foreach(
+      "#{DATA_DIR}/Toxoplasma gondii/transcriptome/ToxoDB/5.2/tachyzoite_only_ests_ToxoDB5.2.txt",
+      :col_sep => "\t",
+      :headers => true
+    ) do |row|
+      code = CodingRegion.fs(row[0],species.name) or raise
+      TachyzoiteEstCount.find_or_create_by_coding_region_id_and_value(
+        code.id,
+        row[1].to_i
+      )
+    end
+    FasterCSV.foreach(
+      "#{DATA_DIR}/Toxoplasma gondii/transcriptome/ToxoDB/5.2/all_except_tachyzoite_ests_ToxoDB5.2.txt",
+      :col_sep => "\t",
+      :headers => true
+    ) do |row|
+      code = CodingRegion.fs(row[0],species.name) or raise
+      NonTachyzoiteEstCount.find_or_create_by_coding_region_id_and_value(
+        code.id,
+        row[1].to_i
+      )
+    end
+  end
+
   def upload_falciparum_gene_table_to_database
     upload_gene_information_table(Species.find_by_name(Species::FALCIPARUM_NAME),
       "#{DATA_DIR}/Plasmodium falciparum/genome/plasmodb/#{PLASMODB_VERSION}/PfalciparumGene_PlasmoDB-#{PLASMODB_VERSION}.txt.gz"
@@ -261,7 +312,7 @@ class BScript
     cryptosporidium_parvum_fasta_to_database
     # already uploaded as part of auploc_apiloc_gffs
     # theileria_parva_fasta_gene_aliases
-    # upload_theileria_fasta 
+    # upload_theileria_fasta
     #    babesia_fasta_to_database
   end
 
