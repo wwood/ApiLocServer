@@ -1,0 +1,2 @@
+class TachyzoiteEstCount < IntegerCodingRegionMeasurement
+end

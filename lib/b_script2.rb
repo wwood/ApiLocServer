@@ -834,6 +834,29 @@ PFI1740c).include?(f)
 
     # must be expressed during tachyzoite stages and blood stages. Not sure how to do this yet
 
+    #proteomic experiments
+    prots = ["MS Carruthers 2destinct peptides",
+      "Murray Conoid-enriched Fraction",
+      "MS Tachyzoite Membrane fraction 05-10-2006",
+      "MS Tachyzoite Membrane fraction 06-2006",
+      "MS Tachyzoite Cytosolic Protein Fractions 05-2007",
+      "2DLC MS/MS Tachyzoite Membrane fraction",
+      "MS Carruthers MudPIT Twinscan hits",
+      "1D Gel Tachyzoite Membrane fraction 10-2006",
+      "Moreno DTASelect filter sample G",
+      "Murray Conoid-depleted Fraction",
+      "Wastling MudPIT Soluble",
+      "Wastling MudPIT Insoluble",
+      "Wastling 1-D SDS PAGE",
+      "MS Tachyzoite Membrane Protein with Biotinlyation Purification 05-22-2007",
+      "Moreno DTASelect filter sample A",
+      "Wastling 1-D SDS PAGE Soluble",
+      "Wastling 1-D SDS PAGE Insoluble",
+      "MS Tachyzoite Membrane fraction 02-03-2006",
+      "1D Gel Tachyzoite Membrane fraction 12-2006",
+      "MS Tachyzoite Membrane fraction 05-02-2006",
+      "Wastling Rhoptry"]
+
     # headers
     puts [
       'PlasmoDB ID',
@@ -846,7 +869,10 @@ PFI1740c).include?(f)
       'toxo start of best HSP',
       'plasmit?',
       'DeRisi 3D7 measurement at 47 hours',
-      ["VEG", "CTG", "Prugniaud", "RH", "GT1", "ME49"].collect{|s| "#{s} percentile"}
+      ["VEG", "CTG", "Prugniaud", "RH", "GT1", "ME49"].collect{|s| "#{s} percentile"},
+      prots,
+      '# tachyzoite ESTs',
+      '# non-tachyzoite ESTs',
     ].flatten.join("\t")
 
     # how close is the homology to the N terminus? More homology N terminally means more chance of the gene model being correct?
@@ -883,18 +909,30 @@ PFI1740c).include?(f)
             :joins => :microarray_timepoint,
             :conditions => ['microarray_timepoints.name = ?', strain]
           )
-          measurement.nil? ? nil : measurement.measurement
+          measurement.nil? ? '-' : measurement.measurement
         end
 
-        print [
+        proteomics = prots.collect do |name|
+          num_peptides = ProteomicExperimentResult.find_by_coding_region_id(
+            gondii_code.id,
+            :joins => :proteomic_experiment,
+            :conditions => ['proteomic_experiments.name = ?', name]
+          )
+          num_peptides.nil? ? 0 : num_peptides.number_of_peptides
+        end
+
+        puts [
           hit.evalue,
           hit.hsps[0].query_from,
           hit.hsps[0].hit_from,
           code.plasmit_result.predicted?,
-          meas.nil? ? '' : meas.measurement,
-          nil,
-        ].join("\t")
-        puts strain_percentiles.join("\t")
+          meas.nil? ? '-' : meas.measurement,
+          strain_percentiles,
+          proteomics,
+          gondii_code.tachyzoite_est_count.nil? ? 0 : gondii_code.tachyzoite_est_count.value,
+          gondii_code.non_tachyzoite_est_count.nil? ? 0 : gondii_code.non_tachyzoite_est_count.value,
+        ].flatten.join("\t")
+
       else
         puts "Unexpectedly found #{blast.hits.length} hits bl2seq'ing between falciparum and toxo."
       end
@@ -903,10 +941,39 @@ PFI1740c).include?(f)
   end
 
   def anntotate_toxo_percentiles
-    puts ['ToxoDB ID',
-      ["VEG", "CTG", "Prugniaud", "RH", "GT1", "ME49"]
-    ].flatten.join("\t")
 
+    prots = ["MS Carruthers 2destinct peptides",
+      "Murray Conoid-enriched Fraction",
+      "MS Tachyzoite Membrane fraction 05-10-2006",
+      "MS Tachyzoite Membrane fraction 06-2006",
+      "MS Tachyzoite Cytosolic Protein Fractions 05-2007",
+      "2DLC MS/MS Tachyzoite Membrane fraction",
+      "MS Carruthers MudPIT Twinscan hits",
+      "1D Gel Tachyzoite Membrane fraction 10-2006",
+      "Moreno DTASelect filter sample G",
+      "Murray Conoid-depleted Fraction",
+      "Wastling MudPIT Soluble",
+      "Wastling MudPIT Insoluble",
+      "Wastling 1-D SDS PAGE",
+      "MS Tachyzoite Membrane Protein with Biotinlyation Purification 05-22-2007",
+      "Moreno DTASelect filter sample A",
+      "Wastling 1-D SDS PAGE Soluble",
+      "Wastling 1-D SDS PAGE Insoluble",
+      "MS Tachyzoite Membrane fraction 02-03-2006",
+      "1D Gel Tachyzoite Membrane fraction 12-2006",
+      "MS Tachyzoite Membrane fraction 05-02-2006",
+      "Wastling Rhoptry"]
+
+    puts ['ToxoDB ID',
+      'Bad gene mode?',
+      'annotation',
+      'strains studied by localisation',
+      ["VEG", "CTG", "Prugniaud", "RH", "GT1", "ME49"],
+      prots,
+      '# tachyzoite ESTs',
+      '# non-tachyzoite ESTs',
+    ].flatten.join("\t")
+    
     %w(TGME49_114250
     TGME49_061780
     TGME49_045490
@@ -926,7 +993,16 @@ PFI1740c).include?(f)
           :joins => :microarray_timepoint,
           :conditions => ['microarray_timepoints.name = ?', strain]
         )
-        measurement.nil? ? nil : measurement.measurement
+        measurement.nil? ? '-' : measurement.measurement
+      end
+
+      proteomics = prots.collect do |name|
+        num_peptides = ProteomicExperimentResult.find_by_coding_region_id(
+          code.id,
+          :joins => :proteomic_experiment,
+          :conditions => ['proteomic_experiments.name = ?', name]
+        )
+        num_peptides.nil? ? 0 : num_peptides.number_of_peptides
       end
 
       puts [
@@ -934,7 +1010,10 @@ PFI1740c).include?(f)
         code.gene_model_inconsistent?,
         code.annotation.annotation,
         code.expression_contexts.reach.localisation_annotation.strain.no_nils.sort.uniq.join(', '),
-        strain_percentiles
+        strain_percentiles,
+        proteomics,
+        code.tachyzoite_est_count.nil? ? 0 : code.tachyzoite_est_count.value,
+        code.non_tachyzoite_est_count.nil? ? 0 : code.non_tachyzoite_est_count.value,
       ].flatten.join("\t")
 
     end

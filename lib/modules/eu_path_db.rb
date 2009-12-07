@@ -231,11 +231,43 @@ class BScript
       table.each do |row|
         experiment = ProteomicExperiment.find_or_create_by_name(row['Experiment Name']) or raise
         ProteomicExperimentPeptide.find_or_create_by_peptide_and_coding_region_id_and_proteomic_experiment_id(
-          row['Seqeunces'],
+          row['Sequences'],
           code.id,
           experiment.id
         ) or raise
+        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id_and_number_of_peptides_and_spectrum(
+          code.id,
+          experiment.id,
+          row['Sequence Count'],
+          row['Spectrum Count']
+        ) or raise
       end
+    end
+  end
+
+  def gondii_tachyzoite_and_not_est_counts_to_database
+    species = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
+    FasterCSV.foreach(
+      "#{DATA_DIR}/Toxoplasma gondii/transcriptome/ToxoDB/5.2/tachyzoite_only_ests_ToxoDB5.2.txt",
+      :col_sep => "\t",
+      :headers => true
+    ) do |row|
+      code = CodingRegion.fs(row[0],species.name) or raise
+      TachyzoiteEstCount.find_or_create_by_coding_region_id_and_value(
+        code.id,
+        row[1].to_i
+      )
+    end
+    FasterCSV.foreach(
+      "#{DATA_DIR}/Toxoplasma gondii/transcriptome/ToxoDB/5.2/all_except_tachyzoite_ests_ToxoDB5.2.txt",
+      :col_sep => "\t",
+      :headers => true
+    ) do |row|
+      code = CodingRegion.fs(row[0],species.name) or raise
+      NonTachyzoiteEstCount.find_or_create_by_coding_region_id_and_value(
+        code.id,
+        row[1].to_i
+      )
     end
   end
 

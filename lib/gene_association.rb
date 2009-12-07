@@ -14,7 +14,7 @@ module Bio
 
     def initialize(io)
       @entries = []
-      io.split("\n").each do |current_line|
+      io.each_line do |current_line|
         unless current_line.match(/^\!/)
           entry = create_from_line(current_line)
           @entries << entry
