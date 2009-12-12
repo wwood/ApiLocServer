@@ -205,4 +205,12 @@ class BScript
       )
     end
   end
+
+  def paralogous_elegans_groups
+    OrthomclRun.official_run_v2.orthomcl_groups.each do |group|
+      if group.orthomcl_genes.code('cel').count > 1
+        puts group.orthomcl_name
+      end
+    end
+  end
 end
