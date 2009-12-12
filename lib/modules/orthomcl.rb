@@ -10,7 +10,7 @@ class BScript
   # in the process
   def orthomcl2_groups_to_database
     orthomcl_groups_to_database(
-      "#{DATA_DIR}/orthomcl/v2/groups_OrthoMCL-2.txt.gz",
+      "#{DATA_DIR}/orthomcl/v2/groups_orthomcl-2.txt.gz",
       OrthomclRun.official_run_v2
     )
   end
