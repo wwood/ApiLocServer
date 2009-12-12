@@ -8,6 +8,13 @@ class BScript
 
   # Load the data from the groups file alone - upload all genes and groups
   # in the process
+  def orthomcl2_groups_to_database
+    orthomcl_groups_to_database(
+      "#{DATA_DIR}/orthomcl/v2/groups_OrthoMCL-2.txt.gz",
+      OrthomclRun.official_run_v2
+    )
+  end
+
   def orthomcl_groups_to_database(
       filename="#{DATA_DIR}/orthomcl/v3/groups_OrthoMCL-3.txt.gz",
       run = OrthomclRun.official_run_v3
