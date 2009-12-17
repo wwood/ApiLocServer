@@ -22,6 +22,7 @@ class Species < ActiveRecord::Base
   CRYPTOSPORIDIUM_HOMINIS_NAME = 'Cryptosporidium hominis'
   CRYPTOSPORIDIUM_PARVUM_NAME = 'Cryptosporidium parvum'
   CRYPTOSPORIDIUM_MURIS_NAME = 'Cryptosporidium muris'
+  HUMAN_NAME = 'Homo sapiens'
 
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'

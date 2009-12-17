@@ -316,6 +316,12 @@ class OrthomclGene < ActiveRecord::Base
     return official_orthomcl_species_code == s[0]
   end
 
+  def species
+    s = official_split(orthomcl_name)
+    return nil if s.nil?
+    return Species.find_by_orthomcl_three_letter(s[0])
+  end
+
   class UnexpectedCodingRegionCount < StandardError; end
 end
 

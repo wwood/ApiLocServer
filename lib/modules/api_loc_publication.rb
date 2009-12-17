@@ -391,4 +391,68 @@ class BScript
       end
     end
   end
+
+  def apiloc_relevant_human_genes
+    
+  end
+
+  def upload_apiloc_relevant_go_terms
+    require 'ensembl'
+    
+    # create the species and dummy scaffolds, genes, etc.
+    # yeast should already be uploaded
+    #    yeast = Species.find_or_create_by_name_and_orthomcl_three_letter(Species::YEAST_NAME, 'scer')
+    #    human = Species.find_or_create_by_name_and_orthomcl_three_letter(Species::HUMAN_NAME, 'hsap')
+    #    mouse = Species.find_or_create_by_name_and_orthomcl_three_letter(Species::MOUSE_NAME, 'mmus')
+    #    mouse = Species.find_or_create_by_name_and_orthomcl_three_letter(Species::ELEGANS_NAME, 'cele')
+    gene = Gene.new.create_dummy('apiloc conservation dummy gene for multiple species')
+    ensembl_uniprot_db = ExternalDb.find_by_db_name("Uniprot/SWISSPROT")
+
+    # for each human, mouse, yeast gene in a group with a localised apicomplexan
+    # gene, get the go terms from Ensembl so we can start to compare them later
+    #    OrthomclGroup.all(
+    ogroup = OrthomclGroup.first(
+      :joins => {
+        :orthomcl_gene_orthomcl_group_orthomcl_runs => [
+          :orthomcl_run,
+          {:orthomcl_gene => {:coding_regions => :expressed_localisations}}
+        ]
+      },
+      :conditions => {
+        :orthomcl_runs => {:name => OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_3_NAME}
+      }
+    )
+    #    ).each do |ogroup|
+    ogroup.orthomcl_genes.codes(%w(hsap mmus scer cele)).all.each do |orthomcl_gene|
+      ensembl = OrthomclGene.new.official_split[1]
+
+      # fetch the uniprot ID from Ensembl
+      ensp = Ensembl::Core::Translation.find_by_stable_id(ensembl)
+      unless ensp
+        $stderr.puts "Couldn't find ensembl gene to match #{ensembl}, skipping"
+        next
+      end
+      # extract the uniprot id
+      uniprots = ensp.xrefs.select{|x| ensembl_uniprot_db.id == x.id}.collect{|x| x.db_primaryacc}.uniq
+      uniprot = uniprots[0]
+      unless uniprots.length == 1
+        $stderr.puts "Unexpected number of uniprot IDs found: #{uniprots.inspect}"
+        next if uniprots.empty?
+      end
+
+      # wget the uniprot txt file entry
+      filename = "/tmp/uniprot#{uniprot}.txt"
+      `wget http://www.uniprot.org/#{uniprot}.txt -O #{filename}`
+        
+      # parse the uniprot entry
+      bio = Bio::Uniprot.new(File.open(filename).read)
+      p bio
+
+      # create the gene
+      # find the GO term that I've annnotated, otherwise add a new one, which
+      # will need to be filled in with the term
+      # add the relevant GO term and evidence code
+      #    end
+    end
+  end
 end
