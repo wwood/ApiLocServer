@@ -851,7 +851,7 @@ class CodingRegion < ActiveRecord::Base
       # cached
       return preds[0].localisation
     else
-     return nil
+      return nil
     end
   end
   
@@ -1322,10 +1322,16 @@ class CodingRegion < ActiveRecord::Base
       ) >= min_peptides
     end
   end
+
+  def self.find_or_create_dummy(string_id, species_name)
+    CodingRegion.find_or_create_by_gene_id_and_string_id(
+      Gene.find_or_create_dummy(species_name).id, string_id
+    )
+  end
 end
 
 
 
 
 class CodingRegionNotFoundException < Exception; end
-#class UnexpectedOrthomclGeneCount < Exception; end
+class UnexpectedOrthomclGeneCount < Exception; end

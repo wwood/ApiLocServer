@@ -8,7 +8,7 @@ class CreateCuratedTopLevelLocalisations < ActiveRecord::Migration
     end
 
     add_index :curated_top_level_localisations, :coding_region_id
-    add_index :curated_top_level_localisations, [:coding_region_id, :top_level_localisation_id], :unique => true
+    add_index :curated_top_level_localisations, [:coding_region_id, :top_level_localisation_id], {:unique => true, :name => 'curated_all'}
   end
 
   def self.down

@@ -105,27 +105,6 @@ class OrthomclGene < ActiveRecord::Base
       else
         raise Exception, "Badly parsed dme orthomcl_name: #{inspect}"
       end
-    elsif matches[1] == 'mmus'
-      #iterate over each orthomcl protein id (eg dme|CGxxxx)
-      #get gene name by first getting orthomcl protein id from OrthomclGene table and then then using that to get the gene id from the annotation information in the OrthomclGeneOfficialData table
-
-      e = orthomcl_gene_official_data
-      raise Exception, "Data bug in mmu orthomcl data - no orthomcl_gene_official_data found. Has it already been uploaded like it should be?" if e.nil?
-
-      #the annotation line in orthomcl_gene_official_data =
-      #|  CG1977|ENSF00000000161|Spectrin alpha chain. [Source:Uniprot/SWISSPROT;Acc:P13395] |
-
-      #split on bars and extract first without spaces
-      splits = e.annotation.split('|')
-      name = splits[0].strip #this is the gene id
-      #create coding region for this gene id and the protein name
-
-      #extract protein id
-      matches = orthomcl_name.match('(.*)\|(.*)')
-      pname = matches[2]
-
-      # get primary id for gene
-      return CodingRegion.find_all_by_name_or_alternate_and_species(name, Species.mouse_name)
     else
       # Add the normally linked ones that don't require a workaround
       sp = Species.find_by_orthomcl_three_letter matches[1]
@@ -215,7 +194,9 @@ class OrthomclGene < ActiveRecord::Base
   
   # Basically fill out the orthomcl_gene_coding_regions table appropriately
   # for only the official one
-  def link_orthomcl_and_coding_regions(interesting_orgs)
+  def link_orthomcl_and_coding_regions(interesting_orgs, warn=false, upload_codes_first=true)
+    Species.new.update_known_four_letters if upload_codes_first
+
     goods = 0; nones = 0; too_manies = 0
     
     if !interesting_orgs or interesting_orgs.empty?
@@ -223,6 +204,10 @@ class OrthomclGene < ActiveRecord::Base
       #    interesting_orgs = ['pfa','pvi','the','tan','cpa','cho']
       #    interesting_orgs = ['ath']
       interesting_orgs = ['cele']
+    end
+
+    if interesting_orgs.kind_of?(String)
+      interesting_orgs = interesting_orgs.split(/\s+/)
     end
     
     puts "linking genes for species: #{interesting_orgs.inspect}"
@@ -234,7 +219,7 @@ class OrthomclGene < ActiveRecord::Base
       if !codes or codes.length == 0
         # print problems to stdout. I'm getting too many problems to ignore
         # annoyingly.
-        $stderr.puts "No coding region found for #{orthomcl_gene.orthomcl_name}"
+        $stderr.puts "No coding region found for #{orthomcl_gene.orthomcl_name}" if warn
         nones += 1
         next
       elsif codes.length > 1

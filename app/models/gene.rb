@@ -25,6 +25,12 @@ class Gene < ActiveRecord::Base
     gene = Gene.find_or_create_by_name_and_scaffold_id dummy_name, scaff.id
     return gene
   end
+
+  def self.find_or_create_dummy(species_name)
+    sp = Species.find_or_create_by_name species_name
+    scaff = Scaffold.find_or_create_by_name_and_species_id species_name, sp.id
+    return Gene.find_or_create_by_name_and_scaffold_id species_name, scaff.id
+  end
   
   
   # Return the gene associated with the name. The string_id

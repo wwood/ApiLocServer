@@ -23,6 +23,7 @@ class Species < ActiveRecord::Base
   CRYPTOSPORIDIUM_PARVUM_NAME = 'Cryptosporidium parvum'
   CRYPTOSPORIDIUM_MURIS_NAME = 'Cryptosporidium muris'
   HUMAN_NAME = 'Homo sapiens'
+  ARABIDOPSIS_NAME = 'Arabidopsis thaliana'
 
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'
@@ -91,7 +92,9 @@ class Species < ActiveRecord::Base
     YEAST_NAME => 'scer',
     MOUSE_NAME => 'mmus',
     DROSOPHILA_NAME => 'dmel',
-    NEOSPORA_CANINUM_NAME => 'ncan'
+    NEOSPORA_CANINUM_NAME => 'ncan',
+    ARABIDOPSIS_NAME => 'atha',
+    HUMAN_NAME => 'hsap',
   }
 
   SPECIES_PREFIXES = {

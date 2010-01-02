@@ -455,4 +455,220 @@ class BScript
       #    end
     end
   end
+
+  # not realyl working - too slow for me.
+  def map_using_uniprot_mapper
+    #    require 'uni_prot_i_d_mapping_selected'
+    
+    #    mapper = Bio::UniProtIDMappingSelected.new
+    #    ogroup =
+    OrthomclGroup.all(
+      #      :limit => 5,
+      :joins => {
+        :orthomcl_gene_orthomcl_group_orthomcl_runs => [
+          :orthomcl_run,
+          {:orthomcl_gene => {:coding_regions => :expressed_localisations}}
+        ]
+      },
+      :conditions => {
+        :orthomcl_runs => {:name => OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_3_NAME}
+      }
+      #    )
+    ).each do |ogroup|
+      ogroup.orthomcl_genes.codes(%w(mmus)).all.each do |orthomcl_gene|
+        ensembl = orthomcl_gene.official_split[1]
+        puts ensembl
+        #        mapped = mapper.find_by_ensembl_protein_id(ensembl)
+        #        p mapped
+      end
+    end
+  end
+
+  def generate_biomart_to_go_input
+    {
+      'hsap' => 'human',
+      'mmus' => 'mouse',
+      'atha' => 'arabidopsis'
+    }.each do |code, name|
+      $stderr.puts name
+      out = File.open("#{PHD_DIR}/apiloc/species_orthologues/#{name}.txt",'w')
+      OrthomclGroup.all(
+        :joins => {
+          :orthomcl_gene_orthomcl_group_orthomcl_runs => [
+            :orthomcl_run,
+            {:orthomcl_gene => {:coding_regions => :expressed_localisations}}
+          ]
+        },
+        :conditions => {
+          :orthomcl_runs => {:name => OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_3_NAME}
+        }
+      ).uniq.each do |ogroup|
+        ogroup.orthomcl_genes.code(code).all.each do |orthomcl_gene|
+          ensembl = orthomcl_gene.official_split[1]
+          out.puts ensembl
+        end
+      end
+    end
+  end
+
+  # all the methods required to get from the biomart and uniprot
+  # id to GO term mappings to a spreadsheet that can be inspected for the
+  # localisations required.
+  def apiloc_gathered_output_to_generated_spreadsheet_for_inspection
+    upload_apiloc_ensembl_go_terms
+    upload_apiloc_uniprot_go_terms
+    upload_apiloc_uniprot_mappings
+    OrthomclGene.new.link_orthomcl_and_coding_regions(%w(hsap atha mmus))
+    generate_apiloc_orthomcl_groups_for_inspection
+  end
+
+  def upload_apiloc_ensembl_go_terms
+    {
+      'human' => Species::HUMAN_NAME,
+      'mouse' => Species::MOUSE_NAME,
+    }.each do |this_name, proper_name|
+      $stderr.puts this_name
+      FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues/biomart_results/#{this_name}.txt",
+        :col_sep => "\t"
+      ) do |row|
+        protein_name = row[1]
+        go_id = row[2]
+        evidence = row[5]
+
+        next if go_id.nil? #ignore empty columns
+
+        code = CodingRegion.find_or_create_dummy(protein_name, proper_name)
+        go = GoTerm.find_by_go_identifier_or_alternate go_id
+        unless go
+          $stderr.puts "Couldn't find GO id #{go_id}"
+          next
+        end
+        CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
+          code.id, go.id, evidence
+        ) or raise
+      end
+    end
+  end
+
+  def upload_apiloc_uniprot_go_terms
+    {
+      'arabidopsis' => Species::ARABIDOPSIS_NAME
+    }.each do |this_name, proper_name|
+      File.open("#{PHD_DIR}/apiloc/species_orthologues/uniprot_results/#{this_name}.uniprot.txt").read.split("//\n").each do |uniprot|
+        u = Bio::UniProt.new(uniprot)
+
+        axes = u.ac
+        protein_name = axes[0]
+        raise unless protein_name
+        code = CodingRegion.find_or_create_dummy(protein_name, proper_name)
+
+        protein_alternate_names = axes[1..(axes.length-1)].no_nils
+        protein_alternate_names.each do |name|
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
+            code.id, name
+          ) or raise
+        end
+
+        goes = u.dr["GO"]
+        next if goes.nil? #no go terms associated
+        
+        goes.each do |go_array|
+          go_id = go_array[0]
+          evidence_almost = go_array[2]
+          evidence = nil
+          if (matches = evidence_almost.match(/^(...)\:.*$/))
+            evidence = matches[1]
+          end
+          raise if evidence.nil?
+
+          
+          go = GoTerm.find_by_go_identifier_or_alternate go_id
+          unless go
+            $stderr.puts "Couldn't find GO id #{go_id}"
+            next
+          end
+          
+          CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
+            code.id, go.id, evidence
+          ).save!
+        end
+      end
+    end
+  end
+  
+  def upload_apiloc_uniprot_mappings
+    {
+      'arabidopsis' => Species::ARABIDOPSIS_NAME
+    }.each do |this_name, proper_name|
+
+
+      FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues/uniprot_results/#{this_name}.mapping.tab",
+        :col_sep => "\t", :headers => true
+      ) do |row|
+        code = CodingRegion.fs(row[1], proper_name) or raise Exception, "Don't know #{row[1]}"
+        CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
+          code.id, row[0]
+        )
+      end
+      
+    end
+  end
+
+  def generate_apiloc_orthomcl_groups_for_inspection
+    interestings = %w(hsap atha mmus)
+
+    OrthomclGroup.all(
+      :joins => {
+        :orthomcl_gene_orthomcl_group_orthomcl_runs => [
+          :orthomcl_run,
+          {:orthomcl_gene => {:coding_regions => :expressed_localisations}}
+        ]
+      },
+      :conditions => {
+        :orthomcl_runs => {:name => OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_3_NAME}
+      }
+    ).uniq.each do |ogroup|
+      paragraph = []
+      worthwhile = false #don't print unless there is GO info for proteins of interest
+
+      # ignore groups that have genes that we don't know about
+      next if ogroup.orthomcl_genes.select{|g|
+        interestings.include?(g.official_split[0])
+      }.length == 0
+
+      ogroup.orthomcl_genes.all.each do |orthomcl_gene|
+        four = orthomcl_gene.official_split[0]
+        code = orthomcl_gene.single_code!
+
+        if OrthomclGene::OFFICIAL_ORTHOMCL_APICOMPLEXAN_CODES.include?(four)
+          paragraph.push [
+            orthomcl_gene.orthomcl_name,
+            code.nil? ? nil : code.annotation.annotation,
+            code.nil? ? nil : code.localisation_english,
+          ].join("\t")
+        elsif interestings.include?(four)
+          unless code.nil?
+
+            goes = code.coding_region_go_terms.cc.useful.all
+            unless goes.empty?
+              worthwhile = true
+              orig = orthomcl_gene.orthomcl_name
+              goes.each do |code_go|
+                paragraph.push [
+                  orig,
+                  code_go.go_term.go_identifier,
+                  code_go.go_term.term,
+                  code_go.evidence_code
+                ].join("\t")
+                orig = ''
+              end
+            end
+          end
+        end
+      end
+      
+      puts paragraph.join("\n") if worthwhile
+      puts
+    end
+  end
 end

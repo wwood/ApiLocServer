@@ -48,6 +48,10 @@ class CodingRegionGoTerm < ActiveRecord::Base
   named_scope :useful, {
     :conditions => ['evidence_code not in (?)', COMPUTATIONAL_ANALYSIS_CODES.push(%w(IEA ND)).flatten]
   }
+  named_scope :cc, {
+    :joins => :go_term,
+    :conditions => ['go_terms.aspect = ?', GoTerm::CELLULAR_COMPONENT]
+  }
 
   def experimental_annotation?
 
