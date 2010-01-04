@@ -426,7 +426,7 @@ class BScript
         end
 
         Dir.chdir(spd.local_download_directory) do
-          $stderr.puts "chdir: #{Dir.pwd}"
+          #          $stderr.puts "chdir: #{Dir.pwd}"
           # protein
           unless File.exists?(spd.protein_fasta_filename)
             `wget #{spd.eu_path_db_download_directory}/#{spd.protein_fasta_filename}`

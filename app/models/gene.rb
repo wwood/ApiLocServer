@@ -22,14 +22,14 @@ class Gene < ActiveRecord::Base
   def create_dummy(dummy_name)
     sp = Species.find_or_create_by_name dummy_name
     scaff = Scaffold.find_or_create_by_name_and_species_id dummy_name, sp.id
-    gene = Gene.find_or_create_by_name_and_scaffold_id dummy_name, scaff.id
+    gene = Gene.find_or_create_by_name_and_scaffold_id(dummy_name, scaff.id)
     return gene
   end
 
   def self.find_or_create_dummy(species_name)
     sp = Species.find_or_create_by_name species_name
     scaff = Scaffold.find_or_create_by_name_and_species_id species_name, sp.id
-    return Gene.find_or_create_by_name_and_scaffold_id species_name, scaff.id
+    return Gene.find_or_create_by_name_and_scaffold_id(species_name, scaff.id)
   end
   
   
