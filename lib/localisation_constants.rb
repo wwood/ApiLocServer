@@ -56,6 +56,7 @@ module LocalisationConstants
       'nuclear membrane',
       'electron-dense heterochromatic region at the nuclear periphery',
       'nuclear interior',
+      'nuclear matrix',
       'trans golgi',
       'golgi',
       'golgi matrix',

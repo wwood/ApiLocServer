@@ -45,6 +45,7 @@ module DevelopmentalStageConstants
       'gametocyte stage III',
       'gametocyte stage IV',
       'gametocyte stage V',
+      'gametocyte stage III-V',
       'male gametocyte stage I',
       'male gametocyte stage II',
       'male gametocyte stage III',
@@ -582,6 +583,7 @@ module DevelopmentalStageConstants
       'stage V gametocytes' => 'gametocyte stage V',
       '11-16 days post infective blood meal' => '11-16 days after mosquito infective blood meal',
       'erythrocytic' => 'intraerythrocytic',
+      'stage iii-v gametocyte' => 'gametocyte stage III-V',
     }
   }
 end
