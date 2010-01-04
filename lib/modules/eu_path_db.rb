@@ -416,29 +416,29 @@ class BScript
       %w(plasmodb cryptodb toxodb).each do |d|
         download d
       end
-    end
+    else
+      # Download the new files from the relevant database
+      species_data_from_database(database_name).each do |spd|
+        spd.directories_for_mkdir.each do |directory|
+          unless File.exists?(directory)
+            Dir.mkdir(directory)
+          end
+        end
 
-    # Download the new files from the relevant database
-    species_data_from_database(database_name).each do |spd|
-      spd.directories_for_mkdir.each do |directory|
-        unless File.exists?(directory)
-          Dir.mkdir(directory)
-        end
-      end
-
-      Dir.chdir(spd.local_download_directory) do
-        $stderr.puts "chdir: #{Dir.pwd}"
-        # protein
-        unless File.exists?(spd.protein_fasta_filename)
-          `wget #{spd.eu_path_db_download_directory}/#{spd.protein_fasta_filename}`
-        end
-        # gff
-        unless File.exists?(spd.gff_filename)
-          `wget #{spd.eu_path_db_download_directory}/#{spd.gff_filename}`
-        end
-        # transcripts
-        unless File.exists?(spd.transcript_fasta_filename)
-          `wget #{spd.eu_path_db_download_directory}/#{spd.transcript_fasta_filename}`
+        Dir.chdir(spd.local_download_directory) do
+          $stderr.puts "chdir: #{Dir.pwd}"
+          # protein
+          unless File.exists?(spd.protein_fasta_filename)
+            `wget #{spd.eu_path_db_download_directory}/#{spd.protein_fasta_filename}`
+          end
+          # gff
+          unless File.exists?(spd.gff_filename)
+            `wget #{spd.eu_path_db_download_directory}/#{spd.gff_filename}`
+          end
+          # transcripts
+          unless File.exists?(spd.transcript_fasta_filename)
+            `wget #{spd.eu_path_db_download_directory}/#{spd.transcript_fasta_filename}`
+          end
         end
       end
     end

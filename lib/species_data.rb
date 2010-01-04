@@ -41,19 +41,23 @@ class SpeciesData
       :name => 'Plasmodium knowlesi',
       :sequencing_centre_abbreviation => 'psu',
       :fasta_file_species_name => 'Plasmodium_knowlesi_strain_H',
-      :proteins_fasta_filename => lambda {|version| "PknowlesiAnnotatedProteins_PlasmoDB-#{version}.fasta"},
       :source => 'PlasmoDB'
     },
     'Neospora caninum' => {
       :name => 'Neospora caninum',
       :sequencing_centre_abbreviation => 'psu',
       :fasta_file_species_name => 'Neospora_caninum',
+      :database_download_folder => 'NeosporaCaninum',
       :proteins_fasta_filename => lambda {|version| "NeosporaCaninumAnnotatedProteins_ToxoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "NeosporaCaninumAnnotatedTranscripts_ToxoDB-#{version}.fasta"},
       :source => 'ToxoDB'
     },
     'Toxoplasma gondii' => {
       :name => 'Toxoplasma gondii',
       :gene_information_gzip_filename => lambda {|version| "TgondiiME49Gene_ToxoDB-#{version}.txt.gz"},
+      :proteins_fasta_filename => lambda {|version| "TgondiiME49AnnotatedProteins_ToxoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "TgondiiME49AnnotatedTranscripts_ToxoDB-#{version}.fasta"},
+      :gff_filename => lambda {|version| "TgondiiME49_ToxoDB-#{version}.gff"},
       :source => 'ToxoDB'
     },
     'Cryptosporidium parvum' => {
@@ -200,6 +204,7 @@ class SpeciesData
 
   # Plasmodium chabaudi => Pchabaudi
   def one_word_name
+    return @species_data[:database_download_folder] unless @species_data[:database_download_folder].nil?
     splits = @species_data[:name].split(' ')
     raise unless splits.length == 2
     return "#{splits[0][0..0]}#{splits[1]}"

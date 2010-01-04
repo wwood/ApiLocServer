@@ -62,4 +62,10 @@ class SpeciesDataTest < Test::Unit::TestCase
     ],
       spd.directories_for_mkdir
   end
+
+  def test_one_word_name
+    assert_equal 'NeosporaCaninum', SpeciesData.new('Neospora caninum').one_word_name
+    spd = SpeciesData.new('Plasmodium falciparum')
+    assert_equal 'Pfalciparum', spd.one_word_name
+  end
 end
