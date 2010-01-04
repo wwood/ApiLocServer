@@ -61,6 +61,26 @@ class SpeciesData
       :sequencing_centre_abbreviation => 'gb',
       :fasta_file_species_name => 'Cryptosporidium_parvum',
       :proteins_fasta_filename => lambda {|version| "CparvumAnnotatedProteins_CryptoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "CparvumAnnotatedTranscripts_CryptoDB-#{version}.fasta"},
+      :gff_filename => lambda {|version| "c_parvum_iowa_ii.gff"},
+      :source => 'CryptoDB'
+    },
+    'Cryptosporidium hominis' => {
+      :name => 'Cryptosporidium hominis',
+      :sequencing_centre_abbreviation => 'gb',
+      :fasta_file_species_name => 'Cryptosporidium_hominis',
+      :proteins_fasta_filename => lambda {|version| "ChominisAnnotatedProteins_CryptoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "ChominisAnnotatedTranscripts_CryptoDB-#{version}.fasta"},
+      :gff_filename => lambda {|version| "c_hominis_tu502.gff"},
+      :source => 'CryptoDB'
+    },
+    'Cryptosporidium muris' => {
+      :name => 'Cryptosporidium muris',
+      :sequencing_centre_abbreviation => 'gb',
+      :fasta_file_species_name => 'Cryptosporidium_muris',
+      :proteins_fasta_filename => lambda {|version| "CmurisAnnotatedProteins_CryptoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "CmurisAnnotatedTranscripts_CryptoDB-#{version}.fasta"},
+      :gff_filename => lambda {|version| "c_muris.gff"},
       :source => 'CryptoDB'
     },
 
@@ -94,7 +114,7 @@ class SpeciesData
   def method_missing(symbol)
     answer = @species_data[symbol]
     return answer unless answer.nil?
-    raise
+    super
   end
 
   # The path to the EuPathDB gene information table (stored as a gzip)
@@ -188,5 +208,23 @@ class SpeciesData
   def local_download_directory
     s = @species_data
     "/home/ben/phd/data/#{s[:name]}/genome/#{s[:source]}/#{SOURCE_VERSIONS[s[:source]]}"
+  end
+
+  # an array of directory names. mkdir is called on each of them in order,
+  # otherwise mkdir throws errors because there isn't sufficient folders
+  # to build on.
+  def directories_for_mkdir
+    s = @species_data
+    components = [
+      '/home/ben/phd/data',
+      s[:name],
+      'genome',
+      s[:source],
+      SOURCE_VERSIONS[s[:source]]
+    ]
+
+    (0..components.length-1).collect do |i|
+      components[0..i].join('/')
+    end
   end
 end

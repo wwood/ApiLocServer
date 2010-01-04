@@ -410,11 +410,20 @@ class BScript
     end
   end
 
-  def download(database_name)
+  def download(database_name=nil)
+    # by default, download everything
+    if database_name.nil?
+      %w(plasmodb cryptodb toxodb).each do |d|
+        download d
+      end
+    end
+
     # Download the new files from the relevant database
     species_data_from_database(database_name).each do |spd|
-      unless File.exists?(spd.local_download_directory)
-        Dir.mkdir(spd.local_download_directory)
+      spd.directories_for_mkdir.each do |directory|
+        unless File.exists?(directory)
+          Dir.mkdir(directory)
+        end
       end
 
       Dir.chdir(spd.local_download_directory) do
