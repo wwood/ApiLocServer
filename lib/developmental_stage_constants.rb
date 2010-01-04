@@ -67,6 +67,8 @@ module DevelopmentalStageConstants
       'male gametocyte',
       'emerging male gametocyte',
       'emerged male gametocyte',
+      'late gametocyte',
+      'early gametocyte',
       'female gamete',
       'gamete',
       'gamete formation',
@@ -322,6 +324,7 @@ module DevelopmentalStageConstants
       'microgamete mitosis',
       'zygote',
       'retort',
+      'early retort',
       'ookinete protrusion',
       'ookinete',
       'ookinete 20 hours after fertilization',
@@ -421,6 +424,12 @@ module DevelopmentalStageConstants
       'early hepatic stages' => 'early hepatic',
       'trophs' => 'trophozoite',
       'oocyst derived sporozoite' => 'oocyst sporozoite',
+      'asexual blood stages' => 'blood stages',
+      'male gametocytes' => 'microgametocyte',
+      'microgametes' => 'microgamete',
+      'late oocysts' => 'late oocyst',
+      'sporozoites' => 'sporozoite',
+      '5 day oocyst' => 'day 5 oocyst',
     },
     Species::THEILERIA_ANNULATA_NAME => {},
     Species::THEILERIA_PARVA_NAME => {},
@@ -572,6 +581,7 @@ module DevelopmentalStageConstants
       'stage V gametocyte' => 'gametocyte stage V',
       'stage V gametocytes' => 'gametocyte stage V',
       '11-16 days post infective blood meal' => '11-16 days after mosquito infective blood meal',
+      'erythrocytic' => 'intraerythrocytic',
     }
   }
 end

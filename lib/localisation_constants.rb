@@ -432,6 +432,7 @@ module LocalisationConstants
       'nucleus',
       'outer nuclear envelope',
       'nuclear membrane',
+      'perinuclear',
       'inner membrane complex',
       'sporozoite surface',
       'ookinete surface',
