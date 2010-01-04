@@ -488,10 +488,12 @@ class BScript
     {
       'hsap' => 'human',
       'mmus' => 'mouse',
-      'atha' => 'arabidopsis'
+      'atha' => 'arabidopsis',
+      'dmel' => 'fly',
+      'cele' => 'worm'
     }.each do |code, name|
       $stderr.puts name
-      out = File.open("#{PHD_DIR}/apiloc/species_orthologues/#{name}.txt",'w')
+      out = File.open("#{PHD_DIR}/apiloc/species_orthologues2/#{name}.txt",'w')
       OrthomclGroup.all(
         :joins => {
           :orthomcl_gene_orthomcl_group_orthomcl_runs => [
