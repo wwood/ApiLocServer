@@ -9,46 +9,6 @@ class BScript
   TOXODB_VERSION = SpeciesData::SOURCE_VERSIONS['ToxoDB']
   CRYPTODB_VERSION = SpeciesData::SOURCE_VERSIONS['CryptoDB']
 
-  def berghei_to_database
-    apidb_species_to_database Species::BERGHEI_NAME, "#{DATA_DIR}/berghei/genome/plasmodb/#{PLASMODB_VERSION}/Pberghei_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
-
-  def yoelii_to_database
-    apidb_species_to_database Species::YOELII_NAME, "#{DATA_DIR}/yoelii/genome/plasmodb/#{PLASMODB_VERSION}/Pyoelii_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
-
-  def vivax_to_database
-    apidb_species_to_database Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/#{PLASMODB_VERSION}/Pvivax_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
-
-  def chabaudi_to_database
-    apidb_species_to_database Species::CHABAUDI_NAME, "#{DATA_DIR}/Plasmodium chabaudi/genome/plasmodb/#{PLASMODB_VERSION}/Pchabaudi_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
-
-  def knowlesi_to_database
-    apidb_species_to_database Species::KNOWLESI_NAME, "#{DATA_DIR}/knowlesi/genome/plasmodb/#{PLASMODB_VERSION}/Pknowlesi_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
-
-  def neospora_caninum_to_database
-    apidb_species_to_database Species::NEOSPORA_CANINUM_NAME, "#{DATA_DIR}/Neospora caninum/genome/ToxoDB/#{TOXODB_VERSION}/NeosporaCaninum_ToxoDB-#{TOXODB_VERSION}.gff"
-  end
-
-  def cryptosporidium_parvum_to_database
-    apidb_species_to_database Species::CRYPTOSPORIDIUM_PARVUM_NAME, "#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/#{CRYPTODB_VERSION}/c_parvum_iowa_ii.gff"
-  end
-
-  def cryptosporidium_hominis_to_database
-    apidb_species_to_database Species::CRYPTOSPORIDIUM_HOMINIS_NAME, "#{DATA_DIR}/Cryptosporidium hominis/genome/cryptoDB/#{CRYPTODB_VERSION}/c_hominis_tu502.gff"
-  end
-
-  def cryptosporidium_muris_to_database
-    apidb_species_to_database Species::CRYPTOSPORIDIUM_MURIS_NAME, "#{DATA_DIR}/Cryptosporidium muris/genome/cryptodb/#{CRYPTODB_VERSION}/c_muris.gff"
-  end
-
-  def gondii_to_database
-    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49_ToxoDB-#{TOXODB_VERSION}.gff"
-  end
-
   def theileria_parva_genbank_gff_to_database
     [
       'NC_007344.gff',
@@ -78,18 +38,6 @@ class BScript
     end
   end
   
-  def gondii_fasta_to_database
-    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49AnnotatedProteins_ToxoDB-#{TOXODB_VERSION}.fasta")
-    sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
-    upload_fasta_general!(fa, sp)
-  end
-
-  def gondii_cds_to_database
-    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49AnnotatedCDS_ToxoDB-#{TOXODB_VERSION}.fasta")
-    sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
-    upload_cds_fasta_general!(fa, sp)
-  end
-
   # low level method. don't create coding regions or GO terms, just
   # parse the file
   def upload_gene_information_table_plumbing(gzfile)
