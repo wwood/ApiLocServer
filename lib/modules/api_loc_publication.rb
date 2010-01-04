@@ -493,7 +493,7 @@ class BScript
       'cele' => 'worm'
     }.each do |code, name|
       $stderr.puts name
-      out = File.open("#{PHD_DIR}/apiloc/species_orthologues2/#{name}.txt",'w')
+      out = File.open("#{species_orthologue_folder}/#{name}.txt",'w')
       OrthomclGroup.all(
         :joins => {
           :orthomcl_gene_orthomcl_group_orthomcl_runs => [
@@ -513,6 +513,9 @@ class BScript
     end
   end
 
+  # \
+  def species_orthologue_folder; "#{PHD_DIR}/apiloc/species_orthologues2"; end
+
   # all the methods required to get from the biomart and uniprot
   # id to GO term mappings to a spreadsheet that can be inspected for the
   # localisations required.
@@ -520,7 +523,7 @@ class BScript
     upload_apiloc_ensembl_go_terms
     upload_apiloc_uniprot_go_terms
     upload_apiloc_uniprot_mappings
-    OrthomclGene.new.link_orthomcl_and_coding_regions(%w(hsap atha mmus))
+    OrthomclGene.new.link_orthomcl_and_coding_regions(%w(hsap atha mmus dmel cele))
     generate_apiloc_orthomcl_groups_for_inspection
   end
 
@@ -530,7 +533,7 @@ class BScript
       'mouse' => Species::MOUSE_NAME,
     }.each do |this_name, proper_name|
       $stderr.puts this_name
-      FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues/biomart_results/#{this_name}.txt",
+      FasterCSV.foreach("#{species_orthologue_folder}/biomart_results/#{this_name}.txt",
         :col_sep => "\t"
       ) do |row|
         protein_name = row[1]
@@ -556,7 +559,7 @@ class BScript
     {
       'arabidopsis' => Species::ARABIDOPSIS_NAME
     }.each do |this_name, proper_name|
-      File.open("#{PHD_DIR}/apiloc/species_orthologues/uniprot_results/#{this_name}.uniprot.txt").read.split("//\n").each do |uniprot|
+      File.open("#{species_orthologue_folder}/uniprot_results/#{this_name}.uniprot.txt").read.split("//\n").each do |uniprot|
         u = Bio::UniProt.new(uniprot)
 
         axes = u.ac
@@ -604,7 +607,7 @@ class BScript
     }.each do |this_name, proper_name|
 
 
-      FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues/uniprot_results/#{this_name}.mapping.tab",
+      FasterCSV.foreach("#{species_orthologue_folder}/uniprot_results/#{this_name}.mapping.tab",
         :col_sep => "\t", :headers => true
       ) do |row|
         code = CodingRegion.fs(row[1], proper_name) or raise Exception, "Don't know #{row[1]}"
