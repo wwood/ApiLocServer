@@ -333,6 +333,7 @@ module DevelopmentalStageConstants
       'oocyst protrusion',
       'oocyst',
       'early oocyst',
+      'late oocyst',
       'midgut oocyst',
       'sporulating oocyst',
       'mature oocyst',
