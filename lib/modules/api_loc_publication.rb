@@ -656,7 +656,7 @@ class BScript
   end
 
   def generate_apiloc_orthomcl_groups_for_inspection
-    interestings = %w(hsap atha mmus)
+    interestings = %w(hsap atha mmus dmel cele)
 
     OrthomclGroup.all(
       :joins => {
