@@ -97,7 +97,9 @@ class OrthomclGene < ActiveRecord::Base
     name = matches[2]
       
     #species specific workarounds below
-    if matches[1] === 'dmel'
+
+    # Drosophila had problems in Orthomcl v2, but less so in v3
+    if matches[1] === 'dmel' and orthomcl_run.name == OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_2_NAME
       # for drosophila drop the -PA or -PB at the end of it
       matches = name.match(/^(.*)\-(.*)$/)
       if matches

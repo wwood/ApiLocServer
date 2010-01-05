@@ -523,6 +523,7 @@ class BScript
     upload_apiloc_ensembl_go_terms
     upload_apiloc_uniprot_go_terms
     upload_apiloc_uniprot_mappings
+    upload_apiloc_flybase_mappings
     # for some reason a single refseq sequence can be linked to multiple uniprot sequences,
     # which is stupid but something I'll have to live with
     OrthomclGene.new.link_orthomcl_and_coding_regions(%w(atha), :accept_multiple_coding_regions=>true)
@@ -628,6 +629,29 @@ class BScript
         )
       end
       
+    end
+  end
+
+  # Drosophila won't match well to orthomcl because orthomcl uses protein IDs whereas
+  # uniprot uses gene ids.
+  # This file was created by using the (useful and working) ID converter in flybase
+  def upload_apiloc_flybase_mappings
+    FasterCSV.foreach("#{species_orthologue_folder}/uniprot_results/flybase.mapping.tab",
+      :col_sep => "\t"
+    ) do |row|
+      next if row[1] == 'unknown ID' #ignore rubbish
+      gene_id = row[3]
+      next if gene_id == '-' # not sure what this is, but I'll ignore for the moment
+      protein_id = row[1]
+
+      code = CodingRegion.fs(gene_id, Species::DROSOPHILA_NAME)
+      if code.nil?
+        $stderr.puts "Couldn't find gene #{gene_id}, skipping"
+        next
+      end
+      CodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
+        protein_id, code.id
+      )
     end
   end
 
