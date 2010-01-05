@@ -679,29 +679,33 @@ class BScript
 
       ogroup.orthomcl_genes.all.each do |orthomcl_gene|
         four = orthomcl_gene.official_split[0]
-        code = orthomcl_gene.single_code!
 
-        if OrthomclGene::OFFICIAL_ORTHOMCL_APICOMPLEXAN_CODES.include?(four)
-          paragraph.push [
-            orthomcl_gene.orthomcl_name,
-            code.nil? ? nil : code.annotation.annotation,
-            code.nil? ? nil : code.localisation_english,
-          ].join("\t")
-        elsif interestings.include?(four)
-          unless code.nil?
+        # POssible to have many coding regions now - using all of them just together, though there is
+        # probably one good one and other useless and IEA if anything annotated.
+        orthomcl_gene.coding_regions.each do |code|
 
-            goes = code.coding_region_go_terms.cc.useful.all
-            unless goes.empty?
-              worthwhile = true
-              orig = orthomcl_gene.orthomcl_name
-              goes.each do |code_go|
-                paragraph.push [
-                  orig,
-                  code_go.go_term.go_identifier,
-                  code_go.go_term.term,
-                  code_go.evidence_code
-                ].join("\t")
-                orig = ''
+          if OrthomclGene::OFFICIAL_ORTHOMCL_APICOMPLEXAN_CODES.include?(four)
+            paragraph.push [
+              orthomcl_gene.orthomcl_name,
+              code.nil? ? nil : code.annotation.annotation,
+              code.nil? ? nil : code.localisation_english,
+            ].join("\t")
+          elsif interestings.include?(four)
+            unless code.nil?
+
+              goes = code.coding_region_go_terms.cc.useful.all
+              unless goes.empty?
+                worthwhile = true
+                orig = orthomcl_gene.orthomcl_name
+                goes.each do |code_go|
+                  paragraph.push [
+                    orig,
+                    code_go.go_term.go_identifier,
+                    code_go.go_term.term,
+                    code_go.evidence_code
+                  ].join("\t")
+                  orig = ''
+                end
               end
             end
           end
