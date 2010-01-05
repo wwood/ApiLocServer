@@ -2,6 +2,7 @@ class OrthomclGroup < ActiveRecord::Base
   has_many :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
   has_many :orthomcl_genes, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs
   has_one :orthomcl_run, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs
+  has_one :orthomcl_localisation_onservations
   
   named_scope :overlapping do |*species_array|  
     if species_array.length != 2 or true
