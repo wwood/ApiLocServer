@@ -716,4 +716,47 @@ class BScript
       puts
     end
   end
+
+  def apiloc_go_localisation_conservation_groups_to_database
+    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues2/breakdown.manual.xls",
+      :col_sep => "\t"
+    ) do |row|
+      next unless row[0] and row[0].length > 0
+      single = row[0]
+      eg = row[1]
+
+      full = OrthomclLocalisationConservations.single_letter_to_full_name(single)
+      raise Exception, "Couldn't understand single letter '#{single}'" unless full
+
+      # find the orthomcl group by using the gene in the first line (the example)
+      ogene = OrthomclGene.official.find_by_orthomcl_name(eg)
+      raise Exception, "Coun't find orthomcl gene '#{eg}' as expected" if ogene.nil?
+
+      # create the record
+      OrthomclLocalisationConservations.find_or_create_by_orthomcl_group_id_and_conservation(
+        ogene.official_group.id, full
+      ).save!
+    end
+  end
+
+  def yes_vs_no_human_examples
+    OrthomclLocalisationConservations.all.collect do |l|
+      max_human = OrthomclGene.code('hsap').all(
+        :joins =>[
+          [:coding_regions => :go_terms],
+          :orthomcl_gene_orthomcl_group_orthomcl_runs
+        ],
+        :conditions => {:orthomcl_gene_orthomcl_group_orthomcl_runs => {:orthomcl_group_id => l.orthomcl_group_id}}
+      ).max do |h1, h2|
+        h1.coding_regions.reach.coding_region_go_terms.cc.useful.count <=> 
+          h2.coding_regions.reach.coding_region_go_terms.cc.useful.count
+      end
+
+      next unless max_human
+      puts [
+        l.conservation,
+        max_human.coding_regions.first.string_id
+      ].join("\t")
+    end
+  end
 end

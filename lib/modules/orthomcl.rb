@@ -3,7 +3,7 @@
 class BScript
   def orthomcl_to_database
     orthomcl_groups_to_database
-    upload_orthomcl_official_sequences
+    upload_orthomcl_official_deflines
   end
 
   # Load the data from the groups file alone - upload all genes and groups
