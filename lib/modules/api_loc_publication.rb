@@ -523,7 +523,10 @@ class BScript
     upload_apiloc_ensembl_go_terms
     upload_apiloc_uniprot_go_terms
     upload_apiloc_uniprot_mappings
-    OrthomclGene.new.link_orthomcl_and_coding_regions(%w(hsap atha mmus dmel cele))
+    # for some reason a single refseq sequence can be linked to multiple uniprot sequences,
+    # which is stupid but something I'll have to live with
+    OrthomclGene.new.link_orthomcl_and_coding_regions(%w(atha))
+    OrthomclGene.new.link_orthomcl_and_coding_regions(%w(hsap mmus dmel cele))
     generate_apiloc_orthomcl_groups_for_inspection
   end
 

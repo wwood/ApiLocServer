@@ -246,6 +246,8 @@ class BScript
     theileria_parva_gene_aliases
     upload_theileria_fasta
     babesia_to_database
+    # extras required for proper orthomcl linking
+    upload_gondii_gene_table_to_database
   end
 
   def upload_apiloc_fasta_files

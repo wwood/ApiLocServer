@@ -194,8 +194,19 @@ class OrthomclGene < ActiveRecord::Base
   
   # Basically fill out the orthomcl_gene_coding_regions table appropriately
   # for only the official one
-  def link_orthomcl_and_coding_regions(interesting_orgs, warn=false, upload_codes_first=true)
-    Species.new.update_known_four_letters if upload_codes_first
+  def link_orthomcl_and_coding_regions(interesting_orgs, *args)
+    
+
+    options = args.extract_options!
+    options = {
+      :warn=>false, #warn if there is no coding region that matches
+      :upload_species_orthomcl_codes_first=>true, #before even looking at the orthomcl data, upload the four letter codes into the species table?
+      :accept_multiple_coding_regions => false #allow multiple coding regions to match to a single coding region - useful in rare cases
+    }.merge(options)
+    p options
+    return
+
+    Species.new.update_known_four_letters if options[:upload_species_orthomcl_codes_first]
 
     goods = 0; nones = 0; too_manies = 0
     
@@ -219,14 +230,23 @@ class OrthomclGene < ActiveRecord::Base
       if !codes or codes.length == 0
         # print problems to stdout. I'm getting too many problems to ignore
         # annoyingly.
-        $stderr.puts "No coding region found for #{orthomcl_gene.orthomcl_name}" if warn
+        $stderr.puts "No coding region found for #{orthomcl_gene.orthomcl_name}" if options[:warn]
         nones += 1
         next
       elsif codes.length > 1
         #ignore
         #        raise Exception, "Too many coding regions found for #{orthomcl_gene.orthomcl_name}" 
-        $stderr.puts "Too many coding regions found for #{orthomcl_gene.orthomcl_name}"
+        $stderr.puts "Too many coding regions found for #{orthomcl_gene.orthomcl_name}" if options[:warn]
         too_manies += 1
+        if options[:accept_multiple_coding_regions] #if the non-default option of allowing multiple coding regions per orthomcl region is taken
+          codes.each do |code|
+            OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
+              orthomcl_gene.id,
+              code.id
+            )
+          end
+          goods += 1
+        end
         next
       else
         code = codes[0]
