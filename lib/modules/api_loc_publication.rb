@@ -584,7 +584,11 @@ class BScript
           if (matches = evidence_almost.match(/^(...)\:.*$/))
             evidence = matches[1]
           end
-          raise if evidence.nil?
+
+          # error checking
+          if evidence.nil?
+            raise Exception, "No evidence code found in #{go_array.inspect} from #{evidence_almost}!"
+          end
 
           
           go = GoTerm.find_by_go_identifier_or_alternate go_id
