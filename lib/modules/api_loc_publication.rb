@@ -536,12 +536,13 @@ class BScript
       'mouse' => Species::MOUSE_NAME,
     }.each do |this_name, proper_name|
       $stderr.puts this_name
-      FasterCSV.foreach("#{species_orthologue_folder}/biomart_results/#{this_name}.txt",
-        :col_sep => "\t"
+      FasterCSV.foreach("#{species_orthologue_folder}/biomart_results/#{this_name}.csv",
+        :col_sep => "\t",
+        :headers => true
       ) do |row|
-        protein_name = row[1]
-        go_id = row[2]
-        evidence = row[5]
+        protein_name = row['Ensembl Protein ID']
+        go_id = row['GO Term Accession']
+        evidence = row['GO Term Evidence Code']
 
         next if go_id.nil? #ignore empty columns
 
@@ -560,7 +561,9 @@ class BScript
 
   def upload_apiloc_uniprot_go_terms
     {
-      'arabidopsis' => Species::ARABIDOPSIS_NAME
+      'arabidopsis' => Species::ARABIDOPSIS_NAME,
+      'worm' => Species::ELEGANS_NAME,
+      'fly' => Species::DROSOPHILA_NAME
     }.each do |this_name, proper_name|
       File.open("#{species_orthologue_folder}/uniprot_results/#{this_name}.uniprot.txt").read.split("//\n").each do |uniprot|
         u = Bio::UniProt.new(uniprot)
@@ -610,7 +613,9 @@ class BScript
   
   def upload_apiloc_uniprot_mappings
     {
-      'arabidopsis' => Species::ARABIDOPSIS_NAME
+      'arabidopsis' => Species::ARABIDOPSIS_NAME,
+      'worm' => Species::ELEGANS_NAME,
+      'fly' => Species::DROSOPHILA_NAME
     }.each do |this_name, proper_name|
 
 
