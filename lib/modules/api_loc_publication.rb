@@ -581,7 +581,7 @@ class BScript
           go_id = go_array[0]
           evidence_almost = go_array[2]
           evidence = nil
-          if (matches = evidence_almost.match(/^(...)\:.*$/))
+          if (matches = evidence_almost.match(/^([A-Z]{2,3})\:.*$/))
             evidence = matches[1]
           end
 
