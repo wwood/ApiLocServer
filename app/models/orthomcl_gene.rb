@@ -199,8 +199,6 @@ class OrthomclGene < ActiveRecord::Base
   # Basically fill out the orthomcl_gene_coding_regions table appropriately
   # for only the official one
   def link_orthomcl_and_coding_regions(interesting_orgs, *args)
-    
-
     options = args.extract_options!
     options = {
       :warn=>false, #warn if there is no coding region that matches

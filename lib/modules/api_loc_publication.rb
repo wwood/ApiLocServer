@@ -525,7 +525,7 @@ class BScript
     upload_apiloc_uniprot_mappings
     # for some reason a single refseq sequence can be linked to multiple uniprot sequences,
     # which is stupid but something I'll have to live with
-    OrthomclGene.new.link_orthomcl_and_coding_regions(%w(atha))
+    OrthomclGene.new.link_orthomcl_and_coding_regions(%w(atha), :accept_multiple_coding_regions=>true)
     OrthomclGene.new.link_orthomcl_and_coding_regions(%w(hsap mmus dmel cele))
     generate_apiloc_orthomcl_groups_for_inspection
   end
