@@ -81,6 +81,7 @@ class Species < ActiveRecord::Base
     BERGHEI_NAME => 'pber',
     YOELII_NAME => 'pyoe',
     KNOWLESI_NAME => 'pkno',
+    CHABAUDI_NAME => 'pcha',
     CRYPTOSPORIDIUM_HOMINIS_NAME => 'chom',
     CRYPTOSPORIDIUM_PARVUM_NAME => 'cpar',
     CRYPTOSPORIDIUM_MURIS_NAME => 'cmur',
