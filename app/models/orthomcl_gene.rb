@@ -205,8 +205,8 @@ class OrthomclGene < ActiveRecord::Base
       :upload_species_orthomcl_codes_first=>true, #before even looking at the orthomcl data, upload the four letter codes into the species table?
       :accept_multiple_coding_regions => false #allow multiple coding regions to match to a single coding region - useful in rare cases
     }.merge(options)
-    p options
-    return
+    #p options
+    #return
 
     Species.new.update_known_four_letters if options[:upload_species_orthomcl_codes_first]
 
