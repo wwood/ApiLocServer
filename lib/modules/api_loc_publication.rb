@@ -748,15 +748,20 @@ class BScript
         ],
         :conditions => {:orthomcl_gene_orthomcl_group_orthomcl_runs => {:orthomcl_group_id => l.orthomcl_group_id}}
       ).max do |h1, h2|
-        h1.coding_regions.reach.coding_region_go_terms.cc.useful.count <=> 
-          h2.coding_regions.reach.coding_region_go_terms.cc.useful.count
+        counter = lambda {|h|
+          CodingRegionGoTerm.cc.useful.count(
+            :joins => {:coding_region => :orthomcl_genes},
+            :conditions => {:orthomcl_genes => {:id => h.id}}
+          )
+        }
+        counter.call(h1) <=> counter.call(h2)
       end
 
       next unless max_human
       puts [
         l.conservation,
-        max_human.coding_regions.first.string_id
-      ].join("\t")
+        max_human.coding_regions.first.names.sort
+      ].flatten.join("\t")
     end
   end
 end
