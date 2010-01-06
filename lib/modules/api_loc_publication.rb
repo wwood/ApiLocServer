@@ -782,6 +782,27 @@ class BScript
         code.id, uni, CodingRegionAlternateStringId::UNIPROT_SOURCE_NAME
       ) or raise
     end
+  end
 
+  def download_uniprot_data
+    {
+      9606 => Species::HUMAN_NAME,
+      4932 => Species::YEAST_NAME,
+      312017 => Species::TETRAHYMENA_NAME,
+      7227 => Species::DROSOPHILA_NAME,
+      3702 => Species::ARABIDOPSIS_NAME,
+      6239 => Species::ELEGANS_NAME,
+      10090 => Species::MOUSE_NAME,
+      3055 => Species::CHLAMYDOMONAS_NAME
+    }.each do |taxon_id, species_name|
+      # Download the data into the expected name
+      Dir.chdir("#{DATA_DIR}/UniProt/knowledgebase") do
+        unless File.exists?("#{species_name}.gz")
+          cmd = "wget -O '#{species_name}.gz' 'http://www.uniprot.org/uniprot/?query=taxonomy%3a#{taxon_id}&compress=yes&format=txt'"
+          p cmd
+          `#{cmd}`
+        end
+      end
+    end
   end
 end

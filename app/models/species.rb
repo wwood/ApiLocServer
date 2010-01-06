@@ -24,6 +24,8 @@ class Species < ActiveRecord::Base
   CRYPTOSPORIDIUM_MURIS_NAME = 'Cryptosporidium muris'
   HUMAN_NAME = 'Homo sapiens'
   ARABIDOPSIS_NAME = 'Arabidopsis thaliana'
+  TETRAHYMENA_NAME = 'Tetrahymena thermophila'
+  CHLAMYDOMONAS_NAME = 'Chlamydomonas reinhardtii'
 
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'
@@ -255,15 +257,15 @@ class Species < ActiveRecord::Base
   end
 
   # Try to return the species with the name as requested
-#  def self.method_missing(method_id)
-#    rets = Species.all(
-#      :conditions => ['name like ?', "%#{method_id.to_s}%"]
-#    )
-#    if rets.length == 1
-#      return rets[0]
-#    else
-#      # well, I tried..
-#      super
-#    end
-#  end
+  #  def self.method_missing(method_id)
+  #    rets = Species.all(
+  #      :conditions => ['name like ?', "%#{method_id.to_s}%"]
+  #    )
+  #    if rets.length == 1
+  #      return rets[0]
+  #    else
+  #      # well, I tried..
+  #      super
+  #    end
+  #  end
 end
