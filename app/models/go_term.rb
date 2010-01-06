@@ -53,4 +53,18 @@ class GoTerm < ActiveRecord::Base
     }
     return g.flatten.uniq
   end
+
+  def go_identifer_to_go_term
+    $stdin.each_line do |line|
+      go = line.split(/\s/)[0]
+      gt = GoTerm.find_by_go_identifier(go)
+      if gt
+        puts [
+          go, gt.aspect, gt.term
+        ].join("\t")
+      else
+        $stderr.puts "Couldn't find #{go}, skipping"
+      end
+    end
+  end
 end

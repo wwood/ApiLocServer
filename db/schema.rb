@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100105231958) do
+ActiveRecord::Schema.define(:version => 20100106033658) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -106,6 +106,7 @@ ActiveRecord::Schema.define(:version => 20100105231958) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "type"
+    t.string   "source"
   end
 
   add_index "coding_region_alternate_string_ids", ["coding_region_id", "name", "type"], :name => "index4", :unique => true

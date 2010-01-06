@@ -490,7 +490,10 @@ class BScript
       'mmus' => 'mouse',
       'atha' => 'arabidopsis',
       'dmel' => 'fly',
-      'cele' => 'worm'
+      'cele' => 'worm',
+      'scer' => 'yeast',
+      'crei' => 'chlamydomonas',
+      'tthe' => 'tetrahymena',
     }.each do |code, name|
       $stderr.puts name
       out = File.open("#{species_orthologue_folder}/#{name}.txt",'w')
@@ -514,7 +517,7 @@ class BScript
   end
 
   # \
-  def species_orthologue_folder; "#{PHD_DIR}/apiloc/species_orthologues2"; end
+  def species_orthologue_folder; "#{PHD_DIR}/apiloc/species_orthologues3"; end
 
   # all the methods required to get from the biomart and uniprot
   # id to GO term mappings to a spreadsheet that can be inspected for the
@@ -656,7 +659,7 @@ class BScript
   end
 
   def generate_apiloc_orthomcl_groups_for_inspection
-    interestings = %w(hsap atha mmus dmel cele)
+    interestings = %w(hsap atha mmus dmel cele scer)
 
     OrthomclGroup.all(
       :joins => {
@@ -763,5 +766,22 @@ class BScript
         max_human.coding_regions.first.names.sort
       ].flatten.join("\t")
     end
+  end
+
+  def upload_uniprot_identifiers_for_ensembl_ids
+    FasterCSV.foreach("#{species_orthologue_folder}/gostat/human_ensembl_uniprot_ids.txt",
+      :col_sep => "\t", :headers => true
+    ) do |row|
+      ens = row['Ensembl Protein ID']
+      uni = row['UniProt/SwissProt Accession']
+      raise unless ens
+      next unless uni
+      code = CodingRegion.f(ens)
+      raise unless code
+      CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+        code.id, uni, CodingRegionAlternateStringId::UNIPROT_SOURCE_NAME
+      ) or raise
+    end
+
   end
 end
