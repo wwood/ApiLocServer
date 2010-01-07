@@ -823,10 +823,13 @@ class BScript
   def uniprot_to_database
     APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
       current_uniprot_string = ''
-      Zlib::GzipReader.open(
-        "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
-      ).each do |line|
+      filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
+      require 'progressbar'
+      progress = ProgressBar.new('species_name', `gunzip -c #{filename} |grep '^//' |wc -l`.to_i)
+      Zlib::GzipReader.open(filename).each do |line|
         if line == "//\n"
+          progress.inc
+          
           #current uniprot is finished - upload it
           u = Bio::UniProt.new(current_uniprot_string)
 
