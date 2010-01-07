@@ -805,4 +805,79 @@ class BScript
       end
     end
   end
+  
+  APILOC_UNIPROT_SPECIES_NAMES = {
+    9606 => Species::HUMAN_NAME,
+    4932 => Species::YEAST_NAME,
+    312017 => Species::TETRAHYMENA_NAME,
+    7227 => Species::DROSOPHILA_NAME,
+    3702 => Species::ARABIDOPSIS_NAME,
+    6239 => Species::ELEGANS_NAME,
+    10090 => Species::MOUSE_NAME,
+    3055 => Species::CHLAMYDOMONAS_NAME
+  }.values
+
+  # Given that the species of interest are already downloaded from uniprot
+  # (using download_uniprot_data for instance), upload this data
+  # to the database, including various
+  def uniprot_to_database
+    APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
+      current_uniprot_string = ''
+      Zlib::GzipReader.open(
+        "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
+      ).each do |line|
+        if line == "//\n"
+          #current uniprot is finished - upload it
+          u = Bio::UniProt.new(current_uniprot_string)
+
+          # Upload the UniProt name as the
+          axes = u.ac
+          protein_name = axes[0]
+          raise unless protein_name
+          code = CodingRegion.find_or_create_dummy(protein_name, species_name)
+
+          protein_alternate_names = axes.no_nils
+          protein_alternate_names.each do |name|
+            CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+              code.id, name, 'UniProt'
+            ) or raise
+          end
+
+          goes = u.dr["GO"]
+          next if goes.nil? #no go terms associated
+
+          goes.each do |go_array|
+            go_id = go_array[0]
+            evidence_almost = go_array[2]
+            evidence = nil
+            if (matches = evidence_almost.match(/^([A-Z]{2,3})\:.*$/))
+              evidence = matches[1]
+            end
+
+            # error checking
+            if evidence.nil?
+              raise Exception, "No evidence code found in #{go_array.inspect} from #{evidence_almost}!"
+            end
+
+
+            go = GoTerm.find_by_go_identifier_or_alternate go_id
+            unless go
+              $stderr.puts "Couldn't find GO id #{go_id}"
+              next
+            end
+
+            CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
+              code.id, go.id, evidence
+            ).save!
+          end
+
+          current_uniprot_string = ''
+        else
+          current_uniprot_string += line
+        end
+      end
+      #uploadin the last one not required because the last line is always
+      # '//' already - making it easy.
+    end
+  end
 end
