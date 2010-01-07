@@ -429,6 +429,7 @@ module LocalisationConstants
       'zygote side',
       'oocyst protrusion',
       'oocyst capsule',
+      'individual merozoites inside merozomes',
       'anterior to nucleus',
       'nucleus',
       'outer nuclear envelope',
@@ -441,6 +442,7 @@ module LocalisationConstants
       'plasma membrane',
       'food vacuole',
       'parasitophorous vacuole membrane',
+      'only parasitophorous vacuole membrane',
       'pellicle',
       'ookinete protrusion',
       'peripheral of oocyst protrusion',
@@ -452,6 +454,7 @@ module LocalisationConstants
       'endoplasmic reticulum',
       'transformation bulb',
       'crystalloid',
+      'internal structures',
     ],
     Species::VIVAX_NAME => [
       'surface',
@@ -537,6 +540,7 @@ module LocalisationConstants
       'rhoptries' => 'rhoptry',
     },
     Species::PLASMODIUM_BERGHEI_NAME => {
+      'only pvm' => 'only parasitophorous vacuole membrane',
       'internalized' => 'cytoplasm',
       'sporozoite trail' => 'gliding trail',
       'er' => 'endoplasmic reticulum',

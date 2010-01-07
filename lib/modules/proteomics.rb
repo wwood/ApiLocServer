@@ -1,6 +1,12 @@
 
 class BScript
 
+  def proteomics_to_database
+    food_vacuole_proteome_to_database
+    whole_cell_proteome_to_database
+    maurers_cleft_proteome_to_database
+  end
+
   def food_vacuole_proteome_to_database
     exp = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME)
 

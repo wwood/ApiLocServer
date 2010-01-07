@@ -339,7 +339,7 @@ class Localisation < ActiveRecord::Base
     }
     if manual_mappings[name]
       return [
-        GoTerm.find_by_go_identifier manual_mappings[name]
+        GoTerm.find_by_go_identifier(manual_mappings[name])
       ]
     end
 

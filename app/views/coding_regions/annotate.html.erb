@@ -13,11 +13,9 @@
       <td><%= index+1 %></td>
       <td><%= link_to coding_region.string_id, :action => :show, :id => coding_region %></td>
       <td><%= coding_region.alternate_names.join(', ') %></td>
-      <td><%= coding_region.annotation.nil? ? 'no annotation' : coding_region.annotation.annotation %>
+      <td><%= coding_region.annotation.nil? ? 'no annotation' : coding_region.annotation.annotation %></td>
       <td>
-        <%= coding_region.expression_contexts.collect { |context|
-          "#{context.english}"
-        }.join(', ') %>
+        <%= coding_region.localisation_english %>
       </td>
       <td>
         <%= coding_region.expression_contexts.reach.publication.uniq.collect { |pub|
