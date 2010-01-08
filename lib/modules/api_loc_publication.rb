@@ -825,7 +825,7 @@ class BScript
       current_uniprot_string = ''
       filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
       require 'progressbar'
-      progress = ProgressBar.new('species_name', `gunzip -c #{filename} |grep '^//' |wc -l`.to_i)
+      progress = ProgressBar.new('species_name', `gunzip -c '#{filename}' |grep '^//' |wc -l`.to_i)
       Zlib::GzipReader.open(filename).each do |line|
         if line == "//\n"
           progress.inc
