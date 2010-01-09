@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100109001846) do
+ActiveRecord::Schema.define(:version => 20100109002503) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -58,12 +58,12 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
     t.integer  "order"
   end
 
-  add_index "cds", ["coding_region_id", "order"], :name => "index_cds_on_order_and_coding_region_id"
-  add_index "cds", ["coding_region_id", "start"], :name => "index_cds_on_start_and_coding_region_id"
-  add_index "cds", ["coding_region_id", "stop"], :name => "index_cds_on_stop_and_coding_region_id"
   add_index "cds", ["coding_region_id"], :name => "index_cds_on_coding_region_id"
+  add_index "cds", ["order", "coding_region_id"], :name => "index_cds_on_order_and_coding_region_id"
   add_index "cds", ["order"], :name => "index_cds_on_order"
+  add_index "cds", ["start", "coding_region_id"], :name => "index_cds_on_start_and_coding_region_id"
   add_index "cds", ["start"], :name => "index_cds_on_start"
+  add_index "cds", ["stop", "coding_region_id"], :name => "index_cds_on_stop_and_coding_region_id"
   add_index "cds", ["stop"], :name => "index_cds_on_stop"
 
   create_table "chromosomal_features", :force => true do |t|
@@ -140,7 +140,7 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
     t.string  "evidence_code"
   end
 
-  add_index "coding_region_go_terms", ["coding_region_id", "evidence_code", "go_term_id"], :name => "index_coding_region_go_terms_on_coding_region_id_and_go_term_id", :unique => true
+  add_index "coding_region_go_terms", ["coding_region_id", "go_term_id", "evidence_code"], :name => "index_coding_region_go_terms_on_coding_region_id_and_go_term_id", :unique => true
   add_index "coding_region_go_terms", ["coding_region_id", "go_term_id"], :name => "code_go"
 
   create_table "coding_region_localisations", :force => true do |t|
@@ -227,6 +227,7 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
 
   add_index "coding_regions", ["gene_id"], :name => "index_coding_regions_on_gene_id"
   add_index "coding_regions", ["orientation"], :name => "index_coding_regions_on_orientation"
+  add_index "coding_regions", ["string_id", "gene_id"], :name => "index_coding_regions_on_string_id_and_gene_id", :unique => true
   add_index "coding_regions", ["string_id"], :name => "index_coding_regions_on_string_id"
 
   create_table "comments", :force => true do |t|
@@ -269,7 +270,7 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
     t.datetime "updated_at"
   end
 
-  add_index "curated_top_level_localisations", ["coding_region_id", "top_level_localisation_id"], :name => "index_curated_top_level_localisations_on_coding_region_id_and_t", :unique => true
+  add_index "curated_top_level_localisations", ["coding_region_id", "top_level_localisation_id"], :name => "curated_all", :unique => true
   add_index "curated_top_level_localisations", ["coding_region_id"], :name => "index_curated_top_level_localisations_on_coding_region_id"
 
   create_table "derisi20063d7logmean", :force => true do |t|
@@ -484,7 +485,7 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
     t.datetime "updated_at"
   end
 
-  add_index "go_terms", ["aspect", "go_identifier", "term"], :name => "index_go_terms_on_go_identifier_and_term_and_aspect"
+  add_index "go_terms", ["go_identifier", "term", "aspect"], :name => "index_go_terms_on_go_identifier_and_term_and_aspect"
   add_index "go_terms", ["go_identifier"], :name => "go_term_idx_name", :unique => true
 
   create_table "gus", :force => true do |t|
@@ -569,7 +570,7 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
     t.datetime "updated_at"
   end
 
-  add_index "meta_microarray_measurements", ["microarray_timepoint_id", "type"], :name => "index_meta_microarray_measurements_on_type_and_microarray_timep"
+  add_index "meta_microarray_measurements", ["type", "microarray_timepoint_id"], :name => "index_meta_microarray_measurements_on_type_and_microarray_timep"
 
   create_table "microarray_measurements", :force => true do |t|
     t.integer  "microarray_timepoint_id", :null => false
@@ -582,7 +583,7 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
   add_index "microarray_measurements", ["coding_region_id", "measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_co"
   add_index "microarray_measurements", ["coding_region_id", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_coding_region_id_and_microarra"
   add_index "microarray_measurements", ["coding_region_id"], :name => "index_microarray_measurements_on_coding_region_id"
-  add_index "microarray_measurements", ["measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_me"
+  add_index "microarray_measurements", ["microarray_timepoint_id", "measurement"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_me"
   add_index "microarray_measurements", ["microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id"
 
   create_table "microarray_timepoints", :force => true do |t|
@@ -617,7 +618,7 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
     t.datetime "updated_at"
   end
 
-  add_index "mouse_phenotype_mouse_phenotype_dictionary_entries", ["mouse_phenotype_dictionary_entry_id", "mouse_phenotype_id"], :name => "index_mouse_phenotype_mouse_phenotype_dictionary_entries_on_mou", :unique => true
+  add_index "mouse_phenotype_mouse_phenotype_dictionary_entries", ["mouse_phenotype_id", "mouse_phenotype_dictionary_entry_id"], :name => "index_mouse_phenotype_mouse_phenotype_dictionary_entries_on_mou", :unique => true
 
   create_table "mouse_phenotypes", :force => true do |t|
     t.string   "mgi_allele",  :null => false
@@ -678,7 +679,7 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
     t.datetime "updated_at"
   end
 
-  add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_gene_id", "orthomcl_group_id", "orthomcl_run_id"], :name => "ogogor", :unique => true
+  add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_gene_id", "orthomcl_run_id", "orthomcl_group_id"], :name => "ogogor", :unique => true
   add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_gene_id", "orthomcl_run_id"], :name => "ogog", :unique => true
   add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_group_id"], :name => "index_orthomcl_gene_orthomcl_group_orthomcl_runs_on_orthomcl_gr"
 
@@ -794,7 +795,7 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
     t.datetime "updated_at"
   end
 
-  add_index "probe_map_entries", ["probe_id", "probe_map_id"], :name => "index_probe_map_entries_on_probe_map_id_and_probe_id"
+  add_index "probe_map_entries", ["probe_map_id", "probe_id"], :name => "index_probe_map_entries_on_probe_map_id_and_probe_id"
 
   create_table "probe_maps", :force => true do |t|
     t.string   "name",       :null => false
@@ -903,7 +904,7 @@ ActiveRecord::Schema.define(:version => 20100109001846) do
     t.datetime "updated_at"
   end
 
-  add_index "string_coding_region_measurements", ["coding_region_id", "measurement", "type"], :name => "strind_code_ctm"
+  add_index "string_coding_region_measurements", ["coding_region_id", "type", "measurement"], :name => "strind_code_ctm"
   add_index "string_coding_region_measurements", ["coding_region_id", "type"], :name => "index_string_coding_region_measurements_on_coding_region_id_and"
 
   create_table "taxon_names", :force => true do |t|
