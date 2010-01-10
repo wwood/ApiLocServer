@@ -975,10 +975,12 @@ class BScript
         code = CodingRegion.fs(protein_name, species_name)
         raise unless code
 
-        u.gn[0][:loci].each do |orfname|
-          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
-            code.id, orfname
-          )
+        unless u.gn.empty?
+          u.gn[0][:loci].each do |orfname|
+            CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
+              code.id, orfname
+            )
+          end
         end
 
 
