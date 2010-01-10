@@ -11,6 +11,7 @@ require 'rubygems'
 require 'csv'
 require 'bio'
 require 'peach'
+require 'progressbar'
 
 #require 'mscript'
 require 'reach'

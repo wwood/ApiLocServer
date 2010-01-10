@@ -823,13 +823,20 @@ class BScript
   def uniprot_to_database
     APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
       current_uniprot_string = ''
-      filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
+      complete_filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
+
+      # Convert the whole gzip in to a smaller one, so parsing is faster:
+      filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}_reduced"
+      `zcat '#{complete_filename}' |egrep '^(AC|DR   GO|//)' >'#{filename}'`
+      #      filename = "#{DATA_DIR}/UniProt/knowledgebase/yeast_reduced_halved"
+
+      dummy_gene = Gene.find_or_create_dummy(species_name)
       require 'progressbar'
-      progress = ProgressBar.new(species_name, `gunzip -c '#{filename}' |grep '^//' |wc -l`.to_i)
-      Zlib::GzipReader.open(filename).each do |line|
+      progress = ProgressBar.new(species_name, `grep '^//' '#{filename}' |wc -l`.to_i)
+      File.foreach(filename) do |line|
         if line == "//\n"
           progress.inc
-          
+
           #current uniprot is finished - upload it
           u = Bio::UniProt.new(current_uniprot_string)
 
@@ -837,7 +844,10 @@ class BScript
           axes = u.ac
           protein_name = axes[0]
           raise unless protein_name
-          code = CodingRegion.find_or_create_dummy(protein_name, species_name)
+          code = CodingRegion.find_or_create_by_gene_id_and_string_id(
+            dummy_gene,
+            protein_name
+          )
 
           protein_alternate_names = axes.no_nils
           protein_alternate_names.each do |name|
@@ -879,8 +889,104 @@ class BScript
           current_uniprot_string += line
         end
       end
-      #uploadin the last one not required because the last line is always
-      # '//' already - making it easy.
+      `rm '#{filename}'`
     end
+    #uploadin the last one not required because the last line is always
+    # '//' already - making it easy.
+  end
+
+  def tetrahymena_orf_names_to_database
+    species_name = Species::TETRAHYMENA_NAME
+    current_uniprot_string = ''
+    filename = "#{DATA_DIR}/UniProt/knowledgebase/#{Species::TETRAHYMENA_NAME}.gz"
+    require 'progressbar'
+    progress = ProgressBar.new(Species::TETRAHYMENA_NAME, `gunzip -c '#{filename}' |grep '^//' |wc -l`.to_i)
+    Zlib::GzipReader.open(filename).each do |line|
+      if line == "//\n"
+        progress.inc
+
+        #current uniprot is finished - upload it
+        u = Bio::UniProt.new(current_uniprot_string)
+
+        axes = u.ac
+        protein_name = axes[0]
+        raise unless protein_name
+        code = CodingRegion.fs(protein_name, species_name)
+        raise unless code
+
+        u.gn[0][:orfs].each do |orfname|
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
+            code.id, orfname
+          )
+        end
+
+
+        current_uniprot_string = ''
+      else
+        current_uniprot_string += line
+      end
+    end
+  end
+
+  # upload aliases so that orthomcl entries can be linked to uniprot ones.
+  # have to run tetrahymena_orf_names_to_database first though.
+  def tetrahymena_gene_aliases_to_database
+    bads = 0
+    goods = 0
+    filename = "#{DATA_DIR}/Tetrahymena thermophila/genome/TGD/Tt_ID_Mapping_File.txt"
+    progress = ProgressBar.new(Species::TETRAHYMENA_NAME, `wc -l '#{filename}'`.to_i)
+    FasterCSV.foreach(filename,
+      :col_sep => "\t"
+    ) do |row|
+      progress.inc
+      uniprot = row[0]
+      orthomcl = row[1]
+      code = CodingRegion.fs(uniprot, Species::TETRAHYMENA_NAME)
+      if code.nil?
+        bads +=1
+      else
+        goods += 1
+        a = CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_source_and_name(
+          code.id, 'TGD', orthomcl
+        )
+        raise unless a
+      end
+    end
+    progress.finish
+    $stderr.puts "Found #{goods}, failed #{bads}"
+  end
+
+  def yeastgenome_ids_to_database
+    species_name = Species::YEAST_NAME
+    current_uniprot_string = ''
+    filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
+    require 'progressbar'
+    progress = ProgressBar.new(species_name, `gunzip -c '#{filename}' |grep '^//' |wc -l`.to_i)
+    Zlib::GzipReader.open(filename).each do |line|
+      if line == "//\n"
+        progress.inc
+
+        #current uniprot is finished - upload it
+        u = Bio::UniProt.new(current_uniprot_string)
+
+        axes = u.ac
+        protein_name = axes[0]
+        raise unless protein_name
+        code = CodingRegion.fs(protein_name, species_name)
+        raise unless code
+
+        u.gn[0][:loci].each do |orfname|
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
+            code.id, orfname
+          )
+        end
+
+
+        current_uniprot_string = ''
+      else
+        current_uniprot_string += line
+      end
+    end
+    progress.finish
   end
 end
