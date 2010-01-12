@@ -991,4 +991,19 @@ class BScript
     end
     progress.finish
   end
+
+  def elegans_wormbase_identifiers
+      current_uniprot_string = ''
+      complete_filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
+
+      # Convert the whole gzip in to a smaller one, so parsing is faster:
+      filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}_reduced"
+      `zcat '#{complete_filename}' |egrep '^(AC|DR   GO|//)' >'#{filename}'`
+      #      filename = "#{DATA_DIR}/UniProt/knowledgebase/yeast_reduced_halved"
+
+      dummy_gene = Gene.find_or_create_dummy(species_name)
+      require 'progressbar'
+      progress = ProgressBar.new(species_name, `grep '^//' '#{filename}' |wc -l`.to_i)
+      File.foreach(filename) do |line|
+  end
 end

@@ -78,6 +78,8 @@ class Species < ActiveRecord::Base
   }
 
   ORTHOMCL_FOUR_LETTERS = {
+    CHLAMYDOMONAS_NAME => 'crei',
+    TETRAHYMENA_NAME => 'tthe',
     FALCIPARUM => 'pfal',
     VIVAX_NAME => 'pviv',
     BERGHEI_NAME => 'pber',
