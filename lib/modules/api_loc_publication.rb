@@ -807,14 +807,14 @@ class BScript
   end
   
   APILOC_UNIPROT_SPECIES_NAMES = {
-    9606 => Species::HUMAN_NAME,
-    4932 => Species::YEAST_NAME,
+    #9606 => Species::HUMAN_NAME,
+    #4932 => Species::YEAST_NAME,
     312017 => Species::TETRAHYMENA_NAME,
-    7227 => Species::DROSOPHILA_NAME,
-    3702 => Species::ARABIDOPSIS_NAME,
-    6239 => Species::ELEGANS_NAME,
-    10090 => Species::MOUSE_NAME,
-    3055 => Species::CHLAMYDOMONAS_NAME
+    #7227 => Species::DROSOPHILA_NAME,
+    #3702 => Species::ARABIDOPSIS_NAME,
+    #6239 => Species::ELEGANS_NAME,
+    #10090 => Species::MOUSE_NAME,
+    #3055 => Species::CHLAMYDOMONAS_NAME
   }.values
 
   # Given that the species of interest are already downloaded from uniprot
