@@ -1019,4 +1019,22 @@ PFI1740c).include?(f)
     end
 
   end
+
+  # A helper method to print out foreign keys so a migration can be made all
+  # at once using matthuhiggins-foreigner style. Implemented in migration 20100112063516
+  def print_add_foreign_keys
+    model_root = "#{RAILS_ROOT}/app/models"
+    Dir.open(model_root).each do |file|
+      next unless (matches = file.match(/^(.*).rb$/))
+      File.foreach(
+        File.join(model_root,"#{matches[1]}.rb")
+      ) do |line|
+        if m2 = line.strip.match(/has_many \:(.*)/) and line.match(/dependent/) and !line.match(/through/)
+          foreign_key_table = m2[1].gsub(/,.*/,'')
+          puts "\##{line}"
+          puts "add_foreign_key :#{foreign_key_table.pluralize}, :#{matches[1].pluralize}, :dependent => :delete"
+        end
+      end
+    end
+  end
 end
