@@ -411,6 +411,8 @@ class BScript
   def upgrade(database_name)
     database_name.downcase!
     # Destroy all the species in the database, using the named_scope
+    $stderr.puts "might want to change the destroy to a database delete so the database can do the work way way faster?"
+    return
     Species.send(database_name.to_sym).all.reach.destroy
 
     # downloads go through only if the files don't already exist,

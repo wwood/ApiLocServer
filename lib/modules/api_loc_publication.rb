@@ -1025,5 +1025,11 @@ class BScript
   def apiloc_start_to_finish
     go_to_database
     uniprot_to_database
+    orthomcl_to_database
+    upload_apiloc_from_scratch
+    tetrahymena_orf_names_to_database
+    tetrahymena_gene_aliases_to_database
+    yeastgenome_ids_to_database
+    elegans_wormbase_identifiers    
   end
 end
