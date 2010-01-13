@@ -54,6 +54,8 @@ class SpeciesData
     },
     'Toxoplasma gondii' => {
       :name => 'Toxoplasma gondii',
+      :sequencing_centre_abbreviation => 'gb',
+      :fasta_file_species_name => 'Toxoplasma_gondii_ME49',
       :gene_information_gzip_filename => lambda {|version| "TgondiiME49Gene_ToxoDB-#{version}.txt.gz"},
       :proteins_fasta_filename => lambda {|version| "TgondiiME49AnnotatedProteins_ToxoDB-#{version}.fasta"},
       :transcripts_fasta_filename => lambda {|version| "TgondiiME49AnnotatedTranscripts_ToxoDB-#{version}.fasta"},
