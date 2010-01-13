@@ -793,7 +793,8 @@ class BScript
       3702 => Species::ARABIDOPSIS_NAME,
       6239 => Species::ELEGANS_NAME,
       10090 => Species::MOUSE_NAME,
-      3055 => Species::CHLAMYDOMONAS_NAME
+      3055 => Species::CHLAMYDOMONAS_NAME,
+      7955 => Species::DANIO_RERIO_NAME
     }.each do |taxon_id, species_name|
       # Download the data into the expected name
       Dir.chdir("#{DATA_DIR}/UniProt/knowledgebase") do
@@ -807,14 +808,15 @@ class BScript
   end
   
   APILOC_UNIPROT_SPECIES_NAMES = {
-    9606 => Species::HUMAN_NAME,
-    4932 => Species::YEAST_NAME,
-    312017 => Species::TETRAHYMENA_NAME,
-    7227 => Species::DROSOPHILA_NAME,
-    3702 => Species::ARABIDOPSIS_NAME,
-    6239 => Species::ELEGANS_NAME,
-    10090 => Species::MOUSE_NAME,
-    3055 => Species::CHLAMYDOMONAS_NAME
+#    9606 => Species::HUMAN_NAME,
+#    4932 => Species::YEAST_NAME,
+#    312017 => Species::TETRAHYMENA_NAME,
+#    7227 => Species::DROSOPHILA_NAME,
+#    3702 => Species::ARABIDOPSIS_NAME,
+#    6239 => Species::ELEGANS_NAME,
+#    10090 => Species::MOUSE_NAME,
+#    3055 => Species::CHLAMYDOMONAS_NAME,
+    7955 => Species::DANIO_RERIO_NAME
   }.values
 
   # Given that the species of interest are already downloaded from uniprot
@@ -964,7 +966,6 @@ class BScript
     species_name = Species::YEAST_NAME
     current_uniprot_string = ''
     filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
-    require 'progressbar'
     progress = ProgressBar.new(species_name, `gunzip -c '#{filename}' |grep '^//' |wc -l`.to_i)
     Zlib::GzipReader.open(filename).each do |line|
       if line == "//\n"
@@ -1003,23 +1004,34 @@ class BScript
 
     # Convert the whole gzip in to a smaller one, so parsing is faster:
     filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}_reduced"
-    `zcat '#{complete_filename}' |egrep '^(AC|DR   Worm|//)' >'#{filename}'`
-    #      filename = "#{DATA_DIR}/UniProt/knowledgebase/yeast_reduced_halved"
-
-    dummy_gene = Gene.find_or_create_dummy(species_name)
-    require 'progressbar'
+    `zcat '#{complete_filename}' |egrep '^(AC|DR   WormBase|//)' >'#{filename}'`
+    
     progress = ProgressBar.new(species_name, `grep '^//' '#{filename}' |wc -l`.to_i)
     File.foreach(filename) do |line|
       if line == "//\n"
         progress.inc
 
-        
+        u = Bio::UniProt.new(current_uniprot_string)
+
+        code = CodingRegion.fs(u.ac[0], Species::ELEGANS_NAME)
+        raise unless code
+
+        # DR   WormBase; WBGene00000467; cep-1.
+        ides = u.dr['WormBase']
+        ides ||= []
+        ides.flatten.each do |ident|
+          a = CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+            code.id, ident, 'WormBase'
+          )
+          raise unless a.save!
+        end
 
         current_uniprot_string = ''
       else
         current_uniprot_string += line
       end
     end
+    `rm #{filename}`
   end
 
   def apiloc_start_to_finish
@@ -1030,6 +1042,6 @@ class BScript
     tetrahymena_orf_names_to_database
     tetrahymena_gene_aliases_to_database
     yeastgenome_ids_to_database
-    elegans_wormbase_identifiers    
+    elegans_wormbase_identifiers
   end
 end

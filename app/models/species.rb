@@ -26,6 +26,7 @@ class Species < ActiveRecord::Base
   ARABIDOPSIS_NAME = 'Arabidopsis thaliana'
   TETRAHYMENA_NAME = 'Tetrahymena thermophila'
   CHLAMYDOMONAS_NAME = 'Chlamydomonas reinhardtii'
+  DANIO_RERIO_NAME = 'Danio rerio'
 
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'
