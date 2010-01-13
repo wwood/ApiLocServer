@@ -87,6 +87,8 @@ class Species < ActiveRecord::Base
   }
 
   ORTHOMCL_FOUR_LETTERS = {
+    DANIO_RERIO_NAME => 'drer',
+    RICE_NAME => 'osat',
     CHLAMYDOMONAS_NAME => 'crei',
     TETRAHYMENA_NAME => 'tthe',
     FALCIPARUM => 'pfal',

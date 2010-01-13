@@ -10,7 +10,8 @@ module Bio
     
       temp = Tempfile.new("uniprot_iterator")
       # ungzip the file and pipe to a tempfile only those entries that match the regex
-      `zcat '#{gzfilename}' |egrep '^(AC|//|#{regex})' >#{temp.path}`
+      cmd = "zcat '#{gzfilename}' |egrep '^(AC|//|#{regex})' >#{temp.path}"
+      `#{cmd}`
 
       temp.close #closes the file but doesn't unlink it until the variable is finalised ie. the method is finished
 

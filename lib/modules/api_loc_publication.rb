@@ -808,16 +808,22 @@ class BScript
     3055 => Species::CHLAMYDOMONAS_NAME,
     7955 => Species::DANIO_RERIO_NAME,
     4530 => Species::RICE_NAME,
-    4087 => Species::TOBACCO_NAME,
-    70448 => Species::PLANKTON_NAME,
-    3218 => Species::MOSS_NAME,
-    3988 => Species::CASTOR_BEAN_NAME
+
+    # species below have no non-IEA gene ontology terms so are a waste of time
+    #    4087 => Species::TOBACCO_NAME,
+    #    70448 => Species::PLANKTON_NAME,
+    #    3218 => Species::MOSS_NAME,
+    #    3988 => Species::CASTOR_BEAN_NAME
   }
   APILOC_UNIPROT_SPECIES_NAMES = UNIPROT_SPECIES_ID_NAME_HASH.values
 
   # Given that the species of interest are already downloaded from uniprot
   # (using download_uniprot_data for instance), upload this data
-  # to the database, including various
+  # to the database, including GO terms. Other things need to be run afterwards
+  # to be able to link to OrthoMCL.
+  #
+  # This method could be more DRY - UniProtIterator could replace
+  # much of the code here. But eh for the moment.
   def uniprot_to_database
     APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
       count = 0
@@ -920,7 +926,6 @@ class BScript
             code.id, orfname
           )
         end
-
 
         current_uniprot_string = ''
       else
@@ -1032,14 +1037,15 @@ class BScript
     [
       Species::MOUSE_NAME,
       Species::HUMAN_NAME,
-      Species::DANIO_RERIO_NAME
+      Species::DANIO_RERIO_NAME,
+      Species::DROSOPHILA_NAME
     ].each do |species_name|
       Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'DR   Ensembl') do |u|
         code = CodingRegion.fs(u.ac[0], species_name) or raise
         ens = u.dr['Ensembl']
         ens ||= []
         ens.flatten.each do |e|
-          if e.match(/^ENS/)
+          if e.match(/^ENS/) or (species_name == Species::DROSOPHILA_NAME and e.match(/^FBpp/))
             CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
               code.id, e, 'Ensembl'
             )
@@ -1049,7 +1055,52 @@ class BScript
     end
   end
 
-  def apiloc_start_to_finish
+  def uniprot_refseq_databases
+    [
+      Species::ARABIDOPSIS_NAME,
+      Species::RICE_NAME
+    ].each do |species_name|
+      Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'DR   RefSeq') do |u|
+        code = CodingRegion.fs(u.ac[0], species_name) or raise
+
+        refseqs = u.dr['RefSeq']
+        refseqs ||= []
+        refseqs = refseqs.collect{|r| r[0]}
+        refseqs.each do |r|
+          r = r.gsub(/\..*/,'')
+
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+            code.id, r, 'Refseq'
+          )
+        end
+      end
+    end
+  end
+
+  def chlamydomonas_link_to_orthomcl_ids
+    species_name = Species::CHLAMYDOMONAS_NAME
+    Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'GN') do |u|
+      code = CodingRegion.fs(u.ac[0], species_name) or raise
+      gn = u.gn
+      unless gn.empty?
+        orfs = gn.collect{|g| g[:orfs]}
+        unless orfs.empty?
+          orfs.flatten.each do |orf|
+            o = 'CHLREDRAFT_168484' if orf == 'CHLRE_168484' #manual fix
+            raise Exception, "Unexpected orf: #{orf}" unless orf.match(/^CHLREDRAFT_/)
+            o =orf.gsub(/^CHLREDRAFT_/, '')
+
+            o =orf.gsub(/^CHLREDRAFT_/, '')
+            CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+              code.id, o, 'JGI'
+            )
+          end
+        end
+      end
+    end
+  end
+
+  def apiloc_ensembl_start_to_finish
     go_to_database
     uniprot_to_database
     orthomcl_to_database
@@ -1058,6 +1109,9 @@ class BScript
     tetrahymena_gene_aliases_to_database
     yeastgenome_ids_to_database
     elegans_wormbase_identifiers
+    uniprot_ensembl_databases
+    uniprot_refseq_databases
+    chlamydomonas_link_to_orthomcl_ids
   end
 
   def uniprot_go_annotation_species_stats
