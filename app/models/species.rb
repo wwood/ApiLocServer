@@ -27,6 +27,14 @@ class Species < ActiveRecord::Base
   TETRAHYMENA_NAME = 'Tetrahymena thermophila'
   CHLAMYDOMONAS_NAME = 'Chlamydomonas reinhardtii'
   DANIO_RERIO_NAME = 'Danio rerio'
+  RICE_NAME = 'rice'
+  TOBACCO_NAME = 'Nicotiana alata'
+  TOMATO_NAME = 'Lycopersicon'
+  SOYBEAN_NAME = 'Glycine max'
+  BARLEY_NAME = 'Hordeum vulgar'
+  PLANKTON_NAME = 'Ostreococcus tauri'
+  MOSS_NAME = 'Physcomitrella patens'
+  CASTOR_BEAN_NAME = 'Ricinus communis'
 
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'

@@ -785,17 +785,7 @@ class BScript
   end
 
   def download_uniprot_data
-    {
-      9606 => Species::HUMAN_NAME,
-      4932 => Species::YEAST_NAME,
-      312017 => Species::TETRAHYMENA_NAME,
-      7227 => Species::DROSOPHILA_NAME,
-      3702 => Species::ARABIDOPSIS_NAME,
-      6239 => Species::ELEGANS_NAME,
-      10090 => Species::MOUSE_NAME,
-      3055 => Species::CHLAMYDOMONAS_NAME,
-      7955 => Species::DANIO_RERIO_NAME
-    }.each do |taxon_id, species_name|
+    UNIPROT_SPECIES_ID_NAME_HASH.each do |taxon_id, species_name|
       # Download the data into the expected name
       Dir.chdir("#{DATA_DIR}/UniProt/knowledgebase") do
         unless File.exists?("#{species_name}.gz")
@@ -806,18 +796,24 @@ class BScript
       end
     end
   end
-  
-  APILOC_UNIPROT_SPECIES_NAMES = {
-#    9606 => Species::HUMAN_NAME,
-#    4932 => Species::YEAST_NAME,
-#    312017 => Species::TETRAHYMENA_NAME,
-#    7227 => Species::DROSOPHILA_NAME,
-#    3702 => Species::ARABIDOPSIS_NAME,
-#    6239 => Species::ELEGANS_NAME,
-#    10090 => Species::MOUSE_NAME,
-#    3055 => Species::CHLAMYDOMONAS_NAME,
-    7955 => Species::DANIO_RERIO_NAME
-  }.values
+
+  UNIPROT_SPECIES_ID_NAME_HASH = {
+    9606 => Species::HUMAN_NAME,
+    4932 => Species::YEAST_NAME,
+    312017 => Species::TETRAHYMENA_NAME,
+    7227 => Species::DROSOPHILA_NAME,
+    3702 => Species::ARABIDOPSIS_NAME,
+    6239 => Species::ELEGANS_NAME,
+    10090 => Species::MOUSE_NAME,
+    3055 => Species::CHLAMYDOMONAS_NAME,
+    7955 => Species::DANIO_RERIO_NAME,
+    4530 => Species::RICE_NAME,
+    4087 => Species::TOBACCO_NAME,
+    70448 => Species::PLANKTON_NAME,
+    3218 => Species::MOSS_NAME,
+    3988 => Species::CASTOR_BEAN_NAME
+  }
+  APILOC_UNIPROT_SPECIES_NAMES = UNIPROT_SPECIES_ID_NAME_HASH.values
 
   # Given that the species of interest are already downloaded from uniprot
   # (using download_uniprot_data for instance), upload this data
@@ -905,7 +901,6 @@ class BScript
     species_name = Species::TETRAHYMENA_NAME
     current_uniprot_string = ''
     filename = "#{DATA_DIR}/UniProt/knowledgebase/#{Species::TETRAHYMENA_NAME}.gz"
-    require 'progressbar'
     progress = ProgressBar.new(Species::TETRAHYMENA_NAME, `gunzip -c '#{filename}' |grep '^//' |wc -l`.to_i)
     Zlib::GzipReader.open(filename).each do |line|
       if line == "//\n"
@@ -988,7 +983,6 @@ class BScript
           end
         end
 
-
         current_uniprot_string = ''
       else
         current_uniprot_string += line
@@ -1034,6 +1028,27 @@ class BScript
     `rm #{filename}`
   end
 
+  def uniprot_ensembl_databases
+    [
+      Species::MOUSE_NAME,
+      Species::HUMAN_NAME,
+      Species::DANIO_RERIO_NAME
+    ].each do |species_name|
+      Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'DR   Ensembl') do |u|
+        code = CodingRegion.fs(u.ac[0], species_name) or raise
+        ens = u.dr['Ensembl']
+        ens ||= []
+        ens.flatten.each do |e|
+          if e.match(/^ENS/)
+            CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+              code.id, e, 'Ensembl'
+            )
+          end
+        end
+      end
+    end
+  end
+
   def apiloc_start_to_finish
     go_to_database
     uniprot_to_database
@@ -1043,5 +1058,19 @@ class BScript
     tetrahymena_gene_aliases_to_database
     yeastgenome_ids_to_database
     elegans_wormbase_identifiers
+  end
+
+  def uniprot_go_annotation_species_stats
+    APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
+      filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
+      if File.exists?(filename)
+        puts [
+          species_name,
+          `zcat '#{filename}'|grep '  GO' |grep -v IEA |grep -v ISS |grep 'C\:' |wc -l`
+        ].join("\t")
+      else
+        puts "Couldn't find #{species_name} uniprot file"
+      end
+    end
   end
 end
