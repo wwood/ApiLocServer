@@ -1087,10 +1087,10 @@ class BScript
         unless orfs.empty?
           orfs.flatten.each do |orf|
             o = 'CHLREDRAFT_168484' if orf == 'CHLRE_168484' #manual fix
-            raise Exception, "Unexpected orf: #{orf}" unless orf.match(/^CHLREDRAFT_/)
-            o =orf.gsub(/^CHLREDRAFT_/, '')
+            raise Exception, "Unexpected orf: #{orf}" unless orf.match(/^CHLREDRAFT_/) or orf.match(/^CHLRE_/)
+            o = orf.gsub(/^CHLREDRAFT_/, '')
+	    o = o.gsub(/^CHLRE_/,'')
 
-            o =orf.gsub(/^CHLREDRAFT_/, '')
             CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
               code.id, o, 'JGI'
             )
