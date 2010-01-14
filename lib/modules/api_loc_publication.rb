@@ -684,8 +684,12 @@ class BScript
         four = orthomcl_gene.official_split[0]
 
         # Possible to have many coding regions now - using all of them just together, though there is
-        # probably one good one and other useless and IEA if anything annotated.
-        orthomcl_gene.coding_regions.each do |code|
+        # probably one good one and other useless and IEA if anything annotated. Actually
+        # not necesssarilly, due to strain problems.
+        #
+        # Only print out one entry for each OrthoMCL gene, to condense things
+        # but that line should have all the (uniq) go terms associated
+        orthomcl_gene.coding_regions.uniq.each do |code|
 
           if OrthomclGene::OFFICIAL_ORTHOMCL_APICOMPLEXAN_CODES.include?(four)
             paragraph.push [
@@ -715,18 +719,20 @@ class BScript
         end
       end
       
-      puts paragraph.join("\n") if worthwhile
+      puts paragraph.uniq.join("\n") if worthwhile
       puts
     end
   end
 
   def apiloc_go_localisation_conservation_groups_to_database
-    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues2/breakdown.manual.xls",
+#    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues2/breakdown.manual.xls",
+    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues4/breakdown2.manual.csv",
       :col_sep => "\t"
     ) do |row|
-      next unless row[0] and row[0].length > 0
+      # ignore lines that have nothing first or are the header line
+      next unless row[0] and row[0].length > 0 and row[3]
       single = row[0]
-      eg = row[1]
+      eg = row[2]
 
       full = OrthomclLocalisationConservations.single_letter_to_full_name(single)
       raise Exception, "Couldn't understand single letter '#{single}'" unless full
