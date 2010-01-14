@@ -659,7 +659,7 @@ class BScript
   end
 
   def generate_apiloc_orthomcl_groups_for_inspection
-    interestings = %w(hsap atha mmus dmel cele scer)
+    interestings = %w(hsap mmus scer drer osat crei atha dmel cele)
 
     OrthomclGroup.all(
       :joins => {
@@ -1102,9 +1102,12 @@ class BScript
 
   def apiloc_ensembl_start_to_finish
     go_to_database
+    download_uniprot_data
     uniprot_to_database
     orthomcl_to_database
     upload_apiloc_from_scratch
+    upload_proteomic_data
+
     tetrahymena_orf_names_to_database
     tetrahymena_gene_aliases_to_database
     yeastgenome_ids_to_database
@@ -1112,6 +1115,12 @@ class BScript
     uniprot_ensembl_databases
     uniprot_refseq_databases
     chlamydomonas_link_to_orthomcl_ids
+    
+    OrthomclGene.new.link_orthomcl_and_coding_regions(
+      "hsap mmus scer drer osat crei atha dmel cele",
+      :accept_multiple_coding_regions => true
+    )
+
   end
 
   def uniprot_go_annotation_species_stats
