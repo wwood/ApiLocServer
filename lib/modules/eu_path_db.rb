@@ -268,6 +268,8 @@ class BScript
 
   def upload_proteomic_data
     food_vacuole_proteome_to_database
+    maurers_cleft_proteome_to_database
+    gondii_proteomics_data_to_database
   end
 
   # OrthoMCL identifiers can be found in the gene information table.

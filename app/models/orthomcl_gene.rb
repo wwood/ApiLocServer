@@ -1,3 +1,5 @@
+require 'progressbar'
+
 class OrthomclGene < ActiveRecord::Base
   has_many :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
   has_many :orthomcl_groups, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
@@ -226,7 +228,10 @@ class OrthomclGene < ActiveRecord::Base
     puts "linking genes for species: #{interesting_orgs.inspect}"
     
     # Maybe a bit heavy handed but ah well.
-    OrthomclGene.codes(interesting_orgs).official.all.each do |orthomcl_gene|
+    orthomcls = OrthomclGene.codes(interesting_orgs).official.all
+    progress = ProgressBar.new('orthomclink', orthomcls.length)
+    orthomcls.each do |orthomcl_gene|
+      progress.inc
     
       codes = orthomcl_gene.compute_coding_regions
       if !codes or codes.length == 0
@@ -260,6 +265,7 @@ class OrthomclGene < ActiveRecord::Base
         )
       end
     end
+    progress.finish
     
     puts "Properly linked #{goods} coding regions. None found #{nones}. Too many found #{too_manies}."
   end

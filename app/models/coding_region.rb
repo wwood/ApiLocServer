@@ -188,6 +188,10 @@ class CodingRegion < ActiveRecord::Base
     :joins => {:gene => {:scaffold => :species}},
     :conditions => ['species.name in (?)', Species.apicomplexan_names]
   }
+  named_scope :not_apicomplexan, {
+    :joins => {:gene => {:scaffold => :species}},
+    :conditions => ['species.name not in (?)', Species.apicomplexan_names]
+  }
   # This named scope slows down queries by a lot (in the order of a second), and
   # I'm not sure how to fix this. In the meantime use find_by_name_or_alternate - it is much faster
   # # explain ANALYZE SELECT "coding_regions".* FROM "coding_regions" INNER JOIN "coding_region_alternate_string_ids" ON coding_region_alternate_string_ids.coding_region_id = coding_regions.id WHERE (coding_regions.string_id = E'PF01_0013' or coding_region_alternate_string_ids.name = E'PF01_0013') LIMIT 1;

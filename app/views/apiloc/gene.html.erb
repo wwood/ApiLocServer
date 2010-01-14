@@ -9,21 +9,21 @@
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
   <h3>Associated publications</h3>
   <% if @code.expression_contexts.empty? %>
-  No localisations are recorded in ApiLoc.
+    No localisations are recorded in ApiLoc.
   <% else %>
     <% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b <=> a}.each do |publication| %>
       <p><%= publication.authors %> (<%= publication.date %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><br />
         <b><%= ExpressionContextGroup.new(ExpressionContext.find_all_by_publication_id_and_coding_region_id(
               publication.id, @code.id
             )).english %></b></p>
-      <% end %>
     <% end %>
+  <% end %>
 </div>
 
 <% if ENV['UNPUBLISHED'] %>
-<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
-  
-</div>
+  <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
+
+  </div>
 <% end %>
 
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
@@ -60,7 +60,8 @@
         <% end %>
       </ul>
       <h5>Other Apicomplexan Genes in this Group</h5>
-      <% codes2 = CodingRegion.all(
+      <%
+      codes2 = CodingRegion.apicomplexan.all(
         :joins => [
           {:orthomcl_genes => :orthomcl_groups}
         ],
@@ -71,17 +72,49 @@
             codes.collect{|c| c.id}.to_sql_in_string,
           group.id
         ],
+        :select => 'distinct(coding_regions.*)')
+      codes3 = CodingRegion.not_apicomplexan.all(
+        :joins => [
+          {:orthomcl_genes => :orthomcl_groups},
+          :go_terms
+        ],
+        :conditions =>
+          codes.empty? ?
+          [
+          "orthomcl_groups.id = ? and coding_region_go_terms.evidence_code not in (?) and go_terms.aspect = ?",
+          group.id,
+          CodingRegionGoTerm::COMPUTATIONAL_ANALYSIS_CODES.push(%w(IEA ND)).flatten,
+          GoTerm::CELLULAR_COMPONENT
+        ] :
+          ["orthomcl_groups.id = ? and coding_region_go_terms.evidence_code not in (?) and go_terms.aspect = ? and coding_regions.id NOT IN "+
+            codes.collect{|c| c.id}.to_sql_in_string,
+          group.id,
+          CodingRegionGoTerm::COMPUTATIONAL_ANALYSIS_CODES.push(%w(IEA ND)).flatten,
+          GoTerm::CELLULAR_COMPONENT
+        ],
         :select => 'distinct(coding_regions.*)'
-      ) %>
-      <% if codes2.empty? %>
-        There are no other apicomplexan genes.
-      <% else %>
-        <ul>
+      )
+    %>
+      <ul>
+        <% if codes2.empty? %>
+          There are no other apicomplexan genes.
+        <% else %>
           <% codes2.each do |code| %>
             <li><%= code_name_annotation(code) %></li>
           <% end %>
-        </ul>
-      <% end %>
+        <% end %>
+      </ul>
+
+      <h5>Non-Apicomplexan Genes in this Group with manually annotated GO terms</h5>
+      <ul>
+        <% if codes3.empty? %>
+          There are no non-apicomplexan genes that have manually annotated evidence codes.
+        <% else %>
+          <% codes3.each do |code| %>
+            <li><%= code.species.name %>: <%= code_name_annotation(code) %> - <%= code.coding_region_go_terms.cc.useful.all.collect{|crgt| link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"}.join(', ') %> </li>
+          <% end %>
+        <% end %>
+      </ul>
     <% else %>
       This gene does not have an OrthoMCL group.
     <% end %>
@@ -92,6 +125,8 @@
 <%#= link_to blast_code.string_id %>
 <%# end %>
 </div>
+
+
 
 
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">

@@ -1,3 +1,5 @@
+require 'progressbar'
+
 class Publication < ActiveRecord::Base
   has_many :expression_contexts, :dependent => :destroy
   
@@ -65,11 +67,16 @@ class Publication < ActiveRecord::Base
   def fill_in_extras
     unless pubmed_id.nil?
       if self.abstract.nil?
-        pm = Bio::MEDLINE.new(Bio::PubMed.query(pubmed_id))
-        self.abstract = pm.abstract
-        self.title = pm.title
-        self.authors = pm.authors.join(', ') # I don't care to store them separately
-        self.date = pm.date
+        pubmed = Bio::PubMed.query(pubmed_id)
+        if pubmed
+          pm = Bio::MEDLINE.new(pubmed)
+          self.abstract = pm.abstract
+          self.title = pm.title
+          self.authors = pm.authors.join(', ') # I don't care to store them separately
+          self.date = pm.date
+        else
+          "No pubmed found for #{pubmed_id}. Is there a problem with your internet connection?"
+        end
       end
     end
 
@@ -77,12 +84,14 @@ class Publication < ActiveRecord::Base
   end
 
   def self.fill_in_all_extras!
-    Publication.all.each do |p|
+    pubs = Publication.all
+    progress = ProgressBar.new('publications', pubs.length)
+    pubs.each do |p|
       p.fill_in_extras.save!
-      print '.' #I hate no feedback
+      progress.inc
       $stdout.flush
     end
-    puts
+    progress.finish
   end
 end
 

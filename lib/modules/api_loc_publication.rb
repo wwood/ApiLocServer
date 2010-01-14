@@ -683,7 +683,7 @@ class BScript
       ogroup.orthomcl_genes.all.each do |orthomcl_gene|
         four = orthomcl_gene.official_split[0]
 
-        # POssible to have many coding regions now - using all of them just together, though there is
+        # Possible to have many coding regions now - using all of them just together, though there is
         # probably one good one and other useless and IEA if anything annotated.
         orthomcl_gene.coding_regions.each do |code|
 
@@ -1089,7 +1089,7 @@ class BScript
             o = 'CHLREDRAFT_168484' if orf == 'CHLRE_168484' #manual fix
             raise Exception, "Unexpected orf: #{orf}" unless orf.match(/^CHLREDRAFT_/) or orf.match(/^CHLRE_/)
             o = orf.gsub(/^CHLREDRAFT_/, '')
-	    o = o.gsub(/^CHLRE_/,'')
+            o = o.gsub(/^CHLRE_/,'')
 
             CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
               code.id, o, 'JGI'
@@ -1115,12 +1115,22 @@ class BScript
     uniprot_ensembl_databases
     uniprot_refseq_databases
     chlamydomonas_link_to_orthomcl_ids
-    
+
+    update_known_four_letters
     OrthomclGene.new.link_orthomcl_and_coding_regions(
       "hsap mmus scer drer osat crei atha dmel cele",
       :accept_multiple_coding_regions => true
     )
+    OrthomclGene.new.link_orthomcl_and_coding_regions(
+      Species::APICOMPLEXAN_NAMES.reject{|a|
+        a == Species::BABESIA_BOVIS_NAME
+      }.collect { |a|
+        Species.find_by_name(a).orthomcl_three_letter
+      }
+    )
 
+    LocalisationSpreadsheet.new.upload
+    Publication.fill_in_all_extras!
   end
 
   def uniprot_go_annotation_species_stats
