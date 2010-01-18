@@ -725,7 +725,7 @@ class BScript
   end
 
   def apiloc_go_localisation_conservation_groups_to_database
-#    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues2/breakdown.manual.xls",
+    #    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues2/breakdown.manual.xls",
     FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues4/breakdown2.manual.csv",
       :col_sep => "\t"
     ) do |row|
@@ -1149,6 +1149,150 @@ class BScript
         ].join("\t")
       else
         puts "Couldn't find #{species_name} uniprot file"
+      end
+    end
+  end
+
+  # Create a spreadsheet that encapsulates all of the localisation
+  # information from apiloc, so that large scale analysis is simpler
+  def create_apiloc_spreadsheet
+    nil_char = nil #because I'm not sure how the joins will work
+
+    # Headings
+    puts [
+      'Species',
+      'Gene ID',
+      'Abbreviations',
+      'Official Gene Annotation',
+      'Localisation Summary',
+      'Organellar Localisation',
+      'Total Number of Organellar Localisations',
+      'OrthoMCL Group Identifier',
+      'Apicomplexan Orthologues with Recorded Localisation',
+      'Apicomplexan Orthologues without Recorded Localisation',
+      'Non-Apicomplexan Orthologues with GO Cellular Component Annotation',
+      'Consensus  Localisation of Orthology Group',
+      'PubMed IDs of Publications with Localisation',
+      'All Localisation Methods Used',
+      'Microscopy',
+      'Strains',
+      'Gene Model Mapping Comments',
+      'Quotes'
+    ].join("\t")
+
+    CodingRegion.all(:joins => :expression_contexts).uniq.each do |code|
+      to_print = []
+      organellar_locs = []
+
+      # species
+      to_print.push code.species.name
+
+      #EuPath or GenBank ID
+      to_print.push code.string_id
+
+      #common names
+      to_print.push code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(' | ')
+
+      #annotation
+      a1 = code.annotation
+      to_print.push(a1.nil? ? nil_char : a1.annotation)
+
+      #full localisation description
+      to_print.push code.localisation_english
+      
+      #'organellar' localisation (one per record,
+      #if there is more repeat the whole record)
+      #this might more sensibly be GO-oriented, but eh for the moment
+      organellar_locs = code.topsa.uniq
+      to_print.push nil_char
+
+      # number of organellar localisations (ie number of records for this gene)
+      to_print.push organellar_locs.length
+
+      # OrthoMCL-related stuffs
+      ogene = code.single_orthomcl!
+      ogroup = (ogene.nil? ? nil : ogene.official_group)
+      if ogroup.nil?
+        5.times do
+          to_print.push nil_char
+        end
+      else
+        #orthomcl group
+        to_print.push ogroup.orthomcl_name
+      
+        #localised apicomplexans in orthomcl group
+        locked = CodingRegion.all(
+          :joins => [
+            {:orthomcl_genes => :orthomcl_groups},
+            :expression_contexts
+          ],
+          :conditions => [
+            'orthomcl_groups.id = ? and coding_regions.id != ?',
+            ogroup.id, code.id
+          ],
+          :select => 'distinct(coding_regions.*)'
+        )
+        to_print.push "\"#{locked.collect{|a|
+          [
+            a.string_id,
+            a.annotation.annotation,
+            a.localisation_english
+          ].join(' | ')
+        }.join("\n")}\""
+
+        #unlocalised apicomplexans in orthomcl group
+        to_print.push ogroup.orthomcl_genes.apicomplexan.all.reject {|a|
+          a.coding_regions.select { |c|
+            c.expressed_localisations.count > 0
+          }.length > 0
+        }.reach.orthomcl_name.join(" | ")
+      
+        #non-apicomplexans with useful GO annotations in orthomcl group
+        #species, orthomcl id, uniprot id(s), go annotations
+        go_codes = CodingRegion.go_cc_usefully_termed.not_apicomplexan.all(
+          :joins => {:orthomcl_genes => :orthomcl_groups},
+          :conditions =>
+            ["orthomcl_groups.id = ?", ogroup.id],
+          :select => 'distinct(coding_regions.*)',
+          :order => 'coding_regions.id'
+        )
+        to_print.push "\"#{go_codes.collect { |g|
+        [
+        g.species.name,
+        g.orthomcl_genes.reach.orthomcl_name.join(', '),
+        g.names.join(', '),
+        g.coding_region_go_terms.useful.cc.all.reach.go_term.term.join(', ')
+        ].join(' | ')
+        }.join("\n")}\""
+
+        #    consensus of orthology group.
+        to_print.push 'consensus - TODO'
+      end
+      contexts = code.expression_contexts
+      annotations = code.localisation_annotations
+      
+      #    pubmed ids that localise the gene
+      to_print.push contexts.reach.publication.definition.no_nils.uniq.join(' | ')
+
+      #    localisation methods used (assume different methods never give different results for the same gene)
+      to_print.push annotations.reach.microscopy_method.no_nils.uniq.join(' | ')
+      #    light/em/etc.
+      to_print.push annotations.reach.microscopy_type.no_nils.uniq.join(' | ')
+      #    strains
+      to_print.push annotations.reach.strain.no_nils.uniq.join(' | ')
+      #    mapping comments
+      to_print.push annotations.reach.gene_mapping_comments.no_nils.uniq.join(' | ').gsub(/\"/,'')
+      #    quotes
+      # have to escape quote characters otherwise I get rows joined together
+      to_print.push "\"#{annotations.reach.quote.uniq.join(' | ').gsub(/\"/,'\"')}\""
+
+      if organellar_locs.empty?
+        puts to_print.join("\t")
+      else
+        organellar_locs.each do |o|
+          to_print[5] = o.name
+          puts to_print.join("\t")
+        end
       end
     end
   end
