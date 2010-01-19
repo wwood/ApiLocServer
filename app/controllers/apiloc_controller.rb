@@ -2,6 +2,8 @@ class ApilocController < ApplicationController
   caches_page :index
   caches_page :species
   caches_page :gene
+  caches_page :microscopy
+  caches_page :developmental_stage
   
   def index
   end
@@ -139,6 +141,14 @@ class ApilocController < ApplicationController
       done = done.send(scope)
     end
     @annotations = done.all
-    @coding_regions = @annotations.reach.coding_region.uniq
+
+    # Separate each of the coding regions by species
+    @coding_regions_by_species = {}
+    @annotations.each do |a|
+      species_name = a.coding_region.species
+      @coding_regions_by_species[species_name] ||= []
+      code = a.coding_region
+      @coding_regions_by_species[species_name].push code unless @coding_regions_by_species[species_name].include?(code)
+    end
   end
 end

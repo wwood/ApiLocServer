@@ -1,11 +1,13 @@
 <h2><%= @name %></h2>
 
 <% category_counter = 0 %>
-<div class="category<%= category_counter+=1; category_counter.odd? %>">
-  <ul>
-    <p>
-      <% @coding_regions.each do |code| %>
-      <li><%= code_name_annotation(code) %> (<%= code.localisation_annotations.reach.microscopy_method.uniq.join(', ') %>)</li>
-    <% end %>
-    </p></ul> 
-</div>
+<% @coding_regions_by_species.each do |species, coding_regions| %>
+  <div class="category<%= category_counter+=1; category_counter.odd? %>">
+    <h3><%= species.name %></h3>
+    <ul>
+      <% coding_regions.each do |code| %>
+        <li><%= code_name_annotation(code) %> (<%= code.localisation_annotations.reach.microscopy_method.uniq.join(', ') %>)</li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
