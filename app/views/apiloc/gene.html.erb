@@ -127,7 +127,7 @@
           <% partitions.each do |ogene, codes| %>
           
             <% codes.each do |code| %>
-            <li><%= code.species.name %>: <%= link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}" %> - <%= code.coding_region_go_terms.cc.useful.all.collect{|crgt| link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"}.join(', ') %></li>
+            <li><%= code.species.name %>: <%= link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}" %> - <%= code.coding_region_go_terms.cc.useful.all.uniq.collect{|crgt| link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"}.join(', ') %></li>
             <% end %>
             
           <% end %>
