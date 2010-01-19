@@ -1,4 +1,4 @@
-<h1><%= @developmental_stages[0].name.capitalize %></h1>
+<h2><%= @developmental_stages[0].name.capitalize %></h2>
 Proteins in this localisation are known in <%= @developmental_stages.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.join(', ') %>.
 <% @developmental_stages.each do |stage| %>
   <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? ? 'true' : 'false' %>">

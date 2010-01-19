@@ -1,0 +1,21 @@
+<h2><%= @experiment.name %></h2>
+
+<% category_counter = 0 %>
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h3><%= @publication.title %></h3>
+  <p><%= @publication.authors %> (<%= @publication.date %>)</p>
+  <p><%= @publication.abstract %></p>
+  <p><%= link_to (@publication.pubmed_id? ? "PubMed: #{@publication.pubmed_id}" : @publication.url), @publication.linkout_url %></p>
+</div>
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h3>Proteins Found:</h3>
+  <ul>
+    <% CodingRegion.all(:select => 'distinct(coding_regions.*)',
+      :joins => {:proteomic_experiment_results => :proteomic_experiment},
+      :order => 'string_id'
+    ).each do |code| %>
+      <li><%= code_name_annotation(code) %></li>
+    <% end %>
+  </ul>
+</div>

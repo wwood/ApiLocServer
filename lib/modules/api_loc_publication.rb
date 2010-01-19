@@ -1136,7 +1136,8 @@ class BScript
     )
 
     LocalisationSpreadsheet.new.upload
-    Publication.fill_in_all_extras!
+    proteomics_to_database
+    Publication.fill_in_all_extras! #has to be after spreadsheet and proteomics, because they provide the pubmed ids to expand on
   end
 
   def uniprot_go_annotation_species_stats

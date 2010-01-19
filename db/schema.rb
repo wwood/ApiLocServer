@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100112063516) do
+ActiveRecord::Schema.define(:version => 20100118080426) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -18,7 +18,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "annotations", ["annotation", "coding_region_id"], :name => "index_annotations_on_coding_region_id_and_annotation", :unique => true
+  add_index "annotations", ["coding_region_id", "annotation"], :name => "index_annotations_on_coding_region_id_and_annotation", :unique => true
 
   create_table "binary_coding_region_measurements", :force => true do |t|
     t.integer  "coding_region_id", :null => false
@@ -58,12 +58,12 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.integer  "order"
   end
 
-  add_index "cds", ["coding_region_id", "order"], :name => "index_cds_on_order_and_coding_region_id"
-  add_index "cds", ["coding_region_id", "start"], :name => "index_cds_on_start_and_coding_region_id"
-  add_index "cds", ["coding_region_id", "stop"], :name => "index_cds_on_stop_and_coding_region_id"
   add_index "cds", ["coding_region_id"], :name => "index_cds_on_coding_region_id"
+  add_index "cds", ["order", "coding_region_id"], :name => "index_cds_on_order_and_coding_region_id"
   add_index "cds", ["order"], :name => "index_cds_on_order"
+  add_index "cds", ["start", "coding_region_id"], :name => "index_cds_on_start_and_coding_region_id"
   add_index "cds", ["start"], :name => "index_cds_on_start"
+  add_index "cds", ["stop", "coding_region_id"], :name => "index_cds_on_stop_and_coding_region_id"
   add_index "cds", ["stop"], :name => "index_cds_on_stop"
 
   create_table "chromosomal_features", :force => true do |t|
@@ -140,7 +140,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.string  "evidence_code"
   end
 
-  add_index "coding_region_go_terms", ["coding_region_id", "evidence_code", "go_term_id"], :name => "index_coding_region_go_terms_on_coding_region_id_and_go_term_id", :unique => true
+  add_index "coding_region_go_terms", ["coding_region_id", "go_term_id", "evidence_code"], :name => "index_coding_region_go_terms_on_coding_region_id_and_go_term_id", :unique => true
   add_index "coding_region_go_terms", ["coding_region_id", "go_term_id"], :name => "code_go"
 
   create_table "coding_region_localisations", :force => true do |t|
@@ -152,7 +152,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
   end
 
   add_index "coding_region_localisations", ["coding_region_id", "localisation_id", "localisation_method_id"], :name => "index_coding_region_localisations_on_coding_region_id_and_local", :unique => true
-  add_index "coding_region_localisations", ["coding_region_id", "localisation_id", "localisation_method_id"], :name => "index_coding_region_localisations_on_localisation_id_and_coding", :unique => true
+  add_index "coding_region_localisations", ["localisation_id", "coding_region_id", "localisation_method_id"], :name => "index_coding_region_localisations_on_localisation_id_and_coding", :unique => true
 
   create_table "coding_region_mouse_phenotypes", :force => true do |t|
     t.integer  "coding_region_id"
@@ -172,7 +172,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "coding_region_network_edges", ["coding_region_id_first", "coding_region_id_second", "network_id"], :name => "index_coding_region_network_edges_on_network_id_and_coding_regi", :unique => true
+  add_index "coding_region_network_edges", ["network_id", "coding_region_id_first", "coding_region_id_second"], :name => "index_coding_region_network_edges_on_network_id_and_coding_regi", :unique => true
 
   create_table "coding_region_phenotype_informations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -270,7 +270,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "curated_top_level_localisations", ["coding_region_id", "top_level_localisation_id"], :name => "index_curated_top_level_localisations_on_coding_region_id_and_t", :unique => true
+  add_index "curated_top_level_localisations", ["coding_region_id", "top_level_localisation_id"], :name => "curated_all", :unique => true
   add_index "curated_top_level_localisations", ["coding_region_id"], :name => "index_curated_top_level_localisations_on_coding_region_id"
 
   create_table "derisi20063d7logmean", :force => true do |t|
@@ -361,7 +361,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "float_coding_region_measurements", ["coding_region_id", "type"], :name => "index_float_coding_region_measurements_on_type_and_coding_regio"
+  add_index "float_coding_region_measurements", ["type", "coding_region_id"], :name => "index_float_coding_region_measurements_on_type_and_coding_regio"
 
   create_table "gene_alternate_names", :force => true do |t|
     t.integer  "gene_id"
@@ -382,9 +382,9 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "gene_network_edges", ["gene_id_first", "gene_id_second", "gene_network_id"], :name => "index_gene_network_edges_on_gene_network_id_and_gene_id_first_a", :unique => true
   add_index "gene_network_edges", ["gene_id_first"], :name => "index_gene_network_edges_on_gene_id_first"
   add_index "gene_network_edges", ["gene_id_second"], :name => "index_gene_network_edges_on_gene_id_second"
+  add_index "gene_network_edges", ["gene_network_id", "gene_id_first", "gene_id_second"], :name => "index_gene_network_edges_on_gene_network_id_and_gene_id_first_a", :unique => true
 
   create_table "gene_networks", :force => true do |t|
     t.string   "name"
@@ -438,7 +438,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "go_map_entries", ["child_id", "go_map_id", "parent_id"], :name => "index_go_map_entries_on_go_map_id_and_parent_id_and_child_id", :unique => true
+  add_index "go_map_entries", ["go_map_id", "parent_id", "child_id"], :name => "index_go_map_entries_on_go_map_id_and_parent_id_and_child_id", :unique => true
 
   create_table "go_maps", :force => true do |t|
     t.string   "name"
@@ -485,7 +485,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "go_terms", ["aspect", "go_identifier", "term"], :name => "index_go_terms_on_go_identifier_and_term_and_aspect"
+  add_index "go_terms", ["go_identifier", "term", "aspect"], :name => "index_go_terms_on_go_identifier_and_term_and_aspect"
   add_index "go_terms", ["go_identifier"], :name => "go_term_idx_name", :unique => true
 
   create_table "gus", :force => true do |t|
@@ -501,7 +501,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "integer_coding_region_measurements", ["coding_region_id", "type"], :name => "index_integer_coding_region_measurements_on_type_and_coding_reg"
+  add_index "integer_coding_region_measurements", ["type", "coding_region_id"], :name => "index_integer_coding_region_measurements_on_type_and_coding_reg"
 
   create_table "kawaii_snippets", :force => true do |t|
     t.string "key",   :limit => 50
@@ -549,9 +549,9 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "localisation_top_level_localisations", ["localisation_id", "top_level_localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_type_and_localisa"
   add_index "localisation_top_level_localisations", ["localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_localisation_id_a"
   add_index "localisation_top_level_localisations", ["top_level_localisation_id", "type"], :name => "index_localisation_top_level_localisations_on_top_level_localis"
+  add_index "localisation_top_level_localisations", ["type", "localisation_id", "top_level_localisation_id"], :name => "index_localisation_top_level_localisations_on_type_and_localisa"
 
   create_table "localisations", :force => true do |t|
     t.string   "name",       :null => false
@@ -570,7 +570,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "meta_microarray_measurements", ["microarray_timepoint_id", "type"], :name => "index_meta_microarray_measurements_on_type_and_microarray_timep"
+  add_index "meta_microarray_measurements", ["type", "microarray_timepoint_id"], :name => "index_meta_microarray_measurements_on_type_and_microarray_timep"
 
   create_table "microarray_measurements", :force => true do |t|
     t.integer  "microarray_timepoint_id", :null => false
@@ -580,10 +580,10 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "microarray_measurements", ["coding_region_id", "measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_co"
   add_index "microarray_measurements", ["coding_region_id", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_coding_region_id_and_microarra"
   add_index "microarray_measurements", ["coding_region_id"], :name => "index_microarray_measurements_on_coding_region_id"
-  add_index "microarray_measurements", ["measurement", "microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_me"
+  add_index "microarray_measurements", ["microarray_timepoint_id", "coding_region_id", "measurement"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_co"
+  add_index "microarray_measurements", ["microarray_timepoint_id", "measurement"], :name => "index_microarray_measurements_on_microarray_timepoint_id_and_me"
   add_index "microarray_measurements", ["microarray_timepoint_id"], :name => "index_microarray_measurements_on_microarray_timepoint_id"
 
   create_table "microarray_timepoints", :force => true do |t|
@@ -618,7 +618,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "mouse_phenotype_mouse_phenotype_dictionary_entries", ["mouse_phenotype_dictionary_entry_id", "mouse_phenotype_id"], :name => "index_mouse_phenotype_mouse_phenotype_dictionary_entries_on_mou", :unique => true
+  add_index "mouse_phenotype_mouse_phenotype_dictionary_entries", ["mouse_phenotype_id", "mouse_phenotype_dictionary_entry_id"], :name => "index_mouse_phenotype_mouse_phenotype_dictionary_entries_on_mou", :unique => true
 
   create_table "mouse_phenotypes", :force => true do |t|
     t.string   "mgi_allele",  :null => false
@@ -679,7 +679,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_gene_id", "orthomcl_group_id", "orthomcl_run_id"], :name => "ogogor", :unique => true
+  add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_gene_id", "orthomcl_run_id", "orthomcl_group_id"], :name => "ogogor", :unique => true
   add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_gene_id", "orthomcl_run_id"], :name => "ogog", :unique => true
   add_index "orthomcl_gene_orthomcl_group_orthomcl_runs", ["orthomcl_group_id"], :name => "index_orthomcl_gene_orthomcl_group_orthomcl_runs_on_orthomcl_gr"
 
@@ -779,7 +779,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "plasmodb_gene_list_entries", ["coding_region_id", "plasmodb_gene_list_id"], :name => "index_plasmodb_gene_list_entries_on_plasmodb_gene_list_id_and_c", :unique => true
+  add_index "plasmodb_gene_list_entries", ["plasmodb_gene_list_id", "coding_region_id"], :name => "index_plasmodb_gene_list_entries_on_plasmodb_gene_list_id_and_c", :unique => true
 
   create_table "plasmodb_gene_lists", :force => true do |t|
     t.string   "description"
@@ -795,7 +795,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "probe_map_entries", ["probe_id", "probe_map_id"], :name => "index_probe_map_entries_on_probe_map_id_and_probe_id"
+  add_index "probe_map_entries", ["probe_map_id", "probe_id"], :name => "index_probe_map_entries_on_probe_map_id_and_probe_id"
 
   create_table "probe_maps", :force => true do |t|
     t.string   "name",       :null => false
@@ -826,9 +826,10 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
   end
 
   create_table "proteomic_experiments", :force => true do |t|
-    t.string   "name",       :null => false
+    t.string   "name",           :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "publication_id", :null => false
   end
 
   create_table "publications", :force => true do |t|
@@ -904,7 +905,7 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.datetime "updated_at"
   end
 
-  add_index "string_coding_region_measurements", ["coding_region_id", "measurement", "type"], :name => "strind_code_ctm"
+  add_index "string_coding_region_measurements", ["coding_region_id", "type", "measurement"], :name => "strind_code_ctm"
   add_index "string_coding_region_measurements", ["coding_region_id", "type"], :name => "index_string_coding_region_measurements_on_coding_region_id_and"
 
   create_table "taxon_names", :force => true do |t|
@@ -977,101 +978,6 @@ ActiveRecord::Schema.define(:version => 20100112063516) do
     t.string   "mutant_type",     :null => false
   end
 
-  add_foreign_key "blast_hits", "coding_regions", :name => "blast_hits_coding_region_id_fk", :dependent => :delete
-
-  add_foreign_key "cds", "coding_regions", :name => "cds_coding_region_id_fk", :dependent => :delete
-
-  add_foreign_key "chromosomal_features", "scaffolds", :name => "chromosomal_features_scaffold_id_fk", :dependent => :delete
-
-  add_foreign_key "cluster_entries", "clusters", :name => "cluster_entries_cluster_id_fk", :dependent => :delete
-
-  add_foreign_key "clusters", "clustersets", :name => "clusters_clusterset_id_fk", :dependent => :delete
-
-  add_foreign_key "coding_region_alternate_string_ids", "coding_regions", :name => "coding_region_alternate_string_ids_coding_region_id_fk", :dependent => :delete
-
-  add_foreign_key "coding_region_drosophila_allele_genes", "coding_regions", :name => "coding_region_drosophila_allele_genes_coding_region_id_fk", :dependent => :delete
-
-  add_foreign_key "coding_region_drosophila_rnai_lethalities", "coding_regions", :name => "coding_region_drosophila_rnai_lethalities_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "coding_region_drosophila_rnai_lethalities", "drosophila_rnai_lethalities", :name => "coding_region_drosophila_rnai_lethalities_drosophila_rnai_letha", :dependent => :delete
-
-  add_foreign_key "coding_region_go_terms", "coding_regions", :name => "coding_region_go_terms_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "coding_region_go_terms", "go_terms", :name => "coding_region_go_terms_go_term_id_fk", :dependent => :delete
-
-  add_foreign_key "coding_region_localisations", "coding_regions", :name => "coding_region_localisations_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "coding_region_localisations", "localisations", :name => "coding_region_localisations_localisation_id_fk", :dependent => :delete
-
-  add_foreign_key "coding_region_mouse_phenotypes", "coding_regions", :name => "coding_region_mouse_phenotypes_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "coding_region_mouse_phenotypes", "mouse_phenotypes", :name => "coding_region_mouse_phenotypes_mouse_phenotype_id_fk", :dependent => :delete
-
-  add_foreign_key "coding_region_network_edges", "networks", :name => "coding_region_network_edges_network_id_fk", :dependent => :delete
-
-  add_foreign_key "coding_region_phenotype_informations", "coding_regions", :name => "coding_region_phenotype_informations_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "coding_region_phenotype_informations", "phenotype_informations", :name => "coding_region_phenotype_informations_phenotype_information_id_f", :dependent => :delete
-
-  add_foreign_key "coding_region_phenotype_observeds", "coding_regions", :name => "coding_region_phenotype_observeds_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "coding_region_phenotype_observeds", "phenotype_observeds", :name => "coding_region_phenotype_observeds_phenotype_observed_id_fk", :dependent => :delete
-
-  add_foreign_key "coding_region_strain_orthologues", "coding_regions", :name => "coding_region_strain_orthologues_coding_region_id_fk", :dependent => :delete
-
-  add_foreign_key "coding_region_yeast_pheno_infos", "coding_regions", :name => "coding_region_yeast_pheno_infos_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "coding_region_yeast_pheno_infos", "yeast_pheno_infos", :name => "coding_region_yeast_pheno_infos_yeast_pheno_info_id_fk", :dependent => :delete
-
-  add_foreign_key "coding_regions", "genes", :name => "coding_regions_gene_id_fk", :dependent => :delete
-
-  add_foreign_key "conserved_domains", "coding_regions", :name => "conserved_domains_coding_region_id_fk", :dependent => :delete
-
-  add_foreign_key "curated_top_level_localisations", "coding_regions", :name => "curated_top_level_localisations_coding_region_id_fk", :dependent => :delete
-
-  add_foreign_key "drosophila_allele_phenotype_drosophila_allele_genes", "drosophila_allele_phenotypes", :name => "drosophila_allele_phenotype_drosophila_allele_genes_drosophila_", :dependent => :delete
-
-  add_foreign_key "expression_contexts", "coding_regions", :name => "expression_contexts_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "expression_contexts", "developmental_stages", :name => "expression_contexts_developmental_stage_id_fk", :dependent => :delete
-  add_foreign_key "expression_contexts", "localisations", :name => "expression_contexts_localisation_id_fk", :dependent => :delete
-  add_foreign_key "expression_contexts", "publications", :name => "expression_contexts_publication_id_fk", :dependent => :delete
-
-  add_foreign_key "gene_alternate_names", "genes", :name => "gene_alternate_names_gene_id_fk", :dependent => :delete
-
-  add_foreign_key "gene_network_edges", "gene_networks", :name => "gene_network_edges_gene_network_id_fk", :dependent => :delete
-
-  add_foreign_key "genes", "scaffolds", :name => "genes_scaffold_id_fk", :dependent => :delete
-
-  add_foreign_key "go_alternates", "go_terms", :name => "go_alternates_go_term_id_fk", :dependent => :delete
-
-  add_foreign_key "go_synonyms", "go_terms", :name => "go_synonyms_go_term_id_fk", :dependent => :delete
-
-  add_foreign_key "integer_coding_region_measurements", "coding_regions", :name => "integer_coding_region_measurements_coding_region_id_fk", :dependent => :delete
-
-  add_foreign_key "localisation_annotations", "coding_regions", :name => "localisation_annotations_coding_region_id_fk", :dependent => :delete
-
-  add_foreign_key "localisation_synonyms", "localisations", :name => "localisation_synonyms_localisation_id_fk", :dependent => :delete
-
-  add_foreign_key "microarray_measurements", "coding_regions", :name => "microarray_measurements_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "microarray_measurements", "microarray_timepoints", :name => "microarray_measurements_microarray_timepoint_id_fk", :dependent => :delete
-
-  add_foreign_key "microarray_timepoints", "microarrays", :name => "microarray_timepoints_microarray_id_fk", :dependent => :delete
-
-  add_foreign_key "mouse_phenotype_mouse_phenotype_dictionary_entries", "mouse_phenotype_dictionary_entries", :name => "mouse_phenotype_mouse_phenotype_dictionary_entries_mouse_phenot", :dependent => :delete
-  add_foreign_key "mouse_phenotype_mouse_phenotype_dictionary_entries", "mouse_phenotypes", :name => "fk1", :dependent => :delete
-
-  add_foreign_key "orthomcl_gene_coding_regions", "coding_regions", :name => "orthomcl_gene_coding_regions_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "orthomcl_gene_coding_regions", "orthomcl_genes", :name => "orthomcl_gene_coding_regions_orthomcl_gene_id_fk", :dependent => :delete
-
-  add_foreign_key "orthomcl_gene_orthomcl_group_orthomcl_runs", "orthomcl_genes", :name => "orthomcl_gene_orthomcl_group_orthomcl_runs_orthomcl_gene_id_fk", :dependent => :delete
-  add_foreign_key "orthomcl_gene_orthomcl_group_orthomcl_runs", "orthomcl_groups", :name => "orthomcl_gene_orthomcl_group_orthomcl_runs_orthomcl_group_id_fk", :dependent => :delete
-  add_foreign_key "orthomcl_gene_orthomcl_group_orthomcl_runs", "orthomcl_runs", :name => "orthomcl_gene_orthomcl_group_orthomcl_runs_orthomcl_run_id_fk", :dependent => :delete
-
-  add_foreign_key "plasmodb_gene_list_entries", "plasmodb_gene_lists", :name => "plasmodb_gene_list_entries_plasmodb_gene_list_id_fk", :dependent => :delete
-
-  add_foreign_key "probe_map_entries", "probe_maps", :name => "probe_map_entries_probe_map_id_fk", :dependent => :delete
-
-  add_foreign_key "proteomic_experiment_peptides", "coding_regions", :name => "proteomic_experiment_peptides_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "proteomic_experiment_peptides", "proteomic_experiments", :name => "proteomic_experiment_peptides_proteomic_experiment_id_fk", :dependent => :delete
-
-  add_foreign_key "proteomic_experiment_results", "coding_regions", :name => "proteomic_experiment_results_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "proteomic_experiment_results", "proteomic_experiments", :name => "proteomic_experiment_results_proteomic_experiment_id_fk", :dependent => :delete
-
-  add_foreign_key "scaffolds", "species", :name => "scaffolds_species_id_fk", :dependent => :delete
-
-  add_foreign_key "transmembrane_domain_measurements", "coding_regions", :name => "transmembrane_domain_measurements_coding_region_id_fk", :dependent => :delete
+  add_foreign_key "proteomic_experiments", "publications", :name => "proteomic_experiments_publication_id_fk", :dependent => :delete
 
 end

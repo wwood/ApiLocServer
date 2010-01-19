@@ -74,6 +74,9 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'apiloc/gene/:species/:id.:id2', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:species/:id.:id2.:id3', :controller => 'apiloc', :action => 'gene'
 
+  map.connect 'apiloc/proteome/:id', :controller => 'apiloc', :action => 'proteome'
+  map.connect 'apiloc/proteome/:id.:id2', :controller => 'apiloc', :action => 'proteome'
+
   map.connect 'expression_contexts/show', :controller => 'expression_contexts', :action => 'show'
   map.resources :expression_contexts
 

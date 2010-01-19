@@ -28,11 +28,7 @@ module ApilocHelper
   end
 
   def popular_microscopy_types
-    [
-      'Light microscopy using an antibody to protein or part thereof',
-      'Light microscopy using an epitope tag',
-      'Electron microscopy',
-    ]
+    LocalisationAnnotation::POPULAR_MICROSCOPY_TYPE_NAME_SCOPE.keys.sort.reverse
   end
 
   def popular_species
@@ -87,7 +83,9 @@ module ApilocHelper
     end
   end
 
-  def popular_proteomic_experiments(species_name)
+  # Return ProteomicExperiment objects for a given species, or all proteomics
+  # experiments if no species is given.
+  def popular_proteomic_experiments(species_name=nil)
     hash = {
       Species::FALCIPARUM_NAME =>
         [
@@ -95,7 +93,14 @@ module ApilocHelper
         ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME
       ]
     }
-    pros = hash[species_name]
+    
+    pros = nil
+    if species_name.nil?
+      pros = hash.values.flatten
+    else
+      pros = hash[species_name]
+    end
+
     return [] unless pros
     return pros.collect do |name|
       ProteomicExperiment.find_by_name(name)
@@ -105,9 +110,13 @@ module ApilocHelper
   def proteomic_experiment_name_to_html(name)
     hash = {
       ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME =>
-        'Food vacuole, Lamarque et al 2008',
+        (link_to 'Food vacuole, Lamarque et al 2008',
+        :action => :proteome, :id => ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME
+        ),
       ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME =>
-        'Maurer\'s cleft, Vincensini et al 2005'
+        (link_to 'Maurer\'s cleft, Vincensini et al 2005',
+        :action => :proteome, :id => ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME
+        ),
     }
     return hash[name] if hash[name]
     return name
