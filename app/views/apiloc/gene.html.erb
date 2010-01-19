@@ -128,18 +128,10 @@
           There are no non-apicomplexan genes that have manually annotated evidence codes.
         <% else %>
           <% partitions.to_a.sort{|a,b| a[0].orthomcl_name<=>b[0].orthomcl_name}.each do |part| ogene = part[0]; codes = part[1] %>
-          
-            <%# next unless codes[0] #not sure why this would happen but can't be good %>
-            <li><%= codes[0].species.name %>: <%= ogene.orthomcl_name %>
-(<%= codes.collect do |code| link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}"; end.join(', ') %>) - 
-<%= codes.collect{|code|
-code.coding_region_go_terms.cc.useful.all.uniq.collect{|crgt| 
-link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"
-}
-}.no_nils.sort.uniq.join(', ')
-%>
-</li>
-<% end %>
+            <% codes.each do |code| %>
+            <li><%= code.species.name %>: <%= link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}" %> - <%= code.coding_region_go_terms.cc.useful.all.uniq.collect{|crgt| link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"}.join(', ') %></li>
+            <% end %>
+          <% end %>
         <% end %>
       </ul>
     <% else %>
