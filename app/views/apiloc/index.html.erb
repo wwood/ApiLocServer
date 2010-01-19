@@ -90,22 +90,20 @@
   <h2>Microscopy</h2>
   <ul>
     <% popular_microscopy_types.each do |species_name| %>
-      <li><%= link_to species_name, :action => :developmental_stage, :id => species_name %></li>
+      <li><%= link_to species_name, :action => :microscopy, :id => species_name %></li>
     <% end %>
-    <li>Other:
-      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
-        <% LocalisationAnnotation.all(
-          :select => 'distinct(microscopy_type)',
-          :order => 'microscopy_type',
-          :conditions => "microscopy_type not in #{popular_microscopy_types.to_sql_in_string}").each do |ann| %>
-          <option value="../apiloc/microscopy_type/<%= ann.microscopy_type %>"><%= ann.microscopy_type %></option>
-        <% end %>
-      </select>
-    </li>
   </ul>
 </div>
 
 
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Proteomic Experiments</h2>
+  <ul>
+    <% popular_proteomic_experiments.each do |pro| %>
+      <li><%= link_to pro.name, :action => :proteome, :id => pro.name %></li>
+    <% end %>
+  </ul>
+</div>
 
 
 <%= link_to 'Acknowledgements', :action => :acknowledgements %>

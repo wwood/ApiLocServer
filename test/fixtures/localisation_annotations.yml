@@ -1,2 +1,14 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
+gfp:
+  id: 1
+  coding_region_id: 1
+  microscopy_method: GFP tag after 30 amino acids
+antibody:
+  id: 2
+  coding_region_id: 2
+  microscopy_method: polyclonal antibody
+myc:
+  id: 3
+  coding_region_id: 3
+  microscopy_method: myc tag

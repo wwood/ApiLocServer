@@ -232,6 +232,14 @@ class CodingRegion < ActiveRecord::Base
   named_scope :localised, {
     :joins => :expressed_localisations
   }
+  named_scope :go_cc_usefully_termed, {
+    :joins => :go_terms,
+    :conditions => [
+      "coding_region_go_terms.evidence_code not in (?) and go_terms.aspect = ?",
+      CodingRegionGoTerm::COMPUTATIONAL_ANALYSIS_CODES.push(%w(IEA ND)).flatten,
+      GoTerm::CELLULAR_COMPONENT
+    ]
+  }
   
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'

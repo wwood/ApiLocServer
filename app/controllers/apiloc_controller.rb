@@ -1,7 +1,8 @@
 class ApilocController < ApplicationController
   caches_page :index
   caches_page :species
-
+  caches_page :gene
+  
   def index
   end
 
@@ -108,5 +109,36 @@ class ApilocController < ApplicationController
       )
       @viewing_positive_localisations = true
     end
+  end
+
+  def proteome
+    name = params[:id]
+    name += ".#{params[:id2]}" unless params[:id2].nil?
+    if name.nil?
+      render :action => :index
+    end
+
+    @experiment = ProteomicExperiment.find_by_name(name)
+    if @experiment.nil?
+      flash[:error] = "No proteomic experiment found called '#{name}'"
+      render :action => :index
+    end
+    @publication = @experiment.publication
+  end
+
+  def microscopy
+    @name = params[:id]
+    scopes = LocalisationAnnotation::POPULAR_MICROSCOPY_TYPE_NAME_SCOPE[@name]
+    if scopes.nil?
+      flash[:error] = "No microscopy type '#{@name}' found"
+      render :action => :index
+      return
+    end
+    done = LocalisationAnnotation
+    scopes.each do |scope|
+      done = done.send(scope)
+    end
+    @annotations = done.all
+    @coding_regions = @annotations.reach.coding_region.uniq
   end
 end

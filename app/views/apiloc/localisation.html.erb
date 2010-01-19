@@ -1,4 +1,4 @@
-<h1><%= @localisations[0].name.capitalize %></h1>
+<h2><%= @localisations[0].name.capitalize %></h2>
 Proteins in this localisation are known in <%= @localisations.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.join(', ') %>.
 <% category_counter=0 %>
 <% @localisations.each do |loc| %>

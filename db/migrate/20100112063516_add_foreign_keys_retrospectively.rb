@@ -4,9 +4,9 @@ class AddForeignKeysRetrospectively < ActiveRecord::Migration
     # NOTE: some are commented out because they refer to subclasses, not table names
     
     #  has_many :coding_region_drosophila_rnai_lethalities, :dependent => :destroy
-    add_foreign_key :coding_region_drosophila_rnai_lethalities, :drosophila_rnai_lethalities, :dependent => :delete
+    add_foreign_key :coding_region_drosophila_rnai_lethalities, :drosophila_rnai_lethalities, {:dependent => :delete, :name => "coding_region_drosophila_rnai_lethalities_drosophila_rnai_letha"}
     #  has_many :coding_region_phenotype_informations, :dependent => :destroy
-    add_foreign_key :coding_region_phenotype_informations, :phenotype_informations, :dependent => :delete
+    add_foreign_key :coding_region_phenotype_informations, :phenotype_informations, {:dependent => :delete, :name => "coding_region_phenotype_informations_phenotype_information_id_f"}
     #  has_many :coding_region_phenotype_observeds, :dependent => :destroy
     add_foreign_key :coding_region_phenotype_observeds, :phenotype_observeds, :dependent => :delete
     #  has_many :scaffolds, :dependent => :destroy
@@ -38,7 +38,7 @@ class AddForeignKeysRetrospectively < ActiveRecord::Migration
     #  has_many :localisation_synonyms, :dependent => :destroy
     add_foreign_key :localisation_synonyms, :localisations, :dependent => :delete
     #  has_many :mouse_phenotype_mouse_phenotype_dictionary_entries, :dependent => :destroy
-    add_foreign_key :mouse_phenotype_mouse_phenotype_dictionary_entries, :mouse_phenotype_dictionary_entries, :dependent => :delete
+    add_foreign_key :mouse_phenotype_mouse_phenotype_dictionary_entries, :mouse_phenotype_dictionary_entries, {:dependent => :delete, :name => "mouse_phenotype_mouse_phenotype_dictionary_entries_mouse_phenot"}
     #  has_many :plasmodb_gene_list_entries, :dependent => :destroy
     add_foreign_key :plasmodb_gene_list_entries, :plasmodb_gene_lists, :dependent => :delete
     #  has_many :cluster_entries, :dependent => :destroy
