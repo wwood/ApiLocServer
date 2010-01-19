@@ -40,7 +40,7 @@
       groups = ogene.orthomcl_groups
       raise unless groups.length == 1
       group = groups[0] %>
-      <p>Part of OrthoMCL group <%= link_to group.orthomcl_name, "http://orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=sequenceList&groupac=#{group.orthomcl_name}" %></p>
+      <p>Part of OrthoMCL group <%= link_to group.orthomcl_name, "http://orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=groupList&type=ackeyword&q=#{group.orthomcl_name}&in=Group+or+Seq+Accession%28s%29" %></p>
       <h5>Localised Genes in this Group</h5>
       <ul>
         <% codes = CodingRegion.all(
@@ -84,7 +84,7 @@
         <% end %>
       </ul>
 
-      <h5>Non-Apicomplexan Genes in this Group with manually annotated GO terms</h5>
+      <h5>Non-Apicomplexan Genes in this Group with Manually Annotated GO Cellular Component Terms</h5>
       <ul>
         <%
         codes3 = CodingRegion.not_apicomplexan.all(
@@ -100,7 +100,9 @@
             CodingRegionGoTerm::COMPUTATIONAL_ANALYSIS_CODES.push(%w(IEA ND)).flatten,
             GoTerm::CELLULAR_COMPONENT
           ] :
-            ["orthomcl_groups.id = ? and coding_region_go_terms.evidence_code not in (?) and go_terms.aspect = ? and coding_regions.id NOT IN "+
+            ["orthomcl_groups.id = ? "+
+"and coding_region_go_terms.evidence_code not in (?)"+
+" and go_terms.aspect = ? and coding_regions.id NOT IN "+
               codes.collect{|c| c.id}.to_sql_in_string,
             group.id,
             CodingRegionGoTerm::COMPUTATIONAL_ANALYSIS_CODES.push(%w(IEA ND)).flatten,
@@ -111,7 +113,8 @@
         )
 
         # Sometimes there is more than one UniProt gene for a single orthomcl gene. These shouldn't
-        # appear as separate genes.
+        # appear as separate genes. Sometimes there is also several OrthoMCL genes for a
+        # single coding region, such as for A8HSA7
         partitions = {}
         codes3.each do |c3|
           c3.orthomcl_genes.official.all.each do |ogene|
@@ -124,13 +127,19 @@
         <% if partitions.empty? %>
           There are no non-apicomplexan genes that have manually annotated evidence codes.
         <% else %>
-          <% partitions.each do |ogene, codes| %>
+          <% partitions.to_a.sort{|a,b| a[0].orthomcl_name<=>b[0].orthomcl_name}.each do |part| ogene = part[0]; codes = part[1] %>
           
-            <% codes.each do |code| %>
-            <li><%= code.species.name %>: <%= link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}" %> - <%= code.coding_region_go_terms.cc.useful.all.collect{|crgt| link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"}.join(', ') %></li>
-            <% end %>
-            
-          <% end %>
+            <%# next unless codes[0] #not sure why this would happen but can't be good %>
+            <li><%= codes[0].species.name %>: <%= ogene.orthomcl_name %>
+(<%= codes.collect do |code| link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}"; end.join(', ') %>) - 
+<%= codes.collect{|code|
+code.coding_region_go_terms.cc.useful.all.uniq.collect{|crgt| 
+link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"
+}
+}.no_nils.sort.uniq.join(', ')
+%>
+</li>
+<% end %>
         <% end %>
       </ul>
     <% else %>

@@ -89,7 +89,6 @@ class Publication < ActiveRecord::Base
     pubs.each do |p|
       p.fill_in_extras.save!
       progress.inc
-      $stdout.flush
     end
     progress.finish
   end
