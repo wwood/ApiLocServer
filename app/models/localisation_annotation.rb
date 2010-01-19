@@ -54,7 +54,7 @@ class LocalisationAnnotation < ActiveRecord::Base
   }
 
   def self.unclassified_method_conditions
-    tags = [EPITIOPE_TAGS, FLUORESCENT_TAGS, 'antibod'].flatten
+    tags = [EPITIOPE_TAGS, FLUORESCENT_TAGS, 'antibod', 'ChIP'].flatten
     [
       tags.collect {|f|
         'microscopy_method not like ?'
@@ -76,5 +76,11 @@ class LocalisationAnnotation < ActiveRecord::Base
     'Light microscopy using a fluorescent tag' => [:fluorescent],
     'Electron microscopy (EM)' => [:em],
     'Chromatin Immunoprecipitation (ChIP)' => [:chip]
+  }
+
+  named_scope :chip, {
+    :conditions => [
+      'microscopy_type like ?', '%ChIP%'
+    ]
   }
 end
