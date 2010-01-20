@@ -1159,6 +1159,8 @@ class BScript
   def create_apiloc_spreadsheet
     nil_char = nil #because I'm not sure how the joins will work
 
+    microscopy_method_names = LocalisationAnnotation::POPULAR_MICROSCOPY_TYPE_NAME_SCOPE.keys.sort.reverse
+
     # Headings
     puts [
       'Species',
@@ -1174,12 +1176,12 @@ class BScript
       'Non-Apicomplexan Orthologues with GO Cellular Component Annotation',
       'Consensus  Localisation of Orthology Group',
       'PubMed IDs of Publications with Localisation',
+      microscopy_method_names,
       'All Localisation Methods Used',
-      'Microscopy',
       'Strains',
       'Gene Model Mapping Comments',
       'Quotes'
-    ].join("\t")
+    ].flatten.join("\t")
 
     CodingRegion.all(:joins => :expression_contexts).uniq.each do |code|
       to_print = []
@@ -1234,11 +1236,11 @@ class BScript
           :select => 'distinct(coding_regions.*)'
         )
         to_print.push "\"#{locked.collect{|a|
-          [
-            a.string_id,
-            a.annotation.annotation,
-            a.localisation_english
-          ].join(' | ')
+        [
+        a.string_id,
+        a.annotation.annotation,
+        a.localisation_english
+        ].join(' | ')
         }.join("\n")}\""
 
         #unlocalised apicomplexans in orthomcl group
@@ -1275,10 +1277,24 @@ class BScript
       #    pubmed ids that localise the gene
       to_print.push contexts.reach.publication.definition.no_nils.uniq.join(' | ')
 
+      # Categorise the microscopy methods
+      microscopy_method_names.each do |name|
+        scopes = 
+          LocalisationAnnotation::POPULAR_MICROSCOPY_TYPE_NAME_SCOPE[name]
+
+        done = LocalisationAnnotation
+        scopes.each do |scope|
+          done = done.send(scope)
+        end
+        if done.find_by_coding_region_id(code.id)
+          to_print.push 'yes'
+        else
+          to_print.push 'no'
+        end
+      end
+
       #    localisation methods used (assume different methods never give different results for the same gene)
       to_print.push annotations.reach.microscopy_method.no_nils.uniq.join(' | ')
-      #    light/em/etc.
-      to_print.push annotations.reach.microscopy_type.no_nils.uniq.join(' | ')
       #    strains
       to_print.push annotations.reach.strain.no_nils.uniq.join(' | ')
       #    mapping comments
