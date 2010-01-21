@@ -232,12 +232,14 @@ class CodingRegion < ActiveRecord::Base
   named_scope :localised, {
     :joins => :expressed_localisations
   }
+  # 'useful' is somewhat opinionated, but for apiloc, we are only including
+  # IDA type annotations, so we should only consider those ones when looking for
+  # orthologues in other species as well.
   named_scope :go_cc_usefully_termed, {
     :joins => :go_terms,
     :conditions => [
-      "coding_region_go_terms.evidence_code not in (?) and go_terms.aspect = ?",
-      CodingRegionGoTerm::COMPUTATIONAL_ANALYSIS_CODES.push(%w(IEA ND)).flatten,
-      GoTerm::CELLULAR_COMPONENT
+      "coding_region_go_terms.evidence_code = ? and go_terms.aspect = ?",
+      'IDA', GoTerm::CELLULAR_COMPONENT
     ]
   }
   
