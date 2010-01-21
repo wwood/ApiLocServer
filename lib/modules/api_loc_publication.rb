@@ -1197,7 +1197,7 @@ class BScript
       to_print.push code.string_id
 
       #common names
-      to_print.push code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(small_split_string)
+      to_print.push code.literature_defined_names.join(small_split_string)
 
       #annotation
       a1 = code.annotation

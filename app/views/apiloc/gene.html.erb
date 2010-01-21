@@ -1,4 +1,6 @@
-<h2><%= @code.string_id %> (<%=  @code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ') %>) <% if @code.gene_model_inconsistent? %>*<% end %></h2>
+<%# the coding region should use the name method and not the string_id
+ because otherwise unassigned genes have the incorrect name %>
+<h2><%= @code.name %> (<%=  @code.literature_defined_names.join(', ') %>) <% if @code.gene_model_inconsistent? %>*<% end %></h2>
 <% if @code.gene_model_inconsistent? %>
   <p>* The amino acid sequence is recorded as differing between ApiLoc and the genome database. See the gene model mapping comments in each localisation for more information.</p>
 <% end %>

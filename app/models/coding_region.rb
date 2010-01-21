@@ -578,11 +578,44 @@ class CodingRegion < ActiveRecord::Base
   def tmhmm
     minus_sp = sequence_without_signal_peptide
     TmHmmWrapper.new.calculate(minus_sp)
-  end  
+  end
+
+  def possibly_sensiblize_name(identifier, species_object)
+    return 'No assigned gene identifier' if identifier == UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME
+    return nil if identifier.nil?
+
+    two_letter = species_object.two_letter_prefix
+    if two_letter.nil?
+      return identifier
+    else
+      if identifier.match(/^[\d\-]*$/) or
+          identifier.match(/^s[\d\-]*$/) #special case for Pfs25 and associates
+        return "#{two_letter}#{identifier}"
+      end
+      return identifier
+    end
+  end
+
+  # Return a good name for this gene. Often equivalent to the string_id column,
+  # but fixed to something more sensible on other occasions
+  def name
+    possibly_sensiblize_name(string_id, species)
+  end
   
   # return all the names (string_id and alternate string_ids) of this record
   def names
-    [string_id, coding_region_alternate_string_ids.collect{|s| s.name}].flatten
+    [
+      name,
+      coding_region_alternate_string_ids.collect{|s|
+        possibly_sensiblize_name(s.name, species)
+      }
+    ].flatten
+  end
+
+  def literature_defined_names
+    case_sensitive_literature_defined_coding_region_alternate_string_ids.collect do |alt|
+      possibly_sensiblize_name(alt.name, species)
+    end
   end
   
   def alternate_names

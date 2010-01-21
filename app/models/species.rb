@@ -1,3 +1,5 @@
+require 'localisation_spreadsheet'
+
 class Species < ActiveRecord::Base
   FALCIPARUM = 'Plasmodium falciparum'
   FALCIPARUM_NAME = FALCIPARUM
@@ -281,4 +283,12 @@ class Species < ActiveRecord::Base
   #      super
   #    end
   #  end
+
+  def two_letter_prefix
+    # if I've not got the binomial name as the final name, then
+    # return nil, otherwise an exception will be raised by
+    # LocalisationSpreadsheetRow
+    return nil unless name.split(' ').length == 2
+    LocalisationSpreadsheetRow.new.generate_prefix_from_binomial_name(name)
+  end
 end

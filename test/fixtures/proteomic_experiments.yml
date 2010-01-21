@@ -1,7 +1,9 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
 one:
-  name: MyString
+  name: proteomics 1
+  publication_id: 1
 
 two:
-  name: MyString
+  name: proteomics2
+  publication_id: 2

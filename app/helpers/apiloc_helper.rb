@@ -121,4 +121,9 @@ module ApilocHelper
     return hash[name] if hash[name]
     return name
   end
+
+  # maybe I could do a form or something but eh.
+  def apiloc_contact_email_address
+    'b.woodcroft@pgrad.unimelb.edu.au'
+  end
 end

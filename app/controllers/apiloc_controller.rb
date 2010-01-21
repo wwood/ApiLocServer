@@ -13,7 +13,6 @@ class ApilocController < ApplicationController
     gene_id += ".#{params[:id2]}" unless params[:id2].nil?
     gene_id += ".#{params[:id3]}" unless params[:id3].nil?
 
-    # This should not ever happen in a static web page.
     if !gene_id
       flash[:error] = "Unknown gene id '#{gene_id}'."
       logger.debug "Unknown gene id '#{gene_id}'."

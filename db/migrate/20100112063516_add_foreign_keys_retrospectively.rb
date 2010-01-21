@@ -120,7 +120,7 @@ class AddForeignKeysRetrospectively < ActiveRecord::Migration
     #  has_many :expression_contexts, :dependent => :destroy
     add_foreign_key :expression_contexts, :publications, :dependent => :delete
     #  has_many :drosophila_allele_phenotype_drosophila_allele_genes, :dependent => :destroy
-    add_foreign_key :drosophila_allele_phenotype_drosophila_allele_genes, :drosophila_allele_phenotypes, :dependent => :delete
+    add_foreign_key :drosophila_allele_phenotype_drosophila_allele_genes, :drosophila_allele_phenotypes, {:dependent => :delete, :name => 'dafk'}
     #  has_many :coding_region_network_edges, :dependent => :destroy
     add_foreign_key :coding_region_network_edges, :networks, :dependent => :delete
     #  has_many :coding_regions, :dependent => :destroy
