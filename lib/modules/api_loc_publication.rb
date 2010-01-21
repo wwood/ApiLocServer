@@ -1160,6 +1160,9 @@ class BScript
     nil_char = nil #because I'm not sure how the joins will work
 
     microscopy_method_names = LocalisationAnnotation::POPULAR_MICROSCOPY_TYPE_NAME_SCOPE.keys.sort.reverse
+    small_split_string = '#' #use when only 1 delimiter within a cell is needed
+    big_split_string = ';' #use when 2 delimiters in one cell are needed
+    orthomcl_split_char = '_'
 
     # Headings
     puts [
@@ -1168,12 +1171,12 @@ class BScript
       'Abbreviations',
       'Official Gene Annotation',
       'Localisation Summary',
-      'Organellar Localisation',
-      'Total Number of Organellar Localisations',
+      'Cellular Localisation',
+      'Total Number of Cellular Localisations',
       'OrthoMCL Group Identifier',
       'Apicomplexan Orthologues with Recorded Localisation',
       'Apicomplexan Orthologues without Recorded Localisation',
-      'Non-Apicomplexan Orthologues with GO Cellular Component Annotation',
+      'Non-Apicomplexan Orthologues with IDA GO Cellular Component Annotation',
       'Consensus  Localisation of Orthology Group',
       'PubMed IDs of Publications with Localisation',
       microscopy_method_names,
@@ -1194,7 +1197,7 @@ class BScript
       to_print.push code.string_id
 
       #common names
-      to_print.push code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(' | ')
+      to_print.push code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(small_split_string)
 
       #annotation
       a1 = code.annotation
@@ -1240,15 +1243,15 @@ class BScript
         a.string_id,
         a.annotation.annotation,
         a.localisation_english
-        ].join(' | ')
-        }.join("\n")}\""
+        ].join(small_split_string)
+        }.join(big_split_string)}\""
 
         #unlocalised apicomplexans in orthomcl group
         to_print.push ogroup.orthomcl_genes.apicomplexan.all.reject {|a|
           a.coding_regions.select { |c|
             c.expressed_localisations.count > 0
           }.length > 0
-        }.reach.orthomcl_name.join(" | ")
+        }.reach.orthomcl_name.join(', ').gsub('|',orthomcl_split_char)
       
         #non-apicomplexans with useful GO annotations in orthomcl group
         #species, orthomcl id, uniprot id(s), go annotations
@@ -1262,11 +1265,11 @@ class BScript
         to_print.push "\"#{go_codes.collect { |g|
         [
         g.species.name,
-        g.orthomcl_genes.reach.orthomcl_name.join(', '),
+        g.orthomcl_genes.reach.orthomcl_name.join(', ').gsub('|',orthomcl_split_char),
         g.names.join(', '),
         g.coding_region_go_terms.useful.cc.all.reach.go_term.term.join(', ')
-        ].join(' | ')
-        }.join("\n")}\""
+        ].join(small_split_string)
+        }.join(big_split_string)}\""
 
         #    consensus of orthology group.
         to_print.push 'consensus - TODO'
@@ -1275,7 +1278,7 @@ class BScript
       annotations = code.localisation_annotations
       
       #    pubmed ids that localise the gene
-      to_print.push contexts.reach.publication.definition.no_nils.uniq.join(' | ')
+      to_print.push contexts.reach.publication.definition.no_nils.uniq.join(small_split_string)
 
       # Categorise the microscopy methods
       microscopy_method_names.each do |name|
@@ -1294,14 +1297,14 @@ class BScript
       end
 
       #    localisation methods used (assume different methods never give different results for the same gene)
-      to_print.push annotations.reach.microscopy_method.no_nils.uniq.join(' | ')
+      to_print.push annotations.reach.microscopy_method.no_nils.uniq.join(small_split_string)
       #    strains
-      to_print.push annotations.reach.strain.no_nils.uniq.join(' | ')
+      to_print.push annotations.reach.strain.no_nils.uniq.join(small_split_string)
       #    mapping comments
-      to_print.push annotations.reach.gene_mapping_comments.no_nils.uniq.join(' | ').gsub(/\"/,'')
+      to_print.push annotations.reach.gene_mapping_comments.no_nils.uniq.join(small_split_string).gsub(/\"/,'')
       #    quotes
       # have to escape quote characters otherwise I get rows joined together
-      to_print.push "\"#{annotations.reach.quote.uniq.join(' | ').gsub(/\"/,'\"')}\""
+      to_print.push "\"#{annotations.reach.quote.uniq.join(small_split_string).gsub(/\"/,'\"')}\""
 
       if organellar_locs.empty?
         puts to_print.join("\t")
