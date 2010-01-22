@@ -114,11 +114,11 @@ module ApilocHelper
       ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME =>
         (link_to 'Food vacuole, Lamarque et al 2008',
         :action => :proteome, :id => ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME
-        ),
+      ),
       ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME =>
         (link_to 'Maurer\'s cleft, Vincensini et al 2005',
         :action => :proteome, :id => ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME
-        ),
+      ),
     }
     return hash[name] if hash[name]
     return name
@@ -127,5 +127,18 @@ module ApilocHelper
   # maybe I could do a form or something but eh.
   def apiloc_contact_email_address
     'b.woodcroft@pgrad.unimelb.edu.au'
+  end
+
+  def coding_region_localisation_html(coding_region)
+    ExpressionContextGroup.new(nil).coalesce(
+      coding_region.expression_contexts.collect do |ec|
+        LocalisationsAndDevelopmentalStages.new(
+          ec.localisation ?
+            "<a href='#{url_for :action => :specific_localisation, :id => ec.localisation.name}'>#{ec.localisation.name}</a>" : [],
+          ec.developmental_stage ?
+            "<a href='#{url_for :action => :specific_developmental_stage, :id => ec.developmental_stage.name}'>#{ec.developmental_stage.name}</a>" : []
+        )
+      end
+    )
   end
 end

@@ -6,6 +6,7 @@ module LocalisationConstants
     Species::FALCIPARUM_NAME => [
       'cell poles', #antierior + posterior
       'posterior',
+      'periphery',
       'knob', #start of ring, troph, schizont stage locs
       'erythrocyte cytoplasm',
       'erythrocyte cytosol',
@@ -58,7 +59,7 @@ module LocalisationConstants
       'nuclear interior',
       'nuclear matrix',
       'trans golgi',
-      'golgi',
+      'golgi apparatus',
       'golgi matrix',
       'cis-golgi',
       'endoplasmic reticulum',
@@ -169,7 +170,7 @@ module LocalisationConstants
       'cortical endoplasmic reticulum',
       'perinuclear endoplasmic reticulum',
       'between endoplasmic reticulum and golgi',
-      'golgi',
+      'golgi apparatus',
       'cytoplasmic region close to the golgi',
       'cisternal rims of the late golgi',
       'post golgi compartment',
@@ -198,6 +199,7 @@ module LocalisationConstants
       'vesicle',
       'endosome-related compartment',
       'early endosome',
+      'peripheral',
       'endosomal membrane',
       'endosomal vacuole',
       'transport vesicle',
@@ -283,11 +285,13 @@ module LocalisationConstants
         'microneme membrane',
         'microneme lumen',
         'sub-pellicular region at the anterior',
+        'ookinete apical surface',
         'nucleus',
         'surface',
         'apical',
         'conoid collar',
         'extracellular',
+
       ],
       'Plasmodium cynomolgi' => [
         'merozoite surface'
@@ -490,6 +494,7 @@ module LocalisationConstants
       'intracellular',
       'cytoplasm',
       'plasma membrane',
+      'nowhere except apicoplast',
     ],
     Species::KNOWLESI_NAME => [
       'microneme',
@@ -540,6 +545,7 @@ module LocalisationConstants
       'rhoptries' => 'rhoptry',
     },
     Species::PLASMODIUM_BERGHEI_NAME => {
+      'lysosome' => 'food vacuole',
       'only pvm' => 'only parasitophorous vacuole membrane',
       'internalized' => 'cytoplasm',
       'sporozoite trail' => 'gliding trail',
@@ -622,6 +628,7 @@ module LocalisationConstants
       'inner surface of host cell cytoplasm' => 'parasitophorous vacuole membrane'
     },
     Species::TOXOPLASMA_GONDII_NAME => {
+      'golgi' => 'golgi apparatus',
       'cytoplasmic structures' => 'cytoplasmic structure',
       'vesicles' => 'vesicle',
       'cytoplasmic vesicles' => 'cytoplasmic vesicle',
@@ -726,7 +733,7 @@ module LocalisationConstants
       'cytoplasm of host infected erythrocyte' => 'erythrocyte cytoplasm',
       'surface membrane' => 'parasite plasma membrane',
       'peripheral cytoplasm' => 'peripheral',
-      'golgi aparatus' => 'golgi',
+      'golgi' => 'golgi apparatus',
       'vesicles like structures' => 'vesicle',
       'apical surface' => 'apical parasite plasma membrane',
       'rbc cytosol' => 'erythrocyte cytosol',

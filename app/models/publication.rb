@@ -17,7 +17,7 @@ class Publication < ActiveRecord::Base
       
       # make sure the parsing problem is a-ok
       if !publications_string.match('^http') and !publications_string.match('unpublished')
-        raise ParseException, "Couldn't parse #{pub} as a publication"
+        $stderr.puts "Couldn't parse '#{pub}' as a publication"
       end
       pub = Publication.find_or_create_by_url publications_string
     end

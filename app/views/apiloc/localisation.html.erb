@@ -8,7 +8,7 @@ Localisations in ApiLoc are divided into larger, 'umbrella' classes and more spe
     :joins => :apiloc_localisation_top_level_localisations,
     :select => 'distinct(top_level_localisations.*)'
   ).each do |top| %>
-    <li><%= link_to top.name, :action => :developmental_stage, :id => top.name %></li>
+    <li><%= link_to top.name, :action => :localisation, :id => top.name %></li>
     <ul>
       <% top.apiloc_localisations.positive.all(:select => 'distinct(localisations.name)').each do |low| %>
         <li><%=  link_to low.name, :action => :specific_localisation, :id => low.name %></li>

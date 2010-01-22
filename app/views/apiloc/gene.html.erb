@@ -6,7 +6,7 @@
 <% end %>
 <%= @code.annotation.annotation unless @code.annotation.nil? %>
 
-<p><%= @code.localisation_html %></p>
+<p><%= coding_region_localisation_html(@code) %></p>
 
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
   <h3>Associated publications</h3>
@@ -55,7 +55,7 @@
         )
         if codes.length > 0
           codes.each do |code| %>
-            <li><%= code_name(code) %> <%= code.localisation_html %> </li>
+            <li><%= code_name(code) %> <%= coding_region_localisation_html(code) %> </li>
           <% end %>
         <% else %>
           No apicomplexan genes in this OrthoMCL group have been localised.

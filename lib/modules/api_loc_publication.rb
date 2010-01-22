@@ -1140,6 +1140,7 @@ class BScript
     Publication.fill_in_all_extras! #has to be after spreadsheet and proteomics, because they provide the pubmed ids to expand on
 
     DevelopmentalStageTopLevelDevelopmentalStage.new.upload_apiloc_top_level_developmental_stages
+    ApilocLocalisationTopLevelLocalisation.new.upload_apiloc_top_level_localisations
   end
 
   def uniprot_go_annotation_species_stats

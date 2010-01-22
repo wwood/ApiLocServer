@@ -91,7 +91,7 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
     ],
 
 
-    'golgi' => [
+    'golgi apparatus' => [
       'cis-golgi',
       'cisternal rims of the late golgi',
       'cytoplasmic region close to the golgi',
@@ -269,6 +269,15 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
         ApilocLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
           l_negative.id, other_negative.id
         )
+      end
+    end
+  end
+
+  # Check to make sure each loc is assigned a top level localisation
+  def check_for_unclassified
+    Localisation.positive.all.each do |loc|
+      if loc.apiloc_top_level_localisation.nil?
+        $stderr.puts "Couldn't find '#{loc.name}' from #{loc.species.name}, #{loc.id} classified in the top level: #{loc.apiloc_top_level_localisation.inspect}"
       end
     end
   end

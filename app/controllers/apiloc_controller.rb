@@ -40,7 +40,7 @@ class ApilocController < ApplicationController
     # possible problem here - what happens for legitimately conflicting names like PfSPP?
     unless codes.length == 1
       @gene_id = gene_id
-      @codes = codes
+      @codes = codes.sort{|a,b| a.string_id <=> b.string_id}
       render :action => :choose_species
       return
     end
@@ -59,6 +59,7 @@ class ApilocController < ApplicationController
   end
 
   def localisation
+    params[:id].downcase! if params[:id] == 'Golgi apparatus' #damn case-sensitive
     if params[:id]
       @top_level_localisation = TopLevelLocalisation.find_by_name(params[:id])
       if @top_level_localisation.nil?
@@ -74,6 +75,7 @@ class ApilocController < ApplicationController
 
   # low level localisation
   def specific_localisation
+    params[:id].downcase! if params[:id] == 'Golgi apparatus' #damn case-sensitive
     @localisations = Localisation.find_all_by_name(params[:id])
     if @localisations.empty? and params[:format]
       @localisations = Localisation.find_all_by_name("#{params[:id]}.#{params[:format]}")
@@ -98,7 +100,7 @@ class ApilocController < ApplicationController
         @developmental_stages = @top_level_developmental_stage.developmental_stages.all(
           :joins => :expression_contexts
         )
-        render :action => :developmental_stage_show
+        redirect_to :action => :developmental_stage
       end
     end
   end
@@ -125,10 +127,13 @@ class ApilocController < ApplicationController
     name = params[:id]
     @species = Species.find_by_name(name)
     if @species.nil?
-      params[:error] = "Could not find a species by the name of '#{name}'"
-      render :action => :index
+      unless name.nil?
+        flash[:error] = "Could not find a species by the name of '#{name}'"
+      end
+      redirect_to :action => :index and return
     end
 
+    # build up the query using named_scopes
     @localisations = TopLevelLocalisation
     if params[:negative] == 'true'
       @viewing_positive_localisations = false

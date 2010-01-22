@@ -43,6 +43,9 @@ module LocalisationSpreadsheetSpecies
     upload_plasmodium_spp
     upload_eimeria_spp
 
+    DevelopmentalStageTopLevelDevelopmentalStage.new.upload_apiloc_top_level_developmental_stages
+    ApilocLocalisationTopLevelLocalisation.new.upload_apiloc_top_level_localisations
+
     gather_genbank_sequences_and_names
     Publication.fill_in_all_extras!
     

@@ -769,10 +769,6 @@ class CodingRegion < ActiveRecord::Base
   def localisation_english
     ExpressionContextGroup.new(expression_contexts).english
   end
-
-  def localisation_html
-    ExpressionContextGroup.new(expression_contexts).html
-  end
   
   # return true if there is only 1 top level localisation associated with this coding region
   def uniq_top?

@@ -20,7 +20,7 @@ next if codes.empty?
 %>
 
   <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? ? 'true' : 'false' %>">
-    <h3><%= sp.name %></h3>
+    <h3><i><%= sp.name %></i></h3>
     <ul>
       <% codes.each do |code| %>
         <li><%=  code_name_annotation(code) %></li>
