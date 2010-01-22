@@ -1,0 +1,30 @@
+<h2><%= @top_level_localisation.name.capitalize %></h2>
+
+<p>Proteins expressed during this time are known in
+<%= @localisations.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.uniq.join(', ') %>.</p>
+
+<p>More specific localisations within the <%= @top_level_localisation.name %> umbrella with a localised protein: <%=
+Localisation.all(
+  :select => 'distinct(localisations.name)',
+  :joins => [:apiloc_localisation_top_level_localisation, :expression_contexts],
+  :conditions => ['top_level_localisation_id = ?',@top_level_localisation.id]
+).collect {|d| link_to d.name, :action => :specific_localisation, :id => d.name}.join(', ')
+%></p>
+
+<% Species.all.each do |sp|
+codes = CodingRegion.s(sp.name).all(
+  :joins => {:expressed_localisations => :apiloc_top_level_localisation},
+  :conditions => ['top_level_localisation_id = ?',@top_level_localisation.id]
+).uniq
+next if codes.empty?
+%>
+
+  <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? ? 'true' : 'false' %>">
+    <h3><%= sp.name %></h3>
+    <ul>
+      <% codes.each do |code| %>
+        <li><%=  code_name_annotation(code) %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

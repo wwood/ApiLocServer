@@ -54,16 +54,7 @@
     <% popular_localisations.each do |species_name| %>
       <li><%= link_to species_name, :action => :localisation, :id => species_name %></li>
     <% end %>
-    <li>Other:
-      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
-        <% Localisation.all(
-          :select => 'distinct(localisations.name)',
-          :order => 'name',
-          :conditions => "name not in #{popular_localisations.to_sql_in_string} and name not like 'not %'").each do |loc| %>
-          <option value="../apiloc/localisation/<%= loc.name %>"><%= loc.name %></option>
-        <% end %>
-      </select>
-    </li>
+    <li><%= link_to '...more', :action => :localisation %></li>
   </ul>
 </div>
 
@@ -73,16 +64,7 @@
     <% popular_developmental_stages.each do |species_name| %>
       <li><%= link_to species_name, :action => :developmental_stage, :id => species_name %></li>
     <% end %>
-    <li>Other:
-      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
-        <% DevelopmentalStage.all(
-          :select => 'distinct(developmental_stages.*)',
-          :order => 'name',
-          :conditions => "name not in #{popular_developmental_stages.to_sql_in_string} and name not like 'not %'").each do |ann| %>
-          <option value="../apiloc/developmental_stage/<%= ann.name %>"><%= ann.name %></option>
-        <% end %>
-      </select>
-    </li>
+    <li><%= link_to '...more', :action => :developmental_stage %></li>
   </ul>
 </div>
 

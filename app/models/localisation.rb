@@ -31,6 +31,9 @@ class Localisation < ActiveRecord::Base
   named_scope :positive, {
     :conditions => ['localisations.name not like ?', 'not %']
   }
+  named_scope :negative, {
+    :conditions => ['localisations.name like ?', 'not %']
+  }
   
   # Return a list of ORFs that have this and only this localisation
   def get_individual_localisations

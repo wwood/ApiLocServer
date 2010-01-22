@@ -1,0 +1,19 @@
+<h2><%= @localisations[0].name.capitalize %></h2>
+<p>This specific localisation comes under the <%= n = @localisations[0].apiloc_top_level_localisation.name; link_to n, :id => n %>.
+<p>Proteins in this localisation are known in <%= @localisations.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.join(', ') %>.</p>
+<% category_counter=0 %>
+<% @localisations.each do |loc| %>
+  <div class="category<%= category_counter+=1; category_counter.odd? ? 'true' : 'false' %>">
+    <h3><i><%= loc.species.name %></i></h3>
+    <p>
+    <% unless loc.localisation_synonyms.length == 0 %>
+      Also known as <%= loc.localisation_synonyms.reach.name.sort.join(', ') %>.
+    <% end %>
+      View <%= link_to 'all', :action => :species, :id => loc.species.name %> proteins localised in <%= loc.species.name %>.</p>
+    <ul>
+      <% loc.expression_contexts.reach.coding_region.uniq.each do |code| %>
+        <li><%= code_name_annotation(code) %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

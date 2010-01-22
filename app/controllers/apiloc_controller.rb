@@ -59,22 +59,61 @@ class ApilocController < ApplicationController
   end
 
   def localisation
-    @localisations = Localisation.find_all_by_name(params[:id],
-      :joins => :expression_contexts,
-      :select => 'distinct(localisations.*)'
-    )
-    if @localisations.length == 0
-      flash[:error] = "No localisations found by the name of '#{params[:id]}'"
-      redirect_to :action => :index
+    if params[:id]
+      @top_level_localisation = TopLevelLocalisation.find_by_name(params[:id])
+      if @top_level_localisation.nil?
+        flash[:error] = "No umbrella localisation found by the name of '#{params[:id]}'"
+      else
+        @localisations = @top_level_localisation.apiloc_localisations.all(
+          :joins => :expression_contexts
+        )
+        render :action => :localisation_show
+      end
     end
   end
 
+  # low level localisation
+  def specific_localisation
+    @localisations = Localisation.find_all_by_name(params[:id])
+    if @localisations.empty? and params[:format]
+      @localisations = Localisation.find_all_by_name("#{params[:id]}.#{params[:format]}")
+      params[:format] = 'html'
+    end
+    # get rid of cases where the dev stage is defined but there isn't any
+    # more genes localised there
+    @localisations = @localisations.select do |d|
+      ExpressionContext.count(:conditions => ['localisation_id = ?',d.id])>0
+    end
+    raise Exception, "No localisations found by the name of '#{params[:id]}'" if @localisations.length == 0
+  end
+
+
+  # high level dev stage
   def developmental_stage
+    if params[:id]
+      @top_level_developmental_stage = TopLevelDevelopmentalStage.find_by_name(params[:id])
+      if @top_level_developmental_stage.nil?
+        flash[:error] = "No umbrella developmental stage found by the name of '#{params[:id]}'"
+      else
+        @developmental_stages = @top_level_developmental_stage.developmental_stages.all(
+          :joins => :expression_contexts
+        )
+        render :action => :developmental_stage_show
+      end
+    end
+  end
+
+  # low level dev stage
+  def specific_developmental_stage
     @developmental_stages = DevelopmentalStage.find_all_by_name(params[:id])
-    logger.info params.inspect
     if @developmental_stages.empty? and params[:format]
       @developmental_stages = DevelopmentalStage.find_all_by_name("#{params[:id]}.#{params[:format]}")
       params[:format] = 'html'
+    end
+    # get rid of cases where the dev stage is defined but there isn't any
+    # more genes localised there
+    @developmental_stages = @developmental_stages.select do |d|
+      ExpressionContext.count(:conditions => ['developmental_stage_id = ?',d.id])>0
     end
     raise Exception, "No localisations found by the name of '#{params[:id]}'" if @developmental_stages.length == 0
   end
@@ -90,26 +129,22 @@ class ApilocController < ApplicationController
       render :action => :index
     end
 
+    @localisations = TopLevelLocalisation
     if params[:negative] == 'true'
-      @localisations = Localisation.all(
-        :joins => {:expression_contexts => {:coding_region => {:gene => {:scaffold => :species}}}},
-        :conditions => ['species.id = ? and localisations.name like ?',
-          @species.id, 'not %'
-        ],
-        :select => 'distinct(localisations.*)'
-      )
       @viewing_positive_localisations = false
+      @localisations = @localisations.negative
     else
-      # only include positive localisations
-      @localisations = Localisation.all(
-        :joins => {:expression_contexts => {:coding_region => {:gene => {:scaffold => :species}}}},
-        :conditions => ['species.id = ? and localisations.name not like ?',
-          @species.id, 'not %'
-        ],
-        :select => 'distinct(localisations.*)'
-      )
       @viewing_positive_localisations = true
+      @localisations = @localisations.positive
     end
+
+    @localisations = @localisations.all(
+      :joins => {:apiloc_localisations => {:expression_contexts => {:coding_region => {:gene => :scaffold}}}},
+      :conditions => ['scaffolds.species_id = ?',
+        @species.id
+      ],
+      :select => 'distinct(top_level_localisations.*)'
+    )
   end
 
   def proteome

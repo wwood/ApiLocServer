@@ -13,12 +13,13 @@
 <% @localisations.each do |loc| %>
   <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
     <h3><%= loc.name %></h3>
-    <% unless loc.localisation_synonyms.length == 0 %>
-      <p>Also known as <%= loc.localisation_synonyms.reach.name.sort.join(', ') %>.</p>
-    <% end %>
     <p>View proteins from all species in <%= link_to loc.name, :action => :localisation, :id => loc.name %></p>
     <ul>
-      <% loc.expression_contexts.reach.coding_region.uniq.each do |code| %>
+      <% CodingRegion.s(@species.name).all(
+        :joins => {:expressed_localisations => :apiloc_localisation_top_level_localisation},
+        :conditions => ['top_level_localisation_id = ?', loc.id],
+        :select => 'distinct(coding_regions.*)'
+      ).each do |code| %>
         <li><%= code_name(code) %>
           <%= code.annotation.nil? ? nil : code.annotation.annotation %>
         </li>

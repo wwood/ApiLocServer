@@ -46,9 +46,10 @@ module ApilocHelper
     # must link to the species because otherwise
     # "A common gene for all genes not assigned to a gene model" genes
     # never resolve
-    name = "#{link_to code.string_id, :action => :gene, :id => code.string_id, :species => code.species.name}"
-    unless code.case_sensitive_literature_defined_coding_region_alternate_string_ids.empty?
-      name += " (#{code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ')})"
+    name = "#{link_to code.name, :action => :gene, :id => code.string_id, :species => code.species.name}"
+    alts = code.literature_defined_names
+    unless alts.empty?
+      name += " (#{alts.join(', ')})"
     end
     name
   end
@@ -57,9 +58,10 @@ module ApilocHelper
     # must link to the species because otherwise
     # "A common gene for all genes not assigned to a gene model" genes
     # never resolve
-    name = "#{link_to code.string_id, :action => :gene, :id => code.string_id, :species => code.species.name}"
-    unless code.case_sensitive_literature_defined_coding_region_alternate_string_ids.empty?
-      name += " (#{code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', ')})"
+    name = "#{link_to code.name, :action => :gene, :id => code.string_id, :species => code.species.name}"
+    alts = code.literature_defined_names
+    unless alts.empty?
+      name += " (#{alts.join(', ')})"
     end
     unless code.annotation.nil?
       name += " #{code.annotation.annotation}"

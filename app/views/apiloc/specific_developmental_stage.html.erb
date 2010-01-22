@@ -1,0 +1,24 @@
+<h2>Specifically localised during '<%= @developmental_stages[0].name %>'</h2>
+
+<p>
+  Proteins listed here are recorded as being localised at precisely this developmental stage, with no more or less specificity
+  (e.g. the <%= link_to 'sporozoite', :id => 'sporozoite' %> page does not necessarilly include
+  proteins localised during the <%= link_to 'salivary gland sporozoite', :id => 'salivary gland sporozoite' %> stage).
+</p>
+
+<p>Proteins expressed during this time are known in
+  <%= @developmental_stages.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.join(', ') %>.</p>
+
+<% @developmental_stages.each do |stage| %>
+  <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? ? 'true' : 'false' %>">
+    <h3><%= stage.species.name %></h3>
+    <% unless stage.developmental_stage_synonyms.length == 0 %>
+      <p>Also known as <%= stage.developmental_stage_synonyms.reach.name.sort.join(', ') %>.</p>
+    <% end %>
+    <ul>
+      <% stage.expression_contexts.reach.coding_region.uniq.each do |code| %>
+        <li><%=  code_name_annotation(code) %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
