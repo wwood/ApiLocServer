@@ -1334,9 +1334,10 @@ class BScript
         "#{DATA_DIR}/GOA/gene_association.goa_uniprot.gz",
         "\ttaxon:#{species_id}\t"
       ) do |go|
-        code = CodingRegion.fs(go.gene_name, species_name)
+        name = go.primary_id
+        code = CodingRegion.fs(name, species_name)
         unless code
-          $stderr.puts "Couldn't find coding region #{go.gene_name}"
+          $stderr.puts "Couldn't find coding region #{name}"
           bad_codes_count += 1
           next
         end

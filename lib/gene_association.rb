@@ -65,6 +65,7 @@ module Bio
         yield g
         progress.inc
       end
+      progress.finish
     end
   end
 end
