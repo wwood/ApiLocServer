@@ -52,14 +52,18 @@ module Bio
   # A class to handle gzipped gene association files which are piped to
   # grep and then stored in a temporary file.
   class GzipAndFilterGeneAssociation
+    require 'rubygems'
     require 'zlib'
+    require 'progressbar'
     def self.foreach(filename, grep_filter)
       tempfile = Tempfile.new('gene_association_gzip_grep')
       `zcat '#{filename}' |grep '#{grep_filter}' >#{tempfile.path}`
       tempfile.close
+      progress = ProgressBar.new(File.basename(filename), `wc -l '#{tempfile.path}'`.to_i)
 
       GeneAssociation.foreach(File.open(tempfile.path,'r')) do |g|
         yield g
+        progress.inc
       end
     end
   end

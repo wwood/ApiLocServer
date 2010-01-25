@@ -1319,4 +1319,39 @@ class BScript
       end
     end
   end
+
+  # The big GOA file has not been 'redundancy reduced', a process which is buggy,
+  # like the species level ones. Here I upload the species that I'm interested
+  # in using that big file, not the small one
+  def goa_all_species_to_database
+    UNIPROT_SPECIES_ID_NAME_HASH.each do |species_id, species_name|
+      bad_codes_count = 0
+      bad_go_count = 0
+      good_count = 0
+
+      Bio::GzipAndFilterGeneAssociation.foreach(
+        "#{DATA_DIR}/GOA/gene_association.goa_uniprot.gz",
+        "\ttaxon:#{species_id}\t"
+      ) do |go|
+        code = CodingRegion.fs(go.gene_name, species_name)
+        unless code
+          $stderr.puts "Couldn't find coding region #{go.gene_name}"
+          bad_codes_count += 1
+          next
+        end
+        go_term = GoTerm.find_by_go_identifier(go.go_identifier)
+        unless go_term
+          $stderr.puts "Couldn't find coding region #{go.go_identifier}"
+          bad_go_count += 1
+          next
+        end
+        CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id(
+          code.id, go_term.id
+        )
+        good_count += 1
+      end
+
+      $stderr.puts "#{good_count} all good, failed to find #{bad_codes_count} coding regions and #{bad_go_count} go terms"
+    end
+  end
 end
