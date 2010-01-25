@@ -1324,6 +1324,7 @@ class BScript
   # like the species level ones. Here I upload the species that I'm interested
   # in using that big file, not the small one
   def goa_all_species_to_database
+    require 'gene_association'
     UNIPROT_SPECIES_ID_NAME_HASH.each do |species_id, species_name|
       bad_codes_count = 0
       bad_go_count = 0
