@@ -6,6 +6,12 @@ class DevelopmentalStage < ActiveRecord::Base
   has_many :expression_contexts, :dependent => :destroy
   has_many :developmental_stage_synonyms
   belongs_to :species
+  has_one :developmental_stage_top_level_developmental_stage, :dependent => :destroy
+  has_one :top_level_developmental_stage, :through => :developmental_stage_top_level_developmental_stage
+
+  named_scope :positive, {
+    :conditions => ['developmental_stages.name not like ?', 'not %']
+  }
 
   # Unknown developmental stage
   UNKNOWN_NAME = 'unknown'

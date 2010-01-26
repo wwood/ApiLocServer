@@ -1,3 +1,5 @@
+require 'localisation_spreadsheet'
+
 class Species < ActiveRecord::Base
   FALCIPARUM = 'Plasmodium falciparum'
   FALCIPARUM_NAME = FALCIPARUM
@@ -22,6 +24,19 @@ class Species < ActiveRecord::Base
   CRYPTOSPORIDIUM_HOMINIS_NAME = 'Cryptosporidium hominis'
   CRYPTOSPORIDIUM_PARVUM_NAME = 'Cryptosporidium parvum'
   CRYPTOSPORIDIUM_MURIS_NAME = 'Cryptosporidium muris'
+  HUMAN_NAME = 'Homo sapiens'
+  ARABIDOPSIS_NAME = 'Arabidopsis thaliana'
+  TETRAHYMENA_NAME = 'Tetrahymena thermophila'
+  CHLAMYDOMONAS_NAME = 'Chlamydomonas reinhardtii'
+  DANIO_RERIO_NAME = 'Danio rerio'
+  RICE_NAME = 'rice'
+  TOBACCO_NAME = 'Nicotiana alata'
+  TOMATO_NAME = 'Lycopersicon'
+  SOYBEAN_NAME = 'Glycine max'
+  BARLEY_NAME = 'Hordeum vulgar'
+  PLANKTON_NAME = 'Ostreococcus tauri'
+  MOSS_NAME = 'Physcomitrella patens'
+  CASTOR_BEAN_NAME = 'Ricinus communis'
 
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'
@@ -50,7 +65,7 @@ class Species < ActiveRecord::Base
     BERGHEI_NAME,
     YOELII_NAME,
     CHABAUDI_NAME,
-    BABESIA_BOVIS_NAME,
+#    BABESIA_BOVIS_NAME,
     CRYPTOSPORIDIUM_HOMINIS_NAME,
     CRYPTOSPORIDIUM_PARVUM_NAME,
     THEILERIA_PARVA_NAME,
@@ -74,11 +89,16 @@ class Species < ActiveRecord::Base
   }
 
   ORTHOMCL_FOUR_LETTERS = {
+    DANIO_RERIO_NAME => 'drer',
+    RICE_NAME => 'osat',
+    CHLAMYDOMONAS_NAME => 'crei',
+    TETRAHYMENA_NAME => 'tthe',
     FALCIPARUM => 'pfal',
     VIVAX_NAME => 'pviv',
     BERGHEI_NAME => 'pber',
     YOELII_NAME => 'pyoe',
     KNOWLESI_NAME => 'pkno',
+    CHABAUDI_NAME => 'pcha',
     CRYPTOSPORIDIUM_HOMINIS_NAME => 'chom',
     CRYPTOSPORIDIUM_PARVUM_NAME => 'cpar',
     CRYPTOSPORIDIUM_MURIS_NAME => 'cmur',
@@ -90,7 +110,9 @@ class Species < ActiveRecord::Base
     YEAST_NAME => 'scer',
     MOUSE_NAME => 'mmus',
     DROSOPHILA_NAME => 'dmel',
-    NEOSPORA_CANINUM_NAME => 'ncan'
+    NEOSPORA_CANINUM_NAME => 'ncan',
+    ARABIDOPSIS_NAME => 'atha',
+    HUMAN_NAME => 'hsap',
   }
 
   SPECIES_PREFIXES = {
@@ -250,15 +272,23 @@ class Species < ActiveRecord::Base
   end
 
   # Try to return the species with the name as requested
-#  def self.method_missing(method_id)
-#    rets = Species.all(
-#      :conditions => ['name like ?', "%#{method_id.to_s}%"]
-#    )
-#    if rets.length == 1
-#      return rets[0]
-#    else
-#      # well, I tried..
-#      super
-#    end
-#  end
+  #  def self.method_missing(method_id)
+  #    rets = Species.all(
+  #      :conditions => ['name like ?', "%#{method_id.to_s}%"]
+  #    )
+  #    if rets.length == 1
+  #      return rets[0]
+  #    else
+  #      # well, I tried..
+  #      super
+  #    end
+  #  end
+
+  def two_letter_prefix
+    # if I've not got the binomial name as the final name, then
+    # return nil, otherwise an exception will be raised by
+    # LocalisationSpreadsheetRow
+    return nil unless name.split(' ').length == 2
+    LocalisationSpreadsheetRow.new.generate_prefix_from_binomial_name(name)
+  end
 end

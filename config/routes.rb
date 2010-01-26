@@ -16,6 +16,11 @@ ActionController::Routing::Routes.draw do |map|
   # I'm grasping at straws, but there is some there
   map.connect ':action/:id', :controller => 'apiloc'
 
+  map.connect 'apiloc/proteome/:id', :controller => 'apiloc', :action => 'proteome'
+  map.connect 'apiloc/proteome/:id.:id2', :controller => 'apiloc', :action => 'proteome'
+
+  map.connect 'expression_contexts/show', :controller => 'expression_contexts', :action => 'show'
+  map.resources :expression_contexts
 
   # The priority is based upon order of creation: first created -> highest priority.
 

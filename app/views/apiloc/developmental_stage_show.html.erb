@@ -1,0 +1,30 @@
+<h2><%= @top_level_developmental_stage.name.capitalize %></h2>
+
+<p>Proteins expressed during this time are known in
+<%= @developmental_stages.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.uniq.join(', ') %>.</p>
+
+<p>More specific developmental stages within the <%= @top_level_developmental_stage.name %> umbrella with a localised protein: <%=
+DevelopmentalStage.all(
+  :select => 'distinct(developmental_stages.name)',
+  :joins => [:developmental_stage_top_level_developmental_stage, :expression_contexts],
+  :conditions => ['top_level_developmental_stage_id = ?',@top_level_developmental_stage.id]
+).collect {|d| link_to d.name, :action => :specific_developmental_stage, :id => d.name}.join(', ')
+%></p>
+
+<% Species.all.each do |sp|
+codes = CodingRegion.s(sp.name).all(
+  :joins => {:expressed_developmental_stages => :top_level_developmental_stage},
+  :conditions => ['top_level_developmental_stage_id = ?',@top_level_developmental_stage.id]
+).uniq
+next if codes.empty?
+%>
+
+  <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? ? 'true' : 'false' %>">
+    <h3><%= sp.name %></h3>
+    <ul>
+      <% codes.each do |code| %>
+        <li><%=  code_name_annotation(code) %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

@@ -1,0 +1,9 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  orthomcl_group_id: 1
+  conservation: MyString
+
+two:
+  orthomcl_group_id: 1
+  conservation: MyString

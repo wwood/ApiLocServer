@@ -7,16 +7,7 @@ class ExpressionContextGroup
   end
 
   def html
-    locs_and_devs = @expression_contexts.collect do |ec|
-      LocalisationsAndDevelopmentalStages.new(
-        ec.localisation ?
-          "<a href='../localisation/#{ec.localisation.name}'>#{ec.localisation.name}</a>" : [],
-        ec.developmental_stage ?
-          "<a href='../developmental_stage/#{ec.developmental_stage.name}'>#{ec.developmental_stage.name}</a>" : []
-      )
-    end
-
-    return coalesce(locs_and_devs)
+    raise Exception, "Deprecated method - use apiloc helper instead"
   end
 
   # Try to make this as concise as possible (ie least commas)

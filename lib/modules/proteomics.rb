@@ -1,8 +1,24 @@
 
 class BScript
 
+  def proteomics_to_database
+    food_vacuole_proteome_to_database
+    whole_cell_proteome_to_database
+    maurers_cleft_proteome_to_database
+  end
+
   def food_vacuole_proteome_to_database
-    exp = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME)
+    pub = Publication.find_or_create_by_url_and_authors_and_date_and_title_and_abstract(
+      ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_PUBLICATION_DETAILS[:url],
+      ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_PUBLICATION_DETAILS[:authors],
+      ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_PUBLICATION_DETAILS[:date],
+      ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_PUBLICATION_DETAILS[:title],
+      ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_PUBLICATION_DETAILS[:abstract]
+    )
+    exp = ProteomicExperiment.find_or_create_by_name_and_publication_id(
+      ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME,
+      pub.id
+    )
 
     FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/FoodVacuole2008/FoodVacuoleProteome.csv",
       :col_sep => "\t"
@@ -33,10 +49,18 @@ class BScript
     first = true
     skipping = false
 
-    sp = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_SPOROZOITE_NAME)
-    mero = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME)
-    troph = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME)
-    game = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME)
+    pub = Publication.find_or_create_by_pubmed_id(
+      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_PUBMED_ID
+    )
+
+    sp = ProteomicExperiment.find_or_create_by_name_and_publication_id(
+      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_SPOROZOITE_NAME, pub.id)
+    mero = ProteomicExperiment.find_or_create_by_name_and_publication_id(
+      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME, pub.id)
+    troph = ProteomicExperiment.find_or_create_by_name_and_publication_id(
+      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME, pub.id)
+    game = ProteomicExperiment.find_or_create_by_name_and_publication_id(
+      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME, pub.id)
 
     #how many peptides per coding region given
     sp_count = 0
@@ -192,7 +216,10 @@ class BScript
   end
   
   def maurers_cleft_proteome_to_database
-    experiment = ProteomicExperiment.find_or_create_by_name(ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME)
+    pub = Publication.find_or_create_by_pubmed_id(
+      ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_PUBMED_ID)
+    experiment = ProteomicExperiment.find_or_create_by_name_and_publication_id(
+      ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME, pub.id)
 
     FasterCSV.foreach("#{DATA_DIR}/falciparum/proteomics/MaurersCleft2005/table2.csv",
       :col_sep => "\t"

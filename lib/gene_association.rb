@@ -22,6 +22,13 @@ module Bio
       end
     end
 
+    def self.foreach(io)
+      g = self.new('')
+      io.each_line do |current_line|
+        yield g.create_from_line(current_line)
+      end
+    end
+
     def create_from_line(gene_association_line)
       splits = gene_association_line.split("\t")
       # SGD	S000000289	AAC3		GO:0005739	SGD_REF:S000117178|PMID:16823961	IDA		C	Mitochondrial inner membrane ADP/ATP translocator, exchanges cytosolic ADP for mitochondrially synthesized ATP	YBR085W|ANC3	gene	taxon:4932	20061212	SGD
@@ -40,5 +47,25 @@ module Bio
 
   class GeneOntologyEntry
     attr_accessor :primary_id, :gene_name, :alternate_gene_ids, :go_identifier, :evidence_code, :aspect
+  end
+
+  # A class to handle gzipped gene association files which are piped to
+  # grep and then stored in a temporary file.
+  class GzipAndFilterGeneAssociation
+    require 'rubygems'
+    require 'zlib'
+    require 'progressbar'
+    def self.foreach(filename, grep_filter)
+      tempfile = Tempfile.new('gene_association_gzip_grep')
+      `zcat '#{filename}' |grep '#{grep_filter}' >#{tempfile.path}`
+      tempfile.close
+      progress = ProgressBar.new(File.basename(filename), `wc -l '#{tempfile.path}'`.to_i)
+
+      GeneAssociation.foreach(File.open(tempfile.path,'r')) do |g|
+        yield g
+        progress.inc
+      end
+      progress.finish
+    end
   end
 end

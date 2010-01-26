@@ -39,6 +39,7 @@ class CodingRegion < ActiveRecord::Base
   has_many :expression_contexts, :dependent => :destroy
   has_many :localisation_annotations, :dependent => :destroy
   has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation
+  has_many :expressed_developmental_stages, :through => :expression_contexts, :source => :developmental_stage
   has_many :integer_coding_region_measurements, :dependent => :destroy
   has_many :proteomic_experiment_results, :dependent => :destroy
   has_many :proteomic_experiment_peptides, :dependent => :destroy
@@ -188,6 +189,10 @@ class CodingRegion < ActiveRecord::Base
     :joins => {:gene => {:scaffold => :species}},
     :conditions => ['species.name in (?)', Species.apicomplexan_names]
   }
+  named_scope :not_apicomplexan, {
+    :joins => {:gene => {:scaffold => :species}},
+    :conditions => ['species.name not in (?)', Species.apicomplexan_names]
+  }
   # This named scope slows down queries by a lot (in the order of a second), and
   # I'm not sure how to fix this. In the meantime use find_by_name_or_alternate - it is much faster
   # # explain ANALYZE SELECT "coding_regions".* FROM "coding_regions" INNER JOIN "coding_region_alternate_string_ids" ON coding_region_alternate_string_ids.coding_region_id = coding_regions.id WHERE (coding_regions.string_id = E'PF01_0013' or coding_region_alternate_string_ids.name = E'PF01_0013') LIMIT 1;
@@ -227,6 +232,16 @@ class CodingRegion < ActiveRecord::Base
   }
   named_scope :localised, {
     :joins => :expressed_localisations
+  }
+  # 'useful' is somewhat opinionated, but for apiloc, we are only including
+  # IDA type annotations, so we should only consider those ones when looking for
+  # orthologues in other species as well.
+  named_scope :go_cc_usefully_termed, {
+    :joins => :go_terms,
+    :conditions => [
+      "coding_region_go_terms.evidence_code = ? and go_terms.aspect = ?",
+      'IDA', GoTerm::CELLULAR_COMPONENT
+    ]
   }
   
   POSITIVE_ORIENTATION = '+'
@@ -564,11 +579,44 @@ class CodingRegion < ActiveRecord::Base
   def tmhmm
     minus_sp = sequence_without_signal_peptide
     TmHmmWrapper.new.calculate(minus_sp)
-  end  
+  end
+
+  def possibly_sensiblize_name(identifier, species_object)
+    return 'No assigned gene identifier' if identifier == UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME
+    return nil if identifier.nil?
+
+    two_letter = species_object.two_letter_prefix
+    if two_letter.nil?
+      return identifier
+    else
+      if identifier.match(/^[\d\-]*$/) or
+          identifier.match(/^s[\d\-]*$/) #special case for Pfs25 and associates
+        return "#{two_letter}#{identifier}"
+      end
+      return identifier
+    end
+  end
+
+  # Return a good name for this gene. Often equivalent to the string_id column,
+  # but fixed to something more sensible on other occasions
+  def name
+    possibly_sensiblize_name(string_id, species)
+  end
   
   # return all the names (string_id and alternate string_ids) of this record
   def names
-    [string_id, coding_region_alternate_string_ids.collect{|s| s.name}].flatten
+    [
+      name,
+      coding_region_alternate_string_ids.collect{|s|
+        possibly_sensiblize_name(s.name, species)
+      }
+    ].flatten
+  end
+
+  def literature_defined_names
+    case_sensitive_literature_defined_coding_region_alternate_string_ids.collect do |alt|
+      possibly_sensiblize_name(alt.name, species)
+    end
   end
   
   def alternate_names
@@ -721,10 +769,6 @@ class CodingRegion < ActiveRecord::Base
   def localisation_english
     ExpressionContextGroup.new(expression_contexts).english
   end
-
-  def localisation_html
-    ExpressionContextGroup.new(expression_contexts).html
-  end
   
   # return true if there is only 1 top level localisation associated with this coding region
   def uniq_top?
@@ -851,7 +895,7 @@ class CodingRegion < ActiveRecord::Base
       # cached
       return preds[0].localisation
     else
-     return nil
+      return nil
     end
   end
   
@@ -1322,10 +1366,16 @@ class CodingRegion < ActiveRecord::Base
       ) >= min_peptides
     end
   end
+
+  def self.find_or_create_dummy(string_id, species_name)
+    CodingRegion.find_or_create_by_gene_id_and_string_id(
+      Gene.find_or_create_dummy(species_name).id, string_id
+    )
+  end
 end
 
 
 
 
 class CodingRegionNotFoundException < Exception; end
-#class UnexpectedOrthomclGeneCount < Exception; end
+class UnexpectedOrthomclGeneCount < Exception; end

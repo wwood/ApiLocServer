@@ -45,13 +45,15 @@ class CodingRegionGoTerm < ActiveRecord::Base
   named_scope :not_insilico, {
     :conditions => ['evidence_code not in (?)', COMPUTATIONAL_ANALYSIS_CODES.push('IEA')]
   }
+  # Should be the same as CodingRegion#:go_cc_usefully_termed named_scope,
+  # without the cc bit
   named_scope :useful, {
-    :conditions => ['evidence_code not in (?)', COMPUTATIONAL_ANALYSIS_CODES.push(%w(IEA ND)).flatten]
+    :conditions => ['evidence_code = ?', 'IDA']
   }
-
-  def experimental_annotation?
-
-  end
+  named_scope :cc, {
+    :joins => :go_term,
+    :conditions => ['go_terms.aspect = ?', GoTerm::CELLULAR_COMPONENT]
+  }
 
   def insilico_annotation?
     evidence_code == 'IEA' or COMPUTATIONAL_ANALYSIS_CODES.include?(evidence_code)

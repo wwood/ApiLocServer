@@ -4,7 +4,7 @@
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <form action="/apiloc/gene">
-    <label>Gene ID/Name:</label><input type="text" name="id" value="PF11_0344"/><input type="submit" value="search"/> There is also a <%= link_to 'BLAST server', '/blast/blast_link.cgi' %>.
+    <label>Gene ID/Name:</label><input type="text" name="id" value="PF11_0344"/><input type="submit" value="search"/> There is also a <%= link_to 'BLAST server', '/blast/blast_link.cgi' %>, or you could <%= link_to 'download everything', 'apiloc.xls' %>.
   </form>
 </div>
 
@@ -12,20 +12,20 @@
 <div align="right" class="category<%= category_counter+=1; category_counter.odd? %>">
   <img src="<%= image_path('apicomplexan.png') %>" alt="a model apicomplexan" usemap="#apicomplexan" border="none"/>
   <map name="apicomplexan">
-    <area shape="rect" coords="279,0,352,19" alt="conoid" href="/apiloc/localisation/conoid"/>
-    <area shape="rect" coords="290,20,356,38" alt="apical" href="/apiloc/localisation/apical"/>
-    <area shape="rect" coords="297,41,416,62" alt="microneme" href="/apiloc/localisation/microneme"/>
-    <area shape="rect" coords="302,62,524,84" alt="microtubular network" href="/apiloc/localisation/microtubular network"/>
-    <area shape="rect" coords="306,86,566,109" alt="inner membrane complex" href="/apiloc/localisation/inner membrane complex"/>
-    <area shape="rect" coords="311,114,396,136" alt="rhoptry" href="/apiloc/localisation/rhoptry"/>
-    <area shape="rect" coords="318,146,470,166" alt="dense granule" href="/apiloc/localisation/dense granule"/>
-    <area shape="rect" coords="0,188,142,212" alt="mitochondrion" href="/apiloc/localisation/mitochondrion"/>
-    <area shape="rect" coords="28,217,142,242" alt="apicoplast" href="/apiloc/localisation/apicoplast"/>
-    <area shape="rect" coords="14,248,139,267" alt="centrosome" href="/apiloc/localisation/centrosome"/>
-    <area shape="rect" coords="20,272,141,296" alt="centrocone" href="/apiloc/localisation/centrocone"/>
-    <area shape="rect" coords="66,300,152,320" alt="nucleus" href="/apiloc/localisation/nucleus"/>
-    <area shape="rect" coords="31,326,165,366" alt="endoplasmic reticulum" href="/apiloc/localisation/endoplasmic reticulum"/>
-    <area shape="poly" coords="243,35,155,203,161,293,222,360,284,365,335,335,346,294,304,173,275,48" alt="intracellular" href="/apiloc/localisation/intracellular">
+    <area shape="rect" coords="279,0,352,19" alt="conoid" href="<%="#{url_for :action => :specific_localisation, :id => 'conoid'}" %>"/>
+    <area shape="rect" coords="290,20,356,38" alt="apical" href="<%="#{url_for :action => :specific_localisation, :id => 'apical'}" %>"/>
+    <area shape="rect" coords="297,41,416,62" alt="microneme" href="<%="#{url_for :action => :specific_localisation, :id => 'microneme'}" %>"/>
+    <area shape="rect" coords="302,62,524,84" alt="microtubular network" href="<%="#{url_for :action => :specific_localisation, :id => '/microtubular network'}" %>"/>
+    <area shape="rect" coords="306,86,566,109" alt="inner membrane complex" href="<%="#{url_for :action => :specific_localisation, :id => 'inner membrane complex'}" %>"/>
+    <area shape="rect" coords="311,114,396,136" alt="rhoptry" href="<%="#{url_for :action => :specific_localisation, :id => 'rhoptry'}" %>"/>
+    <area shape="rect" coords="318,146,470,166" alt="dense granule" href="<%="#{url_for :action => :specific_localisation, :id => 'dense granule'}" %>"/>
+    <area shape="rect" coords="0,188,142,212" alt="mitochondrion" href="<%="#{url_for :action => :specific_localisation, :id => 'mitochondrion'}" %>"/>
+    <area shape="rect" coords="28,217,142,242" alt="apicoplast" href="<%="#{url_for :action => :specific_localisation, :id => 'apicoplast'}" %>"/>
+    <area shape="rect" coords="14,248,139,267" alt="centrosome" href="<%="#{url_for :action => :specific_localisation, :id => 'centrosome'}" %>"/>
+    <area shape="rect" coords="20,272,141,296" alt="centrocone" href="<%="#{url_for :action => :specific_localisation, :id => 'centrocone'}" %>"/>
+    <area shape="rect" coords="66,300,152,320" alt="nucleus" href="<%="#{url_for :action => :specific_localisation, :id => 'nucleus'}" %>"/>
+    <area shape="rect" coords="31,326,165,366" alt="endoplasmic reticulum" href="<%="#{url_for :action => :specific_localisation, :id => 'endoplasmic reticulum'}" %>"/>
+    <area shape="poly" coords="243,35,155,203,161,293,222,360,284,365,335,335,346,294,304,173,275,48" alt="intracellular" href="<%="#{url_for :action => :specific_localisation, :id => 'intracellular'}" %>"/>
   </map>
 </div>
 
@@ -51,19 +51,10 @@
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <h2>Localisations</h2>
   <ul>
-    <% popular_localisations.each do |species_name| %>
-      <li><%= link_to species_name, :action => :localisation, :id => species_name %></li>
+    <% popular_localisations.each do |loc| %>
+      <li><%= link_to loc, :action => :localisation, :id => loc %></li>
     <% end %>
-    <li>Other:
-      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
-        <% Localisation.all(
-          :select => 'distinct(localisations.name)',
-          :order => 'name',
-          :conditions => "name not in #{popular_localisations.to_sql_in_string} and name not like 'not %'").each do |loc| %>
-          <option value="../apiloc/localisation/<%= loc.name %>"><%= loc.name %></option>
-        <% end %>
-      </select>
-    </li>
+    <li><%= link_to '...more', :action => :localisation %></li>
   </ul>
 </div>
 
@@ -73,16 +64,7 @@
     <% popular_developmental_stages.each do |species_name| %>
       <li><%= link_to species_name, :action => :developmental_stage, :id => species_name %></li>
     <% end %>
-    <li>Other:
-      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
-        <% DevelopmentalStage.all(
-          :select => 'distinct(developmental_stages.*)',
-          :order => 'name',
-          :conditions => "name not in #{popular_developmental_stages.to_sql_in_string} and name not like 'not %'").each do |ann| %>
-          <option value="../apiloc/developmental_stage/<%= ann.name %>"><%= ann.name %></option>
-        <% end %>
-      </select>
-    </li>
+    <li><%= link_to '...more', :action => :developmental_stage %></li>
   </ul>
 </div>
 
@@ -90,22 +72,20 @@
   <h2>Microscopy</h2>
   <ul>
     <% popular_microscopy_types.each do |species_name| %>
-      <li><%= link_to species_name, :action => :developmental_stage, :id => species_name %></li>
+      <li><%= link_to species_name, :action => :microscopy, :id => species_name %></li>
     <% end %>
-    <li>Other:
-      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
-        <% LocalisationAnnotation.all(
-          :select => 'distinct(microscopy_type)',
-          :order => 'microscopy_type',
-          :conditions => "microscopy_type not in #{popular_microscopy_types.to_sql_in_string}").each do |ann| %>
-          <option value="../apiloc/microscopy_type/<%= ann.microscopy_type %>"><%= ann.microscopy_type %></option>
-        <% end %>
-      </select>
-    </li>
   </ul>
 </div>
 
 
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Proteomic Experiments</h2>
+  <ul>
+    <% popular_proteomic_experiments.each do |pro| %>
+      <li><%= link_to pro.name, :action => :proteome, :id => pro.name %></li>
+    <% end %>
+  </ul>
+</div>
 
 
 <%= link_to 'Acknowledgements', :action => :acknowledgements %>

@@ -50,4 +50,22 @@ class SpeciesDataTest < Test::Unit::TestCase
     assert_equal '/home/ben/phd/data/Toxoplasma gondii/genome/ToxoDB/5.2/TgondiiME49Gene_ToxoDB-5.2.txt.gz',
       spd.gene_information_gzfile_path
   end
+
+  def test_directories_for_mkdir
+    spd = SpeciesData.new('gondii')
+    assert_equal [
+      '/home/ben/phd/data',
+      '/home/ben/phd/data/Toxoplasma gondii',
+      '/home/ben/phd/data/Toxoplasma gondii/genome',
+      '/home/ben/phd/data/Toxoplasma gondii/genome/ToxoDB',
+      '/home/ben/phd/data/Toxoplasma gondii/genome/ToxoDB/5.2'
+    ],
+      spd.directories_for_mkdir
+  end
+
+  def test_one_word_name
+    assert_equal 'NeosporaCaninum', SpeciesData.new('Neospora caninum').one_word_name
+    spd = SpeciesData.new('Plasmodium falciparum')
+    assert_equal 'Pfalciparum', spd.one_word_name
+  end
 end

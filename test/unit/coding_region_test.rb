@@ -376,4 +376,21 @@ class CodingRegionTest < ActiveSupport::TestCase
     c.amino_acid_sequence = AminoAcidSequence.new(:sequence => 'ABC')
     assert_equal [0,0,0], c.proteomics_profile
   end
+
+  def test_name
+    code = CodingRegion.find(1)
+    assert_equal nil, code.name
+    code.string_id = '123'; assert_equal 'Pf123', code.name
+    code.string_id = '-123'; assert_equal 'Pf-123', code.name
+    code.string_id = 's-123'; assert_equal 'Pfs-123', code.name
+    code.string_id = 'sf'; assert_equal 'sf', code.name
+
+    code.string_id = CodingRegion::UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME
+    assert_equal 'No assigned gene identifier', code.name
+
+
+    # One without a sensible binomial name doesn't bother with the prefix
+    code = CodingRegion.find(4)
+    assert_equal code.string_id, code.name
+  end
 end

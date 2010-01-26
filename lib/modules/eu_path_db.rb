@@ -9,46 +9,6 @@ class BScript
   TOXODB_VERSION = SpeciesData::SOURCE_VERSIONS['ToxoDB']
   CRYPTODB_VERSION = SpeciesData::SOURCE_VERSIONS['CryptoDB']
 
-  def berghei_to_database
-    apidb_species_to_database Species::BERGHEI_NAME, "#{DATA_DIR}/berghei/genome/plasmodb/#{PLASMODB_VERSION}/Pberghei_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
-
-  def yoelii_to_database
-    apidb_species_to_database Species::YOELII_NAME, "#{DATA_DIR}/yoelii/genome/plasmodb/#{PLASMODB_VERSION}/Pyoelii_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
-
-  def vivax_to_database
-    apidb_species_to_database Species.vivax_name, "#{DATA_DIR}/vivax/genome/plasmodb/#{PLASMODB_VERSION}/Pvivax_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
-
-  def chabaudi_to_database
-    apidb_species_to_database Species::CHABAUDI_NAME, "#{DATA_DIR}/Plasmodium chabaudi/genome/plasmodb/#{PLASMODB_VERSION}/Pchabaudi_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
-
-  def knowlesi_to_database
-    apidb_species_to_database Species::KNOWLESI_NAME, "#{DATA_DIR}/knowlesi/genome/plasmodb/#{PLASMODB_VERSION}/Pknowlesi_PlasmoDB-#{PLASMODB_VERSION}.gff"
-  end
-
-  def neospora_caninum_to_database
-    apidb_species_to_database Species::NEOSPORA_CANINUM_NAME, "#{DATA_DIR}/Neospora caninum/genome/ToxoDB/#{TOXODB_VERSION}/NeosporaCaninum_ToxoDB-#{TOXODB_VERSION}.gff"
-  end
-
-  def cryptosporidium_parvum_to_database
-    apidb_species_to_database Species::CRYPTOSPORIDIUM_PARVUM_NAME, "#{DATA_DIR}/Cryptosporidium parvum/genome/cryptoDB/#{CRYPTODB_VERSION}/c_parvum_iowa_ii.gff"
-  end
-
-  def cryptosporidium_hominis_to_database
-    apidb_species_to_database Species::CRYPTOSPORIDIUM_HOMINIS_NAME, "#{DATA_DIR}/Cryptosporidium hominis/genome/cryptoDB/#{CRYPTODB_VERSION}/c_hominis_tu502.gff"
-  end
-
-  def cryptosporidium_muris_to_database
-    apidb_species_to_database Species::CRYPTOSPORIDIUM_MURIS_NAME, "#{DATA_DIR}/Cryptosporidium muris/genome/cryptodb/#{CRYPTODB_VERSION}/c_muris.gff"
-  end
-
-  def gondii_to_database
-    apidb_species_to_database Species::TOXOPLASMA_GONDII, "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49_ToxoDB-#{TOXODB_VERSION}.gff"
-  end
-
   def theileria_parva_genbank_gff_to_database
     [
       'NC_007344.gff',
@@ -78,18 +38,6 @@ class BScript
     end
   end
   
-  def gondii_fasta_to_database
-    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49AnnotatedProteins_ToxoDB-#{TOXODB_VERSION}.fasta")
-    sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
-    upload_fasta_general!(fa, sp)
-  end
-
-  def gondii_cds_to_database
-    fa = EuPathDb2009.new('Toxoplasma_gondii_ME49').load("#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49AnnotatedCDS_ToxoDB-#{TOXODB_VERSION}.fasta")
-    sp = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
-    upload_cds_fasta_general!(fa, sp)
-  end
-
   # low level method. don't create coding regions or GO terms, just
   # parse the file
   def upload_gene_information_table_plumbing(gzfile)
@@ -156,7 +104,7 @@ class BScript
   def upload_gondii_gene_table_to_database
     upload_gene_information_table(
       Species.find_by_name(Species::TOXOPLASMA_GONDII),
-      "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/TgondiiME49Gene_ToxoDB-#{TOXODB_VERSION}.txt.gz"
+      "#{DATA_DIR}/Toxoplasma gondii/genome/ToxoDB/#{TOXODB_VERSION}/TgondiiME49Gene_ToxoDB-#{TOXODB_VERSION}.txt.gz"
     ) do |info, code|
       # Add release 4 IDs as direct aliases
       release_fours = info.get_info('Release4 IDs')
@@ -298,6 +246,8 @@ class BScript
     theileria_parva_gene_aliases
     upload_theileria_fasta
     babesia_to_database
+    # extras required for proper orthomcl linking
+    upload_gondii_gene_table_to_database
   end
 
   def upload_apiloc_fasta_files
@@ -318,6 +268,8 @@ class BScript
 
   def upload_proteomic_data
     food_vacuole_proteome_to_database
+    maurers_cleft_proteome_to_database
+    gondii_proteomics_data_to_database
   end
 
   # OrthoMCL identifiers can be found in the gene information table.
@@ -410,26 +362,35 @@ class BScript
     end
   end
 
-  def download(database_name)
-    # Download the new files from the relevant database
-    species_data_from_database(database_name).each do |spd|
-      unless File.exists?(spd.local_download_directory)
-        Dir.mkdir(spd.local_download_directory)
+  def download(database_name=nil)
+    # by default, download everything
+    if database_name.nil?
+      %w(plasmodb cryptodb toxodb).each do |d|
+        download d
       end
+    else
+      # Download the new files from the relevant database
+      species_data_from_database(database_name).each do |spd|
+        spd.directories_for_mkdir.each do |directory|
+          unless File.exists?(directory)
+            Dir.mkdir(directory)
+          end
+        end
 
-      Dir.chdir(spd.local_download_directory) do
-        $stderr.puts "chdir: #{Dir.pwd}"
-        # protein
-        unless File.exists?(spd.protein_fasta_filename)
-          `wget #{spd.eu_path_db_download_directory}/#{spd.protein_fasta_filename}`
-        end
-        # gff
-        unless File.exists?(spd.gff_filename)
-          `wget #{spd.eu_path_db_download_directory}/#{spd.gff_filename}`
-        end
-        # transcripts
-        unless File.exists?(spd.transcript_fasta_filename)
-          `wget #{spd.eu_path_db_download_directory}/#{spd.transcript_fasta_filename}`
+        Dir.chdir(spd.local_download_directory) do
+          #          $stderr.puts "chdir: #{Dir.pwd}"
+          # protein
+          unless File.exists?(spd.protein_fasta_filename)
+            `wget #{spd.eu_path_db_download_directory}/#{spd.protein_fasta_filename}`
+          end
+          # gff
+          unless File.exists?(spd.gff_filename)
+            `wget #{spd.eu_path_db_download_directory}/#{spd.gff_filename}`
+          end
+          # transcripts
+          unless File.exists?(spd.transcript_fasta_filename)
+            `wget #{spd.eu_path_db_download_directory}/#{spd.transcript_fasta_filename}`
+          end
         end
       end
     end
@@ -452,6 +413,8 @@ class BScript
   def upgrade(database_name)
     database_name.downcase!
     # Destroy all the species in the database, using the named_scope
+    $stderr.puts "might want to change the destroy to a database delete so the database can do the work way way faster?"
+    return
     Species.send(database_name.to_sym).all.reach.destroy
 
     # downloads go through only if the files don't already exist,

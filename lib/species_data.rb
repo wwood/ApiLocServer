@@ -41,19 +41,25 @@ class SpeciesData
       :name => 'Plasmodium knowlesi',
       :sequencing_centre_abbreviation => 'psu',
       :fasta_file_species_name => 'Plasmodium_knowlesi_strain_H',
-      :proteins_fasta_filename => lambda {|version| "PknowlesiAnnotatedProteins_PlasmoDB-#{version}.fasta"},
       :source => 'PlasmoDB'
     },
     'Neospora caninum' => {
       :name => 'Neospora caninum',
       :sequencing_centre_abbreviation => 'psu',
       :fasta_file_species_name => 'Neospora_caninum',
+      :database_download_folder => 'NeosporaCaninum',
       :proteins_fasta_filename => lambda {|version| "NeosporaCaninumAnnotatedProteins_ToxoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "NeosporaCaninumAnnotatedTranscripts_ToxoDB-#{version}.fasta"},
       :source => 'ToxoDB'
     },
     'Toxoplasma gondii' => {
       :name => 'Toxoplasma gondii',
+      :sequencing_centre_abbreviation => 'gb',
+      :fasta_file_species_name => 'Toxoplasma_gondii_ME49',
       :gene_information_gzip_filename => lambda {|version| "TgondiiME49Gene_ToxoDB-#{version}.txt.gz"},
+      :proteins_fasta_filename => lambda {|version| "TgondiiME49AnnotatedProteins_ToxoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "TgondiiME49AnnotatedTranscripts_ToxoDB-#{version}.fasta"},
+      :gff_filename => lambda {|version| "TgondiiME49_ToxoDB-#{version}.gff"},
       :source => 'ToxoDB'
     },
     'Cryptosporidium parvum' => {
@@ -61,6 +67,26 @@ class SpeciesData
       :sequencing_centre_abbreviation => 'gb',
       :fasta_file_species_name => 'Cryptosporidium_parvum',
       :proteins_fasta_filename => lambda {|version| "CparvumAnnotatedProteins_CryptoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "CparvumAnnotatedTranscripts_CryptoDB-#{version}.fasta"},
+      :gff_filename => lambda {|version| "c_parvum_iowa_ii.gff"},
+      :source => 'CryptoDB'
+    },
+    'Cryptosporidium hominis' => {
+      :name => 'Cryptosporidium hominis',
+      :sequencing_centre_abbreviation => 'gb',
+      :fasta_file_species_name => 'Cryptosporidium_hominis',
+      :proteins_fasta_filename => lambda {|version| "ChominisAnnotatedProteins_CryptoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "ChominisAnnotatedTranscripts_CryptoDB-#{version}.fasta"},
+      :gff_filename => lambda {|version| "c_hominis_tu502.gff"},
+      :source => 'CryptoDB'
+    },
+    'Cryptosporidium muris' => {
+      :name => 'Cryptosporidium muris',
+      :sequencing_centre_abbreviation => 'gb',
+      :fasta_file_species_name => 'Cryptosporidium_muris',
+      :proteins_fasta_filename => lambda {|version| "CmurisAnnotatedProteins_CryptoDB-#{version}.fasta"},
+      :transcripts_fasta_filename => lambda {|version| "CmurisAnnotatedTranscripts_CryptoDB-#{version}.fasta"},
+      :gff_filename => lambda {|version| "c_muris.gff"},
       :source => 'CryptoDB'
     },
 
@@ -94,7 +120,7 @@ class SpeciesData
   def method_missing(symbol)
     answer = @species_data[symbol]
     return answer unless answer.nil?
-    raise
+    super
   end
 
   # The path to the EuPathDB gene information table (stored as a gzip)
@@ -180,6 +206,7 @@ class SpeciesData
 
   # Plasmodium chabaudi => Pchabaudi
   def one_word_name
+    return @species_data[:database_download_folder] unless @species_data[:database_download_folder].nil?
     splits = @species_data[:name].split(' ')
     raise unless splits.length == 2
     return "#{splits[0][0..0]}#{splits[1]}"
@@ -188,5 +215,23 @@ class SpeciesData
   def local_download_directory
     s = @species_data
     "/home/ben/phd/data/#{s[:name]}/genome/#{s[:source]}/#{SOURCE_VERSIONS[s[:source]]}"
+  end
+
+  # an array of directory names. mkdir is called on each of them in order,
+  # otherwise mkdir throws errors because there isn't sufficient folders
+  # to build on.
+  def directories_for_mkdir
+    s = @species_data
+    components = [
+      '/home/ben/phd/data',
+      s[:name],
+      'genome',
+      s[:source],
+      SOURCE_VERSIONS[s[:source]]
+    ]
+
+    (0..components.length-1).collect do |i|
+      components[0..i].join('/')
+    end
   end
 end

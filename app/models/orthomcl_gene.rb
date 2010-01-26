@@ -1,3 +1,5 @@
+require 'progressbar'
+
 class OrthomclGene < ActiveRecord::Base
   has_many :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
   has_many :orthomcl_groups, :through => :orthomcl_gene_orthomcl_group_orthomcl_runs, :dependent => :destroy
@@ -73,10 +75,15 @@ class OrthomclGene < ActiveRecord::Base
     }}
 
   def official_group
-    orthomcl_gene_orthomcl_group_orthomcl_runs.first(
+    ogogor = orthomcl_gene_orthomcl_group_orthomcl_runs.first(
       :joins => [:orthomcl_run, :orthomcl_group],
       :conditions => ['orthomcl_runs.name = ?', OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME]
-    ).orthomcl_group
+    )
+    if ogogor.nil?
+      return nil
+    else
+      return ogogor.orthomcl_group
+    end
   end
   
   # Get the coding region that is associated with this gene, assuming that
@@ -97,7 +104,9 @@ class OrthomclGene < ActiveRecord::Base
     name = matches[2]
       
     #species specific workarounds below
-    if matches[1] === 'dmel'
+
+    # Drosophila had problems in Orthomcl v2, but less so in v3
+    if matches[1] === 'dmel' and orthomcl_run.name == OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_2_NAME
       # for drosophila drop the -PA or -PB at the end of it
       matches = name.match(/^(.*)\-(.*)$/)
       if matches
@@ -105,30 +114,13 @@ class OrthomclGene < ActiveRecord::Base
       else
         raise Exception, "Badly parsed dme orthomcl_name: #{inspect}"
       end
-    elsif matches[1] == 'mmus'
-      #iterate over each orthomcl protein id (eg dme|CGxxxx)
-      #get gene name by first getting orthomcl protein id from OrthomclGene table and then then using that to get the gene id from the annotation information in the OrthomclGeneOfficialData table
-
-      e = orthomcl_gene_official_data
-      raise Exception, "Data bug in mmu orthomcl data - no orthomcl_gene_official_data found. Has it already been uploaded like it should be?" if e.nil?
-
-      #the annotation line in orthomcl_gene_official_data =
-      #|  CG1977|ENSF00000000161|Spectrin alpha chain. [Source:Uniprot/SWISSPROT;Acc:P13395] |
-
-      #split on bars and extract first without spaces
-      splits = e.annotation.split('|')
-      name = splits[0].strip #this is the gene id
-      #create coding region for this gene id and the protein name
-
-      #extract protein id
-      matches = orthomcl_name.match('(.*)\|(.*)')
-      pname = matches[2]
-
-      # get primary id for gene
-      return CodingRegion.find_all_by_name_or_alternate_and_species(name, Species.mouse_name)
     else
       # Add the normally linked ones that don't require a workaround
       sp = Species.find_by_orthomcl_three_letter matches[1]
+      if sp.nil?
+        $stderr.puts "Unknown orthomcl short name (4 letters as of v3) known for #{matches[1]}, species ignored!"
+	return []
+      end
       return CodingRegion.find_all_by_name_or_alternate_or_strain_orthologue_and_species(name, sp.name)
     end
   end
@@ -215,7 +207,16 @@ class OrthomclGene < ActiveRecord::Base
   
   # Basically fill out the orthomcl_gene_coding_regions table appropriately
   # for only the official one
-  def link_orthomcl_and_coding_regions(interesting_orgs)
+  def link_orthomcl_and_coding_regions(interesting_orgs, *args)
+    options = args.extract_options!
+    options = {
+      :warn=>false, #warn if there is no coding region that matches
+      :upload_species_orthomcl_codes_first=>true, #before even looking at the orthomcl data, upload the four letter codes into the species table?
+      :accept_multiple_coding_regions => false #allow multiple coding regions to match to a single coding region - useful in rare cases
+    }.merge(options)
+
+    Species.new.update_known_four_letters if options[:upload_species_orthomcl_codes_first]
+
     goods = 0; nones = 0; too_manies = 0
     
     if !interesting_orgs or interesting_orgs.empty?
@@ -224,24 +225,40 @@ class OrthomclGene < ActiveRecord::Base
       #    interesting_orgs = ['ath']
       interesting_orgs = ['cele']
     end
+
+    if interesting_orgs.kind_of?(String)
+      interesting_orgs = interesting_orgs.split(/\s+/)
+    end
     
     puts "linking genes for species: #{interesting_orgs.inspect}"
     
     # Maybe a bit heavy handed but ah well.
-    OrthomclGene.codes(interesting_orgs).official.all.each do |orthomcl_gene|
+    orthomcls = OrthomclGene.codes(interesting_orgs).official.all
+    progress = ProgressBar.new('orthomclink', orthomcls.length)
+    orthomcls.each do |orthomcl_gene|
+      progress.inc
     
       codes = orthomcl_gene.compute_coding_regions
       if !codes or codes.length == 0
         # print problems to stdout. I'm getting too many problems to ignore
         # annoyingly.
-        $stderr.puts "No coding region found for #{orthomcl_gene.orthomcl_name}"
+        $stderr.puts "No coding region found for #{orthomcl_gene.orthomcl_name}" if options[:warn]
         nones += 1
         next
       elsif codes.length > 1
         #ignore
         #        raise Exception, "Too many coding regions found for #{orthomcl_gene.orthomcl_name}" 
-        $stderr.puts "Too many coding regions found for #{orthomcl_gene.orthomcl_name}"
+        $stderr.puts "Too many coding regions found for #{orthomcl_gene.orthomcl_name}" if options[:warn]
         too_manies += 1
+        if options[:accept_multiple_coding_regions] #if the non-default option of allowing multiple coding regions per orthomcl region is taken
+          codes.each do |code|
+            OrthomclGeneCodingRegion.find_or_create_by_orthomcl_gene_id_and_coding_region_id(
+              orthomcl_gene.id,
+              code.id
+            )
+          end
+          goods += 1
+        end
         next
       else
         code = codes[0]
@@ -253,6 +270,7 @@ class OrthomclGene < ActiveRecord::Base
         )
       end
     end
+    progress.finish
     
     puts "Properly linked #{goods} coding regions. None found #{nones}. Too many found #{too_manies}."
   end
@@ -314,6 +332,12 @@ class OrthomclGene < ActiveRecord::Base
     s = official_split(orthomcl_name)
     return nil if s.nil?
     return official_orthomcl_species_code == s[0]
+  end
+
+  def species
+    s = official_split(orthomcl_name)
+    return nil if s.nil?
+    return Species.find_by_orthomcl_three_letter(s[0])
   end
 
   class UnexpectedCodingRegionCount < StandardError; end

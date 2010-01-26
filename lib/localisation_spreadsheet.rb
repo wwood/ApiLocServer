@@ -250,6 +250,10 @@ class LocalisationSpreadsheet
       # Create the publication(s) we are relying on
       if info.pubmed_id
         pubs = Publication.find_create_from_ids_or_urls info.pubmed_id
+        if pubs.nil?
+          puts "No publications found for line #{info.inspect}, ignoring this line"
+          next
+        end
       else
         puts "No publications found for line #{info.inspect}, ignoring this line"
         next

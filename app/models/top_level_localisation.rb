@@ -12,7 +12,13 @@ class TopLevelLocalisation < ActiveRecord::Base
   has_many :curated_top_level_localisations
   
   named_scope :known, lambda { { :conditions => ['name in (?)', TOP_LEVEL_LOCALISATIONS] } }
-  
+  named_scope :positive, {
+    :conditions => ['top_level_localisations.name not like ?', 'not %']
+  }
+  named_scope :negative, {
+    :conditions => ['top_level_localisations.name like ?', 'not %']
+  }
+
   # A hash of all non-top levels locs to top level ones
   LOC_HASH = {
     'knob' => 'exported',

@@ -1,15 +1,14 @@
-<h1><%= @developmental_stages[0].name.capitalize %></h1>
-Proteins in this localisation are known in <%= @developmental_stages.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.join(', ') %>.
-<% @developmental_stages.each do |stage| %>
-  <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? ? 'true' : 'false' %>">
-    <h3><%= stage.species.name %></h3>
-    <% unless stage.developmental_stage_synonyms.length == 0 %>
-      <p>Also known as <%= stage.developmental_stage_synonyms.reach.name.sort.join(', ') %>.</p>
-    <% end %>
+<h2>Developmental Stages</h2>
+
+Developmental stages in ApiLoc are divided into larger, 'umbrella' classes and more specific developmental stages.
+
+<ul>
+  <% TopLevelDevelopmentalStage.all(:order => 'name').each do |top| %>
+    <li><%= link_to top.name, :action => :developmental_stage, :id => top.name %></li>
     <ul>
-      <% stage.expression_contexts.reach.coding_region.uniq.each do |code| %>
-        <li><%=  code_name_annotation(code) %></li>
+      <% top.developmental_stages.all(:select => 'distinct(developmental_stages.name)').each do |low| %>
+        <li><%=  link_to low.name, :action => :specific_developmental_stage, :id => low.name %></li>
       <% end %>
     </ul>
-  </div>
-<% end %>
+  <% end %>
+</ul>

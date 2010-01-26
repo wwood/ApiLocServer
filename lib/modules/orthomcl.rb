@@ -3,11 +3,18 @@
 class BScript
   def orthomcl_to_database
     orthomcl_groups_to_database
-    upload_orthomcl_official_sequences
+    upload_orthomcl_official_deflines
   end
 
   # Load the data from the groups file alone - upload all genes and groups
   # in the process
+  def orthomcl2_groups_to_database
+    orthomcl_groups_to_database(
+      "#{DATA_DIR}/orthomcl/v2/groups_orthomcl-2.txt.gz",
+      OrthomclRun.official_run_v2
+    )
+  end
+
   def orthomcl_groups_to_database(
       filename="#{DATA_DIR}/orthomcl/v3/groups_OrthoMCL-3.txt.gz",
       run = OrthomclRun.official_run_v3
@@ -196,6 +203,14 @@ class BScript
         seq.aaseq,
         annot
       )
+    end
+  end
+
+  def paralogous_elegans_groups
+    OrthomclRun.official_run_v2.orthomcl_groups.all.each do |group|
+      if group.orthomcl_genes.code('cel').count > 1
+        puts group.orthomcl_name
+      end
     end
   end
 end

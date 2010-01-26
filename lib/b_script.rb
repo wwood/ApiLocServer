@@ -11,6 +11,7 @@ require 'rubygems'
 require 'csv'
 require 'bio'
 require 'peach'
+require 'progressbar'
 
 #require 'mscript'
 require 'reach'
@@ -25,6 +26,7 @@ require 'rarff'
 require 'stdlib'
 require 'babesia'
 require 'spoctopus_wrapper'
+require 'uni_prot_iterator'
 
 # Modules to split up this massive file. Each one is included
 require 'modules/at_bias'
