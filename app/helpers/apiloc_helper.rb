@@ -29,7 +29,7 @@ module ApilocHelper
   end
 
   def unpopular_developmental_stages
-    TopLevelDevelopmentalStage.all(
+    TopLevelDevelopmentalStage.positive.all(
       :conditions => ['name not in (?)',
         popular_developmental_stages
       ]
