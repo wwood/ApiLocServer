@@ -1,4 +1,4 @@
-<h2><%= @experiment.name %></h2>
+<h2><%= proteomic_experiment_name_to_italics(@experiment.name) %></h2>
 
 <% category_counter = 0 %>
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
@@ -12,8 +12,9 @@
   <h3>Proteins Found:</h3>
   <ul>
     <% CodingRegion.all(:select => 'distinct(coding_regions.*)',
-      :joins => {:proteomic_experiment_results => :proteomic_experiment},
-      :order => 'string_id'
+      :joins => :proteomic_experiment_results,
+      :order => 'string_id',
+      :conditions => {:proteomic_experiment_results => {:proteomic_experiment_id => @experiment.id}}
     ).each do |code| %>
       <li><%= code_name_annotation(code) %></li>
     <% end %>
