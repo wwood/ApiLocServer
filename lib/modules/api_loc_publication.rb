@@ -1106,43 +1106,6 @@ class BScript
     end
   end
 
-  def apiloc_ensembl_start_to_finish
-    go_to_database
-    download_uniprot_data
-    uniprot_to_database
-    orthomcl_to_database
-    upload_apiloc_from_scratch
-    upload_proteomic_data
-
-    tetrahymena_orf_names_to_database
-    tetrahymena_gene_aliases_to_database
-    yeastgenome_ids_to_database
-    elegans_wormbase_identifiers
-    uniprot_ensembl_databases
-    uniprot_refseq_databases
-    chlamydomonas_link_to_orthomcl_ids
-
-    update_known_four_letters
-    OrthomclGene.new.link_orthomcl_and_coding_regions(
-      "hsap mmus scer drer osat crei atha dmel cele",
-      :accept_multiple_coding_regions => true
-    )
-    OrthomclGene.new.link_orthomcl_and_coding_regions(
-      Species::APICOMPLEXAN_NAMES.reject{|a|
-        a == Species::BABESIA_BOVIS_NAME
-      }.collect { |a|
-        Species.find_by_name(a).orthomcl_three_letter
-      }
-    )
-
-    LocalisationSpreadsheet.new.upload
-    proteomics_to_database
-    Publication.fill_in_all_extras! #has to be after spreadsheet and proteomics, because they provide the pubmed ids to expand on
-
-    DevelopmentalStageTopLevelDevelopmentalStage.new.upload_apiloc_top_level_developmental_stages
-    ApilocLocalisationTopLevelLocalisation.new.upload_apiloc_top_level_localisations
-  end
-
   def uniprot_go_annotation_species_stats
     APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
       filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"

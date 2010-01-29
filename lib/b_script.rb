@@ -84,10 +84,9 @@ class BScript
   
   def go_to_database
     require 'simple_go'
-    
-    GoTerm.destroy_all
 
     sg = SimpleGo.new("#{DATA_DIR}/GO/cvs/go/ontology/gene_ontology_edit.obo")
+    progress = ProgressBar.new('Ontology upload', sg.total_number_of_terms)
     while (e = sg.next_go)
       go = GoTerm.find_or_create_by_go_identifier_and_term_and_aspect(
         e.go_id,
@@ -111,7 +110,10 @@ class BScript
           )
         end
       end
+
+      progress.inc
     end
+    progress.finish
   end
   
   # Upload the map file of generic to the database

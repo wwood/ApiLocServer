@@ -132,8 +132,38 @@ class BScript
         end
       end
 
-      # Add within-ToxoDB Orthologue info as well
-      
+      # Add the mass spec data from the table to the database
+      proteomic_name_to_pubmed = ProteomicExperiment::TOXOPLASMA_NAME_TO_PUBLICATION_HASH
+      mass_spec_table = info.get_table('Mass Spec.-based Expression Evidence')
+      mass_spec_table.each do |row|
+        experiment = row['Experiment Name']
+        # temporary typo fix
+        experiment = 'MS Tachyzoite Membrane Protein with Biotinlyation Purification 05-22-2007' if experiment == 'MS Tachyzoite Membrane Protein with  Biotinlyation Purification 05-22-2007'
+        experiment = 'MS Carruthers 2 distinct peptides' if experiment == 'MS Carruthers 2destinct peptides'
+
+        # Add T.gondii to the front because that is convention
+        experiment = "T. gondii #{experiment}"
+
+        unless proteomic_name_to_pubmed[experiment]
+          $stderr.puts "Unable to classify proteomic experiment: '#{experiment}' into a known publication"
+          next
+        end
+        pub = nil
+        if proteomic_name_to_pubmed[experiment].kind_of?(String)
+          pub = Publication.find_or_create_by_url(proteomic_name_to_pubmed[experiment])
+        elsif proteomic_name_to_pubmed[experiment].kind_of?(Integer)
+          pub = Publication.find_or_create_by_pubmed_id(proteomic_name_to_pubmed[experiment])
+        else
+          raise
+        end
+        raise unless pub
+        e = ProteomicExperiment.find_or_create_by_name_and_publication_id(
+          experiment, pub.id
+        )
+        raise unless ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id(
+          code.id, e.id
+        ).id
+      end
     end
   end
 
@@ -167,31 +197,31 @@ class BScript
       end
     end
   end
-
-  def gondii_proteomics_data_to_database
-    species_data = SpeciesData.new(Species::TOXOPLASMA_GONDII_NAME)
-
-    upload_gene_information_table_coding_region(
-      Species.find_by_name(species_data.name),
-      species_data.gene_information_gzfile_path
-    ) do |info, code|
-      table = info.get_table('Mass Spec.-based Expression Evidence')
-      table.each do |row|
-        experiment = ProteomicExperiment.find_or_create_by_name(row['Experiment Name']) or raise
-        ProteomicExperimentPeptide.find_or_create_by_peptide_and_coding_region_id_and_proteomic_experiment_id(
-          row['Sequences'],
-          code.id,
-          experiment.id
-        ) or raise
-        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id_and_number_of_peptides_and_spectrum(
-          code.id,
-          experiment.id,
-          row['Sequence Count'],
-          row['Spectrum Count']
-        ) or raise
-      end
-    end
-  end
+#
+#  def gondii_proteomics_data_to_database
+#    species_data = SpeciesData.new(Species::TOXOPLASMA_GONDII_NAME)
+#
+#    upload_gene_information_table_coding_region(
+#      Species.find_by_name(species_data.name),
+#      species_data.gene_information_gzfile_path
+#    ) do |info, code|
+#      table = info.get_table('Mass Spec.-based Expression Evidence')
+#      table.each do |row|
+#        experiment = ProteomicExperiment.find_or_create_by_name(row['Experiment Name']) or raise
+#        ProteomicExperimentPeptide.find_or_create_by_peptide_and_coding_region_id_and_proteomic_experiment_id(
+#          row['Sequences'],
+#          code.id,
+#          experiment.id
+#        ) or raise
+#        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id_and_number_of_peptides_and_spectrum(
+#          code.id,
+#          experiment.id,
+#          row['Sequence Count'],
+#          row['Spectrum Count']
+#        ) or raise
+#      end
+#    end
+#  end
 
   def gondii_tachyzoite_and_not_est_counts_to_database
     species = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
@@ -227,10 +257,45 @@ class BScript
 
 
   def upload_apiloc_from_scratch
+    go_to_database
+    download_uniprot_data
+    uniprot_to_database
+    orthomcl_to_database
+
     # Upload basic gene identifiers
     upload_apiloc_gffs
     upload_gondii_gene_table_to_database
     upload_apiloc_fasta_files
+
+    proteomics_to_database
+
+    tetrahymena_orf_names_to_database
+    tetrahymena_gene_aliases_to_database
+    yeastgenome_ids_to_database
+    elegans_wormbase_identifiers
+    uniprot_ensembl_databases
+    uniprot_refseq_databases
+    chlamydomonas_link_to_orthomcl_ids
+
+    update_known_four_letters
+    OrthomclGene.new.link_orthomcl_and_coding_regions(
+      "hsap mmus scer drer osat crei atha dmel cele",
+      :accept_multiple_coding_regions => true
+    )
+    OrthomclGene.new.link_orthomcl_and_coding_regions(
+      Species::APICOMPLEXAN_NAMES.reject{|a|
+        a == Species::BABESIA_BOVIS_NAME
+      }.collect { |a|
+        Species.find_by_name(a).orthomcl_three_letter
+      }
+    )
+
+    LocalisationSpreadsheet.new.upload
+    proteomics_to_database
+    Publication.fill_in_all_extras! #has to be after spreadsheet and proteomics and gondii_gene_table, because they provide the pubmed ids to expand on
+
+    DevelopmentalStageTopLevelDevelopmentalStage.new.upload_apiloc_top_level_developmental_stages
+    ApilocLocalisationTopLevelLocalisation.new.upload_apiloc_top_level_localisations
   end
 
   def upload_apiloc_gffs
@@ -269,7 +334,6 @@ class BScript
   def upload_proteomic_data
     food_vacuole_proteome_to_database
     maurers_cleft_proteome_to_database
-    gondii_proteomics_data_to_database
   end
 
   # OrthoMCL identifiers can be found in the gene information table.

@@ -1,5 +1,15 @@
 
-
+<script type="text/javascript">
+  function toggle(list_id, image_id){
+    if (document.getElementById(list_id).style.display == 'block'){
+      document.getElementById(list_id).style.display = 'none'
+      document.getElementById(image_id).setAttribute('src', '/images/sqr_bullet_plus.gif')
+    } else {
+      document.getElementById(list_id).style.display = 'block'
+      document.getElementById(image_id).setAttribute('src', '/images/sqr_bullet_minus.gif')
+    }
+  }
+</script>
 <% category_counter = 0 %>
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
@@ -52,9 +62,17 @@
   <h2>Localisations</h2>
   <ul>
     <% popular_localisations.each do |loc| %>
-      <li><%= link_to loc, :action => :localisation, :id => loc %></li>
+      <li><img id="image_<%=loc%>" src="/images/sqr_bullet_plus.gif" alt="expand" onclick="toggle('expandable_<%=loc%>', 'image_<%=loc%>')"/>&nbsp;&nbsp;
+      <%= link_to loc, :action => :localisation, :id => loc %></li>
+      <li style="display:none" id="expandable_<%=loc%>">
+        <ul><% top_loc = loc; top_loc = 'cytoplasm' if top_loc == 'cytoplasm but not organellar';
+          raise Exception, "unable to find top level loc #{top_loc}" unless TopLevelLocalisation.find_by_name(top_loc.downcase) %>
+          <% TopLevelLocalisation.find_by_name(top_loc.downcase).apiloc_localisations.all(:select => 'distinct(localisations.name)').each do |l| %>
+            <li><%= link_to l.name, :action => :specific_localisation, :id => l.name %></li>
+          <% end %>
+        </ul>
+      </li>
     <% end %>
-    <li><%= link_to '...more', :action => :localisation %></li>
   </ul>
 </div>
 
@@ -64,7 +82,14 @@
     <% popular_developmental_stages.each do |species_name| %>
       <li><%= link_to species_name, :action => :developmental_stage, :id => species_name %></li>
     <% end %>
-    <li><%= link_to '...more', :action => :developmental_stage %></li>
+    <li><img id="expandable_unpopular_devs_image" src="/images/sqr_bullet_plus.gif" alt="expand" onclick="toggle('expandable_unpopular_devs','expandable_unpopular_devs_image')"/>&nbsp;&nbsp;
+      other</li>
+    <li style="display:none" id="expandable_unpopular_devs">
+      <ul>
+        <% unpopular_developmental_stages.each do |dev| %>
+          <li><%= link_to dev, :action => :developmental_stage, :id => dev %></li>
+        <% end %>
+      </ul>
   </ul>
 </div>
 
@@ -82,7 +107,7 @@
   <h2>Proteomic Experiments</h2>
   <ul>
     <% popular_proteomic_experiments.each do |pro| %>
-      <li><%= link_to pro.name, :action => :proteome, :id => pro.name %></li>
+      <li><%= link_to proteomic_experiment_name_to_italics(pro.name), :action => :proteome, :id => pro.name %></li>
     <% end %>
   </ul>
 </div>

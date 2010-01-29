@@ -215,7 +215,7 @@ ActiveRecord::Schema.define(:version => 20100119222416) do
   add_index "coding_region_yeast_pheno_infos", ["coding_region_id"], :name => "index_coding_region_yeast_pheno_infos_on_coding_region_id"
   add_index "coding_region_yeast_pheno_infos", ["yeast_pheno_info_id"], :name => "index_coding_region_yeast_pheno_infos_on_yeast_pheno_info_id"
 
-  create_table "coding_regions", :force => true do |t|
+  create_table "coding_regions" do |t|
     t.integer  "gene_id"
     t.integer  "jgi_protein_id"
     t.integer  "upstream_distance"

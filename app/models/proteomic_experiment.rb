@@ -1,5 +1,6 @@
 class ProteomicExperiment < ActiveRecord::Base
   has_many :proteomic_experiment_results, :dependent => :destroy
+  has_many :coding_regions, :through => :proteomic_experiment_results
   has_many :proteomic_experiment_peptides, :dependent => :destroy
   belongs_to :publication
 
@@ -20,4 +21,31 @@ class ProteomicExperiment < ActiveRecord::Base
 
   FALCIPARUM_MAURERS_CLEFT_2005_NAME = 'P. falciparum Maurer\'s Cleft Vinvensini et al 2005'
   FALCIPARUM_MAURERS_CLEFT_2005_PUBMED_ID = 15140830
+
+  FALCIPARUM_SUMOYLATION_2008_NAME = 'P. falciparum Sumoylated Isaar et al 2008'
+  FALCIPARUM_SUMOYLATION_2008_PUBMED_ID = 18547337
+
+  TOXOPLASMA_NAME_TO_PUBLICATION_HASH = {
+    'T. gondii 1D Gel Tachyzoite Membrane fraction 10-2006' => 11796121,
+    'T. gondii 1D Gel Tachyzoite Membrane fraction 12-2006' => 11796121,
+    'T. gondii 2DLC MS/MS Tachyzoite Membrane fraction' => 11796121,
+    'T. gondii Moreno DTASelect filter sample A' => 'http://toxodb.org/toxo/showXmlDataContent.do?name=XmlQuestions.DataSources&datasets=Moreno-1-annotated',
+    'T. gondii Moreno DTASelect filter sample G' => 'http://toxodb.org/toxo/showXmlDataContent.do?name=XmlQuestions.DataSources&datasets=Moreno-1-annotated',
+    'T. gondii MS Carruthers 2 distinct peptides' => 16002397,
+    'T. gondii MS Carruthers MudPIT Twinscan hits' => 16002397,
+    'T. gondii MS Tachyzoite Cytosolic Protein Fractions 05-2007' => 11796121,
+    'T. gondii MS Tachyzoite Membrane fraction 02-03-2006' => 11796121,
+    'T. gondii MS Tachyzoite Membrane fraction 05-02-2006' => 11796121,
+    'T. gondii MS Tachyzoite Membrane fraction 05-10-2006' => 11796121,
+    'T. gondii MS Tachyzoite Membrane fraction 06-2006' => 11796121,
+    'T. gondii MS Tachyzoite Membrane Protein with Biotinlyation Purification 05-22-2007' => 11796121,
+    'T. gondii Murray Conoid-depleted Fraction' => 16518471,
+    'T. gondii Murray Conoid-enriched Fraction' => 16518471,
+    'T. gondii Wastling 1-D SDS PAGE' => 11796121,
+    'T. gondii Wastling 1-D SDS PAGE Insoluble' => 11796121,
+    'T. gondii Wastling 1-D SDS PAGE Soluble' => 11796121,
+    'T. gondii Wastling MudPIT Insoluble' => 11796121,
+    'T. gondii Wastling MudPIT Soluble' => 11796121,
+    'T. gondii Wastling Rhoptry' => 16002398
+  }
 end

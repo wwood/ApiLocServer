@@ -5,6 +5,7 @@ class BScript
     food_vacuole_proteome_to_database
     whole_cell_proteome_to_database
     maurers_cleft_proteome_to_database
+    sumoylation2008_proteome_to_database
   end
 
   def food_vacuole_proteome_to_database
@@ -236,6 +237,27 @@ class BScript
         next
       end
 
+      ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id(
+        code.id, experiment.id
+      ) or raise
+    end
+  end
+
+  def sumoylation2008_proteome_to_database
+    pub = Publication.find_or_create_by_pubmed_id(
+      ProteomicExperiment::FALCIPARUM_SUMOYLATION_2008_PUBMED_ID)
+    experiment = ProteomicExperiment.find_or_create_by_name_and_publication_id(
+      ProteomicExperiment::FALCIPARUM_SUMOYLATION_2008_NAME, pub.id)
+
+    FasterCSV.foreach(
+      "#{DATA_DIR}/falciparum/proteomics/Sumoylation2008/table1_modified.csv"
+    ) do |row|
+      plasmo = row[0].gsub('*','')
+      code = CodingRegion.ff(plasmo)
+      if code.nil?
+        $stderr.puts "Couldn't find '#{plasmo.inspect}'"
+        next
+      end
       ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id(
         code.id, experiment.id
       ) or raise
