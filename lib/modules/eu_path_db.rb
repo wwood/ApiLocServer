@@ -277,7 +277,7 @@ class BScript
     uniprot_refseq_databases
     chlamydomonas_link_to_orthomcl_ids
 
-    update_known_four_letters
+    Species.new.update_known_four_letters
     OrthomclGene.new.link_orthomcl_and_coding_regions(
       "hsap mmus scer drer osat crei atha dmel cele",
       :accept_multiple_coding_regions => true
