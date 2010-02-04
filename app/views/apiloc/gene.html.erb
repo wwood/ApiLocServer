@@ -216,6 +216,16 @@
   </ul>
 </div>
 
+<!-- don't ask again if the comment submitter wants to be a guest -->
+<script type="text/javascript">disqus_skip_auth = true</script>
+
+<!-- Change the text at the top of the comment section to be more specific -->
+<script type="text/javascript">
+  function disqus_callback(){
+    document.getElementById('dsq-new-post').innerHTML = document.getElementById('dsq-new-post').innerHTML.replace('Add New Comment','Add New Comment About Localisation')
+  }
+</script>
+
 <div id="disqus_thread"></div><script type="text/javascript" src="http://disqus.com/forums/aqu1200434/embed.js"></script><noscript><a href="http://disqus.com/forums/aqu1200434/?url=ref">View the discussion thread.</a></noscript><a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
 
 

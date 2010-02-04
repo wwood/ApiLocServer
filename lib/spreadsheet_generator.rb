@@ -77,6 +77,14 @@ class SpreadsheetGenerator
   end
 
   def arff_eight_class
+    puts arff_eight_class_plumbing.to_arff
+  end
+
+  def arff_eight_class_csv
+    puts arff_eight_class_plumbing.to_csv
+  end
+
+  def arff_eight_class_plumbing
     eight_classes = [
       'exported',
       'mitochondrion',
@@ -89,9 +97,16 @@ class SpreadsheetGenerator
       'apical'
     ]
     
-    codes = PlasmodbGeneList.find_by_description(
-      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
-    ).coding_regions.select do |code|
+    #    codes = PlasmodbGeneList.find_by_description(
+    #      PlasmodbGeneList::CONFIRMATION_APILOC_LIST_NAME
+    #    ).coding_regions.select do |code|
+    codes = CodingRegion.falciparum.all(
+      :joins => [
+        :expressed_localisations,
+        :amino_acid_sequence
+      ],
+      :select => 'distinct(coding_regions.*)'
+    ).select do |code|
       code.apilocalisations.length == 1 and eight_classes.include?(code.apilocalisations[0].name)
     end
     #    codes = [codes[0],codes[1]]
@@ -111,7 +126,7 @@ class SpreadsheetGenerator
     # Make some attributes noiminal instead of String
     rarff_relation.set_string_attributes_to_nominal((0..(data[0].length)).reject{|a| a==@identifier_column_index})
 
-    puts rarff_relation.to_arff
+    rarff_relation
   end
 
   # Write out an ARFF file for each of the top level localisations
@@ -162,13 +177,13 @@ class SpreadsheetGenerator
     @first = true
     #String attributes aren't useful in arff files, because many classifiers and visualisations don't handle them
     # So make a list of outputs so they can be made nominal in the end.
-    amino_acids = Bio::AminoAcid.names.keys.select{|code| code.length == 1}
-    derisi_timepoints = Microarray.find_by_description(
-      Microarray.derisi_2006_3D7_default
-    ).microarray_timepoints.all(
-      :select => 'distinct(name)').select do |timepoint|
-      %w(22 23 47 49).include?(timepoint.name.gsub(/^Timepoint /,''))
-    end
+#    amino_acids = Bio::AminoAcid.names.keys.select{|code| code.length == 1}
+#    derisi_timepoints = Microarray.find_by_description(
+#      Microarray.derisi_2006_3D7_default
+#    ).microarray_timepoints.all(
+#      :select => 'distinct(name)').select do |timepoint|
+#      %w(22 23 47 49).include?(timepoint.name.gsub(/^Timepoint /,''))
+#    end
     
     # For all genes that only have 1 localisation and that are non-redundant
     coding_regions.each do |code|
@@ -185,75 +200,75 @@ class SpreadsheetGenerator
       #      results.push code.amino_acid_sequence.sequence,
       
       
-      #      SignalP
-      @headings.push 'SignalP Prediction' if @first
-      @current_row.push(code.signal?)
-      check_headings
+#      #      SignalP
+#      @headings.push 'SignalP Prediction' if @first
+#      @current_row.push(code.signal?)
+#      check_headings
 
       # PlasmoAP
       @headings.push 'PlasmoAP Score' if @first
       @current_row.push code.amino_acid_sequence.plasmo_a_p.points
       check_headings
-      
-      # ExportPred
-      @headings.push 'ExportPred?' if @first
-      @current_row.push code.export_pred_however.predicted?
-      check_headings
-      
-      #WoLF_PSORT
-      @headings.push ['WoLF_PSORT prediction Plant',
-        'WoLF_PSORT prediction Animal',
-        'WoLF_PSORT prediction Fungi'] if @first
-      ['plant','animal','fungi'].each do |organism|
-        c = code.wolf_psort_localisation!(organism)
-        @current_row.push c
-      end
-      check_headings
-
-      @headings.push 'Plasmit' if @first
-      @current_row.push code.plasmit?  # Top level localisations
-      check_headings
-      
-      # official orthomcl
-      @headings.push [
-        #        'Number of P. falciparum Genes in Official Orthomcl Group',
-        #        'Number of P. vivax Genes in Official Orthomcl Group',
-        #        'Number of C. parvum Genes in Official Orthomcl Group',
-        'Number of C. homonis Genes in Official Orthomcl Group',
-        #        'Number of T. parva Genes in Official Orthomcl Group',
-        #        'Number of T. annulata Genes in Official Orthomcl Group',
-        #        'Number of T. gondii Genes in Official Orthomcl Group',
-        #        'Number of Tetrahymena thermophila Genes in Official Orthomcl Group',
-        #        'Number of Arabidopsis Genes in Official Orthomcl Group',
-        #        'Number of Yeast Genes in Official Orthomcl Group',
-        #        'Number of Mouse Genes in Official Orthomcl Group'
-      ] if @first
-      interestings = [
-        #        'pfa',
-        #        'pvi',
-        #        'cpa',
-        'chom',
-        #        'the',
-        #        'tan',
-        #        'tgo',
-        #        'tth',
-        #        'ath',
-        #        'sce',
-        #        'mmu'
-      ]
-
-      ogene = code.single_orthomcl!
-      if ogene.nil?
-        1..interestings.length.times do
-          @current_row.push nil
-        end
-      else
-        group = ogene.official_group
-        interestings.each do |three|
-          @current_row.push group.orthomcl_genes.code(three).length
-        end
-      end
-      check_headings
+#
+#      # ExportPred
+#      @headings.push 'ExportPred?' if @first
+#      @current_row.push code.export_pred_however.predicted?
+#      check_headings
+#
+#      #WoLF_PSORT
+#      @headings.push ['WoLF_PSORT prediction Plant',
+#        'WoLF_PSORT prediction Animal',
+#        'WoLF_PSORT prediction Fungi'] if @first
+#      ['plant','animal','fungi'].each do |organism|
+#        c = code.wolf_psort_localisation!(organism)
+#        @current_row.push c
+#      end
+#      check_headings
+#
+#      @headings.push 'Plasmit' if @first
+#      @current_row.push code.plasmit?  # Top level localisations
+#      check_headings
+#
+#      # official orthomcl
+#      @headings.push [
+#        #        'Number of P. falciparum Genes in Official Orthomcl Group',
+#        #        'Number of P. vivax Genes in Official Orthomcl Group',
+#        #        'Number of C. parvum Genes in Official Orthomcl Group',
+#        'Number of C. homonis Genes in Official Orthomcl Group',
+#        #        'Number of T. parva Genes in Official Orthomcl Group',
+#        #        'Number of T. annulata Genes in Official Orthomcl Group',
+#        #        'Number of T. gondii Genes in Official Orthomcl Group',
+#        #        'Number of Tetrahymena thermophila Genes in Official Orthomcl Group',
+#        #        'Number of Arabidopsis Genes in Official Orthomcl Group',
+#        #        'Number of Yeast Genes in Official Orthomcl Group',
+#        #        'Number of Mouse Genes in Official Orthomcl Group'
+#      ] if @first
+#      interestings = [
+#        #        'pfa',
+#        #        'pvi',
+#        #        'cpa',
+#        'chom',
+#        #        'the',
+#        #        'tan',
+#        #        'tgo',
+#        #        'tth',
+#        #        'ath',
+#        #        'sce',
+#        #        'mmu'
+#      ]
+#
+#      ogene = code.single_orthomcl!
+#      if ogene.nil?
+#        1..interestings.length.times do
+#          @current_row.push nil
+#        end
+#      else
+#        group = ogene.official_group
+#        interestings.each do |three|
+#          @current_row.push group.orthomcl_genes.code(three).length
+#        end
+#      end
+#      check_headings
       
       #      # 7species orthomcl
       #      @headings.push [      'Number of P. falciparum Genes in 7species Orthomcl Group', #7species orthomcl
@@ -351,10 +366,10 @@ class SpreadsheetGenerator
       #      @current_row.push code.amino_acid_sequence.sequence.length
       #      check_headings
       
-      @headings.push 'Chromosome' if @first
-      name = code.chromosome_name
-      @current_row.push name
-      check_headings
+#      @headings.push 'Chromosome' if @first
+#      name = code.chromosome_name
+#      @current_row.push name
+#      check_headings
       #
       #      @headings.push 'Distance from chromosome end' if @first
       #      @current_row.push code.length_from_chromosome_end
@@ -394,24 +409,24 @@ class SpreadsheetGenerator
       #      @current_row.push rand
       #      check_headings
       #
-      # Microarray DeRisi
-      if @first
-        @headings.push derisi_timepoints.collect{|t|
-          'DeRisi 2006 3D7 '+t.name
-        }
-      end
-      derisi_timepoints.each do |timepoint|
-        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
-          code.id,
-          timepoint.id
-        )
-        if !measures.nil?
-          @current_row.push measures.measurement
-        else
-          @current_row.push nil
-        end
-      end
-      check_headings
+#      # Microarray DeRisi
+#      if @first
+#        @headings.push derisi_timepoints.collect{|t|
+#          'DeRisi 2006 3D7 '+t.name
+#        }
+#      end
+#      derisi_timepoints.each do |timepoint|
+#        measures = MicroarrayMeasurement.find_by_coding_region_id_and_microarray_timepoint_id(
+#          code.id,
+#          timepoint.id
+#        )
+#        if !measures.nil?
+#          @current_row.push measures.measurement
+#        else
+#          @current_row.push nil
+#        end
+#      end
+#      check_headings
       #
       #      # Amino Acid Composition
       #      if @first
@@ -436,26 +451,26 @@ class SpreadsheetGenerator
       #      end
       #      check_headings
       #
-      #      # Winzeler Timepoints
-      #      @headings.push WINZELER_TIMEPOINTS if @first
-      #      WINZELER_TIMEPOINTS.each do |timepoint|
-      #        t = code.microarray_measurements.timepoint_name(timepoint).first
-      #        @current_row.push t ? t.measurement : nil
-      #      end
-      #      check_headings
-      #
-      #      # Winzeler Timepoints percentiles
-      #      if @first
-      #        WINZELER_TIMEPOINTS.each do |name|
-      #          name += ' percentile'
-      #          @headings.push name
-      #        end
-      #      end
-      #      WINZELER_TIMEPOINTS.each do |timepoint|
-      #        t = code.microarray_measurements.timepoint_name(timepoint).first
-      #        @current_row.push t ? t.percentile : nil
-      #      end
-      #      check_headings
+            # Winzeler Timepoints
+            @headings.push WINZELER_TIMEPOINTS if @first
+            WINZELER_TIMEPOINTS.each do |timepoint|
+              t = code.microarray_measurements.timepoint_name(timepoint).first
+              @current_row.push t ? t.measurement : nil
+            end
+            check_headings
+      
+            # Winzeler Timepoints percentiles
+            if @first
+              WINZELER_TIMEPOINTS.each do |name|
+                name += ' percentile'
+                @headings.push name
+              end
+            end
+            WINZELER_TIMEPOINTS.each do |timepoint|
+              t = code.microarray_measurements.timepoint_name(timepoint).first
+              @current_row.push t ? t.percentile : nil
+            end
+            check_headings
       #
       #      #      #             gMARS and other headings
       #      #      code.gmars_vector(3).each do |node|
