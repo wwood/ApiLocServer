@@ -7,6 +7,7 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'apiloc/gene/:id.:id2.:id3', :controller => 'apiloc', :action => 'gene'
   map.resources :apiloc
   map.connect 'gene', :controller => 'apiloc', :action => 'gene'
+  map.connect 'apiloc/apiloc/:action/:id', :controller => 'apiloc'
   map.connect 'apiloc/:action/:id', :controller => 'apiloc', :action => 'index'
   map.connect 'apiloc/:action/:id.:format', :controller => 'apiloc', :action => 'index'
 

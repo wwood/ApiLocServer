@@ -54,7 +54,7 @@
     <% popular_localisations.each do |loc| %>
       <li><%= link_to loc, :action => :localisation, :id => loc %></li>
     <% end %>
-    <li><%= link_to '...more', :action => :localisation %></li>
+    <li><%= link_to '...more', :controller => :apiloc, :action => :localisation %></li>
   </ul>
 </div>
 
