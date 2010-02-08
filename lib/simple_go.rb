@@ -4,8 +4,10 @@
  
 
 class SimpleGo
+  attr_reader :total_number_of_terms
   def initialize(obo_file)
     @go_file = File.open(obo_file, "r")
+    @total_number_of_terms = `grep -c '^id\:' '#{obo_file}'`.to_i
   end
   
   

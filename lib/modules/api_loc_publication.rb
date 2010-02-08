@@ -726,13 +726,14 @@ class BScript
 
   def apiloc_go_localisation_conservation_groups_to_database
     #    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues2/breakdown.manual.xls",
-    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues4/breakdown2.manual.csv",
+#    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues4/breakdown2.manual.csv",
+    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues4/breakdown3.manual.csv",
       :col_sep => "\t"
     ) do |row|
       # ignore lines that have nothing first or are the header line
       next unless row[0] and row[0].length > 0 and row[3]
       single = row[0]
-      eg = row[2]
+      eg = row[1]
 
       full = OrthomclLocalisationConservations.single_letter_to_full_name(single)
       raise Exception, "Couldn't understand single letter '#{single}'" unless full
@@ -744,7 +745,7 @@ class BScript
       # create the record
       OrthomclLocalisationConservations.find_or_create_by_orthomcl_group_id_and_conservation(
         ogene.official_group.id, full
-      ).save!
+      ).id
     end
   end
 
@@ -1106,43 +1107,6 @@ class BScript
     end
   end
 
-  def apiloc_ensembl_start_to_finish
-    go_to_database
-    download_uniprot_data
-    uniprot_to_database
-    orthomcl_to_database
-    upload_apiloc_from_scratch
-    upload_proteomic_data
-
-    tetrahymena_orf_names_to_database
-    tetrahymena_gene_aliases_to_database
-    yeastgenome_ids_to_database
-    elegans_wormbase_identifiers
-    uniprot_ensembl_databases
-    uniprot_refseq_databases
-    chlamydomonas_link_to_orthomcl_ids
-
-    update_known_four_letters
-    OrthomclGene.new.link_orthomcl_and_coding_regions(
-      "hsap mmus scer drer osat crei atha dmel cele",
-      :accept_multiple_coding_regions => true
-    )
-    OrthomclGene.new.link_orthomcl_and_coding_regions(
-      Species::APICOMPLEXAN_NAMES.reject{|a|
-        a == Species::BABESIA_BOVIS_NAME
-      }.collect { |a|
-        Species.find_by_name(a).orthomcl_three_letter
-      }
-    )
-
-    LocalisationSpreadsheet.new.upload
-    proteomics_to_database
-    Publication.fill_in_all_extras! #has to be after spreadsheet and proteomics, because they provide the pubmed ids to expand on
-
-    DevelopmentalStageTopLevelDevelopmentalStage.new.upload_apiloc_top_level_developmental_stages
-    ApilocLocalisationTopLevelLocalisation.new.upload_apiloc_top_level_localisations
-  end
-
   def uniprot_go_annotation_species_stats
     APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
       filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
@@ -1355,5 +1319,27 @@ class BScript
 
       $stderr.puts "#{good_count} all good, failed to find #{bad_codes_count} coding regions and #{bad_go_count} go terms"
     end
+  end
+
+  def how_many_genes_have_dual_localisation?
+    codes = CodingRegion.falciparum.all(
+      :joins => :expressed_localisations,
+      :select => 'distinct(coding_regions.*)'
+    )
+    counts = []
+    codes_per_count = []
+    codes.each do |code|
+      count = TopLevelLocalisation.positive.count(
+        :joins => {:apiloc_localisations => :expressed_coding_regions},
+        :conditions => ['coding_regions.id = ?',code.id],
+        :select => 'distinct(top_level_localisations.id)'
+      )
+      counts[count] ||= 0
+      counts[count] += 1
+      codes_per_count[count] ||= []
+      codes_per_count[count].push code.string_id
+    end
+    p codes_per_count
+    p counts
   end
 end

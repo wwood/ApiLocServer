@@ -5,10 +5,12 @@ Developmental stages in ApiLoc are divided into larger, 'umbrella' classes and m
 <ul>
   <% TopLevelDevelopmentalStage.all(:order => 'name').each do |top| %>
     <li><%= link_to top.name, :action => :developmental_stage, :id => top.name %></li>
-    <ul>
-      <% top.developmental_stages.all(:select => 'distinct(developmental_stages.name)').each do |low| %>
-        <li><%=  link_to low.name, :action => :specific_developmental_stage, :id => low.name %></li>
-      <% end %>
-    </ul>
+    <li>
+      <ul>
+        <% top.developmental_stages.all(:select => 'distinct(developmental_stages.name)').each do |low| %>
+          <li><%=  link_to low.name, :action => :specific_developmental_stage, :id => low.name %></li>
+        <% end %>
+      </ul>
+    </li>
   <% end %>
 </ul>

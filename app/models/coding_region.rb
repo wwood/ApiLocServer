@@ -256,6 +256,7 @@ class CodingRegion < ActiveRecord::Base
   concerned_with :machine_learning
   concerned_with :orthology
   concerned_with :localisation
+  concerned_with :ontology
   
   def calculate_upstream_region
     scaffold_id = gene.scaffold_id

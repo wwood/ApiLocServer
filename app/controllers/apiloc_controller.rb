@@ -100,7 +100,7 @@ class ApilocController < ApplicationController
         @developmental_stages = @top_level_developmental_stage.developmental_stages.all(
           :joins => :expression_contexts
         )
-        redirect_to :action => :developmental_stage
+        render :action => :developmental_stage_show
       end
     end
   end

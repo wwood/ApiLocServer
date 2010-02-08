@@ -84,10 +84,9 @@ class BScript
   
   def go_to_database
     require 'simple_go'
-    
-    GoTerm.destroy_all
 
     sg = SimpleGo.new("#{DATA_DIR}/GO/cvs/go/ontology/gene_ontology_edit.obo")
+    progress = ProgressBar.new('Ontology upload', sg.total_number_of_terms)
     while (e = sg.next_go)
       go = GoTerm.find_or_create_by_go_identifier_and_term_and_aspect(
         e.go_id,
@@ -111,7 +110,10 @@ class BScript
           )
         end
       end
+
+      progress.inc
     end
+    progress.finish
   end
   
   # Upload the map file of generic to the database
@@ -5131,6 +5133,7 @@ class BScript
     base_dir = "#{DATA_DIR}/falciparum/microarray/Winzeler2003"
     microarray = Microarray.find_or_create_by_description(Microarray::WINZELER_2003_NAME)
     sporozoite_replicate = 1
+
     
     # the original Description&Normalization.txt was originally created using a mixture of tabs and spaces
     # I converted them all to tabs so it now makes sense.
@@ -5144,13 +5147,19 @@ class BScript
       end
       
       timepoint = MicroarrayTimepoint.find_or_create_by_name_and_microarray_id(description, microarray.id)
+tsv_filename = "#{base_dir}/#{description_row[0]}.tsv"
+progress = ProgressBar.new(description_row[0], `wc -l #{tsv_filename}`.to_i)
+bads = []
+goods_count = 0
       
-      FasterCSV.foreach("#{base_dir}/#{description_row[0]}.tsv", :col_sep => "\t") do |entry|
-        $stderr.puts "Finding '#{entry[0]}'"
+      FasterCSV.foreach(tsv_filename, :col_sep => "\t") do |entry|
+progress.inc
+        #$stderr.puts "Finding '#{entry[0]}'"
         code = CodingRegion.ff(entry[0])
         
         if !code
-          $stderr.puts "Couldn't find coding region '#{entry[0]}'"
+bads.push entry[0]
+          #$stderr.puts "Couldn't find coding region '#{entry[0]}'"
           next
         end
         
@@ -5165,7 +5174,10 @@ class BScript
             :microarray_timepoint_id => timepoint.id
           )
         end
+goods_count += 1
       end
+progress.finish
+$stderr.puts "#{goods_count} good, #{bads.length} not good"
     end
   end
       
@@ -6533,16 +6545,23 @@ PFL2395c
     ]
     
     microarray = Microarray.find_or_create_by_description(Microarray::WINZELER_2005_GAMETOCYTE_NAME)
+
+all_data_name = "#{DATA_DIR}/falciparum/microarray/WinzelerGametocyte/AllData.csv"
+progress = ProgressBar.new('2005 Winzeler', `wc -l #{all_data_name}`.to_i)
+bads = []
+goods_count = 0
     
-    FasterCSV.foreach("#{DATA_DIR}/falciparum/microarray/WinzelerGametocyte/AllData.csv",
+    FasterCSV.foreach(all_data_name,
       :col_sep => "\t", :headers => :first_row) do |row|
+progress.inc
       
       raise if columns.length != row.length #checking
       
-      code = CodingRegion.f(row['Gene'])
+gene_name = row['Gene']
+      code = CodingRegion.ff(gene_name)
       
       if !code
-        $stderr.puts "Could not find PlasmoDB ID #{row['Gene']}. Skipping."
+        bads.push gene_name
         next
       end
       
@@ -6569,7 +6588,10 @@ PFL2395c
           code.id
         )
       end
+goods_count += 1
     end
+progress.finish
+$stderr.puts "#{goods_count} good, #{bads.length} not good"
   end
   
   # Florian spreadsheet to do

@@ -10,7 +10,8 @@ module ApilocHelper
       'inner membrane complex',
       'cytoplasm but not organellar',
       'food vacuole',
-      'parasite plasma membrane'
+      'parasite plasma membrane',
+      'other'
     ]
   end
 
@@ -25,6 +26,14 @@ module ApilocHelper
       'tachyzoite',
       'bradyzoite',
     ]
+  end
+
+  def unpopular_developmental_stages
+    TopLevelDevelopmentalStage.positive.all(
+      :conditions => ['name not in (?)',
+        popular_developmental_stages
+      ]
+    ).reach.name.sort
   end
 
   def popular_microscopy_types
@@ -93,7 +102,9 @@ module ApilocHelper
         [
         ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME,
         ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME
-      ]
+      ],
+      Species::TOXOPLASMA_GONDII_NAME =>
+        ProteomicExperiment::TOXOPLASMA_NAME_TO_PUBLICATION_HASH.keys.sort
     }
     
     pros = nil
@@ -105,23 +116,21 @@ module ApilocHelper
 
     return [] unless pros
     return pros.collect do |name|
-      ProteomicExperiment.find_by_name(name)
+      pro = ProteomicExperiment.find_by_name(name)
+      raise Exception, "Couldn't find proteomic experiment called '#{name}'" unless pro
+      pro
     end
   end
 
-  def proteomic_experiment_name_to_html(name)
-    hash = {
-      ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME =>
-        (link_to 'Food vacuole, Lamarque et al 2008',
-        :action => :proteome, :id => ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME
-      ),
-      ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME =>
-        (link_to 'Maurer\'s cleft, Vincensini et al 2005',
-        :action => :proteome, :id => ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME
-      ),
-    }
-    return hash[name] if hash[name]
-    return name
+  def proteomic_experiment_name_to_html_link(name)
+    html_name = proteomic_experiment_name_to_italics(name)
+    return(link_to html_name, :action => :proteome, :id => name)
+  end
+
+  def proteomic_experiment_name_to_italics(name)
+    # assume the first 2 words are the species
+    splits = name.split(' ')
+    "<i>#{splits[0]} #{splits[1]}</i> #{splits[2..(splits.length-1)].join(' ')}"
   end
 
   # maybe I could do a form or something but eh.
