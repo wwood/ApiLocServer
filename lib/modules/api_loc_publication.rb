@@ -726,13 +726,14 @@ class BScript
 
   def apiloc_go_localisation_conservation_groups_to_database
     #    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues2/breakdown.manual.xls",
-    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues4/breakdown2.manual.csv",
+#    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues4/breakdown2.manual.csv",
+    FasterCSV.foreach("#{PHD_DIR}/apiloc/species_orthologues4/breakdown3.manual.csv",
       :col_sep => "\t"
     ) do |row|
       # ignore lines that have nothing first or are the header line
       next unless row[0] and row[0].length > 0 and row[3]
       single = row[0]
-      eg = row[2]
+      eg = row[1]
 
       full = OrthomclLocalisationConservations.single_letter_to_full_name(single)
       raise Exception, "Couldn't understand single letter '#{single}'" unless full
@@ -744,7 +745,7 @@ class BScript
       # create the record
       OrthomclLocalisationConservations.find_or_create_by_orthomcl_group_id_and_conservation(
         ogene.official_group.id, full
-      ).save!
+      ).id
     end
   end
 
@@ -1318,5 +1319,27 @@ class BScript
 
       $stderr.puts "#{good_count} all good, failed to find #{bad_codes_count} coding regions and #{bad_go_count} go terms"
     end
+  end
+
+  def how_many_genes_have_dual_localisation?
+    codes = CodingRegion.falciparum.all(
+      :joins => :expressed_localisations,
+      :select => 'distinct(coding_regions.*)'
+    )
+    counts = []
+    codes_per_count = []
+    codes.each do |code|
+      count = TopLevelLocalisation.positive.count(
+        :joins => {:apiloc_localisations => :expressed_coding_regions},
+        :conditions => ['coding_regions.id = ?',code.id],
+        :select => 'distinct(top_level_localisations.id)'
+      )
+      counts[count] ||= 0
+      counts[count] += 1
+      codes_per_count[count] ||= []
+      codes_per_count[count].push code.string_id
+    end
+    p codes_per_count
+    p counts
   end
 end
