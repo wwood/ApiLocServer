@@ -80,7 +80,6 @@ class CodingRegion < ActiveRecord::Base
         $stderr.puts "Subsumed #{g} twice. Not good"
       end
       
-      
       return organelles
     end
   end
@@ -91,5 +90,4 @@ class CodingRegion < ActiveRecord::Base
   def gather_organelles_by_high_level_localisations
     raise
   end
-  
 end
