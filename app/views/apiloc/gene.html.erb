@@ -216,10 +216,10 @@
   </ul>
 </div>
 
-<!-- For testing in disqus comments, set the required variable -->
-<% if ENV['RUBYENV'] == 'development' %>
+<!-- For testing in disqus comments, set the required variable. 
+Currently disqus developer mode is required for production mode as well because ApiLoc is
+password protected (for now). -->
 <script type="text/javascript">disqus_developer = true</script>
-<% end %>
 
 <!-- don't ask again if the comment submitter wants to be a guest -->
 <script type="text/javascript">disqus_skip_auth = true</script>
