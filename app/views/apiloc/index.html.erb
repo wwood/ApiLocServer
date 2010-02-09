@@ -2,11 +2,11 @@
 <script type="text/javascript">
   function toggle(list_id, image_id){
     if (document.getElementById(list_id).style.display == 'block'){
-      document.getElementById(list_id).style.display = 'none'
-      document.getElementById(image_id).setAttribute('src', '/images/sqr_bullet_plus.gif')
+      document.getElementById(list_id).style.display = 'none';
+      document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_plus.gif")%>');
     } else {
-      document.getElementById(list_id).style.display = 'block'
-      document.getElementById(image_id).setAttribute('src', '/images/sqr_bullet_minus.gif')
+      document.getElementById(list_id).style.display = 'block';
+      document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_minus.gif")%>');
     }
   }
 </script>
