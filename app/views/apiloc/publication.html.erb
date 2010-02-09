@@ -11,6 +11,7 @@
     <h3><%= code_name_annotation(code) %></h3>
     <b>Experimental localisation: </b><%= a.expression_contexts.uniq.reach.english.join(', ') %>
     <ul>
+      <li><b>Species: </b><%= link_to code.species.name, :controller => :apiloc, :action => :species, :id => code.species.name %></li>
       <li><b>Quote inferring localisation: </b>"<%= a.quote %>"</li>
       <li><b>Microscopy type:</b> <%= a.microscopy_type %></li>
       <li><b>Microscopy method:</b> <%= a.microscopy_method %></li>
