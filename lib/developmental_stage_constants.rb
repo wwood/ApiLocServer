@@ -213,7 +213,6 @@ module DevelopmentalStageConstants
         'intracellular merozoite',
       ],
       'Babesia gibsoni' => [
-        'oocyte',
         'intracellular merozoite',
         'early single intracellular merozoite',
         'ring intracellular merozoite',
