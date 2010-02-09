@@ -217,7 +217,7 @@ class LocalisationSpreadsheet
 
     collected_coding_regions = collected_coding_regions.flatten.uniq.reject{|c| c.nil?}
     unless collected_coding_regions.length == 1
-      $stderr.puts "Unexpected number of hits to the common name #{localisation_spreadsheet_row.common_names[0]}: #{collected_coding_regions.inspect} from #{localisation_spreadsheet_row.common_names.inspect}, #{localisation_spreadsheet_row.gene_id}"
+      $stderr.puts "Unexpected number of hits to the common name #{localisation_spreadsheet_row.common_names[0]}: #{collected_coding_regions.inspect} from #{localisation_spreadsheet_row.common_names.inspect}, #{localisation_spreadsheet_row.gene_id} in #{species_name}"
       return nil
     end
 
