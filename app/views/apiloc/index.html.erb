@@ -62,7 +62,7 @@
   <h2>Localisations</h2>
   <ul>
     <% popular_localisations.each do |loc| %>
-      <li><img id="image_<%=loc%>" src="/images/sqr_bullet_plus.gif" alt="expand" onclick="toggle('expandable_<%=loc%>', 'image_<%=loc%>')"/>&nbsp;&nbsp;
+      <li><%= image_tag("sqr_bullet_plus.gif", :id => "image_#{loc}", :alt=>"expand", :onclick=>"toggle('expandable_#{loc}', 'image_#{loc}')")%>&nbsp;&nbsp;
       <%= link_to loc, :action => :localisation, :id => loc %></li>
       <li style="display:none" id="expandable_<%=loc%>">
         <ul><% top_loc = loc; top_loc = 'cytoplasm' if top_loc == 'cytoplasm but not organellar';
@@ -82,7 +82,7 @@
     <% popular_developmental_stages.each do |species_name| %>
       <li><%= link_to species_name, :action => :developmental_stage, :id => species_name %></li>
     <% end %>
-    <li><img id="expandable_unpopular_devs_image" src="/images/sqr_bullet_plus.gif" alt="expand" onclick="toggle('expandable_unpopular_devs','expandable_unpopular_devs_image')"/>&nbsp;&nbsp;
+    <li><%= image_tag("sqr_bullet_plus.gif", id=>"expandable_unpopular_devs_image", :alt=>"expand", :onclick=>"toggle('expandable_unpopular_devs','expandable_unpopular_devs_image')")%>&nbsp;&nbsp;
       other</li>
     <li style="display:none" id="expandable_unpopular_devs">
       <ul>
