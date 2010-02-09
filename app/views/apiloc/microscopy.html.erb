@@ -6,7 +6,7 @@
     <h3><%= species.name %></h3>
     <ul>
       <% coding_regions.each do |code| %>
-        <li><%= code_name_annotation(code) %> (<%= code.localisation_annotations.reach.microscopy_method.uniq.join(', ') %>)</li>
+        <li><%= code_name_annotation(code) %> (<%= code.localisation_annotations.reach.microscopy_method.uniq.no_nils.reject{|r| r==''}.join(', ') %>)</li>
       <% end %>
     </ul>
   </div>
