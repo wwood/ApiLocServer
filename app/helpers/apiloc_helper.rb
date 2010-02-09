@@ -117,9 +117,9 @@ module ApilocHelper
     return [] unless pros
     return pros.collect do |name|
       pro = ProteomicExperiment.find_by_name(name)
-      raise Exception, "Couldn't find proteomic experiment called '#{name}'" unless pro
+      logger.error "Couldn't find proteomic experiment called '#{name}'" unless pro
       pro
-    end
+    end.no_nils
   end
 
   def proteomic_experiment_name_to_html_link(name)
