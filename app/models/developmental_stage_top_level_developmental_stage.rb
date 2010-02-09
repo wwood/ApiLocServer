@@ -186,7 +186,6 @@ class DevelopmentalStageTopLevelDevelopmentalStage < ActiveRecord::Base
     'oocyst' => "oocyst",
     'oocyst protrusion' => "oocyst",
     'oocyst sporozoite' => "sporozoite",
-    'oocyte' => "oocyte",
     'ookinete 20 hours after fertilization' => "ookinete",
     'ookinete' => "ookinete",
     'ookinete protrusion' => "ookinete",
