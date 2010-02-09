@@ -216,6 +216,11 @@
   </ul>
 </div>
 
+<!-- For testing in disqus comments, set the required variable -->
+<% if ENV['RUBYENV'] == 'development' %>
+<script type="text/javascript">disqus_developer = true</script>
+<% end %>
+
 <!-- don't ask again if the comment submitter wants to be a guest -->
 <script type="text/javascript">disqus_skip_auth = true</script>
 
