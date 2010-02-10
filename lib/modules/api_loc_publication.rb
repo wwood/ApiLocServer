@@ -658,27 +658,41 @@ class BScript
     end
   end
   
-  def generate_apiloc_orthomcl_groups_for_inspection
-    interestings = %w(hsap mmus scer drer osat crei atha dmel cele)
-    
+  # Return a list of orthomcl groups that fulfil these conditions:
+  # 1. It has a localised apicomplexan gene in it, as recorded by ApiLoc
+  # 2. It has a localised non-apicomplexan gene in it, as recorded by GO CC IDA annotation
+  def apiloc_orthomcl_groups_of_interest
     OrthomclGroup.all(
+      :select => 'distinct(orthomcl_groups.*)',
       :joins => {
         :orthomcl_gene_orthomcl_group_orthomcl_runs => [
           :orthomcl_run,
-      {:orthomcl_gene => {:coding_regions => :expressed_localisations}}
+      {:orthomcl_gene => {:coding_regions => [
+      :expressed_localisations
+          ]}}
       ]
     },
       :conditions => {
-        :orthomcl_runs => {:name => OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_3_NAME}
+        :orthomcl_runs => {:name => OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_3_NAME},
     }
-    ).uniq.each do |ogroup|
+    ).select do |ogroup|
+      # only select those groups that have go terms annotated in non-apicomplexan species
+      OrthomclGroup.count(
+      :joins => {:coding_regions =>[
+      :go_terms
+        ]},
+      :conditions => ['orthomcl_groups.id = ? and coding_region_go_terms.evidence_code = ? and go_terms.partition = ?',
+      ogroup.id, 'IDA', GoTerm::CELLULAR_COMPONENT
+      ]
+      ) > 0
+    end
+  end
+  
+  def generate_apiloc_orthomcl_groups_for_inspection
+    interestings = %w(hsap mmus scer drer osat crei atha dmel cele)
+    
+    apiloc_orthomcl_groups_of_interest.each do |ogroup|
       paragraph = []
-      worthwhile = false #don't print unless there is GO info for proteins of interest
-      
-      # ignore groups that have genes that we don't know about
-      next if ogroup.orthomcl_genes.select{|g|
-        interestings.include?(g.official_split[0])
-      }.length == 0
       
       ogroup.orthomcl_genes.all.each do |orthomcl_gene|
         four = orthomcl_gene.official_split[0]
@@ -699,7 +713,6 @@ class BScript
             ].join("\t")
           elsif interestings.include?(four)
             unless code.nil?
-              
               goes = code.coding_region_go_terms.cc.useful.all
               unless goes.empty?
                 worthwhile = true
@@ -719,7 +732,7 @@ class BScript
         end
       end
       
-      puts paragraph.uniq.join("\n") if worthwhile
+      puts paragraph.uniq.join("\n")
       puts
     end
   end
@@ -1359,5 +1372,17 @@ class BScript
       p counts
       p nuc_aware_counts
     end
+  end
+  
+  def falciparum_test_prediction_by_orthology_to_non_apicomplexans
+    bins = {}
+    CodingRegion.localised.falciparum.all.uniq.each do |code|
+      pred = code.apicomplexan_localisation_prediction_by_most_common_localisation
+      next if pred.nil?
+      goodness = code.compare_localisation_to_list(pred)
+      bins[goodness] ||= 0
+      bins[goodness] += 1
+    end
+    p bins
   end
 end

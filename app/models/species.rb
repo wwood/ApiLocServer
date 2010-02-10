@@ -291,4 +291,8 @@ class Species < ActiveRecord::Base
     return nil unless name.split(' ').length == 2
     LocalisationSpreadsheetRow.new.generate_prefix_from_binomial_name(name)
   end
+  
+  def apicomplexan?
+    APICOMPLEXAN_NAMES.include?(name)
+  end
 end

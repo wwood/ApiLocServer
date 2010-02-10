@@ -6,6 +6,7 @@ require 'tempfile'
 require 'expression_context_group'
 require 'reach'
 require 'localisation_spreadsheet'
+require 'ontology_comparison'
 
 class CodingRegion < ActiveRecord::Base
   
