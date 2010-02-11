@@ -295,4 +295,9 @@ class Species < ActiveRecord::Base
   def apicomplexan?
     APICOMPLEXAN_NAMES.include?(name)
   end
+  
+  # By default, sort on the name of the species
+  def <=>(another)
+    name <=> another.name
+  end
 end
