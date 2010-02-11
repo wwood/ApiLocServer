@@ -1,7 +1,7 @@
 <h2><%= @top_level_localisation.name.capitalize %></h2>
 
 <p>Proteins expressed during this time are known in
-<%= @localisations.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.uniq.join(', ') %>.</p>
+<%= @localisations.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.uniq.sort.join(', ') %>.</p>
 
 <p>More specific localisations within the <%= @top_level_localisation.name %> umbrella with a localised protein: <%=
 Localisation.all(
@@ -11,7 +11,7 @@ Localisation.all(
 ).collect {|d| link_to d.name, :action => :specific_localisation, :id => d.name}.join(', ')
 %></p>
 
-<% Species.all.each do |sp|
+<% Species.all.sort.each do |sp|
 codes = CodingRegion.s(sp.name).all(
   :joins => {:expressed_localisations => :apiloc_top_level_localisation},
   :conditions => ['top_level_localisation_id = ?',@top_level_localisation.id]
