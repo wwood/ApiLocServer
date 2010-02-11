@@ -1376,13 +1376,49 @@ class BScript
   
   def falciparum_test_prediction_by_orthology_to_non_apicomplexans
     bins = {}
-    CodingRegion.localised.falciparum.all.uniq.each do |code|
+    
+    puts [
+    'PlasmoDB ID',
+    'Names',
+    'Compartments',
+    'Prediction',
+    'Comparison',
+    'Full P. falciparum Localisation Information'
+    ].join("\t")
+    
+    CodingRegion.localised.falciparum.all(
+    :select => 'distinct(coding_regions.*)'
+    ).each do |code|
+      # When there is more than 1 P. falciparum protein in the group, then ignore this
+      group = code.single_orthomcl.official_group
+      if group.nil?
+        $stderr.puts "#{code.names.join(', ')} has no OrthoMCL group, ignoring."
+        next
+      end
+      num = group.orthomcl_genes.code(code.species.orthomcl_three_letter).count
+      if num > 1
+        $stderr.puts "#{code.names.join(', ')} has #{num} genes in its localisation group, ignoring"
+        next
+      end
+      
       pred = code.apicomplexan_localisation_prediction_by_most_common_localisation
       next if pred.nil?
       goodness = code.compare_localisation_to_list(pred)
+      
+      puts [
+      code.string_id,
+      code.names.join('|'),
+      code.compartments.join('|'),
+      pred,
+      goodness,
+      code.localisation_english,
+      ].join("\t")
+      
       bins[goodness] ||= 0
       bins[goodness] += 1
     end
+    
+    # Print the results of the analysis
     p bins
   end
 end

@@ -70,16 +70,20 @@ class CodingRegion < ActiveRecord::Base
       g = go.go_identifier
       subsume_count = 0
       mappers.each do |map|
-        if map.subsume?(g)
-          term = GoTerm.find_by_go_identifier(map.master_go_id).term
-          organelles.push term
-          puts "#{term} subsumed #{go.term}"
-          subsume_count += 1
+        begin
+          if map.subsume?(g)
+            term = GoTerm.find_by_go_identifier(map.master_go_id).term
+            organelles.push term
+            $stderr.puts "#{term} subsumed #{go.term}"
+            subsume_count += 1
+          end
+        rescue RException => e
+          $stderr.puts "Unknown GO identifier #{g}. Potentially GO.db could be updated.."
         end
       end
       # advise of subsume counters
       if subsume_count == 0
-        $stderr.puts "Didn't subsume #{g}"
+        $stderr.puts "Didn't subsume #{go.go_identifier} #{go.term}"
       elsif subsume_count > 1
         $stderr.puts "Subsumed #{g} #{subsume_count} times. Not good"
       end
@@ -110,7 +114,10 @@ class CodingRegion < ActiveRecord::Base
     'exported' => 'host cell',
     'apical' => 'apical complex',
     'cytoplasm' => 'cytosol',
-    'apicoplast' => 'plastid'
+    'apicoplast' => 'plastid',
+    'golgi apparatus' => 'Golgi apparatus',
+    'food vacuole' => 'lysosome',
+    'parasite plasma membrane' => 'plasma membrane'
     }
     
     highs = TopLevelLocalisation.positive.all(
@@ -136,6 +143,7 @@ class CodingRegion < ActiveRecord::Base
   # localisation from IDA CC GO term annotated non-apicomplexan genomes
   def apicomplexan_localisation_prediction_by_most_common_localisation
     raise unless species.apicomplexan?
+    return nil if single_orthomcl.official_group.nil? #ignore genes that do not have an OrthoMCL group
     
     localisation_counts = {}
     
