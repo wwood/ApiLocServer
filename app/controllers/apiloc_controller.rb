@@ -9,11 +9,7 @@ class ApilocController < ApplicationController
   
   # Define each of the caches
   APILOC_CACHES.each do |c|
-    if c == :gene
-      caches_page c
-    else
-      caches_page c
-    end
+    caches_page c
   end
   
   # sweeper so caches don't get in the way
