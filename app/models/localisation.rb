@@ -89,7 +89,7 @@ class Localisation < ActiveRecord::Base
           raise
         end
       else
-        $stderr.puts "Could not find localisation #{l}"
+        $stderr.puts "Could not find localisation #{l} when trying to upload synonym #{key}"
         failed = true
       end
     end

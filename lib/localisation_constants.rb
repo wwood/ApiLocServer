@@ -855,7 +855,7 @@ module LocalisationConstants
       'erythrocyte cytoplasmic structures' => 'erythrocyte cytoplasmic structure',
       'alveoli' => 'inner membrane complex',
       'host erythrocyte' => 'erythrocyte',
-      'near parasite membrane' => 'peripheral of parasite'
+      'near parasite membrane' => 'periphery'
     }
   }
 

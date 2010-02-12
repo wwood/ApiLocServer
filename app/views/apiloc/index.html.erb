@@ -13,8 +13,8 @@
 <% category_counter = 0 %>
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
-  <form action="/apiloc/gene">
-    <label>Gene ID/Name:</label><input type="text" name="id" value="PF11_0344"/><input type="submit" value="search"/> There is also a <%= link_to 'BLAST server', '/blast/blast_link.cgi' %>, or you could <%= link_to 'download everything', 'apiloc.xls' %>.
+  <form>
+    <label>Gene ID/Name:</label><input type="text" id="gene_search_textbox" value="PF11_0344" size="12"/><input type="button" value="search" onClick="window.location = '<%= url_for :controller => :apiloc, :action => :gene %>/'+document.getElementById('gene_search_textbox').value"/> There is also a <%= link_to 'BLAST server', '/blast/blast_link.cgi' %>, or you could <%= link_to 'download everything', 'apiloc.xls' %>.
   </form>
 </div>
 
