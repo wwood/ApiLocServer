@@ -30,7 +30,10 @@ class OntologyComparison
   'host cell', #apicomplexan - specific
   'apical complex',
   'inner membrane complex',
-  'cell wall'
+  'cell wall',
+  'lysosome',
+  'peroxisome',
+  'parasitophorous vacuole'
   ]
   
   attr_accessor :common_ontologies, :disagreeing_ontologies
@@ -45,8 +48,6 @@ class OntologyComparison
   # If nucleus is common, and only 1 has cytoplasm, then that is complete agreement.
   # To fool later methods, remove the cytoplasm entry from the disagreeing ontologies
   def apply_nucleus_cytoplasm_modification
-    p @common_ontologies
-    p @disagreeing_ontologies
     if @common_ontologies.include?(OntologyComparison::NUCLEUS_NAME) and
       @disagreeing_ontologies.include?(OntologyComparison::CYTOSOL_NAME)
       @disagreeing_ontologies.reject!{|o| o==OntologyComparison::CYTOSOL_NAME}
@@ -58,9 +59,6 @@ class OntologyComparison
   def agreement
     # return manually set agreement if that has been set
     return @agreement if @agreement
-    
-    p @common_ontologies
-    p @disagreeing_ontologies
     
     if @common_ontologies.empty?
       if @disagreeing_ontologies.empty?
