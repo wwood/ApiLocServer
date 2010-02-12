@@ -3,7 +3,7 @@ class LocalisationModifier < ActiveRecord::Base
     weak  some little sporadically reduced variable partially barely
     strong substantial mainly throughout predominantly bright especially concentrated
     punctate homogenous homogenously diffuse uniform heterogenous entire granular
-    semi-punctate smooth beaded patchy varied dotty foci
+    semi-punctate smooth beaded patchy varied dotty foci faint
   ).push([
       'sometimes', #sometimes has be after some -> higher ids are implemented first
       'strongly', #has to be after strong

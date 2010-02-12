@@ -13,15 +13,6 @@ module LocalisationSpreadsheetSpecies
     DevelopmentalStageSynonym.destroy_all
   end
 
-  def expire_webpage_caches
-    # I really care about the front page of my website
-    file = "/var/www/apiloc_real/public/index.html"
-    File.delete file if File.exists?(file)
-    Dir.glob("/var/www/apiloc_real/public/apiloc/species/*").each {|file|
-      File.delete file if File.exists?(file)
-    }
-  end
-
   def upload
     upload_falciparum
     upload_knowlesi
@@ -48,9 +39,6 @@ module LocalisationSpreadsheetSpecies
 
     gather_genbank_sequences_and_names
     Publication.fill_in_all_extras!
-    
-    # expire the caches
-    expire_webpage_caches
   end
 
   def upload_species(species, filename)

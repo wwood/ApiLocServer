@@ -330,6 +330,7 @@ module DevelopmentalStageConstants
       'ookinete protrusion',
       'ookinete',
       'ookinete 20 hours after fertilization',
+      'ookinete 24 hours after fertilization',
       'mature ookinete',
       'oocyst protrusion',
       'oocyst',

@@ -50,6 +50,9 @@ class GenBankToGeneModelMapper
   # Return the translated sequence from a GenBank identifier as a
   # Bio::Seq object, with name and sequence
   def get_translated_sequences_from_genbank(genbank_id)
+    # Set default email otherwise NCBI throws an error
+    Bio::NCBI.default_email = 'b.woodcroft@pgrad.unimelb.edu.au'
+    
     possibly_translated = Bio::NCBI::REST::efetch(genbank_id, {:db => 'sequences', :rettype => 'fasta'})
 
     # not sure if this is necessary / too onorous
