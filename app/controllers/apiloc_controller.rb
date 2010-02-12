@@ -1,25 +1,40 @@
 class ApilocController < ApplicationController
-  caches_page :index
-  caches_page :species
-  caches_page :gene
-  caches_page :microscopy
-  caches_page :developmental_stage
+  APILOC_CACHES = [
+    :index,
+    :species,
+    :gene,
+    :microscopy,
+    :developmental_stage
+  ]
+  
+  # Define each of the caches
+  APILOC_CACHES.each do |c|
+    if c == :gene
+      caches_page c
+    else
+      caches_page c
+    end
+  end
+  
+  # sweeper so caches don't get in the way
+  cache_sweeper :apiloc_sweeper
+  
   
   def index
   end
-
+  
   def gene
     gene_id = params[:id]
     gene_id += ".#{params[:id2]}" unless params[:id2].nil?
     gene_id += ".#{params[:id3]}" unless params[:id3].nil?
-
+    
     if !gene_id
       flash[:error] = "Unknown gene id '#{gene_id}'."
       logger.debug "Unknown gene id '#{gene_id}'."
-      render :action => :index
+      redirect_to :action => :index
       return
     end
-
+    
     codes = nil
     if params[:species]
       codes = CodingRegion.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
@@ -32,7 +47,7 @@ class ApilocController < ApplicationController
           :conditions => [
             'annotations.annotation like ? or coding_region_alternate_string_ids.name like ?',
             "%#{gene_id}%", "%#{gene_id}%"
-          ]
+        ]
         )
       end
     end
@@ -44,10 +59,10 @@ class ApilocController < ApplicationController
       render :action => :choose_species
       return
     end
-
+    
     @code = codes[0]
   end
-
+  
   def publication
     myed = params[:id]
     @publication = Publication.find_by_pubmed_id(myed.to_i)
@@ -57,7 +72,7 @@ class ApilocController < ApplicationController
       redirect_to :action => :index
     end
   end
-
+  
   def localisation
     params[:id].downcase! if params[:id] == 'Golgi apparatus' #damn case-sensitive
     if params[:id]
@@ -72,7 +87,7 @@ class ApilocController < ApplicationController
       end
     end
   end
-
+  
   # low level localisation
   def specific_localisation
     params[:id].downcase! if params[:id] == 'Golgi apparatus' #damn case-sensitive
@@ -88,8 +103,8 @@ class ApilocController < ApplicationController
     end
     raise Exception, "No localisations found by the name of '#{params[:id]}'" if @localisations.length == 0
   end
-
-
+  
+  
   # high level dev stage
   def developmental_stage
     if params[:id]
@@ -104,7 +119,7 @@ class ApilocController < ApplicationController
       end
     end
   end
-
+  
   # low level dev stage
   def specific_developmental_stage
     @developmental_stages = DevelopmentalStage.find_all_by_name(params[:id])
@@ -119,10 +134,10 @@ class ApilocController < ApplicationController
     end
     raise Exception, "No localisations found by the name of '#{params[:id]}'" if @developmental_stages.length == 0
   end
-
+  
   def acknowledgements
   end
-
+  
   def species
     name = params[:id]
     @species = Species.find_by_name(name)
@@ -132,7 +147,7 @@ class ApilocController < ApplicationController
       end
       redirect_to :action => :index and return
     end
-
+    
     # build up the query using named_scopes
     @localisations = TopLevelLocalisation
     if params[:negative] == 'true'
@@ -142,23 +157,23 @@ class ApilocController < ApplicationController
       @viewing_positive_localisations = true
       @localisations = @localisations.positive
     end
-
+    
     @localisations = @localisations.all(
       :joins => {:apiloc_localisations => {:expression_contexts => {:coding_region => {:gene => :scaffold}}}},
       :conditions => ['scaffolds.species_id = ?',
-        @species.id
-      ],
+    @species.id
+    ],
       :select => 'distinct(top_level_localisations.*)'
     )
   end
-
+  
   def proteome
     name = params[:id]
     name += ".#{params[:id2]}" unless params[:id2].nil?
     if name.nil?
       render :action => :index
     end
-
+    
     @experiment = ProteomicExperiment.find_by_name(name)
     if @experiment.nil?
       flash[:error] = "No proteomic experiment found called '#{name}'"
@@ -166,7 +181,7 @@ class ApilocController < ApplicationController
     end
     @publication = @experiment.publication
   end
-
+  
   def microscopy
     @name = params[:id]
     scopes = LocalisationAnnotation::POPULAR_MICROSCOPY_TYPE_NAME_SCOPE[@name]
@@ -180,7 +195,7 @@ class ApilocController < ApplicationController
       done = done.send(scope)
     end
     @annotations = done.all
-
+    
     # Separate each of the coding regions by species
     @coding_regions_by_species = {}
     @annotations.each do |a|
