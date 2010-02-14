@@ -1335,6 +1335,11 @@ class BScript
   end
   
   def how_many_genes_have_dual_localisation?
+    dual_loc_folder = "#{PHD_DIR}/apiloc/experiments/dual_localisations"
+    raise unless File.exists?(dual_loc_folder)
+    
+    file = File.open(File.join(dual_loc_folder, 'duals.csv'),'w')
+    
     Species.apicomplexan.each do |species|
       species_name = species.name
       codes = CodingRegion.s(species_name).all(
@@ -1344,6 +1349,10 @@ class BScript
       counts = []
       nuc_aware_counts = []
       codes_per_count = []
+      
+      # write the results to the species-specific file
+      
+      
       codes.each do |code|
         next if code.string_id == CodingRegion::UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME
         tops = TopLevelLocalisation.positive.all(
@@ -1364,6 +1373,27 @@ class BScript
         if names.include?('nucleus') and names.include?('cytoplasm')
           count -= 1
         end
+        
+        # Write out the coding regions to a file
+        # gather the falciparum data
+        og = code.single_orthomcl!
+        fals = []
+        if og and og.official_group
+          fals = og.official_group.orthomcl_genes.code('pfal').all.collect do |ogene|
+            ogene.single_code
+          end
+        end
+        
+        file.puts [
+        code.species.name,
+        code.string_id,
+        code.names,
+        count,
+        code.compartments.join('|'),
+        fals.reach.compartments.join('|'),
+        fals.reach.localisation_english.join('|')
+        ].join("\t")
+        
         nuc_aware_counts[count] ||= 0
         nuc_aware_counts[count] += 1
       end
@@ -1372,6 +1402,7 @@ class BScript
       p counts
       p nuc_aware_counts
     end
+    file.close
   end
   
   def falciparum_test_prediction_by_orthology_to_non_apicomplexans
@@ -1389,6 +1420,9 @@ class BScript
     CodingRegion.localised.falciparum.all(
     :select => 'distinct(coding_regions.*)'
     ).each do |code|
+      # Unassigned genes just cause problems for orthomcl
+      next if code.string_id == CodingRegion::NO_MATCHING_GENE_MODEL
+      
       # When there is more than 1 P. falciparum protein in the group, then ignore this
       group = code.single_orthomcl.official_group
       if group.nil?
@@ -1396,7 +1430,7 @@ class BScript
         next
       end
       num = group.orthomcl_genes.code(code.species.orthomcl_three_letter).count
-      if num > 1
+      if num != 1
         $stderr.puts "#{code.names.join(', ')} has #{num} genes in its localisation group, ignoring"
         next
       end
