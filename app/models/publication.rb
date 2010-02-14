@@ -66,7 +66,7 @@ class Publication < ActiveRecord::Base
   # and authors columns with the required info from the interwebs
   def fill_in_extras
     unless pubmed_id.nil?
-      if self.abstract.nil?
+#      if self.abstract.nil?
         pubmed = Bio::PubMed.query(pubmed_id)
         if pubmed
           pm = Bio::MEDLINE.new(pubmed)
@@ -74,10 +74,11 @@ class Publication < ActiveRecord::Base
           self.title = pm.title
           self.authors = pm.authors.join(', ') # I don't care to store them separately
           self.date = pm.date
+          self.journal = pm.journal
         else
           "No pubmed found for #{pubmed_id}. Is there a problem with your internet connection?"
         end
-      end
+#      end
     end
 
     self #convenience
