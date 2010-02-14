@@ -1,15 +1,28 @@
 ActionController::Routing::Routes.draw do |map|
-  # apiloc routes
-  # for annoying gene names like berghei e.g. PB000857.0.0
-  map.connect '', :controller => 'apiloc', :action => 'index'
+  map.connect 'coding_regions/export/:strings', :controller => 'coding_regions', :action => 'export'
+  map.connect 'coding_regions/export', :controller => 'coding_regions', :action => 'export'
+  map.connect 'coding_regions/show', :controller => 'coding_regions', :action => 'show'
+  map.resources :coding_regions, :member =>  {:annotate => :put, :comment => :get}
+
+  map.resources :genes
+
+  map.resources :taxons
+
+  map.resources :taxon_names
+
+  # genes can, frustratingly, have dots in their IDs, which conflicts somewhat
+  # if I wanted to download the information in XML, for instance.
+  # Also routes with :species in them should be about ones without, because
+  # we want to cache the species-specific pages as well.
+  map.connect 'apiloc/gene/:species/:id', :controller => 'apiloc', :action => 'gene'
+  map.connect 'apiloc/gene/:species/:id.:id2', :controller => 'apiloc', :action => 'gene'
+  map.connect 'apiloc/gene/:species/:id.:id2.:id3', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:id', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:id.:id2', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:id.:id2.:id3', :controller => 'apiloc', :action => 'gene'
   map.resources :apiloc
+  map.connect '', :controller => 'apiloc', :action => 'index'
   map.connect 'gene', :controller => 'apiloc', :action => 'gene'
-  map.connect 'apiloc/apiloc/:action/:id', :controller => 'apiloc'
-  map.connect 'apiloc/:action/:id', :controller => 'apiloc', :action => 'index'
-  map.connect 'apiloc/:action/:id.:format', :controller => 'apiloc', :action => 'index'
 
   # blast routes for quick blasting
   map.connect 'blasts/:action/:id', :controller => 'blasts', :action => 'index'
