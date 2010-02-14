@@ -24,6 +24,11 @@ class ApilocController < ApplicationController
     gene_id += ".#{params[:id2]}" unless params[:id2].nil?
     gene_id += ".#{params[:id3]}" unless params[:id3].nil?
     
+    if params[:species] and params[:gene_id].nil?
+      gene_id = params[:species]
+      params[:species] = nil
+    end
+    
     if !gene_id
       flash[:error] = "Unknown gene id '#{gene_id}'."
       logger.debug "Unknown gene id '#{gene_id}'."
