@@ -15,7 +15,6 @@ class ApilocController < ApplicationController
   # sweeper so caches don't get in the way
   cache_sweeper :apiloc_sweeper
   
-  
   def index
   end
   
@@ -24,8 +23,7 @@ class ApilocController < ApplicationController
     gene_id += ".#{params[:id2]}" unless params[:id2].nil?
     gene_id += ".#{params[:id3]}" unless params[:id3].nil?
     
-    # if no id is specified, then because 
-    if gene_id.nil?
+    if params[:species] and gene_id.nil?
       gene_id = params[:species]
       params[:species] = nil
     end
@@ -35,7 +33,7 @@ class ApilocController < ApplicationController
       @species_name = params[:species]
       logger.debug "Unknown gene id '#{gene_id}'."
       render :action => :choose_species
-      else
+      return
     end
     
     codes = nil

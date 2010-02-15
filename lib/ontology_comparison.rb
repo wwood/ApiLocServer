@@ -48,6 +48,7 @@ class OntologyComparison
   # If nucleus is common, and only 1 has cytoplasm, then that is complete agreement.
   # To fool later methods, remove the cytoplasm entry from the disagreeing ontologies
   def apply_nucleus_cytoplasm_modification
+    return if @common_ontologies.nil? or @disagreeing_ontologies.nil?
     if @common_ontologies.include?(OntologyComparison::NUCLEUS_NAME) and
       @disagreeing_ontologies.include?(OntologyComparison::CYTOSOL_NAME)
       @disagreeing_ontologies.reject!{|o| o==OntologyComparison::CYTOSOL_NAME}

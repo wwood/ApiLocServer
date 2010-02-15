@@ -88,6 +88,11 @@ class CodingRegion < ActiveRecord::Base
         $stderr.puts "Subsumed #{g} #{subsume_count} times. Not good"
       end
     end
+    
+    # Sometimes a multiple GO terms for a single gene will map to the same compartment.
+    # Only count each compartment once for each gene.
+    organelles.uniq!
+    
     return organelles
   end
   
