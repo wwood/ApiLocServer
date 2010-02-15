@@ -1455,4 +1455,37 @@ class BScript
     # Print the results of the analysis
     p bins
   end
+  
+  # How conserved is localisation between the three branches of life with significant
+  # data known about them?
+  def conservation_of_eukaryotic_sub_cellular_localisation
+    groups_to_counts = {}
+    
+    # For each orthomcl group that has IDA CC annotations
+    OrthomclGroup.all(
+    :select => 'distinct(orthomcl_groups.id)',
+    :joins => {:orthomcl_genes => {:coding_regions => :go_terms}},
+    :conditions => [
+    'go_terms.partition = ? and coding_region_go_terms.evidence_code = ?',
+    GoTerm::CELLULAR_COMPONENT, 'IDA'
+    ]
+    ).each do |ortho_group|
+      # For each non-Apicomplexan gene with localisation information in this group,
+      # assign it compartments.
+      # For each apicomplexan, get the compartments from apiloc
+      # This is nicely abstracted already!
+      ortho_group.orthomcl_genes.reach.single_code!.no_nils
+      raise
+      
+      # within the one kingdom, do they agree?
+      
+      # within two kingdoms, do they agree?
+      
+      # within three kingdoms, do they agree?
+      
+    end
+    
+    # print out the counts for each group of localisations
+    
+  end
 end

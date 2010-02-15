@@ -309,6 +309,7 @@ module DevelopmentalStageConstants
     Species::PLASMODIUM_BERGHEI_NAME => [
       'blood stages',
       'early blood stages',
+      'late blood stages',
       'ring',
       'trophozoite',
       'schizont',
@@ -331,6 +332,9 @@ module DevelopmentalStageConstants
       'ookinete',
       'ookinete 20 hours after fertilization',
       'ookinete 24 hours after fertilization',
+      'ookinete 11 days after infection',
+      'ookinete 21 days after infection',
+      'sporozoite 21 days after infection',
       'mature ookinete',
       'oocyst protrusion',
       'oocyst',
