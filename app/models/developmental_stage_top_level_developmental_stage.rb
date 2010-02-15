@@ -1,7 +1,7 @@
 class DevelopmentalStageTopLevelDevelopmentalStage < ActiveRecord::Base
   belongs_to :developmental_stage
   belongs_to :top_level_developmental_stage
-
+  
   APILOC_DEVELOPMENTAL_STAGE_TOP_LEVEL_DEVELOPMENTAL_STAGES = {
     '11-16 days after mosquito infective blood meal' => "sporozoite",
     '12 hours after merozoite invasion' => "ring",
@@ -188,6 +188,8 @@ class DevelopmentalStageTopLevelDevelopmentalStage < ActiveRecord::Base
     'oocyst sporozoite' => "sporozoite",
     'ookinete 20 hours after fertilization' => "ookinete",
     'ookinete 24 hours after fertilization' => "ookinete",
+    'ookinete 11 days after infection' => "ookinete",
+    'ookinete 21 days after infection' => "ookinete",
     'ookinete' => "ookinete",
     'ookinete protrusion' => "ookinete",
     'ookinete retort' => "ookinete",
@@ -209,6 +211,7 @@ class DevelopmentalStageTopLevelDevelopmentalStage < ActiveRecord::Base
     'sporozoite 18 hours post inoculation' => "sporozoite",
     'sporozoite 2 hours post inoculation' => "sporozoite",
     'sporozoite 6 hours post inoculation' => "sporozoite",
+    'sporozoite 21 days after infection' => "sporozoite",
     'sporozoite invasion' => "sporozoite",
     'sporozoite parasitophorous vacuole 1' => "sporozoite",
     'sporozoite' => "sporozoite",
@@ -232,7 +235,7 @@ class DevelopmentalStageTopLevelDevelopmentalStage < ActiveRecord::Base
     'unexcysted sporozoite' => "sporozoite",
     'zygote' => "zygote",
   }
-
+  
   def upload_apiloc_top_level_developmental_stages
     # positive
     APILOC_DEVELOPMENTAL_STAGE_TOP_LEVEL_DEVELOPMENTAL_STAGES.each do |low, high|
@@ -242,10 +245,10 @@ class DevelopmentalStageTopLevelDevelopmentalStage < ActiveRecord::Base
         $stderr.puts "Unable to find low level developmental stage '#{low}' - remove it from the top_level hash?"
         next
       end
-
+      
       bottoms.each do |b|
         DevelopmentalStageTopLevelDevelopmentalStage.find_or_create_by_developmental_stage_id_and_top_level_developmental_stage_id(
-          b.id, top.id
+                                                                                                                                   b.id, top.id
         ).save!
       end
     end
@@ -259,16 +262,16 @@ class DevelopmentalStageTopLevelDevelopmentalStage < ActiveRecord::Base
         $stderr.puts "Unable to find low level developmental stage '#{low}' - remove it from the top_level hash?"
         next
       end
-
+      
       bottoms.each do |b|
         DevelopmentalStageTopLevelDevelopmentalStage.find_or_create_by_developmental_stage_id_and_top_level_developmental_stage_id(
-          b.id, top.id
+                                                                                                                                   b.id, top.id
         ).save!
       end
     end
     check_for_unclassified
   end
-
+  
   # Check to make sure each developmental stage is assigned a top level
   # developmental stage
   def check_for_unclassified

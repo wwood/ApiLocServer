@@ -24,16 +24,29 @@ class ApilocController < ApplicationController
     gene_id += ".#{params[:id2]}" unless params[:id2].nil?
     gene_id += ".#{params[:id3]}" unless params[:id3].nil?
     
-    if !gene_id
-      flash[:error] = "Unknown gene id '#{gene_id}'."
+    # if no id is specified, then because 
+    if gene_id.nil?
+      gene_id = params[:species]
+      params[:species] = nil
+    end
+    
+    if !gene_id or gene_id == ''
+      @gene_id = gene_id
+      @species_name = params[:species]
       logger.debug "Unknown gene id '#{gene_id}'."
-      redirect_to :action => :index
-      return
+      render :action => :choose_species
+      else
     end
     
     codes = nil
     if params[:species]
-      codes = CodingRegion.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
+      begin
+        codes = CodingRegion.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
+      rescue
+        # rescue when the gene id says differently to the species prefix. In
+        # that case, trust the species name 
+        codes = CodingRegion.fs(gene_id, params[:species])
+      end
     else
       codes = CodingRegion.find_all_by_name_or_alternate_maybe_with_species_prefix(gene_id)
       if codes.empty?
@@ -52,11 +65,18 @@ class ApilocController < ApplicationController
     unless codes.length == 1
       @gene_id = gene_id
       @codes = codes.sort{|a,b| a.string_id <=> b.string_id}
+      @species_name = params[:species]
       render :action => :choose_species
       return
     end
     
     @code = codes[0]
+    
+    # redirect non-species specific requests to species-specific ones, because
+    # then the caching will be better
+    unless params[:species]
+      redirect_to :controller => :apiloc, :action => :gene, :species => @code.species.name, :id => gene_id
+    end
   end
   
   def publication
@@ -64,8 +84,7 @@ class ApilocController < ApplicationController
     @publication = Publication.find_by_pubmed_id(myed.to_i)
     @publication ||= Publication.find_by_url(myed)
     if @publication.nil?
-      flash[:error] = "no publication found by the pubmed or URL '#{myed}'"
-      redirect_to :action => :index
+      @publication_id = myed
     end
   end
   
