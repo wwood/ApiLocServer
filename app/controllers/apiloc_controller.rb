@@ -28,34 +28,35 @@ class ApilocController < ApplicationController
       params[:species] = nil
     end
     
+    codes = []
     if !gene_id or gene_id == ''
       @gene_id = gene_id
       @species_name = params[:species]
       logger.debug "Unknown gene id '#{gene_id}'."
       render :action => :choose_species
-      return
-    end
-    
-    codes = nil
-    if params[:species]
-      begin
-        codes = CodingRegion.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
-      rescue
-        # rescue when the gene id says differently to the species prefix. In
-        # that case, trust the species name 
-        codes = CodingRegion.fs(gene_id, params[:species])
-      end
     else
-      codes = CodingRegion.find_all_by_name_or_alternate_maybe_with_species_prefix(gene_id)
-      if codes.empty?
-        codes = CodingRegion.all(
+      
+      # we have a given gene_id
+      if params[:species]
+        begin
+          codes = CodingRegion.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
+        rescue
+          # rescue when the gene id says differently to the species prefix. In
+          # that case, trust the species name 
+          codes = CodingRegion.fs(gene_id, params[:species])
+        end
+      else
+        codes = CodingRegion.find_all_by_name_or_alternate_maybe_with_species_prefix(gene_id)
+        if codes.empty?
+          codes = CodingRegion.all(
           :joins => [:annotation, :coding_region_alternate_string_ids],
           :select => 'distinct(coding_regions.*)',
           :conditions => [
             'annotations.annotation like ? or coding_region_alternate_string_ids.name like ?',
             "%#{gene_id}%", "%#{gene_id}%"
-        ]
-        )
+          ]
+          )
+        end
       end
     end
     
