@@ -162,6 +162,12 @@ class Species < ActiveRecord::Base
     ],
     APICOMPLEXA_NAME => APICOMPLEXAN_NAMES
   }
+  NAME_TO_KINGDOM = {}
+  THREE_WAY_TAXONOMY_DEFINITIONS.each do |kingdom, names|
+    names.each do |species_name|
+      NAME_TO_KINGDOM[species_name] = kingdom
+    end
+  end
   
   named_scope :plasmodb, {
     :conditions => "species.name in #{PLASMODB_SPECIES_NAMES.to_sql_in_string}"
@@ -322,5 +328,11 @@ class Species < ActiveRecord::Base
   # By default, sort on the name of the species
   def <=>(another)
     name <=> another.name
+  end
+  
+  def kingdom
+    king = NAME_TO_KINGDOM[name] 
+    raise Exception, "No kingdom assigned to species '#{name}', is it entered in the THREE_WAY_TAXONOMY_DEFINITIONS hash?"
+    king
   end
 end

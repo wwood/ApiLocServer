@@ -1,3 +1,6 @@
+require 'rubygems'
+require 'array_pair'
+
 # A class to represent how closely 2 genes are in their ontologies
 class OntologyComparison
   COMPLETE_AGREEMENT = 'complete agreement'
@@ -72,5 +75,69 @@ class OntologyComparison
     else
       OntologyComparison::INCOMPLETE_AGREEMENT
     end
+  end
+  
+  # 
+  def agreement_of_pair(localisations_of_each_protein1, localisations_of_protein2)
+    # First get the unknowns out of the way
+    if localisations_of_each_protein1.nil? or localisations_of_protein2.nil? or
+      localisations_of_each_protein1.empty? or localisations_of_protein2.empty?
+      @agreement = OntologyComparison::UNKNOWN_AGREEMENT
+    else
+      commons = []
+      disagreements = []
+      all_organelles = [localisations_of_each_protein1,localisations_of_protein2].flatten
+      all_organelles.each do |o|
+        if localisations_of_each_protein1.include?(o) and localisations_of_protein2.include?(o)
+          commons.push o
+        elsif !localisations_of_each_protein1.include?(o) and !localisations_of_protein2.include?(o)
+          raise Exception, "Programming problem"
+        else
+          disagreements.push o
+        end
+      end
+      
+      @common_ontologies = commons.uniq
+      @disagreeing_ontologies = disagreements.uniq
+      
+      # Apply domain-specific information here
+      # 1. If nucleus is common, and only 1 has cytoplasm, then that is complete agreement
+      apply_nucleus_cytoplasm_modification
+    end
+    
+    return agreement #agreement is calculated on the fly
+  end
+  
+  # Given a array of arrays of localisation (an array of localisations for each protein),
+  # return the total agreement of the group.
+  def agreement_of_group(localisations_of_each_protein)
+    worst_agreement = nil
+    localisations_of_each_protein.each_lower_triangular_matrix do |locs1, locs2|
+      if worst_agreement.nil?
+        worst_agreement = agreement_of_pair(locs1, locs2)
+      else
+        worst_agreement = min_agreement([worst_agreement, agreement_of_pair(locs1, locs2)])
+      end
+    end
+    return worst_agreement
+  end
+  
+  # order is best to worst, i.e. complete, incomplete, disagree
+  def <=>(another)
+    agree1 = agreement
+    agree2 = another.agreement
+    compare_agreement(agree1, agree2)
+  end
+  
+  def compare_agreement(agreement1, agreement2)
+    order = [COMPLETE_AGREEMENT, INCOMPLETE_AGREEMENT, DISAGREEMENT].to_hash
+    unless order[agreement1] and order[agreement2]
+      raise Exception, "Attempt to compare unknown type of agreement '#{agreement1}' or '#{agreement2}'"
+    end
+    return -1*(order[agreement1] <=> order[agreement2])
+  end
+  
+  def min_agreement(agreements)
+    agreements.reject{|a| a==UNKNOWN_AGREEMENT}.min{|a,b| compare_agreement(a, b)}
   end
 end

@@ -1466,26 +1466,72 @@ class BScript
     :select => 'distinct(orthomcl_groups.id)',
     :joins => {:orthomcl_genes => {:coding_regions => :go_terms}},
     :conditions => [
-    'go_terms.partition = ? and coding_region_go_terms.evidence_code = ?',
+    'go_terms.aspect = ? and coding_region_go_terms.evidence_code = ?',
     GoTerm::CELLULAR_COMPONENT, 'IDA'
-    ]
+    ],
+    :limit => 10
     ).each do |ortho_group|
       # For each non-Apicomplexan gene with localisation information in this group,
       # assign it compartments.
       # For each apicomplexan, get the compartments from apiloc
       # This is nicely abstracted already!
-      ortho_group.orthomcl_genes.reach.single_code!.no_nils
-      raise
+      codes = ortho_group.orthomcl_genes.reach.single_code!.no_nils
+      
+      kingdom_codes = {}
+      codes.each do |code|
+        kingdom_codes[code.species.kingdom] ||= []
+        kingdom_codes[code.species.kingdom].push code
+      end
+      
+      code_locs = {}
+      codes.each do |code|
+        raise if code_locs[code] #shouldn't already exist right?
+        code_locs[code] = code.compartments
+      end
       
       # within the one kingdom, do they agree?
+      kingdom_codes.each do |kingdom, codes|
+        locs = codes.collect {|code|
+          code_locs[code]
+        }
+        agreement = OntologyComparison.new.agreement_of_group(locs)
+        groups_to_counts[[kingdom]] ||= {}
+        groups_to_counts[[kingdom]][agreement] ||= 0
+        groups_to_counts[[kingdom]][agreement] += 1
+      end
       
       # within two kingdoms, do they agree?
+      kingdom_codes.to_a.each_lower_triangular_matrix do |array1, array2|
+        kingdom1 = array1[0]
+        kingdom2 = array2[0]
+        codes1 = array1[1]
+        codes2 = array2[1]
+        agreement = OntologyComparison.new.agreement_of_group([codes1,codes2].flatten.collect {|code| code_locs[code]})
+        
+        index = [kingdom1, kingdom2]
+        groups_to_counts[index] ||= {}
+        groups_to_counts[index][agreement] ||= 0
+        groups_to_counts[index][agreement] += 1
+      end
       
       # within three kingdoms, do they agree?
-      
+      kingdom_codes.to_a.each_lower_triangular_3d_matrix do |a1, a2, a3|
+        kingdom1 = a1[0]
+        kingdom2 = a2[0]
+        kingdom3 = a3[0]
+        codes1 = a1[1]
+        codes2 = a2[1]
+        codes3 = a3[1]
+        
+        agreement = OntologyComparison.new.agreement_of_group([codes1,codes2,codes3].flatten.collect {|code| code_locs[code]})
+        index = [kingdom1, kingdom2, kingdom3]
+        groups_to_counts[index] ||= {}
+        groups_to_counts[index][agreement] ||= 0
+        groups_to_counts[index][agreement] += 1
+      end
     end
     
     # print out the counts for each group of localisations
-    
+    p groups_to_counts
   end
 end
