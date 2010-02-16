@@ -1475,7 +1475,7 @@ class BScript
       # assign it compartments.
       # For each apicomplexan, get the compartments from apiloc
       # This is nicely abstracted already!
-      codes = ortho_group.orthomcl_genes.reach.single_code!.no_nils
+      codes = ortho_group.orthomcl_genes.collect.single_code!.no_nils
       
       kingdom_codes = {}
       codes.each do |code|
