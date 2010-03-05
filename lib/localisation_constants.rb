@@ -251,6 +251,7 @@ module LocalisationConstants
       'nascent conoid',
       'vesicle-like structure just under the parasite membrane',
       'apical conoid',
+      'basal complex',
     ],
     Species::BABESIA_BOVIS_NAME => [
       'apical',
@@ -433,6 +434,7 @@ module LocalisationConstants
       'zygote side',
       'oocyst protrusion',
       'oocyst capsule',
+      'plasma membrane surounding oocyst cytoplasm',
       'individual merozoites inside merozomes',
       'anterior to nucleus',
       'nucleus',

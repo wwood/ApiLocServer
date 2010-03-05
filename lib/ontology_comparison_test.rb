@@ -4,7 +4,6 @@ $:.unshift File.join(File.dirname(__FILE__),'..','lib')
 require 'ontology_comparison'
 
 class OntologyComparisonTest < Test::Unit::TestCase
-  
   def test_agreement_of_pair
     c = OntologyComparison.new
     c.agreement_of_pair(%w(loc1),%w(loc1))
@@ -57,5 +56,10 @@ class OntologyComparisonTest < Test::Unit::TestCase
     assert_equal OntologyComparison::COMPLETE_AGREEMENT, OntologyComparison.new.agreement_of_group([%w(1),%w(1),%w(1)])
     assert_equal OntologyComparison::DISAGREEMENT, OntologyComparison.new.agreement_of_group([%w(1),%w(1),%w(2)])
     assert_equal OntologyComparison::UNKNOWN_AGREEMENT, OntologyComparison.new.agreement_of_group([%w(),%w()])
+  end
+  
+  def test_group_agreement_with_unknowns
+    assert_equal OntologyComparison::DISAGREEMENT, OntologyComparison.new.agreement_of_group([%w(1),%w(2),%w()])
+    assert_equal OntologyComparison::DISAGREEMENT, OntologyComparison.new.agreement_of_group([%w(),%w(2),%w(1)])
   end
 end

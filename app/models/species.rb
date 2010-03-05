@@ -331,8 +331,10 @@ class Species < ActiveRecord::Base
   end
   
   def kingdom
-    king = NAME_TO_KINGDOM[name] 
-    raise Exception, "No kingdom assigned to species '#{name}', is it entered in the THREE_WAY_TAXONOMY_DEFINITIONS hash?"
+    king = NAME_TO_KINGDOM[name]
+    unless king
+      raise Exception, "No kingdom assigned to species '#{name}', is it entered in the THREE_WAY_TAXONOMY_DEFINITIONS hash?"
+    end
     king
   end
 end

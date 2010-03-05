@@ -82,7 +82,8 @@ class OntologyComparison
     # First get the unknowns out of the way
     if localisations_of_each_protein1.nil? or localisations_of_protein2.nil? or
       localisations_of_each_protein1.empty? or localisations_of_protein2.empty?
-      @agreement = OntologyComparison::UNKNOWN_AGREEMENT
+      @common_ontologies = []
+      @disagreeing_ontologies = []
     else
       commons = []
       disagreements = []
@@ -111,15 +112,12 @@ class OntologyComparison
   # Given a array of arrays of localisation (an array of localisations for each protein),
   # return the total agreement of the group.
   def agreement_of_group(localisations_of_each_protein)
-    worst_agreement = nil
+    all_pairwise_agreements = []
     localisations_of_each_protein.each_lower_triangular_matrix do |locs1, locs2|
-      if worst_agreement.nil?
-        worst_agreement = agreement_of_pair(locs1, locs2)
-      else
-        worst_agreement = min_agreement([worst_agreement, agreement_of_pair(locs1, locs2)])
-      end
+      agree = agreement_of_pair(locs1, locs2)
+      all_pairwise_agreements.push agree
     end
-    return worst_agreement
+    return min_agreement(all_pairwise_agreements)
   end
   
   # order is best to worst, i.e. complete, incomplete, disagree
@@ -132,12 +130,14 @@ class OntologyComparison
   def compare_agreement(agreement1, agreement2)
     order = [COMPLETE_AGREEMENT, INCOMPLETE_AGREEMENT, DISAGREEMENT].to_hash
     unless order[agreement1] and order[agreement2]
-      raise Exception, "Attempt to compare unknown type of agreement '#{agreement1}' or '#{agreement2}'"
+      raise Exception, "Attempt to compare unexpected type of agreement '#{agreement1}' or '#{agreement2}'"
     end
     return -1*(order[agreement1] <=> order[agreement2])
   end
   
   def min_agreement(agreements)
-    agreements.reject{|a| a==UNKNOWN_AGREEMENT}.min{|a,b| compare_agreement(a, b)}
+    to_return = agreements.reject{|a| a==UNKNOWN_AGREEMENT}.min{|a,b| compare_agreement(a,b)}
+    to_return ||= UNKNOWN_AGREEMENT
+    to_return
   end
 end

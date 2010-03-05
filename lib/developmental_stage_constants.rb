@@ -165,6 +165,8 @@ module DevelopmentalStageConstants
       'tachyzoite mitosis',
       'tachyzoite s-phase',
       'tachyzoite cell division',
+      'early tachyzoite cell division',
+      'late tachyzoite cell division',
       'mature schizont merozoite',
       'early merozoite',
       'extracellular merozoite',
@@ -348,6 +350,7 @@ module DevelopmentalStageConstants
       'extracellular sporozoite',
       'sporozoite',
       'oocyst sporozoite',
+      'sporoblast',
       'midgut sporozoite',
       'hemolymph sporozoite',
       'salivary gland sporozoite',
@@ -405,7 +408,7 @@ module DevelopmentalStageConstants
       'merozoite',
     ],
   }
-
+  
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
     Species::CHABAUDI_NAME => {},
     Species::KNOWLESI_NAME => {},
@@ -484,6 +487,8 @@ module DevelopmentalStageConstants
       'invading merozoites' => 'merozoite invasion'
     },
     Species::TOXOPLASMA_GONDII_NAME => {
+      'beginning of cell division' => 'early tachyzoite cell division',
+      'late stage of cell division' => 'late tachyzoite cell division',
       '16h after tachyzoite infection' => '16 hours after tachyzoite infection',
       '20h after tachyzoite infection' => '20 hours after tachyzoite infection',
       'tachyzoite host cell entry' => 'tachyzoite invasion',

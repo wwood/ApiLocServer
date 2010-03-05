@@ -2,13 +2,27 @@
 class BScript
   def apiloc_stats
     puts "For each species, how many genes, publications"
+    total_proteins = 0
+    total_publications = 0
     Species.apicomplexan.all(:order => 'name').each do |s|
+      protein_count = s.number_or_proteins_localised_in_apiloc
+      publication_count = s.number_or_publications_in_apiloc
+      
       puts [
       s.name,
-      s.number_or_proteins_localised_in_apiloc,
-      s.number_or_publications_in_apiloc,
+      protein_count,
+      publication_count,
       ].join("\t")
+      
+      total_proteins += protein_count
+      total_publications += publication_count
     end
+    
+    puts [
+    'Total',
+    total_proteins,
+    total_publications
+    ].join("\t")
   end
   
   def species_localisation_breakdown
@@ -1466,8 +1480,10 @@ class BScript
     :select => 'distinct(orthomcl_groups.id)',
     :joins => {:orthomcl_genes => {:coding_regions => :go_terms}},
     :conditions => [
-    'go_terms.aspect = ? and coding_region_go_terms.evidence_code = ?',
-    GoTerm::CELLULAR_COMPONENT, 'IDA'
+    'go_terms.aspect = ? and coding_region_go_terms.evidence_code = ?'+
+    ' and orthomcl_groups.orthomcl_name = ?',
+    GoTerm::CELLULAR_COMPONENT, 'IDA',
+    'OG3_12523'
     ],
     :limit => 10
     ).each do |ortho_group|
@@ -1475,18 +1491,28 @@ class BScript
       # assign it compartments.
       # For each apicomplexan, get the compartments from apiloc
       # This is nicely abstracted already!
-      codes = ortho_group.orthomcl_genes.collect.single_code!.no_nils
+      # However, a single orthomcl gene can have multiple CodingRegion's associated.
+      # Therefore each has to be analysed as an array, frustratingly.
+      code_arrays = ortho_group.orthomcl_genes.uniq.reach.coding_regions.reject{|s| s.empty?}
       
       kingdom_codes = {}
-      codes.each do |code|
-        kingdom_codes[code.species.kingdom] ||= []
-        kingdom_codes[code.species.kingdom].push code
+      code_arrays.each do |code_array|
+        next if code_array.blank?
+        raise unless code_array.reach.species.name.uniq.length == 1 #they should all be the same, but why not check.
+        species = code_array[0].species 
+        kingdom_codes[species.kingdom] ||= []
+        kingdom_codes[species.kingdom].push code_array
       end
+      p kingdom_codes
       
       code_locs = {}
-      codes.each do |code|
-        raise if code_locs[code] #shouldn't already exist right?
-        code_locs[code] = code.compartments
+      code_arrays.each do |code_array|
+        name = code_array[0].string_id
+        # the name shouldn't already exist right, but sometimes does when 2 orthomcl
+        # genes map to 1 coding region, like for instance hsap|ENSP00000251272
+        # and hsap|ENSP00000375822
+        #raise Exception, "already found #{name} in #{code_locs.inspect} from #{code_array.inspect}" if code_locs[name] 
+        code_locs[name] = code_array.reach.compartments.uniq
       end
       
       # within the one kingdom, do they agree?
@@ -1506,7 +1532,9 @@ class BScript
         kingdom2 = array2[0]
         codes1 = array1[1]
         codes2 = array2[1]
-        agreement = OntologyComparison.new.agreement_of_group([codes1,codes2].flatten.collect {|code| code_locs[code]})
+        locs_for_all = [codes1,codes2].flatten.collect {|code| code_locs[code]}
+        p locs_for_all
+        agreement = OntologyComparison.new.agreement_of_group(locs_for_all)
         
         index = [kingdom1, kingdom2]
         groups_to_counts[index] ||= {}

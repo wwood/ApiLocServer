@@ -124,7 +124,7 @@ module ApilocHelper
 
   def proteomic_experiment_name_to_html_link(name)
     html_name = proteomic_experiment_name_to_italics(name)
-    return(link_to html_name, :action => :proteome, :id => name)
+    return(link_to html_name, :controller => :apiloc, :action => :proteome, :id => name)
   end
 
   def proteomic_experiment_name_to_italics(name)
