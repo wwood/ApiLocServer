@@ -1,3 +1,4 @@
+require "zlib"
 # Methods used in the ApiLoc publication
 class BScript
   def apiloc_stats
@@ -1480,12 +1481,9 @@ class BScript
     :select => 'distinct(orthomcl_groups.id)',
     :joins => {:orthomcl_genes => {:coding_regions => :go_terms}},
     :conditions => [
-    'go_terms.aspect = ? and coding_region_go_terms.evidence_code = ?'+
-    ' and orthomcl_groups.orthomcl_name = ?',
-    GoTerm::CELLULAR_COMPONENT, 'IDA',
-    'OG3_12523'
-    ],
-    :limit => 10
+    'go_terms.aspect = ? and coding_region_go_terms.evidence_code = ?',
+    GoTerm::CELLULAR_COMPONENT, 'IDA'
+    ]
     ).each do |ortho_group|
       # For each non-Apicomplexan gene with localisation information in this group,
       # assign it compartments.
@@ -1499,20 +1497,21 @@ class BScript
       code_arrays.each do |code_array|
         next if code_array.blank?
         raise unless code_array.reach.species.name.uniq.length == 1 #they should all be the same, but why not check.
-        species = code_array[0].species 
+        species = code_array[0].species
         kingdom_codes[species.kingdom] ||= []
-        kingdom_codes[species.kingdom].push code_array
+        kingdom_codes[species.kingdom].push code_array[0].string_id
       end
-      p kingdom_codes
       
       code_locs = {}
       code_arrays.each do |code_array|
         name = code_array[0].string_id
-        # the name shouldn't already exist right, but sometimes does when 2 orthomcl
+        # the name shouldn't already exist, but sometimes does when 2 orthomcl
         # genes map to 1 coding region, like for instance hsap|ENSP00000251272
-        # and hsap|ENSP00000375822
-        #raise Exception, "already found #{name} in #{code_locs.inspect} from #{code_array.inspect}" if code_locs[name] 
-        code_locs[name] = code_array.reach.compartments.uniq
+        # and hsap|ENSP00000375822. Therefore the raise below is commented out
+        #raise Exception, "already found #{name} in #{code_locs.inspect} from #{code_array.inspect}" if code_locs[name]
+
+        
+        code_locs[name] = code_array.reach.compartments.flatten.uniq
       end
       
       # within the one kingdom, do they agree?
@@ -1533,7 +1532,6 @@ class BScript
         codes1 = array1[1]
         codes2 = array2[1]
         locs_for_all = [codes1,codes2].flatten.collect {|code| code_locs[code]}
-        p locs_for_all
         agreement = OntologyComparison.new.agreement_of_group(locs_for_all)
         
         index = [kingdom1, kingdom2]
