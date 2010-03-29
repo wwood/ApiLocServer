@@ -107,6 +107,7 @@ module LocalisationConstants
       'perinuclear',
       'far nuclear periphery',
       'interior of nucleus',
+      'histones',
       'internal organelle',
       'intracellular',
       'cytoplasmic structure',

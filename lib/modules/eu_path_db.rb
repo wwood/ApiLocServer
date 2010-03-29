@@ -8,7 +8,7 @@ class BScript
   PLASMODB_VERSION = SpeciesData::SOURCE_VERSIONS['PlasmoDB']
   TOXODB_VERSION = SpeciesData::SOURCE_VERSIONS['ToxoDB']
   CRYPTODB_VERSION = SpeciesData::SOURCE_VERSIONS['CryptoDB']
-
+  
   def theileria_parva_genbank_gff_to_database
     [
       'NC_007344.gff',
@@ -23,13 +23,13 @@ class BScript
           $stderr.puts "Couldn't find coding region #{locus_tag}"
           next
         end
-
+        
         protein_id = feature.attributes['protein_id']
         if matches = protein_id.match(/(.*)\.[123456789]$/)
           pro = matches[1]
           $stderr.puts "adding #{pro} for #{code.string_id}"
           CodingRegionAlternateStringId.find_or_create_by_name_and_coding_region_id(
-            pro, code.id
+                                                                                    pro, code.id
           ) or raise
         else
           raise Exception, "couldn't parse #{protein_id} (take the .1 or whatever off the end)"
@@ -42,15 +42,15 @@ class BScript
   # parse the file
   def upload_gene_information_table_plumbing(gzfile)
     oracle = EuPathDBGeneInformationTable.new(
-      Zlib::GzipReader.open(
-        gzfile
-      ))
-
+                                              Zlib::GzipReader.open(
+                          gzfile
+    ))
+    
     oracle.each do |info|
       yield info #have to give a block, otherwise why are you calling me?
     end
   end
-
+  
   # High level for general EuPathDB use. Find coding regions and upload
   # GO terms associated and give a yield for further uploads on a gene
   # entry basis.
@@ -65,18 +65,18 @@ class BScript
           $stderr.puts "Couldn't find go term: #{go_id}, skipping"
           next
         end
-
+        
         CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
-          code.id,
-          go.id,
-          a['Evidence Code']
+                                                                                               code.id,
+                                                                                               go.id,
+                                                                                               a['Evidence Code']
         )
       end
-
+      
       yield info, code if block_given?
     end
   end
-
+  
   # medium level method for gene information table - takes a gzfile
   # path and species and a code fragment to execute for each. Does nothing
   # else though - no GO terms and shit
@@ -93,17 +93,17 @@ class BScript
         $stderr.puts "Couldn't find coding region #{gene_id}, skipping"
         next
       end
-
+      
       yield info, code if block_given?
     end
   end
-
-
+  
+  
   # Use the gene table to upload the GO terms to the database, including
   # old release 4 identifiers
   def upload_gondii_gene_table_to_database
     upload_gene_information_table(
-      Species.find_by_name(Species::TOXOPLASMA_GONDII),
+                                  Species.find_by_name(Species::TOXOPLASMA_GONDII),
       "#{DATA_DIR}/Toxoplasma gondii/genome/ToxoDB/#{TOXODB_VERSION}/TgondiiME49Gene_ToxoDB-#{TOXODB_VERSION}.txt.gz"
     ) do |info, code|
       # Add release 4 IDs as direct aliases
@@ -113,12 +113,12 @@ class BScript
       else
         r4.each do |four|
           CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
-            code.id,
-            four
+                                                                                    code.id,
+                                                                                    four
           ) or raise
         end
       end
-
+      
       # Add strain orthologue information from non ME49 strains,
       # (initially at least this was done so that OrthoMCL v3 could be
       # uploaded properly.
@@ -127,11 +127,11 @@ class BScript
         name = row['Gene']
         unless name == code.string_id
           CodingRegionStrainOrthologue.find_or_create_by_name_and_coding_region_id(
-            name, code.id
+                                                                                   name, code.id
           ) or raise
         end
       end
-
+      
       # Add the mass spec data from the table to the database
       proteomic_name_to_pubmed = ProteomicExperiment::TOXOPLASMA_NAME_TO_PUBLICATION_HASH
       mass_spec_table = info.get_table('Mass Spec.-based Expression Evidence')
@@ -140,10 +140,10 @@ class BScript
         # temporary typo fix
         experiment = 'MS Tachyzoite Membrane Protein with Biotinlyation Purification 05-22-2007' if experiment == 'MS Tachyzoite Membrane Protein with  Biotinlyation Purification 05-22-2007'
         experiment = 'MS Carruthers 2 distinct peptides' if experiment == 'MS Carruthers 2destinct peptides'
-
+        
         # Add T.gondii to the front because that is convention
         experiment = "T. gondii #{experiment}"
-
+        
         unless proteomic_name_to_pubmed[experiment]
           $stderr.puts "Unable to classify proteomic experiment: '#{experiment}' into a known publication"
           next
@@ -158,15 +158,15 @@ class BScript
         end
         raise unless pub
         e = ProteomicExperiment.find_or_create_by_name_and_publication_id(
-          experiment, pub.id
+                                                                          experiment, pub.id
         )
         raise unless ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id(
-          code.id, e.id
+                                                                                                              code.id, e.id
         ).id
       end
     end
   end
-
+  
   # Upload the microarray percentiles from the different strains
   def gondii_archetypal_lineage_percentiles_to_database
     #TABLE: Three archetypal T. gondii lineages - Percentiles
@@ -180,49 +180,49 @@ class BScript
     species_data = SpeciesData.new(Species::TOXOPLASMA_GONDII_NAME)
     array = Microarray.find_or_create_by_description(Microarray::TOXOPLASMA_ARCHETYPAL_LINEAGE_PERCENTILES_NAME)
     upload_gene_information_table_coding_region(
-      Species.find_by_name(species_data.name),
-      species_data.gene_information_gzfile_path
+                                                Species.find_by_name(species_data.name),
+    species_data.gene_information_gzfile_path
     ) do |info, code|
       # Find the timepoints
       table = info.get_table('Three archetypal T. gondii lineages - Percentiles')
       raise unless table
-
+      
       table.each do |row|
         timepoint = MicroarrayTimepoint.find_or_create_by_microarray_id_and_name(
-          array.id, row['Strain']
+                                                                                 array.id, row['Strain']
         ) or raise
         MicroarrayMeasurement.find_or_create_by_microarray_timepoint_id_and_coding_region_id_and_measurement(
-          timepoint.id, code.id, row['Percentile']
+                                                                                                             timepoint.id, code.id, row['Percentile']
         ) or raise
       end
     end
   end
-#
-#  def gondii_proteomics_data_to_database
-#    species_data = SpeciesData.new(Species::TOXOPLASMA_GONDII_NAME)
-#
-#    upload_gene_information_table_coding_region(
-#      Species.find_by_name(species_data.name),
-#      species_data.gene_information_gzfile_path
-#    ) do |info, code|
-#      table = info.get_table('Mass Spec.-based Expression Evidence')
-#      table.each do |row|
-#        experiment = ProteomicExperiment.find_or_create_by_name(row['Experiment Name']) or raise
-#        ProteomicExperimentPeptide.find_or_create_by_peptide_and_coding_region_id_and_proteomic_experiment_id(
-#          row['Sequences'],
-#          code.id,
-#          experiment.id
-#        ) or raise
-#        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id_and_number_of_peptides_and_spectrum(
-#          code.id,
-#          experiment.id,
-#          row['Sequence Count'],
-#          row['Spectrum Count']
-#        ) or raise
-#      end
-#    end
-#  end
-
+  #
+  #  def gondii_proteomics_data_to_database
+  #    species_data = SpeciesData.new(Species::TOXOPLASMA_GONDII_NAME)
+  #
+  #    upload_gene_information_table_coding_region(
+  #      Species.find_by_name(species_data.name),
+  #      species_data.gene_information_gzfile_path
+  #    ) do |info, code|
+  #      table = info.get_table('Mass Spec.-based Expression Evidence')
+  #      table.each do |row|
+  #        experiment = ProteomicExperiment.find_or_create_by_name(row['Experiment Name']) or raise
+  #        ProteomicExperimentPeptide.find_or_create_by_peptide_and_coding_region_id_and_proteomic_experiment_id(
+  #          row['Sequences'],
+  #          code.id,
+  #          experiment.id
+  #        ) or raise
+  #        ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id_and_number_of_peptides_and_spectrum(
+  #          code.id,
+  #          experiment.id,
+  #          row['Sequence Count'],
+  #          row['Spectrum Count']
+  #        ) or raise
+  #      end
+  #    end
+  #  end
+  
   def gondii_tachyzoite_and_not_est_counts_to_database
     species = Species.find_by_name(Species::TOXOPLASMA_GONDII_NAME)
     FasterCSV.foreach(
@@ -232,8 +232,8 @@ class BScript
     ) do |row|
       code = CodingRegion.fs(row[0],species.name) or raise
       TachyzoiteEstCount.find_or_create_by_coding_region_id_and_value(
-        code.id,
-        row[1].to_i
+                                                                      code.id,
+                                                                      row[1].to_i
       )
     end
     FasterCSV.foreach(
@@ -243,32 +243,32 @@ class BScript
     ) do |row|
       code = CodingRegion.fs(row[0],species.name) or raise
       NonTachyzoiteEstCount.find_or_create_by_coding_region_id_and_value(
-        code.id,
-        row[1].to_i
+                                                                         code.id,
+                                                                         row[1].to_i
       )
     end
   end
-
+  
   def upload_falciparum_gene_table_to_database
     upload_gene_information_table(Species.find_by_name(Species::FALCIPARUM_NAME),
       "#{DATA_DIR}/Plasmodium falciparum/genome/plasmodb/#{PLASMODB_VERSION}/PfalciparumGene_PlasmoDB-#{PLASMODB_VERSION}.txt.gz"
     )
   end
-
-
+  
+  
   def upload_apiloc_from_scratch
     go_to_database
     download_uniprot_data
     uniprot_to_database
     orthomcl_to_database
-
+    
     # Upload basic gene identifiers
     upload_apiloc_gffs
     upload_gondii_gene_table_to_database
     upload_apiloc_fasta_files
-
+    
     proteomics_to_database
-
+    
     tetrahymena_orf_names_to_database
     tetrahymena_gene_aliases_to_database
     yeastgenome_ids_to_database
@@ -276,28 +276,28 @@ class BScript
     uniprot_ensembl_databases
     uniprot_refseq_databases
     chlamydomonas_link_to_orthomcl_ids
-
+    
     Species.new.update_known_four_letters
     OrthomclGene.new.link_orthomcl_and_coding_regions(
       "hsap mmus scer drer osat crei atha dmel cele",
       :accept_multiple_coding_regions => true
     )
     OrthomclGene.new.link_orthomcl_and_coding_regions(
-      Species::APICOMPLEXAN_NAMES.reject{|a|
-        a == Species::BABESIA_BOVIS_NAME
-      }.collect { |a|
-        Species.find_by_name(a).orthomcl_three_letter
-      }
+                                                      Species::APICOMPLEXAN_NAMES.reject{|a|
+      a == Species::BABESIA_BOVIS_NAME
+    }.collect { |a|
+      Species.find_by_name(a).orthomcl_three_letter
+    }
     )
-
+    
     LocalisationSpreadsheet.new.upload
     proteomics_to_database
     Publication.fill_in_all_extras! #has to be after spreadsheet and proteomics and gondii_gene_table, because they provide the pubmed ids to expand on
-
+    
     DevelopmentalStageTopLevelDevelopmentalStage.new.upload_apiloc_top_level_developmental_stages
     ApilocLocalisationTopLevelLocalisation.new.upload_apiloc_top_level_localisations
   end
-
+  
   def upload_apiloc_gffs
     falciparum_to_database
     berghei_to_database
@@ -314,7 +314,7 @@ class BScript
     # extras required for proper orthomcl linking
     upload_gondii_gene_table_to_database
   end
-
+  
   def upload_apiloc_fasta_files
     falciparum_fasta_to_database
     berghei_fasta_to_database
@@ -330,12 +330,12 @@ class BScript
     # upload_theileria_fasta
     #    babesia_fasta_to_database
   end
-
+  
   def upload_proteomic_data
     food_vacuole_proteome_to_database
     maurers_cleft_proteome_to_database
   end
-
+  
   # OrthoMCL identifiers can be found in the gene information table.
   # this is more better than matching through names manually because there is
   # a non-redundant set of toxo genes in there, not from any one species.
@@ -345,8 +345,8 @@ class BScript
       upload_gene_information_table_plumbing(
         "#{DATA_DIR}/Toxoplasma gondii/ToxoDB/#{TOXODB_VERSION}/Tgondii#{strain}Gene_ToxoDB-#{TOXODB_VERSION}.txt.gz"
       ) do |info|
-
-
+        
+        
         orthomcl_group = info.get_info('Temporary Ortholog Group')
         next unless orthomcl_group.match(/^OG/) #ignore the tmp ones - not sure what they mean
         
@@ -355,7 +355,7 @@ class BScript
         if groups.length == 0
           raise Exception, "Couldn't find orthomcl group #{orthomcl_group}"
         end
-
+        
         # all good. create the link if I can find an entry with a name like I
         # expect
         gene_name = info.get_info('ID')
@@ -369,7 +369,7 @@ class BScript
         else
           #ok, now I'm happy with orthomcl
           $stderr.puts "Happy with #{gene_name} in #{orthomcl_group}"
-
+          
           codes = nil
           if strain == 'ME49'
             codes = CodingRegion.find_all_by_name_or_alternate_and_organism(gene_name, Species::TOXOPLASMA_GONDII_NAME) or raise
@@ -395,37 +395,37 @@ class BScript
           end
           codes.each do |code|
             OrthomclGeneCodingRegion.find_or_create_by_coding_region_id_and_orthomcl_gene_id(
-              code.id, genes[0].id
+                                                                                             code.id, genes[0].id
             ) or raise
           end
         end
-
+        
       end
     end
   end
-
+  
   # a catch-all for the pesky uploading of gff and amino acid sequences
   def method_missing(symbol, *args)
     meth = symbol.to_s
     if matches = meth.match(/(.+)_fasta_to_database/)
       spd = SpeciesData.new(matches[1])
       fa = EuPathDb2009.new(
-        spd.fasta_file_species_name,
-        spd.sequencing_centre_abbreviation
+                            spd.fasta_file_species_name,
+                            spd.sequencing_centre_abbreviation
       ).load(spd.protein_fasta_path)
       sp = Species.find_by_name(spd.name)
       upload_fasta_general!(fa, sp)
     elsif matches = meth.match(/(.+)_to_database/)
       spd = SpeciesData.new(matches[1])
       apidb_species_to_database(
-        spd.name,
-        spd.gff_path
+                                spd.name,
+                                spd.gff_path
       )
     else
       super
     end
   end
-
+  
   def download(database_name=nil)
     # by default, download everything
     if database_name.nil?
@@ -440,7 +440,7 @@ class BScript
             Dir.mkdir(directory)
           end
         end
-
+        
         Dir.chdir(spd.local_download_directory) do
           #          $stderr.puts "chdir: #{Dir.pwd}"
           # protein
@@ -459,7 +459,7 @@ class BScript
       end
     end
   end
-
+  
   def species_data_from_database(database_name)
     database_name.downcase!
     raise unless %w(plasmodb toxodb cryptodb).include?(database_name)
@@ -472,7 +472,7 @@ class BScript
       SpeciesData.new(name)
     end
   end
-
+  
   # A generalised upgrade method for upgrading EuPathDB data in gnr
   def upgrade(database_name)
     database_name.downcase!
@@ -480,24 +480,31 @@ class BScript
     $stderr.puts "might want to change the destroy to a database delete so the database can do the work way way faster?"
     return
     Species.send(database_name.to_sym).all.reach.destroy
-
+    
     # downloads go through only if the files don't already exist,
     # so this isn't wasteful
     download(database_name)
-
+    
     # upload each gff, amino acid, and nucleotide
     spds = species_data_from_database(database_name)
     spds.each do |spd|
       # upload gff
       send("#{spd.name.gsub(' ','_')}_to_database".to_sym)
-
+      
       # upload amino acids
       send("#{spd.name.gsub(' ','_')}_fasta_to_database".to_sym)
-
+      
       # upload nucleotide sequences
       #      send("spd.name.gsub(' ','_')_fasta_to_database".to_sym)
     end
-
+    
     # upload localisation data
+  end
+  
+  def eupathdb_links
+    puts ["Species", "ID","URL"].join("\t")
+    CodingRegion.all(:joins => :expression_contexts, :select => 'distinct(coding_regions.*)').each do |code|
+      puts [code.species.name, code.string_id, code.apiloc_url].join("\t")
+    end
   end
 end

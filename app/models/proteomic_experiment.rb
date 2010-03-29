@@ -24,6 +24,11 @@ class ProteomicExperiment < ActiveRecord::Base
 
   FALCIPARUM_SUMOYLATION_2008_NAME = 'P. falciparum Sumoylated Isaar et al 2008'
   FALCIPARUM_SUMOYLATION_2008_PUBMED_ID = 18547337
+  
+  FALCIPARUM_GAMETOCYTOGENESIS_2010_PUBMED_ID = 20332084
+  FALCIPARUM_GAMETOCYTOGENESIS_2010_TROPHOZOITE_NAME = 'P. falciparum Trophozoite Silvestrini et al 2010'
+  FALCIPARUM_GAMETOCYTOGENESIS_2010_GAMETOCYTE_STAGE_I_AND_II_NAME = 'P. falciparum Gametocyte Stage I and II Silvestrini et al 2010'
+  FALCIPARUM_GAMETOCYTOGENESIS_2010_GAMETOCYTE_STAGE_V_NAME = 'P. falciparum Gametocyte Stage V Silvestrini et al 2010'
 
   TOXOPLASMA_NAME_TO_PUBLICATION_HASH = {
     'T. gondii 1D Gel Tachyzoite Membrane fraction 10-2006' => 11796121,

@@ -179,7 +179,8 @@ module DevelopmentalStageConstants
       'merozoite',
       'merozoite invasion',
       'intracellular merozoite',
-      'sporozoite'
+      'sporozoite',
+      'intraerythrocytic',
     ],
     Species::NEOSPORA_CANINUM_NAME => [
       'tachyzoite',
@@ -484,7 +485,8 @@ module DevelopmentalStageConstants
     },
     Species::NEOSPORA_CANINUM_NAME => {},
     Species::BABESIA_BOVIS_NAME => {
-      'invading merozoites' => 'merozoite invasion'
+      'invading merozoites' => 'merozoite invasion',
+      'infected erythrocytes' => 'intraerythrocytic',
     },
     Species::TOXOPLASMA_GONDII_NAME => {
       'beginning of cell division' => 'early tachyzoite cell division',
