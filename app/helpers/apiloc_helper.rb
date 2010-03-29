@@ -5,6 +5,7 @@ module ApilocHelper
       'mitochondrion',
       'nucleus',
       'exported',
+      'apical',
       'endoplasmic reticulum',
       'Golgi apparatus',
       'inner membrane complex',
