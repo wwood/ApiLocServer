@@ -7142,8 +7142,11 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
     io = Zlib::GzipReader.open(
       gz_gene_association_filename
     )
+    
+    progress = ProgressBar.new('gene_association', `gunzip -c '#{gz_gene_association_filename}' |wc -l`)
 
     Bio::GeneAssociation.new(io).entries.each do |entry|
+      progress.inc
       names = [
         entry.primary_id,
         entry.gene_name,
@@ -7159,7 +7162,7 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
         break unless code.nil?
       end
       unless code
-        puts "Couldn't find coding region called #{names.join(',')}"
+        #puts "Couldn't find coding region called #{names.join(',')}"
         bads += 1
         next
       end
@@ -7168,7 +7171,7 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
       go_term = GoTerm.find_by_go_identifier_or_alternate(entry.go_identifier)
 
       unless go_term
-        puts "Couldn't find GO term #{entry.go_identifier}"
+        #puts "Couldn't find GO term #{entry.go_identifier}"
         bads += 1
         next
       end
@@ -7178,7 +7181,12 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
       )
       goods += 1
     end
+<<<<<<< HEAD:lib/b_script.rb
 
+=======
+    progress.finish
+    
+>>>>>>> 046e80e... added progress bar to gene ontology upload:lib/b_script.rb
     puts "Uploaded #{goods}, failed to upload #{bads}."
   end
 
