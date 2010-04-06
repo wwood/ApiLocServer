@@ -39,3 +39,6 @@ compute_test:
 non_orthomcl:
   id: 13
   orthomcl_name: five
+hap:
+  id: 14
+  orthomcl_name: pfa|PF14_0078
