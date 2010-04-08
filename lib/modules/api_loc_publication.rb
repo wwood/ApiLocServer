@@ -1473,7 +1473,7 @@ class BScript
   
   # How conserved is localisation between the three branches of life with significant
   # data known about them?
-  def conservation_of_eukaryotic_sub_cellular_localisation
+  def conservation_of_eukaryotic_sub_cellular_localisation(debug = false)
     groups_to_counts = {}
     
     # For each orthomcl group that has IDA CC annotations
@@ -1520,9 +1520,11 @@ class BScript
           code_locs[code]
         }
         agreement = OntologyComparison.new.agreement_of_group(locs)
-        groups_to_counts[[kingdom]] ||= {}
-        groups_to_counts[[kingdom]][agreement] ||= 0
-        groups_to_counts[[kingdom]][agreement] += 1
+        index = [kingdom]
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+        groups_to_counts[index] ||= {}
+        groups_to_counts[index][agreement] ||= 0
+        groups_to_counts[index][agreement] += 1
       end
       
       # within two kingdoms, do they agree?
@@ -1534,7 +1536,8 @@ class BScript
         locs_for_all = [codes1,codes2].flatten.collect {|code| code_locs[code]}
         agreement = OntologyComparison.new.agreement_of_group(locs_for_all)
         
-        index = [kingdom1, kingdom2]
+        index = [kingdom1, kingdom2].sort
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
         groups_to_counts[index] ||= {}
         groups_to_counts[index][agreement] ||= 0
         groups_to_counts[index][agreement] += 1
@@ -1550,7 +1553,8 @@ class BScript
         codes3 = a3[1]
         
         agreement = OntologyComparison.new.agreement_of_group([codes1,codes2,codes3].flatten.collect {|code| code_locs[code]})
-        index = [kingdom1, kingdom2, kingdom3]
+        index = [kingdom1, kingdom2, kingdom3].sort
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
         groups_to_counts[index] ||= {}
         groups_to_counts[index][agreement] ||= 0
         groups_to_counts[index][agreement] += 1
