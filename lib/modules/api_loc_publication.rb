@@ -1550,7 +1550,7 @@ class BScript
         codes3 = a3[1]
         
         agreement = OntologyComparison.new.agreement_of_group([codes1,codes2,codes3].flatten.collect {|code| code_locs[code]})
-        index = [kingdom1, kingdom2, kingdom3]
+        index = [kingdom1, kingdom2, kingdom3].sort
         groups_to_counts[index] ||= {}
         groups_to_counts[index][agreement] ||= 0
         groups_to_counts[index][agreement] += 1
