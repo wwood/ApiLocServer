@@ -707,6 +707,7 @@ module LocalisationConstants
       'ring structure at posterior imc' => 'ring structure at posterior inner membrane complex',
     },
     Species::FALCIPARUM_NAME => {
+      'host cell' => 'erythrocyte',
       'mitochondria' => 'mitochondrion',
       'cis golgi' => 'cis-golgi',
       'discrete dots on ppm' => 'parasite plasma membrane',

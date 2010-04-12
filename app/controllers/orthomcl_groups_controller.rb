@@ -13,15 +13,7 @@ class OrthomclGroupsController < ApplicationController
   # GET /orthomcl_groups/1
   # GET /orthomcl_groups/1.xml
   def show
-    @orthomcl_group = OrthomclGroup.find(params[:id])
-    
-    @coding_regions = CodingRegion.find(:all,
-      :conditions => "orthomcl_group_id=#{@orthomcl_group.id}",
-      :include => [
-        :orthomcl_genes,
-        :annotation
-      ]
-    )
+    @orthomcl_group = OrthomclGroup.find_by_orthomcl_name(params[:id])
 
     respond_to do |format|
       format.html # show.html.erb

@@ -73,7 +73,8 @@ class Species < ActiveRecord::Base
   ]
   
   has_many :scaffolds, :dependent => :destroy
-  has_many :localisations
+  has_many :localisations, :dependent => :destroy
+  has_many :developmental_stages, :dependent => :destroy
   
   named_scope :apicomplexan, {
     :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES, UNSEQUENCED_APICOMPLEXANS].flatten.to_sql_in_string}"

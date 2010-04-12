@@ -253,6 +253,7 @@ module DevelopmentalStageConstants
         'intracellular sporozoite',
         'host cell exposed extracellular sporozoite',
         'sporozoite invasion',
+        'after sporozoite invasion of enteric cells',
         'schizont',
         'early first generation schizont',
         'mature first generation schizont',
@@ -481,6 +482,7 @@ module DevelopmentalStageConstants
         'isolated extracellular sporozoite' => 'extracellular sporozoite',
         'host-cell exposed extracellular sporozoite' => 'host cell exposed extracellular sporozoite',
         'sporozoites' => 'sporozoite',
+        'after sporozoite invasion' => 'after sporozoite invasion of enteric cells',
       }
     },
     Species::NEOSPORA_CANINUM_NAME => {},
