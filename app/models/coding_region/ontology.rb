@@ -23,18 +23,23 @@ class CodingRegion < ActiveRecord::Base
   end
   
   
-  def compartments
+  def compartments(debug=false)
     if species.apicomplexan?
       #return high level localisations mapped to the organelles that I'm interested in - shouldn't be too hard
       return gather_compartments_by_high_level_localisations
     else
-      return gather_organelles_by_go_terms
+      return gather_organelles_by_go_terms(debug)
     end
+  end
+  
+  # Convenience method for retrieving compartments already cached
+  def cached_compartments
+    coding_region_compartment_caches.reach.compartment
   end
   
   
   # An organelle is one of cytoplasm, nucleus, mitochondrion, ER, golgi, lysosome, vacuole, 
-  def gather_organelles_by_go_terms
+  def gather_organelles_by_go_terms(debug=false)
     mappers = create_organelle_go_term_mappers
     goes = coding_region_go_terms.cc.useful.all.reach.go_term
     organelles = []
@@ -46,7 +51,7 @@ class CodingRegion < ActiveRecord::Base
           if map.subsume?(g)
             term = GoTerm.find_by_go_identifier(map.master_go_id).term
             organelles.push term
-            $stderr.puts "#{term} subsumed #{go.term}"
+            $stderr.puts "#{term} subsumed #{go.term}" if debug
             subsume_count += 1
           end
         rescue RException => e
@@ -55,9 +60,9 @@ class CodingRegion < ActiveRecord::Base
       end
       # advise of subsume counters
       if subsume_count == 0
-        $stderr.puts "Didn't subsume #{go.go_identifier} #{go.term}"
+        $stderr.puts "Didn't subsume #{go.go_identifier} #{go.term}" if debug
       elsif subsume_count > 1
-        $stderr.puts "Subsumed #{g} #{subsume_count} times. Not good"
+        $stderr.puts "Subsumed #{g} #{subsume_count} times. Not good!"
       end
     end
     

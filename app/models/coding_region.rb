@@ -140,6 +140,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :plasmit_result, :dependent => :destroy
   has_one :weka_prediction, :dependent => :destroy
   has_many :blast_hits, :dependent => :destroy
+  has_many :coding_region_compartment_caches, :dependent => :destroy
   
   # website stuff
   has_many :user_comments

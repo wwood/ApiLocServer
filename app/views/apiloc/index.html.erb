@@ -1,5 +1,6 @@
 
 <script type="text/javascript">
+  /* Toggle a list between expanded and retracted forms */
   function toggle(list_id, image_id){
     if (document.getElementById(list_id).style.display == 'block'){
       document.getElementById(list_id).style.display = 'none';
@@ -9,15 +10,22 @@
       document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_minus.gif")%>');
     }
   }
+  
+  /* Dynamically change the search form entry so that the form submission is RESTful */
+  function setup_gene_search_action(){
+  	url = '<%= url_for :controller => :apiloc, :action => :gene %>/'+document.getElementById('gene_search_textbox').value
+	document.getElementById('gene_search_form').action = url;
+	return url
+  }
 </script>
 <% category_counter = 0 %>
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
-  <form>
-    <label>Gene ID/Name:</label><input type="text" id="gene_search_textbox" value="PF11_0344" size="12"/><input type="button" value="search" onClick="window.location = '<%= url_for :controller => :apiloc, :action => :gene %>/'+document.getElementById('gene_search_textbox').value"/> There is also a <%= link_to 'BLAST server', '/blast/blast_link.cgi' %>, or you could <%= link_to 'download everything', 'apiloc.xls' %>.
+  <form id="gene_search_form" onsubmit="setup_gene_search_action()">
+    <label>Gene ID/Name:</label><input type="text" id="gene_search_textbox" value="PF11_0344" size="12"/>
+	<input type="submit" value="search"">
   </form>
 </div>
-
 
 <div align="right" class="category<%= category_counter+=1; category_counter.odd? %>">
   <img src="<%= image_path('apicomplexan.png') %>" alt="a model apicomplexan" usemap="#apicomplexan" border="none"/>
@@ -115,3 +123,4 @@
 
 
 <%= link_to 'Acknowledgements', :action => :acknowledgements %>
+

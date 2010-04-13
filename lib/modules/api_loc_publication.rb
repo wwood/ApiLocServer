@@ -1471,15 +1471,47 @@ class BScript
     p bins
   end
   
+  # Looking through all the genes in the database, cache of the compartments so that things are easier to compare
+  def cache_all_compartments
+    # Cache all apicomplexan compartments
+    codes = CodingRegion.apicomplexan.all
+    progress = ProgressBar.new('apicomplexans', codes.length)
+    codes.each do |code|
+      progress.inc
+      comps = code.compartments
+      comps.each do |comp|
+        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                          code.id, comp
+        )
+      end
+    end
+    progress.finish
+    
+    # Cache all non-apicomplexan compartments
+    codes = CodingRegion.go_cc_usefully_termed.all
+    progress = ProgressBar.new('eukaryotes', codes.length)
+    codes.each do |code|
+      progress.inc
+      comps = code.compartments
+      comps.each do |comp|
+        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                          code.id, comp
+        )
+      end
+    end   
+    progress.finish
+  end
+  
   # How conserved is localisation between the three branches of life with significant
   # data known about them?
   def conservation_of_eukaryotic_sub_cellular_localisation(debug = false)
     groups_to_counts = {}
     
-    # For each orthomcl group that has a connection to coding region
+    # For each orthomcl group that has a connection to coding region, and
+    # that coding region has a cached compartment
     OrthomclGroup.all(
     :select => 'distinct(orthomcl_groups.*)',
-    :joins => {:orthomcl_genes => :coding_regions}
+    :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}}
     ).each do |ortho_group|
       
       $stderr.puts "---------------------------------------------" if debug
@@ -1496,14 +1528,14 @@ class BScript
       end
       
       
-      # Setup data structures: kingdom_orthomcls and orthomcl_locs
+      # Setup data structures
       kingdom_orthomcls = {} #array of kingdoms to orthomcl genes
       orthomcl_locs = {} #array of orthomcl_genes to localisations, cached for convenience and speed
       
       orthomcl_genes.each do |orthomcl_gene|
         # Localisations from all coding regions associated with an orthomcl gene are used.
-        locs = orthomcl_gene.coding_regions.reach.compartments.flatten.uniq
-        next if locs.empty? #ignore unlocalised genes completely from thereafter
+        locs = orthomcl_gene.coding_regions.reach.cached_compartments.flatten.uniq
+        next if locs.empty? #ignore unlocalised genes completely from hereafter
         name = orthomcl_gene.orthomcl_name
         orthomcl_locs[name] = locs
         
@@ -1596,4 +1628,5 @@ class BScript
     # print out the counts for each group of localisations
     p groups_to_counts
   end
+  
 end
