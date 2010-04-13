@@ -107,6 +107,7 @@ module LocalisationConstants
       'perinuclear',
       'far nuclear periphery',
       'interior of nucleus',
+      'histones',
       'internal organelle',
       'intracellular',
       'cytoplasmic structure',
@@ -251,6 +252,7 @@ module LocalisationConstants
       'nascent conoid',
       'vesicle-like structure just under the parasite membrane',
       'apical conoid',
+      'basal complex',
     ],
     Species::BABESIA_BOVIS_NAME => [
       'apical',
@@ -433,6 +435,7 @@ module LocalisationConstants
       'zygote side',
       'oocyst protrusion',
       'oocyst capsule',
+      'plasma membrane surounding oocyst cytoplasm',
       'individual merozoites inside merozomes',
       'anterior to nucleus',
       'nucleus',
@@ -704,6 +707,7 @@ module LocalisationConstants
       'ring structure at posterior imc' => 'ring structure at posterior inner membrane complex',
     },
     Species::FALCIPARUM_NAME => {
+      'host cell' => 'erythrocyte',
       'mitochondria' => 'mitochondrion',
       'cis golgi' => 'cis-golgi',
       'discrete dots on ppm' => 'parasite plasma membrane',

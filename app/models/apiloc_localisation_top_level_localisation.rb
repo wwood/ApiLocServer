@@ -197,7 +197,8 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'replication foci',
       'replication foci in nucleus',
       'telomeric cluster',
-      'perinuclear'
+      'perinuclear',
+      'histones'
     ],
 
 

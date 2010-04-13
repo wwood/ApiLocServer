@@ -14,6 +14,7 @@ class LocalisationModifier < ActiveRecord::Base
       'discrete compartments at',
       'strong diffuse',
       'foci in',
+      'foci at',
       'large foci',
       'random in',
       'spiralling on',

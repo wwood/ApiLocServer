@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100213235446) do
+ActiveRecord::Schema.define(:version => 20100413042739) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -116,6 +116,15 @@ ActiveRecord::Schema.define(:version => 20100213235446) do
   add_index "coding_region_alternate_string_ids", ["coding_region_id", "type"], :name => "index1"
   add_index "coding_region_alternate_string_ids", ["coding_region_id"], :name => "index_coding_region_alternate_string_ids_on_coding_region_id"
   add_index "coding_region_alternate_string_ids", ["name"], :name => "index_coding_region_alternate_string_ids_on_name"
+
+  create_table "coding_region_compartment_caches", :force => true do |t|
+    t.integer  "coding_region_id", :null => false
+    t.string   "compartment",      :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "coding_region_compartment_caches", ["coding_region_id"], :name => "index_coding_region_compartment_caches_on_coding_region_id"
 
   create_table "coding_region_drosophila_allele_genes", :force => true do |t|
     t.integer  "coding_region_id",          :null => false
@@ -1003,6 +1012,8 @@ ActiveRecord::Schema.define(:version => 20100213235446) do
   add_foreign_key "clusters", "clustersets", :name => "clusters_clusterset_id_fk", :dependent => :delete
 
   add_foreign_key "coding_region_alternate_string_ids", "coding_regions", :name => "coding_region_alternate_string_ids_coding_region_id_fk", :dependent => :delete
+
+  add_foreign_key "coding_region_compartment_caches", "coding_regions", :name => "coding_region_compartment_caches_coding_region_id_fk", :dependent => :delete
 
   add_foreign_key "coding_region_drosophila_allele_genes", "coding_regions", :name => "coding_region_drosophila_allele_genes_coding_region_id_fk", :dependent => :delete
 

@@ -1,12 +1,12 @@
 class CodingRegion < ActiveRecord::Base
-
+  
   def agreement_with_top_level_localisation(top_level_localisation)
     known_tops = topsa
-
+    
     raise Exception, 
       "Not a TopLevelLocalisation: #{top_level_localisation.inspect}" unless
     top_level_localisation.kind_of?(TopLevelLocalisation)
-
+    
     if known_tops.include?(top_level_localisation)
       if known_tops.length == 1
         # if top_levels agree, but there is some rubbish left over?
@@ -41,7 +41,7 @@ class CodingRegion < ActiveRecord::Base
       end
     end
   end
-
+  
   # like CodingRegion#agreement_with_top_level_localisation, except only return
   # these strings: agree, disagree, conflict, "" (for not localised)
   def agreement_with_top_level_localisation_simple(top_level_localisation)
@@ -64,12 +64,16 @@ class CodingRegion < ActiveRecord::Base
       raise #bad programming has happened
     end
   end
-
+  
   def apilocalisations
     if curates.empty?
       return topsap
     else
       return curates
     end
+  end
+  
+  def apiloc_url
+    "http://apiloc.bio21.unimelb.edu.au/apiloc/apiloc/gene/#{species.name}/#{string_id}"
   end
 end

@@ -1,9 +1,52 @@
 <h1>OrthoMCL group '<%= @orthomcl_group.orthomcl_name %>'</h1>
+      <h5>Localised Genes in this Group</h5>
+      <ul>
+        <% codes = CodingRegion.all(
+          :joins => [
+            {:orthomcl_genes => :orthomcl_groups},
+            :expression_contexts
+          ],
+          :conditions => {:orthomcl_groups => {:id => @orthomcl_group.id}},
+          :select => 'distinct(coding_regions.*)'
+        )
+        if codes.length > 0
+          codes.each do |code| %>
+            <li><%= code_name(code) %> <%= coding_region_localisation_html(code) %>; <i><%= code.compartments.join(', ')%></i> </li>
+          <% end %>
+        <% else %>
+          No apicomplexan genes in this OrthoMCL group have been localised.
+        <% end %>
+		</ul>
 
-<table>
-  <% @coding_regions.each do |code| %>
-    <tr><td><%= code.string_id%><td><%= code.annotation.nil? ? nil : code.annotation.annotation %></tr>
+
+<h5>Non-Apicomplexan Genes in this OrthoMCL Group with Gene Ontology 'Inferred from Direct Assay (IDA)' Cellular Component Terms</h5>
+<ul>
+    <%
+    codes3 = CodingRegion.go_cc_usefully_termed.not_apicomplexan.all(
+    :joins => {:orthomcl_genes => :orthomcl_groups},
+    :conditions =>
+    ["orthomcl_groups.id = ?", @orthomcl_group.id],
+    :select => 'distinct(coding_regions.*)',
+    :order => 'coding_regions.id'
+    )
+    # Sometimes there is more than one UniProt gene for a single orthomcl gene. These shouldn't
+    # appear as separate genes. Sometimes there is also several OrthoMCL genes for a
+    # single coding region, such as for A8HSA7
+    partitions = {}
+    codes3.each do |c3|
+    c3.orthomcl_genes.official.all.each do |ogene|
+    partitions[ogene] ||= []
+    partitions[ogene].push c3
+    end
+    end %>
+    <% if partitions.empty? %>
+    There are no non-apicomplexan genes that have manually annotated evidence codes.<% else %>
+    <% partitions.to_a.sort{|a,b| a[0].orthomcl_name<=>b[0].orthomcl_name}.each do |part| ogene = part[0]; codes = part[1] %>
+    <% codes.uniq.sort{|a,b| a.string_id <=> b.string_id}.each do |code| %>
+    <li>
+        <%= code.species.name %>: <%= code.orthomcl_genes[0].orthomcl_name %>: <%= link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}" %>- <%= code.coding_region_go_terms.cc.useful.all.uniq.collect{|crgt| link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"}.join(', ') %>; <i><%= code.compartments.join(', ')%></i>
+    </li>
     <% end %>
-</table>
-
-
+    <% end %>
+    <% end %>
+</ul>

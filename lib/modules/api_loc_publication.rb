@@ -1,14 +1,29 @@
+require "zlib"
 # Methods used in the ApiLoc publication
 class BScript
   def apiloc_stats
     puts "For each species, how many genes, publications"
+    total_proteins = 0
+    total_publications = 0
     Species.apicomplexan.all(:order => 'name').each do |s|
+      protein_count = s.number_or_proteins_localised_in_apiloc
+      publication_count = s.number_or_publications_in_apiloc
+      
       puts [
       s.name,
-      s.number_or_proteins_localised_in_apiloc,
-      s.number_or_publications_in_apiloc,
+      protein_count,
+      publication_count,
       ].join("\t")
+      
+      total_proteins += protein_count
+      total_publications += publication_count
     end
+    
+    puts [
+    'Total',
+    total_proteins,
+    total_publications
+    ].join("\t")
   end
   
   def species_localisation_breakdown
@@ -1456,36 +1471,162 @@ class BScript
     p bins
   end
   
+  # Looking through all the genes in the database, cache of the compartments so that things are easier to compare
+  def cache_all_compartments
+    # Cache all apicomplexan compartments
+    codes = CodingRegion.apicomplexan.all
+    progress = ProgressBar.new('apicomplexans', codes.length)
+    codes.each do |code|
+      progress.inc
+      comps = code.compartments
+      comps.each do |comp|
+        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                          code.id, comp
+        )
+      end
+    end
+    progress.finish
+    
+    # Cache all non-apicomplexan compartments
+    codes = CodingRegion.go_cc_usefully_termed.all
+    progress = ProgressBar.new('eukaryotes', codes.length)
+    codes.each do |code|
+      progress.inc
+      comps = code.compartments
+      comps.each do |comp|
+        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                          code.id, comp
+        )
+      end
+    end   
+    progress.finish
+  end
+  
   # How conserved is localisation between the three branches of life with significant
   # data known about them?
-  def conservation_of_eukaryotic_sub_cellular_localisation
+  def conservation_of_eukaryotic_sub_cellular_localisation(debug = false)
     groups_to_counts = {}
     
-    # For each orthomcl group that has IDA CC annotations
+    # For each orthomcl group that has a connection to coding region, and
+    # that coding region has a cached compartment
     OrthomclGroup.all(
-    :select => 'distinct(orthomcl_groups.id)',
-    :joins => {:orthomcl_genes => {:coding_regions => :go_terms}},
-    :conditions => [
-    'go_terms.partition = ? and coding_region_go_terms.evidence_code = ?',
-    GoTerm::CELLULAR_COMPONENT, 'IDA'
-    ]
+    :select => 'distinct(orthomcl_groups.*)',
+    :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}}
     ).each do |ortho_group|
+      
+      $stderr.puts "---------------------------------------------" if debug
+      
       # For each non-Apicomplexan gene with localisation information in this group,
       # assign it compartments.
       # For each apicomplexan, get the compartments from apiloc
       # This is nicely abstracted already!
-      ortho_group.orthomcl_genes.reach.single_code!.no_nils
-      raise
+      # However, a single orthomcl gene can have multiple CodingRegion's associated.
+      # Therefore each has to be analysed as an array, frustratingly.
+      orthomcl_genes = ortho_group.orthomcl_genes.uniq.reject do |s|
+        # reject the orthomcl gene if it has no coding regions associated with it.
+        s.coding_regions.empty?
+      end
+      
+      
+      # Setup data structures
+      kingdom_orthomcls = {} #array of kingdoms to orthomcl genes
+      orthomcl_locs = {} #array of orthomcl_genes to localisations, cached for convenience and speed
+      
+      orthomcl_genes.each do |orthomcl_gene|
+        # Localisations from all coding regions associated with an orthomcl gene are used.
+        locs = orthomcl_gene.coding_regions.reach.cached_compartments.flatten.uniq
+        next if locs.empty? #ignore unlocalised genes completely from hereafter
+        name = orthomcl_gene.orthomcl_name
+        orthomcl_locs[name] = locs
+        
+        # no one orthomcl gene will have coding regions from 2 different species,
+        # so using the first element of the array is fine
+        species = orthomcl_gene.coding_regions[0].species 
+        kingdom_orthomcls[species.kingdom] ||= []
+        kingdom_orthomcls[species.kingdom].push name
+      end
+      
+      $stderr.puts "Kingdoms: #{kingdom_orthomcls.to_a.collect{|k| k[0]}.sort.join(', ')}" if debug
       
       # within the one kingdom, do they agree?
+      kingdom_orthomcls.each do |kingdom, orthomcls|
+        # If there is only a single coding region, then don't record
+        number_in_kingdom_localised = orthomcls.length
+        if number_in_kingdom_localised < 2
+          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdom}, skipping (#{orthomcls.join(', ')})"
+          next
+        end
+        
+        # convert orthomcl genes to localisation arrays
+        locs = orthomcls.collect {|orthomcl|
+          orthomcl_locs[orthomcl]
+        }
+        
+        # OK, so now we are on. Let's do this
+        agreement = OntologyComparison.new.agreement_of_group(locs)
+        index = [kingdom]
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}, #{orthomcls.join(' ')}" if debug
+        groups_to_counts[index] ||= {}
+        groups_to_counts[index][agreement] ||= 0
+        groups_to_counts[index][agreement] += 1
+      end
       
       # within two kingdoms, do they agree?
+      kingdom_orthomcls.to_a.each_lower_triangular_matrix do |array1, array2|
+        kingdom1 = array1[0]
+        kingdom2 = array2[0]
+        orthomcl_array1 = array1[1]
+        orthomcl_array2 = array2[1]
+        orthomcl_arrays = [orthomcl_array1, orthomcl_array2]
+        
+        # don't include unless there is an orthomcl in each kingdom
+        zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+        if zero_entriers.length > 0
+          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping"
+          next         
+        end
+        
+        locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
+        agreement = OntologyComparison.new.agreement_of_group(locs_for_all)
+        
+        index = [kingdom1, kingdom2].sort
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+        groups_to_counts[index] ||= {}
+        groups_to_counts[index][agreement] ||= 0
+        groups_to_counts[index][agreement] += 1
+      end
       
       # within three kingdoms, do they agree?
-      
+      kingdom_orthomcls.to_a.each_lower_triangular_3d_matrix do |a1, a2, a3|
+        kingdom1 = a1[0]
+        kingdom2 = a2[0]
+        kingdom3 = a3[0]
+        orthomcl_array1 = a1[1]
+        orthomcl_array2 = a2[1]
+        orthomcl_array3 = a3[1]
+        kingdoms = [kingdom1, kingdom2, kingdom3]
+        orthomcl_arrays = [orthomcl_array1, orthomcl_array2, orthomcl_array3]
+        
+        # don't include unless there is an orthomcl in each kingdom
+        zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+        if zero_entriers.length > 0
+          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping"
+          next         
+        end
+        
+        locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
+        agreement = OntologyComparison.new.agreement_of_group locs_for_all
+        
+        index = kingdoms.sort
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+        groups_to_counts[index] ||= {}
+        groups_to_counts[index][agreement] ||= 0
+        groups_to_counts[index][agreement] += 1
+      end
     end
     
     # print out the counts for each group of localisations
-    
+    p groups_to_counts
   end
+  
 end

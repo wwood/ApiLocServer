@@ -165,6 +165,8 @@ module DevelopmentalStageConstants
       'tachyzoite mitosis',
       'tachyzoite s-phase',
       'tachyzoite cell division',
+      'early tachyzoite cell division',
+      'late tachyzoite cell division',
       'mature schizont merozoite',
       'early merozoite',
       'extracellular merozoite',
@@ -177,7 +179,8 @@ module DevelopmentalStageConstants
       'merozoite',
       'merozoite invasion',
       'intracellular merozoite',
-      'sporozoite'
+      'sporozoite',
+      'intraerythrocytic',
     ],
     Species::NEOSPORA_CANINUM_NAME => [
       'tachyzoite',
@@ -250,6 +253,7 @@ module DevelopmentalStageConstants
         'intracellular sporozoite',
         'host cell exposed extracellular sporozoite',
         'sporozoite invasion',
+        'after sporozoite invasion of enteric cells',
         'schizont',
         'early first generation schizont',
         'mature first generation schizont',
@@ -348,6 +352,7 @@ module DevelopmentalStageConstants
       'extracellular sporozoite',
       'sporozoite',
       'oocyst sporozoite',
+      'sporoblast',
       'midgut sporozoite',
       'hemolymph sporozoite',
       'salivary gland sporozoite',
@@ -405,7 +410,7 @@ module DevelopmentalStageConstants
       'merozoite',
     ],
   }
-
+  
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
     Species::CHABAUDI_NAME => {},
     Species::KNOWLESI_NAME => {},
@@ -477,13 +482,17 @@ module DevelopmentalStageConstants
         'isolated extracellular sporozoite' => 'extracellular sporozoite',
         'host-cell exposed extracellular sporozoite' => 'host cell exposed extracellular sporozoite',
         'sporozoites' => 'sporozoite',
+        'after sporozoite invasion' => 'after sporozoite invasion of enteric cells',
       }
     },
     Species::NEOSPORA_CANINUM_NAME => {},
     Species::BABESIA_BOVIS_NAME => {
-      'invading merozoites' => 'merozoite invasion'
+      'invading merozoites' => 'merozoite invasion',
+      'infected erythrocytes' => 'intraerythrocytic',
     },
     Species::TOXOPLASMA_GONDII_NAME => {
+      'beginning of cell division' => 'early tachyzoite cell division',
+      'late stage of cell division' => 'late tachyzoite cell division',
       '16h after tachyzoite infection' => '16 hours after tachyzoite infection',
       '20h after tachyzoite infection' => '20 hours after tachyzoite infection',
       'tachyzoite host cell entry' => 'tachyzoite invasion',
