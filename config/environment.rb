@@ -89,3 +89,5 @@ class FlorianApicoplastTransmembraneDomain < TransmembraneDomain; end
 class FlorianMitochondriaTransmembraneDomain < TransmembraneDomain; end
 class FlorianPlasmaMembraneAndAlikeTransmembraneDomain < TransmembraneDomain; end
 class FlorianIntracellularTransmembraneDomain < TransmembraneDomain; end
+
+ExceptionNotifier.exception_recipients = %w(ben@localhost b.woodcroft@pgrad.unimelb.edu.au)

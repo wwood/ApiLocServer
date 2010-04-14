@@ -10,6 +10,9 @@ db.data*
 my_input_output_files_not_part_of_rails_appln
 vendor/plugins/ben_bioinformatics/**
 error.log
+public/apiloc
+public/index.html
+tmp
 MyRakefile
 public/apiloc.html
 public/apiloc/

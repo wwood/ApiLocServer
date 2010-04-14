@@ -1,59 +1,4 @@
 ActionController::Routing::Routes.draw do |map|
-  map.connect 'publications/fulltext/:pmid', :controller => 'publications', :action => 'fulltext'
-  map.resources :publications, {:fulltext => :put}
-
-  map.resources :expression_contexts
-
-  map.resources :microarrays
-
-  map.resources :signal_ps
-
-  map.resources :signal_ps
-
-  map.resources :annotations
-
-  map.resources :orthomcl_genes
-
-  map.resources :orthomcl_groups
-
-  map.resources :probe_map_entries
-
-  map.resources :probe_maps
-
-  map.resources :coding_region_localisations
-
-  map.resources :localisations
-
-  map.resources :coding_region_alternate_string_ids
-
-  map.resources :cluster_entries
-
-  map.resources :clusters
-
-  map.resources :clustersets
-
-  map.resources :species
-
-  map.resources :go_map_entries
-
-  map.resources :go_maps
-
-  map.resources :go_list_entries
-
-  map.resources :go_lists
-
-  map.resources :scaffolds
-
-  map.resources :plasmodb_gene_lists
-
-  map.resources :cds
-
-  map.resources :go_alternates
-
-  map.resources :generic_go_maps
-
-  map.resources :go_terms
-
   map.connect 'coding_regions/export/:strings', :controller => 'coding_regions', :action => 'export'
   map.connect 'coding_regions/export', :controller => 'coding_regions', :action => 'export'
   map.connect 'coding_regions/show', :controller => 'coding_regions', :action => 'show'
@@ -72,11 +17,18 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'apiloc/gene/:species/:id', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:species/:id.:id2', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:species/:id.:id2.:id3', :controller => 'apiloc', :action => 'gene'
-
-  # for annoying gene names like berghei e.g. PB000857.0.0
   map.connect 'apiloc/gene/:id', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:id.:id2', :controller => 'apiloc', :action => 'gene'
   map.connect 'apiloc/gene/:id.:id2.:id3', :controller => 'apiloc', :action => 'gene'
+  map.resources :apiloc
+  map.connect '', :controller => 'apiloc', :action => 'index'
+  map.connect 'gene', :controller => 'apiloc', :action => 'gene'
+
+  # blast routes for quick blasting
+  map.connect 'blasts/:action/:id', :controller => 'blasts', :action => 'index'
+
+  # I'm grasping at straws, but there is some there
+  map.connect ':action/:id', :controller => 'apiloc'
 
   map.connect 'apiloc/proteome/:id', :controller => 'apiloc', :action => 'proteome'
   map.connect 'apiloc/proteome/:id.:id2', :controller => 'apiloc', :action => 'proteome'
@@ -115,6 +67,6 @@ ActionController::Routing::Routes.draw do |map|
   # See how all your routes lay out with "rake routes"
 
   # Install the default routes as the lowest priority.
-  map.connect ':controller/:action/:id', :controller => 'coding_regions', :action => 'index'
-  map.connect ':controller/:action/:id.:format'
+#  map.connect ':controller/:action/:id', :controller => 'coding_regions', :action => 'index'
+#  map.connect ':controller/:action/:id.:format'
 end
