@@ -35,6 +35,9 @@ ActionController::Routing::Routes.draw do |map|
 
   map.connect 'expression_contexts/show', :controller => 'expression_contexts', :action => 'show'
   map.resources :expression_contexts
+    
+  # Negative localisations have the special path
+  map.negative_species 'apiloc/species/negative/:id', :controller => 'apiloc', :action => 'species', :negative => true
 
   # The priority is based upon order of creation: first created -> highest priority.
 

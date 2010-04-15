@@ -91,7 +91,7 @@
     <% popular_developmental_stages.each do |species_name| %>
       <li><%= link_to species_name, :action => :developmental_stage, :id => species_name %></li>
     <% end %>
-    <li><%= image_tag("sqr_bullet_plus.gif", id=>"expandable_unpopular_devs_image", :alt=>"expand", :onclick=>"toggle('expandable_unpopular_devs','expandable_unpopular_devs_image')")%>&nbsp;&nbsp;
+    <li><%= image_tag("sqr_bullet_plus.gif", :id=>"expandable_unpopular_devs_image", :alt=>"expand", :onclick=>"toggle('expandable_unpopular_devs','expandable_unpopular_devs_image')")%>&nbsp;&nbsp;
       other</li>
     <li style="display:none" id="expandable_unpopular_devs">
       <ul>

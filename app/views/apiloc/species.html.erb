@@ -4,7 +4,7 @@
   <% if @viewing_positive_localisations %>
     This is a list of all the known positive localisation annotations. To view negative localisation annotations
     e.g. <%= link_to 'not apicoplast', :action => :localisation, :id => 'not apicoplast' %>,
-    see the <%= link_to 'negative localisations', :action => :species, :id => @species.name, :params => {:negative => true} %>
+    see the <%= link_to 'negative localisations', negative_species_url(@species.name) %>
   <% else %>
     See all <%= link_to 'positive localisations', :action => :species, :id => @species.name %>
   <% end %>
