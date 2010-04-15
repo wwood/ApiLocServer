@@ -8,6 +8,9 @@ if __FILE__ == $0
   FileUtils.rm_f File.join(public_dir,'apiloc.html')
   FileUtils.rm_f File.join(public_dir,'index.html')
   FileUtils.rm_rf File.join(public_dir,'apiloc')
+  FileUtils.rm_rf File.join(public_dir,'microscopy')
+  FileUtils.rm_rf File.join(public_dir,'species')
+  FileUtils.rm_rf File.join(public_dir,'developmental stage')
 else
   raise Exception, 'eh?'
 end
