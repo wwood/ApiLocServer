@@ -164,7 +164,7 @@ class ApilocController < ApplicationController
     
     # build up the query using named_scopes
     @localisations = TopLevelLocalisation
-    if params[:negative] == 'true'
+    if params[:negative]
       @viewing_positive_localisations = false
       @localisations = @localisations.negative
     else

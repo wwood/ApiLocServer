@@ -30,4 +30,21 @@ class ApilocControllerTest < ActionController::TestCase
     assert_equal [], assigns(:codes)
     assert_equal 'Plasmodium blah', assigns(:species_name)
   end
+  
+  test "negative_species_named_route" do
+    assert_equal 'http://test.host/apiloc/species/negative/Plasmodium%20caninum',
+    negative_species_url('Plasmodium caninum')
+  end
+  
+  test "positive species page" do
+    get(:species, :id => 'Plasmodium falciparum')
+    assert_template 'apiloc/species'
+    assert_equal true, assigns(:viewing_positive_localisations)
+  end
+  
+  test "negative species" do
+    get(:species, :id => 'Plasmodium falciparum', :negative => true)
+    assert_template 'apiloc/species'
+    assert_equal false, assigns(:viewing_positive_localisations)
+  end
 end
