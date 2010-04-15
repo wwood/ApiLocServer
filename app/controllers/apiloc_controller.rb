@@ -116,7 +116,12 @@ class ApilocController < ApplicationController
     @localisations = @localisations.select do |d|
       ExpressionContext.count(:conditions => ['localisation_id = ?',d.id])>0
     end
-    raise Exception, "No localisations found by the name of '#{params[:id]}'" if @localisations.length == 0
+    
+    # Deal with situations where the localisations are incorrect
+    if @localisations.length == 0
+      flash[:error] = "No proteins found in the location '#{params[:id]}'"
+      render :action => :location_not_found
+    end
   end
   
   
