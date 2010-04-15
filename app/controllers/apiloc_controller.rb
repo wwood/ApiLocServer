@@ -89,6 +89,7 @@ class ApilocController < ApplicationController
   
   def localisation
     params[:id].downcase! if params[:id] == 'Golgi apparatus' #damn case-sensitive
+    params[:id] = 'cytoplasm' if params[:id] = Localisation::CYTOPLASM_NOT_ORGANELLAR_PUBLIC_NAME
     if params[:id]
       @top_level_localisation = TopLevelLocalisation.find_by_name(params[:id])
       if @top_level_localisation.nil?

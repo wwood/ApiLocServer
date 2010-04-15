@@ -35,6 +35,8 @@ class Localisation < ActiveRecord::Base
     :conditions => ['localisations.name like ?', 'not %']
   }
   
+  CYTOPLASM_NOT_ORGANELLAR_PUBLIC_NAME = 'cytoplasm but not organellar' 
+  
   # Return a list of ORFs that have this and only this localisation
   def get_individual_localisations
     coding_regions = CodingRegion.find_by_sql(

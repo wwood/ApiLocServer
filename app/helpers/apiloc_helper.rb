@@ -9,7 +9,7 @@ module ApilocHelper
       'endoplasmic reticulum',
       'Golgi apparatus',
       'inner membrane complex',
-      'cytoplasm but not organellar',
+      Localisation::CYTOPLASM_NOT_ORGANELLAR_PUBLIC_NAME,
       'food vacuole',
       'parasite plasma membrane',
       'other'
