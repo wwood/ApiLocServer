@@ -7143,7 +7143,7 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
       gz_gene_association_filename
     )
     
-    progress = ProgressBar.new('gene_association', `gunzip -c '#{gz_gene_association_filename}' |wc -l`)
+    progress = ProgressBar.new('gene_association', `gunzip -c '#{gz_gene_association_filename}' |wc -l`.to_i)
 
     Bio::GeneAssociation.new(io).entries.each do |entry|
       progress.inc
@@ -7181,12 +7181,8 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
       )
       goods += 1
     end
-<<<<<<< HEAD:lib/b_script.rb
-
-=======
     progress.finish
     
->>>>>>> 046e80e... added progress bar to gene ontology upload:lib/b_script.rb
     puts "Uploaded #{goods}, failed to upload #{bads}."
   end
 
