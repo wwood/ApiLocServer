@@ -1481,7 +1481,7 @@ class BScript
       comps = code.compartments
       comps.each do |comp|
         CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
-                                                                                          code.id, comp
+                                                                                        code.id, comp
         )
       end
     end
@@ -1495,7 +1495,7 @@ class BScript
       comps = code.compartments
       comps.each do |comp|
         CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
-                                                                                          code.id, comp
+                                                                                        code.id, comp
         )
       end
     end   
@@ -1509,10 +1509,18 @@ class BScript
     
     # For each orthomcl group that has a connection to coding region, and
     # that coding region has a cached compartment
-    OrthomclGroup.all(
+    groups = OrthomclGroup.all(
     :select => 'distinct(orthomcl_groups.*)',
-    :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}}
-    ).each do |ortho_group|
+    :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+#    :limit => 10,
+    :include => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}}
+    )
+    
+    # ProgressBar on stdout, because debug is on stderr
+    progress = ProgressBar.new('conservation', groups.length, STDOUT)
+    
+    groups.each do |ortho_group|
+      progress.inc
       
       $stderr.puts "---------------------------------------------" if debug
       
@@ -1545,6 +1553,8 @@ class BScript
         kingdom_orthomcls[species.kingdom] ||= []
         kingdom_orthomcls[species.kingdom].push name
       end
+      $stderr.puts kingdom_orthomcls.inspect if debug
+      $stderr.puts orthomcl_locs.inspect if debug
       
       $stderr.puts "Kingdoms: #{kingdom_orthomcls.to_a.collect{|k| k[0]}.sort.join(', ')}" if debug
       
@@ -1553,7 +1563,7 @@ class BScript
         # If there is only a single coding region, then don't record
         number_in_kingdom_localised = orthomcls.length
         if number_in_kingdom_localised < 2
-          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdom}, skipping (#{orthomcls.join(', ')})"
+          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdom}, skipping (#{orthomcls.join(', ')})" if debug
           next
         end
         
@@ -1624,9 +1634,9 @@ class BScript
         groups_to_counts[index][agreement] += 1
       end
     end
+    progress.finish
     
     # print out the counts for each group of localisations
     p groups_to_counts
   end
-  
 end

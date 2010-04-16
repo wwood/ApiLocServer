@@ -8,3 +8,8 @@
 #   inflect.irregular 'person', 'people'
 #   inflect.uncountable %w( fish sheep )
 # end
+ActiveSupport::Inflector.inflections do |inflect|
+  # By default, coding_region_compartment_caches.singularize => coding_region_compartment_cach
+  # when we want coding_region_compartment_cache
+  inflect.singular /(^.*ache)s$/, '\1' 
+end

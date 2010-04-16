@@ -34,7 +34,7 @@ class CodingRegion < ActiveRecord::Base
   
   # Convenience method for retrieving compartments already cached
   def cached_compartments
-    coding_region_compartment_caches.reach.compartment
+    coding_region_compartment_caches.reach.compartment.retract
   end
   
   
