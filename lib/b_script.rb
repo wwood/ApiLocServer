@@ -7135,7 +7135,6 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
 
   # Upload the GO annotations for a given species
   def gene_ontology_to_database(species_name, gz_gene_association_filename)
-    require 'gene_association'
     goods = 0
     bads = 0
 
@@ -7145,12 +7144,12 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
     
     progress = ProgressBar.new('gene_association', `gunzip -c '#{gz_gene_association_filename}' |wc -l`.to_i)
 
-    Bio::GeneAssociation.new(io).entries.each do |entry|
+    Bio::FlatFile.foreach(Bio::GO::GeneAssociation, io) do |entry|
       progress.inc
       names = [
-        entry.primary_id,
-        entry.gene_name,
-        entry.alternate_gene_ids,
+      entry.db_object_id,
+      entry.db_object_symbol,
+      entry.db_object_synonym,
       ].flatten
 
       code = nil
@@ -7168,7 +7167,7 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
       end
 
       # GO terms should already be there
-      go_term = GoTerm.find_by_go_identifier_or_alternate(entry.go_identifier)
+      go_term = GoTerm.find_by_go_identifier_or_alternate(entry.goid('fuckin oath'))
 
       unless go_term
         #puts "Couldn't find GO term #{entry.go_identifier}"
@@ -7177,7 +7176,7 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
       end
 
       raise unless CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
-        code.id, go_term.id, entry.evidence_code
+                                                                                                          code.id, go_term.id, entry.evidence
       )
       goods += 1
     end
