@@ -462,6 +462,7 @@ module LocalisationConstants
       'transformation bulb',
       'crystalloid',
       'internal structures',
+      'p-body',
     ],
     Species::VIVAX_NAME => [
       'surface',
