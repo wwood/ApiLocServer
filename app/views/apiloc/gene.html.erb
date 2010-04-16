@@ -14,7 +14,7 @@
     No localisations are recorded in ApiLoc.
   <% else %>
     <% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b <=> a}.each do |publication| %>
-      <p><%= publication.authors %> (<%= publication.date %>, <%= publication.journal %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><br />
+      <p><%= publication.authors %> (<%= publication.date %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><br />
         <b><%= ExpressionContextGroup.new(ExpressionContext.find_all_by_publication_id_and_coding_region_id(
               publication.id, @code.id
             )).english %></b></p>
@@ -218,7 +218,7 @@
 
 <!-- For testing in disqus comments, set the required variable. 
 Currently disqus developer mode is required for production mode as well because ApiLoc is
-password protected behind apache (for now). -->
+password protected (for now). -->
 <script type="text/javascript">disqus_developer = true</script>
 
 <!-- don't ask again if the comment submitter wants to be a guest -->

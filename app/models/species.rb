@@ -37,10 +37,10 @@ class Species < ActiveRecord::Base
   PLANKTON_NAME = 'Ostreococcus tauri'
   MOSS_NAME = 'Physcomitrella patens'
   CASTOR_BEAN_NAME = 'Ricinus communis'
-  
+
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'
-  
+
   UNSEQUENCED_APICOMPLEXANS = [
     'Plasmodium gallinaceum',
     'Plasmodium cynomolgi',
@@ -56,26 +56,26 @@ class Species < ActiveRecord::Base
     'Eimeria maxima',
     'Eimeria tenella',
   ]
-  
+
   APICOMPLEXAN_NAMES = [
-  TOXOPLASMA_GONDII,
-  NEOSPORA_CANINUM_NAME,
-  FALCIPARUM,
-  VIVAX,
-  BERGHEI_NAME,
-  YOELII_NAME,
-  CHABAUDI_NAME,
-  #    BABESIA_BOVIS_NAME,
-  CRYPTOSPORIDIUM_HOMINIS_NAME,
-  CRYPTOSPORIDIUM_PARVUM_NAME,
-  THEILERIA_PARVA_NAME,
-  THEILERIA_ANNULATA_NAME,
+    TOXOPLASMA_GONDII,
+    NEOSPORA_CANINUM_NAME,
+    FALCIPARUM,
+    VIVAX,
+    BERGHEI_NAME,
+    YOELII_NAME,
+    CHABAUDI_NAME,
+#    BABESIA_BOVIS_NAME,
+    CRYPTOSPORIDIUM_HOMINIS_NAME,
+    CRYPTOSPORIDIUM_PARVUM_NAME,
+    THEILERIA_PARVA_NAME,
+    THEILERIA_ANNULATA_NAME,
   ]
   
   has_many :scaffolds, :dependent => :destroy
   has_many :localisations, :dependent => :destroy
   has_many :developmental_stages, :dependent => :destroy
-  
+
   named_scope :apicomplexan, {
     :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES, UNSEQUENCED_APICOMPLEXANS].flatten.to_sql_in_string}"
   }
@@ -88,7 +88,7 @@ class Species < ActiveRecord::Base
     MOUSE_NAME=> 'mmu',
     DROSOPHILA_NAME=> 'dme'
   }
-  
+
   ORTHOMCL_FOUR_LETTERS = {
     DANIO_RERIO_NAME => 'drer',
     RICE_NAME => 'osat',
@@ -115,30 +115,30 @@ class Species < ActiveRecord::Base
     ARABIDOPSIS_NAME => 'atha',
     HUMAN_NAME => 'hsap',
   }
-  
+
   SPECIES_PREFIXES = {
     FALCIPARUM_NAME => 'Pf',
     TOXOPLASMA_GONDII_NAME => 'Tg',
   }
-  
+
   PLASMODB_SPECIES_NAMES = [
-  FALCIPARUM,
-  VIVAX,
-  BERGHEI_NAME,
-  YOELII_NAME,
-  CHABAUDI_NAME,
-  KNOWLESI_NAME,
+    FALCIPARUM,
+    VIVAX,
+    BERGHEI_NAME,
+    YOELII_NAME,
+    CHABAUDI_NAME,
+    KNOWLESI_NAME,
   ]
-  
+
   TOXODB_SPECIES_NAMES = [
-  TOXOPLASMA_GONDII_NAME,
-  NEOSPORA_CANINUM_NAME
+    TOXOPLASMA_GONDII_NAME,
+    NEOSPORA_CANINUM_NAME
   ]
-  
+
   CRYPTODB_SPECIES_NAMES = [
-  CRYPTOSPORIDIUM_HOMINIS_NAME,
-  CRYPTOSPORIDIUM_PARVUM_NAME,
-  CRYPTOSPORIDIUM_MURIS_NAME
+    CRYPTOSPORIDIUM_HOMINIS_NAME,
+    CRYPTOSPORIDIUM_PARVUM_NAME,
+    CRYPTOSPORIDIUM_MURIS_NAME
   ]
   
   PLANTAE_NAME = 'Plantae'
@@ -179,7 +179,7 @@ class Species < ActiveRecord::Base
   named_scope :cryptodb, {
     :conditions => "species.name in #{CRYPTODB_SPECIES_NAMES.to_sql_in_string}"
   }
-  
+
   # deprecated, because orthomcl now uses four letters for each species
   def update_known_three_letters
     ORTHOMCL_THREE_LETTERS.each do |name, three|
@@ -189,7 +189,7 @@ class Species < ActiveRecord::Base
       sp.save!
     end
   end
-  
+
   def update_known_four_letters
     ORTHOMCL_FOUR_LETTERS.each do |name, four|
       sp = Species.find_or_create_by_name(name)
@@ -206,7 +206,7 @@ class Species < ActiveRecord::Base
   def self.theileria_parva_name
     THEILERIA_PARVA
   end
-  
+    
   def self.theileria_annulata_name
     'Theileria annulata'
   end
@@ -254,19 +254,19 @@ class Species < ActiveRecord::Base
   def self.apicomplexan_names
     APICOMPLEXAN_NAMES
   end
-  
+
   def plasmodb?
     PLASMODB_SPECIES_NAMES.include?(name)
   end
-  
+
   def toxodb?
     TOXODB_SPECIES_NAMES.include?(name)
   end
-  
+
   def cryptodb?
     CRYPTODB_SPECIES_NAMES.include?(name)
   end
-  
+
   # Find the species from the gene name, assuming it has a
   # prefix like PfGyrA -> falciparum gene
   #
@@ -280,19 +280,19 @@ class Species < ActiveRecord::Base
     end
     return nil #no species prefix found
   end
-  
+
   # Remove the prefix from this species. Assume that it exists
   def remove_species_prefix(gene_name)
     gene_name.match(/^#{SPECIES_PREFIXES[name]}(.*)/)[1]
   end
-  
+
   def number_or_proteins_localised_in_apiloc
     CodingRegion.s(name).count(
       :select => 'distinct(coding_regions.id)',
       :joins => {:expression_contexts => :localisation}
     )
   end
-  
+
   def number_or_publications_in_apiloc
     Publication.count(
       :select => 'distinct(publications.id)',
@@ -300,7 +300,7 @@ class Species < ActiveRecord::Base
       :conditions => {:localisations => {:species_id => id}}
     )
   end
-  
+
   # Try to return the species with the name as requested
   #  def self.method_missing(method_id)
   #    rets = Species.all(
@@ -313,7 +313,7 @@ class Species < ActiveRecord::Base
   #      super
   #    end
   #  end
-  
+
   def two_letter_prefix
     # if I've not got the binomial name as the final name, then
     # return nil, otherwise an exception will be raised by

@@ -1,7 +1,4 @@
 <h2>ApiLoc Publication</h2>
-<% if @publication.nil? %>
-No publication identified by '<%= @publication_id %>' found. The best way to search for a publication is by using the PubMed identifier, or by searching google. If you cannot find the publication ApiLoc and you think it should be included, please <%= link_to 'email', 'mailto:b.woodcroft@pgrad.unimelb.edu.au' %> us as we are keen for ApiLoc to be as complete as possible.
-<% else %>
 <h2><%= @publication.title %></h2>
 <p><%= @publication.authors %> (<%= @publication.date %>, <%= @publication.journal %>)</p>
 <p><%= @publication.abstract %></p>
@@ -26,5 +23,4 @@ No publication identified by '<%= @publication_id %>' found. The best way to sea
       <% end %>
     </ul>
   </div>
-<% end %>
 <% end %>

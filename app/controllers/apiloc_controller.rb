@@ -15,6 +15,7 @@ class ApilocController < ApplicationController
   # sweeper so caches don't get in the way
   cache_sweeper :apiloc_sweeper
   
+  
   def index
   end
   
@@ -28,35 +29,27 @@ class ApilocController < ApplicationController
       params[:species] = nil
     end
     
-    codes = []
-    if !gene_id or gene_id == ''
-      @gene_id = gene_id
-      @species_name = params[:species]
+    if !gene_id
+      flash[:error] = "Unknown gene id '#{gene_id}'."
       logger.debug "Unknown gene id '#{gene_id}'."
-      render :action => :choose_species
+      redirect_to :action => :index
+      return
+    end
+    
+    codes = nil
+    if params[:species]
+      codes = CodingRegion.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
     else
-      
-      # we have a given gene_id
-      if params[:species]
-        begin
-          codes = CodingRegion.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
-        rescue
-          # rescue when the gene id says differently to the species prefix. In
-          # that case, trust the species name 
-          codes = CodingRegion.fs(gene_id, params[:species])
-        end
-      else
-        codes = CodingRegion.find_all_by_name_or_alternate_maybe_with_species_prefix(gene_id)
-        if codes.empty?
-          codes = CodingRegion.all(
+      codes = CodingRegion.find_all_by_name_or_alternate_maybe_with_species_prefix(gene_id)
+      if codes.empty?
+        codes = CodingRegion.all(
           :joins => [:annotation, :coding_region_alternate_string_ids],
           :select => 'distinct(coding_regions.*)',
           :conditions => [
             'annotations.annotation like ? or coding_region_alternate_string_ids.name like ?',
             "%#{gene_id}%", "%#{gene_id}%"
-          ]
-          )
-        end
+        ]
+        )
       end
     end
     
@@ -64,18 +57,11 @@ class ApilocController < ApplicationController
     unless codes.length == 1
       @gene_id = gene_id
       @codes = codes.sort{|a,b| a.string_id <=> b.string_id}
-      @species_name = params[:species]
       render :action => :choose_species
       return
     end
     
     @code = codes[0]
-    
-    # redirect non-species specific requests to species-specific ones, because
-    # then the caching will be better
-    unless params[:species]
-      redirect_to :controller => :apiloc, :action => :gene, :species => @code.species.name, :id => gene_id
-    end
   end
   
   def publication
@@ -83,7 +69,8 @@ class ApilocController < ApplicationController
     @publication = Publication.find_by_pubmed_id(myed.to_i)
     @publication ||= Publication.find_by_url(myed)
     if @publication.nil?
-      @publication_id = myed
+      flash[:error] = "no publication found by the pubmed or URL '#{myed}'"
+      redirect_to :action => :index
     end
   end
   

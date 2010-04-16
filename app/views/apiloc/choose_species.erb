@@ -1,5 +1,5 @@
 
-<% if @codes and @codes.length > 0 %>
+<% if @codes.length > 0 %>
 <h2>Which gene do you mean?</h2>
 <p>I found genes by that name in these species:</p>
 
@@ -10,5 +10,5 @@
 </ul>
 <% else %>
 <h2>Error</h2>
-I couldn't find any gene called '<%= @gene_id %>' from species '<%= @species_name %>'. If that is an abbreviation for a gene name, then try using all lower-case letters. The EuPathDB gene identifier would be best. If you think this is a mistake in ApiLoc, please <%= link_to 'contact us', "mailto:#{apiloc_contact_email_address}" %> as we are eager for feedback.
+I couldn't find any gene called '<%= @gene_id %>'. If that is an abbreviation for a gene name, then try using all lower-case letters. The EuPathDB gene identifier would be best. If you think this is a mistake in ApiLoc, please <%= link_to 'contact us', "mailto:#{apiloc_contact_email_address}" %> as we are eager for feedback.
 <% end %>
