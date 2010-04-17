@@ -7142,7 +7142,7 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
       gz_gene_association_filename
     )
     
-    progress = ProgressBar.new('gene_association', `gunzip -c '#{gz_gene_association_filename}' |wc -l`.to_i)
+    progress = ProgressBar.new('gene_association', `gunzip -c '#{gz_gene_association_filename}' |wc -l`.to_i, STDOUT)
 
     Bio::FlatFile.foreach(Bio::GO::GeneAssociation, io) do |entry|
       progress.inc
@@ -7170,7 +7170,7 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
       go_term = GoTerm.find_by_go_identifier_or_alternate(entry.goid('fuckin oath'))
 
       unless go_term
-        #puts "Couldn't find GO term #{entry.go_identifier}"
+        $stderr.puts "Couldn't find GO term #{entry.go_identifier}"
         bads += 1
         next
       end
