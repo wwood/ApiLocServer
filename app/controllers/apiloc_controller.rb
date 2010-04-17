@@ -89,6 +89,7 @@ class ApilocController < ApplicationController
   
   def localisation
     params[:id].downcase! if params[:id] == 'Golgi apparatus' #damn case-sensitive
+    params[:id] = 'cytoplasm' if params[:id] = Localisation::CYTOPLASM_NOT_ORGANELLAR_PUBLIC_NAME
     if params[:id]
       @top_level_localisation = TopLevelLocalisation.find_by_name(params[:id])
       if @top_level_localisation.nil?
@@ -115,7 +116,12 @@ class ApilocController < ApplicationController
     @localisations = @localisations.select do |d|
       ExpressionContext.count(:conditions => ['localisation_id = ?',d.id])>0
     end
-    raise Exception, "No localisations found by the name of '#{params[:id]}'" if @localisations.length == 0
+    
+    # Deal with situations where the localisations are incorrect
+    if @localisations.length == 0
+      flash[:error] = "No proteins found in the location '#{params[:id]}'"
+      render :action => :location_not_found
+    end
   end
   
   
@@ -164,7 +170,7 @@ class ApilocController < ApplicationController
     
     # build up the query using named_scopes
     @localisations = TopLevelLocalisation
-    if params[:negative] == 'true'
+    if params[:negative]
       @viewing_positive_localisations = false
       @localisations = @localisations.negative
     else

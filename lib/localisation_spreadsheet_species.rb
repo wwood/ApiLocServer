@@ -14,31 +14,49 @@ module LocalisationSpreadsheetSpecies
   end
 
   def upload
+    $stderr.puts '------ Uploading Plasmodium falciparum------'
     upload_falciparum
+    $stderr.puts '------ Uploading Plasmodium knowlesi------'
     upload_knowlesi
+    $stderr.puts '------ Uploading Plasmodium yoelii------'
     upload_yoelii
+    $stderr.puts '------ Uploading Plasmodium berghei------'
     upload_berghei
+    $stderr.puts '------ Uploading Plasmodium vivax------'
     upload_vivax
+    $stderr.puts '------ Uploading Plasmodium chabaudi------'
     upload_chabaudi
     
+    $stderr.puts '------ Uploading Toxoplasma gondii------'
     upload_toxo
+    $stderr.puts '------ Uploading Babesia bovis------'
     upload_babesia_bovis
+    $stderr.puts '------ Uploading Neospora caninum------'
     upload_neospora_caninum
+    $stderr.puts '------ Uploading Cryptosporidium parvum------'
     upload_cryptosporidium_parvum
+    $stderr.puts '------ Uploading Theileria annulata------'
     upload_theileria_annulata
+    $stderr.puts '------ Uploading Theileria parva------'
     upload_theileria_parva
 
+    $stderr.puts '------ Uploading unsequenced sarcocystis_spp------'
     upload_sarcocystis_spp
+    $stderr.puts '------ Uploading unsequenced babesia_spp------'
     upload_babesia_spp
+    $stderr.puts '------ Uploading unsequenced theileria_spp------'
     upload_theileria_spp
+    $stderr.puts '------ Uploading unsequenced plasmodium_spp------'
     upload_plasmodium_spp
+    $stderr.puts '------ Uploading unsequenced eimeria_spp------'
     upload_eimeria_spp
 
+    $stderr.puts '------ High level locs and dev stages------'
     DevelopmentalStageTopLevelDevelopmentalStage.new.upload_apiloc_top_level_developmental_stages
     ApilocLocalisationTopLevelLocalisation.new.upload_apiloc_top_level_localisations
 
-    gather_genbank_sequences_and_names
     Publication.fill_in_all_extras!
+    gather_genbank_sequences_and_names
   end
 
   def upload_species(species, filename)

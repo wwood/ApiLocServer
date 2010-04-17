@@ -1,4 +1,5 @@
 require "zlib"
+require 'pp'
 # Methods used in the ApiLoc publication
 class BScript
   def apiloc_stats
@@ -1471,69 +1472,144 @@ class BScript
     p bins
   end
   
+  # Looking through all the genes in the database, cache of the compartments so that things are easier to compare
+  def cache_all_compartments
+    # Cache all apicomplexan compartments
+    codes = CodingRegion.apicomplexan.all
+    progress = ProgressBar.new('apicomplexans', codes.length)
+    codes.each do |code|
+      progress.inc
+      comps = code.compartments
+      comps.each do |comp|
+        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                        code.id, comp
+        )
+      end
+    end
+    progress.finish
+    
+    # Cache all non-apicomplexan compartments
+    codes = CodingRegion.go_cc_usefully_termed.all
+    progress = ProgressBar.new('eukaryotes', codes.length)
+    codes.each do |code|
+      progress.inc
+      comps = code.compartments
+      comps.each do |comp|
+        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                        code.id, comp
+        )
+      end
+    end   
+    progress.finish
+  end
+  
   # How conserved is localisation between the three branches of life with significant
   # data known about them?
+  # This method FAILS due to memory and compute time issues - I ended up
+  # essentially abandoning rails for this effort.
   def conservation_of_eukaryotic_sub_cellular_localisation(debug = false)
     groups_to_counts = {}
     
-    # For each orthomcl group that has IDA CC annotations
-    OrthomclGroup.all(
-    :select => 'distinct(orthomcl_groups.id)',
-    :joins => {:orthomcl_genes => {:coding_regions => :go_terms}},
-    :conditions => [
-    'go_terms.aspect = ? and coding_region_go_terms.evidence_code = ?',
-    GoTerm::CELLULAR_COMPONENT, 'IDA'
-    ]
-    ).each do |ortho_group|
+    # For each orthomcl group that has a connection to coding region, and
+    # that coding region has a cached compartment
+    groups = OrthomclGroup.all(
+                               #    :select => 'distinct(orthomcl_groups.*)',
+    :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}}
+    #    :limit => 10,
+    #    :include => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}}
+    )
+    
+    # ProgressBar on stdout, because debug is on stderr
+    progress = ProgressBar.new('conservation', groups.length, STDOUT)
+    
+    groups.each do |ortho_group|
+      progress.inc
+      
+      $stderr.puts "---------------------------------------------" if debug
+      
       # For each non-Apicomplexan gene with localisation information in this group,
       # assign it compartments.
       # For each apicomplexan, get the compartments from apiloc
       # This is nicely abstracted already!
       # However, a single orthomcl gene can have multiple CodingRegion's associated.
       # Therefore each has to be analysed as an array, frustratingly.
-      code_arrays = ortho_group.orthomcl_genes.uniq.reach.coding_regions.reject{|s| s.empty?}
       
-      kingdom_codes = {}
-      code_arrays.each do |code_array|
-        next if code_array.blank?
-        raise unless code_array.reach.species.name.uniq.length == 1 #they should all be the same, but why not check.
-        species = code_array[0].species
-        kingdom_codes[species.kingdom] ||= []
-        kingdom_codes[species.kingdom].push code_array[0].string_id
-      end
+      # reject the orthomcl gene if it has no coding regions associated with it.
+      orthomcl_genes = OrthomclGene.all(
+      :joins => [:coding_regions, :orthomcl_groups], 
+      :conditions => {:orthomcl_groups => {:id => ortho_group.id}}
+      )
+      #      ortho_group.orthomcl_genes.uniq.reject do |s|
+      #        # reject the orthomcl gene if it has no coding regions associated with it.
+      #        s.coding_regions.empty?
+      #      end
       
-      code_locs = {}
-      code_arrays.each do |code_array|
-        name = code_array[0].string_id
-        # the name shouldn't already exist, but sometimes does when 2 orthomcl
-        # genes map to 1 coding region, like for instance hsap|ENSP00000251272
-        # and hsap|ENSP00000375822. Therefore the raise below is commented out
-        #raise Exception, "already found #{name} in #{code_locs.inspect} from #{code_array.inspect}" if code_locs[name]
-
+      
+      # Setup data structures
+      kingdom_orthomcls = {} #array of kingdoms to orthomcl genes
+      orthomcl_locs = {} #array of orthomcl_genes to localisations, cached for convenience and speed
+      
+      orthomcl_genes.each do |orthomcl_gene|
+        # Localisations from all coding regions associated with an orthomcl gene are used.
+        locs = CodingRegionCompartmentCache.all(
+        :joins => {:coding_region => :orthomcl_genes},
+        :conditions => {:orthomcl_genes => {:id => orthomcl_gene.id}}
+        ).reach.compartment.uniq
+        #        locs = orthomcl_gene.coding_regions.reach.cached_compartments.flatten.uniq
+        next if locs.empty? #ignore unlocalised genes completely from hereafter
+        name = orthomcl_gene.orthomcl_name
+        orthomcl_locs[name] = locs
         
-        code_locs[name] = code_array.reach.compartments.flatten.uniq
+        # no one orthomcl gene will have coding regions from 2 different species,
+        # so using the first element of the array is fine
+        species = orthomcl_gene.coding_regions[0].species 
+        kingdom_orthomcls[species.kingdom] ||= []
+        kingdom_orthomcls[species.kingdom].push name
       end
+      $stderr.puts kingdom_orthomcls.inspect if debug
+      $stderr.puts orthomcl_locs.inspect if debug
+      
+      $stderr.puts "Kingdoms: #{kingdom_orthomcls.to_a.collect{|k| k[0]}.sort.join(', ')}" if debug
       
       # within the one kingdom, do they agree?
-      kingdom_codes.each do |kingdom, codes|
-        locs = codes.collect {|code|
-          code_locs[code]
+      kingdom_orthomcls.each do |kingdom, orthomcls|
+        # If there is only a single coding region, then don't record
+        number_in_kingdom_localised = orthomcls.length
+        if number_in_kingdom_localised < 2
+          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdom}, skipping (#{orthomcls.join(', ')})" if debug
+          next
+        end
+        
+        # convert orthomcl genes to localisation arrays
+        locs = orthomcls.collect {|orthomcl|
+          orthomcl_locs[orthomcl]
         }
+        
+        # OK, so now we are on. Let's do this
         agreement = OntologyComparison.new.agreement_of_group(locs)
         index = [kingdom]
-        $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}, #{orthomcls.join(' ')}" if debug
         groups_to_counts[index] ||= {}
         groups_to_counts[index][agreement] ||= 0
         groups_to_counts[index][agreement] += 1
       end
       
       # within two kingdoms, do they agree?
-      kingdom_codes.to_a.each_lower_triangular_matrix do |array1, array2|
+      kingdom_orthomcls.to_a.each_lower_triangular_matrix do |array1, array2|
         kingdom1 = array1[0]
         kingdom2 = array2[0]
-        codes1 = array1[1]
-        codes2 = array2[1]
-        locs_for_all = [codes1,codes2].flatten.collect {|code| code_locs[code]}
+        orthomcl_array1 = array1[1]
+        orthomcl_array2 = array2[1]
+        orthomcl_arrays = [orthomcl_array1, orthomcl_array2]
+        
+        # don't include unless there is an orthomcl in each kingdom
+        zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+        if zero_entriers.length > 0
+          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping"
+          next         
+        end
+        
+        locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
         agreement = OntologyComparison.new.agreement_of_group(locs_for_all)
         
         index = [kingdom1, kingdom2].sort
@@ -1544,24 +1620,180 @@ class BScript
       end
       
       # within three kingdoms, do they agree?
-      kingdom_codes.to_a.each_lower_triangular_3d_matrix do |a1, a2, a3|
+      kingdom_orthomcls.to_a.each_lower_triangular_3d_matrix do |a1, a2, a3|
         kingdom1 = a1[0]
         kingdom2 = a2[0]
         kingdom3 = a3[0]
-        codes1 = a1[1]
-        codes2 = a2[1]
-        codes3 = a3[1]
+        orthomcl_array1 = a1[1]
+        orthomcl_array2 = a2[1]
+        orthomcl_array3 = a3[1]
+        kingdoms = [kingdom1, kingdom2, kingdom3]
+        orthomcl_arrays = [orthomcl_array1, orthomcl_array2, orthomcl_array3]
         
-        agreement = OntologyComparison.new.agreement_of_group([codes1,codes2,codes3].flatten.collect {|code| code_locs[code]})
-        index = [kingdom1, kingdom2, kingdom3].sort
+        # don't include unless there is an orthomcl in each kingdom
+        zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+        if zero_entriers.length > 0
+          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping" if debug
+          next         
+        end
+        
+        locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
+        agreement = OntologyComparison.new.agreement_of_group locs_for_all
+        
+        index = kingdoms.sort
         $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
         groups_to_counts[index] ||= {}
         groups_to_counts[index][agreement] ||= 0
         groups_to_counts[index][agreement] += 1
       end
     end
+    progress.finish
     
     # print out the counts for each group of localisations
     p groups_to_counts
+  end
+  
+  # An attempt to make conservation_of_eukaryotic_sub_cellular_localisation faster
+  # as well as using less memory. In the end the easiest way was to stay away from Rails
+  # almost completely, and just use find_by_sql for the big database dump to a csv file,
+  # and then parse that csv file one line at a time.
+  def conservation_of_eukaryotic_sub_cellular_localisation_slimmer
+    # Cache all of the kingdom information as orthomcl_split to kingdom
+    orthomcl_abbreviation_to_kingdom = {}
+    Species.all(:conditions => 'orthomcl_three_letter is not null').each do |sp|
+      orthomcl_abbreviation_to_kingdom[sp.orthomcl_three_letter] = Species::NAME_TO_KINGDOM[sp.name]
+    end
+    
+    
+    # Copy the data out of the database to a csv file. Beware that there is duplicates in this file
+    tempfile = File.open('/tmp/eukaryotic_conservation','w')
+    #    Tempfile.open('eukaryotic_conservation') do |tempfile|
+    `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
+    OrthomclGene.find_by_sql "copy (select groupa.orthomcl_name, gene.orthomcl_name, cache.compartment from orthomcl_groups groupa inner join orthomcl_gene_orthomcl_group_orthomcl_runs ogogor on groupa.id=ogogor.orthomcl_group_id inner join orthomcl_genes gene on ogogor.orthomcl_gene_id=gene.id inner join orthomcl_gene_coding_regions ogc on ogc.orthomcl_gene_id=gene.id inner join coding_regions code on ogc.coding_region_id=code.id inner join coding_region_compartment_caches cache on code.id=cache.coding_region_id order by groupa.orthomcl_name) to '#{tempfile.path}'"
+    tempfile.close
+    
+    # Parse the csv file to get the answers I'm looking for
+    
+    data = {}
+    kingdom_orthomcls = {} #array of kingdoms to orthomcl genes
+    orthomcl_locs = {} #array of orthomcl_genes to localisations, cached for convenience and speed
+    
+    FasterCSV.foreach(tempfile.path, :col_sep => "\t") do |row|
+      # name columns
+      raise unless row.length == 3
+      group = row[0]
+      gene = row[1]
+      compartment = row[2]
+      
+      data[group] ||= {}
+      
+      kingdom = orthomcl_abbreviation_to_kingdom[OrthomclGene.new.official_split(gene)[0]]
+      data[group]['kingdom_orthomcls'] ||= {}
+      data[group]['kingdom_orthomcls'][kingdom] ||= []
+      data[group]['kingdom_orthomcls'][kingdom].push gene
+      data[group]['kingdom_orthomcls'][kingdom].uniq!
+      
+      data[group]['orthomcl_locs'] ||= {}
+      data[group]['orthomcl_locs'][gene] ||= []
+      data[group]['orthomcl_locs'][gene].push compartment
+      data[group]['orthomcl_locs'][gene].uniq!
+    end
+    #    end
+    
+    # Classify each of the groups into the different categories where possible
+    groups_to_counts = {}
+    data.each do |group, data2|
+      classify_eukaryotic_conservation_of_single_orthomcl_group(
+                                                                data2['kingdom_orthomcls'],
+      data2['orthomcl_locs'],
+      groups_to_counts
+      )
+    end
+    pp groups_to_counts
+  end
+  
+  # This is a modularisation of conservation_of_eukaryotic_sub_cellular_localisation,
+  # and does the calculations on the already transformed data (kingdom_orthomcls, orthomcl_locs).
+  # More details in conservation_of_eukaryotic_sub_cellular_localisation
+  def classify_eukaryotic_conservation_of_single_orthomcl_group(kingdom_orthomcls, orthomcl_locs, groups_to_counts, debug = false)
+    $stderr.puts kingdom_orthomcls.inspect if debug
+    $stderr.puts orthomcl_locs.inspect if debug
+    $stderr.puts "Kingdoms: #{kingdom_orthomcls.to_a.collect{|k| k[0]}.sort.join(', ')}" if debug
+    
+    # within the one kingdom, do they agree?
+    kingdom_orthomcls.each do |kingdom, orthomcls|
+      # If there is only a single coding region, then don't record
+      number_in_kingdom_localised = orthomcls.length
+      if number_in_kingdom_localised < 2
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdom}, skipping (#{orthomcls.join(', ')})" if debug
+        next
+      end
+      
+      # convert orthomcl genes to localisation arrays
+      locs = orthomcls.collect {|orthomcl|
+        orthomcl_locs[orthomcl]
+      }
+      
+      # OK, so now we are on. Let's do this
+      agreement = OntologyComparison.new.agreement_of_group(locs)
+      index = [kingdom]
+      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}, #{orthomcls.join(' ')}" if debug
+      groups_to_counts[index] ||= {}
+      groups_to_counts[index][agreement] ||= 0
+      groups_to_counts[index][agreement] += 1
+    end
+    
+    # within two kingdoms, do they agree?
+    kingdom_orthomcls.to_a.each_lower_triangular_matrix do |array1, array2|
+      kingdom1 = array1[0]
+      kingdom2 = array2[0]
+      orthomcl_array1 = array1[1]
+      orthomcl_array2 = array2[1]
+      orthomcl_arrays = [orthomcl_array1, orthomcl_array2]
+      
+      # don't include unless there is an orthomcl in each kingdom
+      zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+      if zero_entriers.length > 0
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping"
+        next         
+      end
+      
+      locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
+      agreement = OntologyComparison.new.agreement_of_group(locs_for_all)
+      
+      index = [kingdom1, kingdom2].sort
+      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+      groups_to_counts[index] ||= {}
+      groups_to_counts[index][agreement] ||= 0
+      groups_to_counts[index][agreement] += 1
+    end
+    
+    # within three kingdoms, do they agree?
+    kingdom_orthomcls.to_a.each_lower_triangular_3d_matrix do |a1, a2, a3|
+      kingdom1 = a1[0]
+      kingdom2 = a2[0]
+      kingdom3 = a3[0]
+      orthomcl_array1 = a1[1]
+      orthomcl_array2 = a2[1]
+      orthomcl_array3 = a3[1]
+      kingdoms = [kingdom1, kingdom2, kingdom3]
+      orthomcl_arrays = [orthomcl_array1, orthomcl_array2, orthomcl_array3]
+      
+      # don't include unless there is an orthomcl in each kingdom
+      zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+      if zero_entriers.length > 0
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping" if debug
+        next         
+      end
+      
+      locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
+      agreement = OntologyComparison.new.agreement_of_group locs_for_all
+      
+      index = kingdoms.sort
+      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+      groups_to_counts[index] ||= {}
+      groups_to_counts[index][agreement] ||= 0
+      groups_to_counts[index][agreement] += 1
+    end
   end
 end
