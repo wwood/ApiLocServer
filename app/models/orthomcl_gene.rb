@@ -106,7 +106,7 @@ class OrthomclGene < ActiveRecord::Base
     #species specific workarounds below
 
     # Drosophila had problems in Orthomcl v2, but less so in v3
-    if matches[1] === 'dmel' and orthomcl_run.name == OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_2_NAME
+    if matches[1] === 'dme' and orthomcl_run.name == OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_2_NAME
       # for drosophila drop the -PA or -PB at the end of it
       matches = name.match(/^(.*)\-(.*)$/)
       if matches
@@ -303,7 +303,7 @@ class OrthomclGene < ActiveRecord::Base
       end
       
       species = Species.find_by_orthomcl_three_letter(org)
-      raise if !species
+      raise unless species
       codes = CodingRegion.find_all_by_name_or_alternate_and_species(name, species.name)
       if !codes or codes.length == 0
         if warn

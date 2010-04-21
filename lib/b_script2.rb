@@ -1037,4 +1037,18 @@ PFI1740c).include?(f)
       end
     end
   end
+  
+  def robot_targets_foreach_predictor
+    File.foreach("#{PHD_DIR}/robot_targets/targets.list").each do |n|
+      name = n.strip
+      next if name.empty?
+      code = CodingRegion.fs(name, Species::FALCIPARUM_NAME)
+      raise Exception, name unless code
+      puts [
+      code.string_id,
+      code.annotation.annotation,
+      code.plasmo_a_p.predicted?
+      ].join("\t")
+    end
+  end
 end
