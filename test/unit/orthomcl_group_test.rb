@@ -23,7 +23,7 @@ class OrthomclGroupTest < ActiveSupport::TestCase
   
   def test_empty_all_overlapping
     stupid = OrthomclGroup.all_overlapping_groups([])
-    assert_equal OrthomclRun.official_run_v2.orthomcl_groups.count(:select => 'distinct(orthomcl_group_id)'), stupid.length, stupid.inspect
+    assert_equal OrthomclRun.find_by_name(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME).orthomcl_groups.count(:select => 'distinct(orthomcl_group_id)'), stupid.length, stupid.inspect
   end
   
   def test_single_group_with_multiple_same_species_members
@@ -39,5 +39,17 @@ class OrthomclGroupTest < ActiveSupport::TestCase
     
     assert OrthomclGroup.find(1).single_members_by_codes(['pfa','ath'])
     assert_equal false,  OrthomclGroup.find(1).single_members_by_codes(['pfa','ath','nup'])
+  end
+  
+  def test_with_species
+    # test one species
+    assert_equal 1, OrthomclGroup.with_species('pfa').first(:order => 'id').id
+    # test not first one species
+    assert_equal 4, OrthomclGroup.with_species('two').first(:order => 'id').id
+    # setup for testing multiple species - make sure that both species in previous groups,
+    # but this is the first group that has both species in it (when ordered by orthomcl_groups.id)
+    assert_equal 3, OrthomclGroup.with_species('pber').first(:order => 'id').id
+    # test multiple species
+    assert_equal 4, OrthomclGroup.with_species('pfa').with_species('pber').first(:order => 'id').id
   end
 end

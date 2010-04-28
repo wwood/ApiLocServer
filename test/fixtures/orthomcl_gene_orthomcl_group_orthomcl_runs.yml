@@ -55,5 +55,13 @@ seven:
   orthomcl_run_id: 1
 compute_test:
   orthomcl_gene_id: 12
-  orthomcl_group_id: 5 #I don't care about this
+  orthomcl_group_id: 4 #I don't care about this
+  orthomcl_run_id: 1
+not_first1:
+  orthomcl_gene_id: 14
+  orthomcl_group_id: 3
+  orthomcl_run_id: 1
+not_first2:
+  orthomcl_gene_id: 15
+  orthomcl_group_id: 4
   orthomcl_run_id: 1

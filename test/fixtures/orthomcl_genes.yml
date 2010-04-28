@@ -39,3 +39,9 @@ compute_test:
 non_orthomcl:
   id: 13
   orthomcl_name: five
+non_first_group_species:
+  id: 14
+  orthomcl_name: pber|pber1
+non_first_group_species2:
+  id: 15
+  orthomcl_name: pber|pber2
