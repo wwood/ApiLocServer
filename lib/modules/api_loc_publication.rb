@@ -1796,4 +1796,163 @@ class BScript
       groups_to_counts[index][agreement] += 1
     end
   end
+  
+  # Using the assumption that the yeast-mouse, yeast-human and falciparum-toxo divergences are approximately 
+  # equivalent, whatever that means, work out the conservation of localisation between each of those groups.
+  # Does yeast/mouse exhibit the same problems as falciparum/toxo when comparing localisations?
+  def localisation_conservation_between_pairs_of_species(species1 = Species::FALCIPARUM_NAME, species2 = Species::TOXOPLASMA_GONDII_NAME)
+    groups_to_counts = {} #this array ends up holding all the answers after we have finished going through everything
+    
+    toxo_fal_groups = OrthomclGroup.with_species(Species::ORTHOMCL_CURRENT_LETTERS[species1]).with_species(Species::ORTHOMCL_CURRENT_LETTERS[species2]).all(
+    :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+    #    :limit => 10,
+    :select => 'distinct(orthomcl_groups.*)'
+    #    :conditions => ['orthomcl_groups.orthomcl_name = ? or orthomcl_groups.orthomcl_name = ?','OG3_10042','OG3_10032']
+    )
+    
+    $stderr.puts "Found #{toxo_fal_groups.length} groups containing proteins from #{species1} and #{species2}"
+    progress = ProgressBar.new('tfal', toxo_fal_groups.length, STDOUT)
+    
+    toxo_fal_groups.each do |tfgroup|
+      progress.inc
+      
+      orthomcl_locs = {}
+      species_orthomcls = {} #used like kingdom_locs in previous methods
+      
+      # collect the orthomcl_locs array for each species
+      arrays = [species1, species2].collect do |species_name|
+        # collect compartments for each of the toxos
+        genes = tfgroup.orthomcl_genes.code(Species::ORTHOMCL_CURRENT_LETTERS[species_name]).all
+        gene_locs = {}
+        # add all the locs for a given gene
+        genes.each do |gene|
+          locs = gene.coding_regions.collect{|c| c.coding_region_compartment_caches.reach.compartment.retract}.flatten.uniq #all compartments associated with the gene
+          unless locs.empty?
+            gene_locs[gene.orthomcl_name] = locs
+          end
+        end
+        #        $stderr.puts "Found #{genes.length} orthomcl genes in #{species_name} from #{tfgroup.orthomcl_name}, of those, #{gene_locs.length} had localisations"
+        
+        gene_locs.each do |gene, locs|
+          species_orthomcls[species_name] ||= []
+          species_orthomcls[species_name].push gene
+          orthomcl_locs[gene] = locs
+        end
+      end
+      
+      #      pp species_orthomcls
+      #      pp orthomcl_locs
+      classify_eukaryotic_conservation_of_single_orthomcl_group(species_orthomcls, orthomcl_locs, groups_to_counts)
+    end
+    progress.finish
+    
+    pp groups_to_counts
+  end
+  
+  # If you take only localised falciparum proteins with localised yeast and mouse orthologues,
+  # what are the chances that they are conserved
+  def falciparum_predicted_by_yeast_mouse(predicting_species=[Species::YEAST_NAME, Species::MOUSE_NAME], 
+    test_species=Species::FALCIPARUM_NAME)
+    
+    answer = {}
+    
+    # Build up the query using the with_species named_scope,
+    # retrieving all groups that have members in each species
+    fal_groups = OrthomclGroup.with_species(Species::ORTHOMCL_CURRENT_LETTERS[test_species])
+    predicting_species.each do |sp|
+      fal_groups = fal_groups.send(:with_species, Species::ORTHOMCL_CURRENT_LETTERS[sp])
+    end
+    fal_groups = fal_groups.all(:select => 'distinct(orthomcl_groups.*)')#, :limit => 20)
+    
+    $stderr.puts "Found #{fal_groups.length} groups with #{predicting_species.join(', ')} and #{test_species} proteins"
+    progress = ProgressBar.new('predictionByTwo', fal_groups.length, STDOUT)
+    
+    fal_groups.each do |fal_group|
+      progress.inc
+      $stderr.puts
+      # get the localisations from each of the predicting species
+      predicting_array = predicting_species.collect do |species_name|
+        genes = fal_group.orthomcl_genes.code(Species::ORTHOMCL_CURRENT_LETTERS[species_name]).all
+        gene_locs = {}
+        # add all the locs for a given gene
+        genes.each do |gene|
+          locs = gene.coding_regions.collect{|c| c.coding_region_compartment_caches.reach.compartment.retract}.flatten.uniq #all compartments associated with the gene
+          unless locs.empty?
+            gene_locs[gene.orthomcl_name] = locs
+          end
+        end
+        gene_locs
+      end
+      
+      $stderr.puts "OGroup #{fal_group.orthomcl_name} gave #{predicting_array.inspect}"
+      
+      # only consider cases where there is localisations in each of the predicting species
+      next if predicting_array.select{|a| a.empty?}.length > 0
+      
+      # only consider genes where the localisations from the predicting species agree
+      flattened = predicting_array.inject{|a,b| a.merge(b)}.values
+      $stderr.puts "flattened: #{flattened.inspect}"
+      agreement = OntologyComparison.new.agreement_of_group(flattened)
+      next unless agreement == OntologyComparison::COMPLETE_AGREEMENT
+      $stderr.puts "They agree..."
+      
+      # Now compare the agreement between a random falciparum hit and the locs from the predicting
+      prediction = flattened.to_a[0]
+      $stderr.puts "Prediction: #{prediction}"
+      
+      all_fals = CodingRegion.falciparum.all(
+      :joins => [:coding_region_compartment_caches, {:orthomcl_genes => :orthomcl_groups}],
+      :conditions => ['orthomcl_groups.id = ?', fal_group.id] 
+      )
+      next if all_fals.empty?
+      fal = all_fals[rand(all_fals.length)]
+      fal_compartments = fal.cached_compartments
+      $stderr.puts "fal: #{fal.string_id} #{fal_compartments}"
+      
+      agreement = OntologyComparison.new.agreement_of_group([prediction, fal_compartments])
+      $stderr.puts "Final agreement #{agreement}"
+      answer[agreement] ||= 0
+      answer[agreement] += 1
+    end
+    progress.finish
+    pp answer
+  end
+  
+  # Like falciparum_predicted_by_yeast_mouse, except only consider those groups
+  # where there is a single falciparum and single yeast and single mouse protein
+  # is that most? 
+  def falciparum_predicted_by_yeast_mouse_one_to_one
+    
+  end
+  
+  def how_many_genes_are_localised_in_each_species
+    interests = [
+    Species::FALCIPARUM_NAME,
+    Species::TOXOPLASMA_GONDII,
+    Species::MOUSE_NAME,
+    Species::HUMAN_NAME,
+    Species::YEAST_NAME,
+    Species::ARABIDOPSIS_NAME
+    ]
+    
+    # How many genes?
+    interests.each do |interest|
+      count = OrthomclGene.count(
+      :joins => {:coding_regions => [:coding_region_compartment_caches, {:gene => {:scaffold => :species}}]},
+      :select => 'distinct(orthomcl_genes.id)',
+      :conditions => {:species => {:name => interest}}
+      )
+      puts "Found #{count} genes with localisation from #{interest}"
+    end
+    
+    # how many orthomcl groups?
+    interests.each do |interest|
+      count = OrthomclGroup.official.count(
+      :joins => {:orthomcl_genes => {:coding_regions => [:coding_region_compartment_caches, {:gene => {:scaffold => :species}}]}},
+      :conditions => ['orthomcl_genes.orthomcl_name like ? and species.name = ?', "#{Species::ORTHOMCL_CURRENT_LETTERS[interest]}|%", interest],
+      :select => 'distinct(orthomcl_groups.id)'
+      )
+      puts "Found #{count} OrthoMCL groups with localisation from #{interest}"
+    end
+  end
 end

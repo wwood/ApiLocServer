@@ -51,5 +51,14 @@ class OrthomclGroupTest < ActiveSupport::TestCase
     assert_equal 3, OrthomclGroup.with_species('pber').first(:order => 'id').id
     # test multiple species
     assert_equal 4, OrthomclGroup.with_species('pfa').with_species('pber').first(:order => 'id').id
+    
+    # test with extra :join
+    assert_nil OrthomclGroup.with_species('pber').first(
+    :joins => "inner join orthomcl_gene_coding_regions o on o.orthomcl_gene_id=#{OrthomclGroup.orthomcl_gene_table_name_for_with_species_named_scope('pber')}.id"
+    )
+    assert_equal "Official Group with dme and cel", 
+    OrthomclGroup.with_species('pfa').first(
+    :joins => "inner join orthomcl_gene_coding_regions o on o.orthomcl_gene_id=#{OrthomclGroup.orthomcl_gene_table_name_for_with_species_named_scope('pfa')}.id"
+    ).orthomcl_name
   end
 end

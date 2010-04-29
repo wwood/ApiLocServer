@@ -116,6 +116,8 @@ class Species < ActiveRecord::Base
     HUMAN_NAME => 'hsap',
   }
   
+  ORTHOMCL_CURRENT_LETTERS = ORTHOMCL_FOUR_LETTERS
+  
   SPECIES_PREFIXES = {
     FALCIPARUM_NAME => 'Pf',
     TOXOPLASMA_GONDII_NAME => 'Tg',

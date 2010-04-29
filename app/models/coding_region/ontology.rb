@@ -158,4 +158,8 @@ class CodingRegion < ActiveRecord::Base
       end
     }[0]
   end
+  
+#  def localisation_prediction_by_most_common_localisation(predicting_species, cache = true)
+#    raise Exception, "Not implemented" unless cache
+#  end
 end
