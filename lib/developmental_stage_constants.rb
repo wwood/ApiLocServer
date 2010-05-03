@@ -88,7 +88,9 @@ module DevelopmentalStageConstants
       'early hepatocyte',
       'late hepatocyte',
       'hepatocyte schizont',
+      'hepatocyte stage day 2',
       'hepatocyte stage day 3',
+      'hepatocyte stage day 4',
       'hepatocyte stage day 5',
       'hepatocyte stage day 7',
       'hepatocyte merozoite',
@@ -306,9 +308,12 @@ module DevelopmentalStageConstants
     ],
     Species::THEILERIA_ANNULATA_NAME => [
       'macroschizont',
-      'schizont'
+      'schizont',
+      'merogeny',
     ],
     Species::THEILERIA_PARVA_NAME => [
+      'schizont',
+      'merogeny',
     ],
     Species::PLASMODIUM_BERGHEI_NAME => [
       'blood stages',
@@ -356,15 +361,19 @@ module DevelopmentalStageConstants
       'midgut sporozoite',
       'hemolymph sporozoite',
       'salivary gland sporozoite',
+      'sporozoites in the presence of host hepatocytes',
       'after sporozoite invasion of hepatocyte',
       '2 hours after sporozoite invasion of hepatocyte',
       '8 hours after sporozoite invasion of hepatocyte',
       'hepatic',
       'early hepatic',
       'mid hepatic',
+      'liver trophozoite',
+      'early liver schizont',
       'late hepatic',
       'late hepatic schizont',
       'terminal hepatic',
+      'after liver stage completion of daughter parasite development',
       'merozome',
       'cytomere',
       'hepatocyte merozoite',
@@ -618,6 +627,9 @@ module DevelopmentalStageConstants
       'erythrocytic' => 'intraerythrocytic',
       'stage iii-v gametocyte' => 'gametocyte stage III-V',
       '60 hours after sporozoite invasion' => '60 hours after sporozoite invasion of hepatocyte',
+      'liver stage day 2' => 'hepatocyte stage day 2',
+      'liver stage day 4' => 'hepatocyte stage day 4',
+      'liver stage day 7' => 'hepatocyte stage day 7',
     }
   }
 end

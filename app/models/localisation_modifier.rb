@@ -1,7 +1,7 @@
 class LocalisationModifier < ActiveRecord::Base
   KNOWN_MODIFIERS = %w(
     weak  some little sporadically reduced variable partially barely
-    strong substantial mainly throughout predominantly bright especially concentrated
+    strong substantial mainly throughout predominantly bright especially concentrated disperse
     punctate homogenous homogenously diffuse uniform heterogenous entire granular
     semi-punctate smooth beaded patchy varied dotty foci faint
   ).push([
@@ -21,6 +21,7 @@ class LocalisationModifier < ActiveRecord::Base
       'very weak',
       'somewhat punctate',
       'unpolarised on',
+      'very low levels in',
     ]).flatten
 
   def upload_known_modifiers

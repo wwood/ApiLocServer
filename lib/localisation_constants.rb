@@ -28,7 +28,9 @@ module LocalisationConstants
       'parasitophorous vacuole',
       'parasitophorous vacuole subdomains',
       'parasitophorous vacuole membrane',
+      'parasitophorous vacuole lumen',
       'parasite plasma membrane',
+      'nowhere except parasite plasma membrane',
       'apicoplast membrane',
       'proximal to plasma membrane',
       'apical plasma membrane',
@@ -106,6 +108,7 @@ module LocalisationConstants
       'nuclear envelope',
       'perinuclear',
       'far nuclear periphery',
+      'perhiphery of nucleus',
       'interior of nucleus',
       'histones',
       'internal organelle',
@@ -243,6 +246,7 @@ module LocalisationConstants
       'electron dense collar',
       'residual body',
       'distal end of parasitophorous vacuole',
+      'intravacuolar tubular network',
       'cone shaped body of basal complex',
       'acrosome',
       'tubular structure in parasitophorous vacuole',
@@ -416,7 +420,8 @@ module LocalisationConstants
       'nucleus'
     ],
     Species::THEILERIA_PARVA_NAME => [
-      'apical'
+      'apical',
+      'plasma membrane',
     ],
     Species::PLASMODIUM_BERGHEI_NAME => [
       'apical',
@@ -429,6 +434,7 @@ module LocalisationConstants
       'osmiophilic body',
       'gliding trail',
       'cytoplasm',
+      'cytosol',
       'surface',
       'parasitophorous vacuole',
       'close to parasitophorous vacuole membrane',
@@ -456,12 +462,15 @@ module LocalisationConstants
       'maurer\'s cleft',
       'intracellular',
       'host cell cytoplasm',
+      'host cell cytosol',
       'host cell nucleus',
+      'hepatocyte cytoplasm',
       'microtubule',
       'endoplasmic reticulum',
       'transformation bulb',
       'crystalloid',
       'internal structures',
+      'vesicles',
       'p-body',
     ],
     Species::VIVAX_NAME => [
@@ -568,13 +577,19 @@ module LocalisationConstants
       'pv membrane' => 'parasitophorous vacuole membrane',
       'fv' => 'food vacuole',
       'trail' => 'gliding trail',
+      'parasite cytosol' => 'cytosol',
+      'erythrocyte cytosol' => 'host cell cytosol',
+      'erythrocyte' => 'host cell cytosol',
     },
     Species::THEILERIA_ANNULATA_NAME => {
       'mitochondria' => 'mitochondrion',
       'parasite cytoplasm' => 'cytoplasm',
       'parasite plasma membrane' => 'plasma membrane',
+      'surface' => 'plasma membrane',
     },
-    Species::THEILERIA_PARVA_NAME => {},
+    Species::THEILERIA_PARVA_NAME => {
+      'surface' => 'plasma membrane',
+    },
     Species::CRYPTOSPORIDIUM_PARVUM_NAME => {
       'relict mitochondrian' => 'mitochondrion',
       'mitochondrion-like structure' => 'mitochondrion',
@@ -860,7 +875,11 @@ module LocalisationConstants
       'erythrocyte cytoplasmic structures' => 'erythrocyte cytoplasmic structure',
       'alveoli' => 'inner membrane complex',
       'host erythrocyte' => 'erythrocyte',
-      'near parasite membrane' => 'periphery'
+      'near parasite membrane' => 'periphery',
+      'pv lumen' => 'parasitophorous vacuole lumen',
+      'periphery of nuclei' => 'perhiphery of nucleus',
+      'host cell membrane' => 'erythrocyte plasma membrane',
+      'nowhere except merozoite surface' => 'nowhere except parasite plasma membrane',
     }
   }
 
