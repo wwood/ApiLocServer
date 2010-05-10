@@ -1849,6 +1849,52 @@ class BScript
     pp groups_to_counts
   end
   
+  # Run localisation_conservation_between_pairs_of_species for each pair of species
+  # that I care about
+  def exhaustive_localisation_conservation_between_pairs_of_species
+    [
+    Species::YEAST_NAME,
+    Species::MOUSE_NAME,
+    Species::HUMAN_NAME,
+    Species::ARABIDOPSIS_NAME,
+    Species::FALCIPARUM_NAME,
+    Species::TOXOPLASMA_GONDII_NAME,
+    ].each_lower_triangular_matrix do |s1, s2|
+      puts '=============================================================='
+      localisation_conservation_between_pairs_of_species(s1, s2)
+    end
+  end
+  
+  def localisation_pairs_as_matrix
+    master = {}
+    File.foreach("#{PHD_DIR}/apiloc/pairs/results.ruby").each do |line|
+      hash = eval "{#{line}}"
+      master = master.merge hash
+    end
+    
+    organisms = [
+    Species::YEAST_NAME,
+    Species::MOUSE_NAME,
+    Species::HUMAN_NAME,
+    Species::ARABIDOPSIS_NAME,
+    Species::FALCIPARUM_NAME,
+    Species::TOXOPLASMA_GONDII_NAME,    
+    ]
+    print "\t"
+    puts organisms.join("\t")
+    organisms.each do |o1|
+      print o1
+      organisms.each do |o2|
+        print "\t"
+        next if o1 == o2
+        result = master[[o1,o2].sort]
+        raise Exception, "Couldn't find #{[o1,o2].sort}" if result.nil?
+        print result['complete agreement'].to_f/result.values.sum
+      end
+      puts
+    end
+  end
+  
   # If you take only localised falciparum proteins with localised yeast and mouse orthologues,
   # what are the chances that they are conserved
   def falciparum_predicted_by_yeast_mouse(predicting_species=[Species::YEAST_NAME, Species::MOUSE_NAME], 
@@ -1954,5 +2000,92 @@ class BScript
       )
       puts "Found #{count} OrthoMCL groups with localisation from #{interest}"
     end
+  end
+  
+  # Predict the localisation of a protein by determining the amount 
+  def prediction_by_most_common_localisation(predicting_species=[Species::YEAST_NAME, Species::MOUSE_NAME], 
+    test_species=Species::FALCIPARUM_NAME)
+    
+    answer = {}
+    
+    # Build up the query using the with_species named_scope,
+    # retrieving all groups that have members in each species
+    fal_groups = OrthomclGroup.with_species(Species::ORTHOMCL_CURRENT_LETTERS[test_species])
+    predicting_species.each do |sp|
+      fal_groups = fal_groups.send(:with_species, Species::ORTHOMCL_CURRENT_LETTERS[sp])
+    end
+    fal_groups = fal_groups.all(:select => 'distinct(orthomcl_groups.*)')#, :limit => 20)
+    
+    $stderr.puts "Found #{fal_groups.length} groups with #{predicting_species.join(', ')} and #{test_species} proteins"
+    progress = ProgressBar.new('predictionByCommon', fal_groups.length, STDOUT)
+    
+    fal_groups.each do |fal_group|
+      progress.inc
+      
+      # Only include gene that have exactly 1 gene from that species, otherwise it is harder to
+      # work out what is going on.
+      all_tests = fal_group.orthomcl_genes.code(Species::ORTHOMCL_CURRENT_LETTERS[test_species]).all
+      if all_tests.length > 1
+        answer['Too many orthomcl genes found'] ||= 0
+        answer['Too many orthomcl genes found'] += 1
+        next
+      end
+      
+      # gather the actual coding region - discard if there is not exactly 1
+      codes = all_tests[0].coding_regions
+      unless codes.length == 1
+        answer["#{codes.length} coding regions for the 1 orthomcl gene"] ||= 0
+        answer["#{codes.length} coding regions for the 1 orthomcl gene"] += 1
+        next
+      end
+      code = codes[0]
+      
+      # Find the most common localisation in each species predicting
+      preds = [] # the prediction of the most common localisations
+      commons = predicting_species.collect do |s|
+        common = code.localisation_prediction_by_most_common_localisation(s)
+        
+        # Ignore when no loc is found or it is confusing
+        if common.nil?
+          answer["No localisation found when trying to find common"] ||= 0
+          answer["No localisation found when trying to find common"] += 1
+          next
+        end
+        
+        # add the commonest localisation to the prediction array
+        preds.push [common]
+      end
+      
+      # Don't predict unless all species are present
+      if preds.length == predicting_species.length
+        
+        # Only predict if the top 2 species are in agreement
+        if OntologyComparison.new.agreement_of_group(preds) == OntologyComparison::COMPLETE_AGREEMENT
+          final_locs = code.cached_compartments
+          
+          if final_locs.empty?
+            answer["No test species localisation"] ||= 0
+            answer["No test species localisation"] += 1
+          else
+            # Add the final localisation compartments
+            preds.push final_locs
+            acc = OntologyComparison.new.agreement_of_group(preds)
+            
+            answer[acc] ||= 0
+            answer[acc] += 1
+          end
+        else
+          answer["Predicting species don't agree"] ||= 0
+          answer["Predicting species don't agree"] += 1
+        end
+        
+      else
+        answer["Not enough localisation info in predicting groups"] ||= 0
+        answer["Not enough localisation info in predicting groups"] += 1
+      end
+    end
+    
+    progress.finish
+    pp answer
   end
 end
