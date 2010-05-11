@@ -37,6 +37,8 @@ class Species < ActiveRecord::Base
   PLANKTON_NAME = 'Ostreococcus tauri'
   MOSS_NAME = 'Physcomitrella patens'
   CASTOR_BEAN_NAME = 'Ricinus communis'
+  POMBE_NAME = 'Schizosaccharomyces pombe'
+  RAT_NAME = 'Rattus norvegicus'
   
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'

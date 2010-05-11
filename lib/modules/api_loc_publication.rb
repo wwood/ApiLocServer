@@ -381,10 +381,6 @@ class BScript
     end
   end
   
-  def blast_genomes_against_apiloc
-    
-  end
-  
   # Taking all the falciparum proteins, where are the orthologues localised?
   def orthomcl_localisation_annotations
     CodingRegion.falciparum.all(
@@ -406,10 +402,6 @@ class BScript
         $stderr.puts "Couldn't map #{code.string_id}/#{code.annotation.annotation} to orthomcl"
       end
     end
-  end
-  
-  def apiloc_relevant_human_genes
-    
   end
   
   def upload_apiloc_relevant_go_terms
@@ -833,6 +825,16 @@ class BScript
     end
   end
   
+  # Delete all the data associated with the uniprot species so
+  # I can start again.
+  def destroy_all_uniprot_species
+    APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
+      s = Species.find_by_name(species_name)
+      puts "#{species_name}..."
+      s.destroy unless s.nil?
+    end
+  end
+  
   UNIPROT_SPECIES_ID_NAME_HASH = {
     9606 => Species::HUMAN_NAME,
     4932 => Species::YEAST_NAME,
@@ -844,6 +846,10 @@ class BScript
     3055 => Species::CHLAMYDOMONAS_NAME,
     7955 => Species::DANIO_RERIO_NAME,
     4530 => Species::RICE_NAME,
+    
+    # Species below added on the second attempt
+    4896 => Species::POMBE_NAME,
+    10116 => Species::RAT_NAME,
     
     # species below have no non-IEA gene ontology terms so are a waste of time
     #    4087 => Species::TOBACCO_NAME,
