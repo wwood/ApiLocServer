@@ -831,7 +831,7 @@ class BScript
     APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
       s = Species.find_by_name(species_name)
       puts "#{species_name}..."
-      s.destroy unless s.nil?
+      s.delete unless s.nil?
     end
   end
   
