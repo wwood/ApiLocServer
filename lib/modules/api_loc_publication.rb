@@ -502,6 +502,8 @@ class BScript
       'scer' => 'yeast',
       'crei' => 'chlamydomonas',
       'tthe' => 'tetrahymena',
+      'rnor' => 'rat',
+      'spom' => 'pombe',
     }.each do |code, name|
       $stderr.puts name
       out = File.open("#{species_orthologue_folder}/#{name}.txt",'w')
@@ -546,6 +548,7 @@ class BScript
     {
       'human' => Species::HUMAN_NAME,
       'mouse' => Species::MOUSE_NAME,
+      'rat' => Species::RAT_NAME,
     }.each do |this_name, proper_name|
       $stderr.puts this_name
       FasterCSV.foreach("#{species_orthologue_folder}/biomart_results/#{this_name}.csv",
@@ -553,8 +556,8 @@ class BScript
         :headers => true
       ) do |row|
         protein_name = row['Ensembl Protein ID']
-        go_id = row['GO Term Accession']
-        evidence = row['GO Term Evidence Code']
+        go_id = row['GO Term Accession (cc)']
+        evidence = row['GO Term Evidence Code (cc)']
         
         next if go_id.nil? #ignore empty columns
         
@@ -852,7 +855,7 @@ class BScript
     10116 => Species::RAT_NAME,
     
     # species below have no non-IEA gene ontology terms so are a waste of time
-    #    4087 => Species::TOBACCO_NAME,
+    #    4087 => Species::TOBACCO_NAME, 
     #    70448 => Species::PLANKTON_NAME,
     #    3218 => Species::MOSS_NAME,
     #    3988 => Species::CASTOR_BEAN_NAME
