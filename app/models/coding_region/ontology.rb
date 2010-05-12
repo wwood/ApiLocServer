@@ -158,4 +158,40 @@ class CodingRegion < ActiveRecord::Base
       end
     }[0]
   end
+  
+  # Predict the localisation by predicting the most common localisation in the species given
+  def localisation_prediction_by_most_common_localisation(predicting_species, cache = true)
+    raise Exception, "Not implemented" unless cache
+    
+    ogene = single_orthomcl
+    return [] if ogene.nil?
+    ogroup = ogene.official_group
+    
+    predicting_codes = CodingRegion.s(predicting_species).all(
+    :joins => [
+    :coding_region_compartment_caches,
+    {:orthomcl_genes => :orthomcl_groups}
+    ],
+    :conditions => {:orthomcl_groups => {:id => ogroup.id}}
+    )
+    
+    localisation_counts = {}
+    predicting_codes.each do |code|
+      code.cached_compartments.each do |l|
+        localisation_counts[l] ||= 0
+        localisation_counts[l] += 1
+      end
+    end
+    
+    return nil if localisation_counts.empty?
+    
+    localisation_counts.max {|a,b|
+      if a.nil? or b.nil?
+        $stderr.puts 'nil found in #{string_id}'
+        0
+      else
+        a[1] <=> b[1]
+      end
+    }[0]
+  end
 end

@@ -3,7 +3,7 @@
 # official
 one:
   id: 1
-  name: "Official OrthoMCL v2"
+  name: <%= OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_3_NAME %>
 
 two:
   id: 2
