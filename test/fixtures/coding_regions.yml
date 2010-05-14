@@ -97,3 +97,9 @@ vivax:
    gene_id: 8
    string_id: my vivax gene
    orientation: +
+hap:
+  id: 20
+  gene_id: 3
+  jgi_protein_id: 5
+  orientation: +
+  string_id: PF14_0078

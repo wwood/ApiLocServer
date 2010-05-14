@@ -45,3 +45,7 @@ non_first_group_species:
 non_first_group_species2:
   id: 15
   orthomcl_name: pber|pber2
+hap:
+  id: 16
+  orthomcl_name: pfa|PF14_0078
+

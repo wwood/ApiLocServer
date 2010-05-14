@@ -65,3 +65,7 @@ not_first2:
   orthomcl_gene_id: 15
   orthomcl_group_id: 4
   orthomcl_run_id: 1
+compute_test:
+  orthomcl_gene_id: 16
+  orthomcl_group_id: nil
+  orthomcl_run_id: 1
