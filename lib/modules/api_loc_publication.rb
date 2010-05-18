@@ -876,72 +876,76 @@ class BScript
       complete_filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
       
       # Convert the whole gzip in to a smaller one, so parsing is faster:
-      filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}_reduced"
-      cmd = "zcat '#{complete_filename}' |egrep '^(AC|DR   GO|//)' >'#{filename}'"
-      `#{cmd}`
-      
-      dummy_gene = Gene.find_or_create_dummy(species_name)
-      progress = ProgressBar.new(species_name, `grep '^//' '#{filename}' |wc -l`.to_i)
-      File.foreach(filename) do |line|
-        if line == "//\n"
-          count += 1
-          progress.inc
-          #current uniprot is finished - upload it
-          #puts current_uniprot_string
-          u = Bio::UniProt.new(current_uniprot_string)
-          
-          # Upload the UniProt name as the
-          axes = u.ac
-          
-          protein_name = axes[0]
-          raise unless protein_name
-          code = CodingRegion.find_or_create_by_gene_id_and_string_id(
-                                                                      dummy_gene.id,
-                                                                      protein_name
-          )
-          raise unless code.save!
-          
-          protein_alternate_names = axes.no_nils
-          protein_alternate_names.each do |name|
-            CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
-                                                                                                 code.id, name, 'UniProt'
-            ) or raise
+      # Don't use a static name because if two instance are running clashes occur.
+      Tempfile.open("#{species_name}_reduced") do |tempfile|
+        filename = tempfile.path
+        
+        cmd = "zcat '#{complete_filename}' |egrep '^(AC|DR   GO|//)' >'#{filename}'"
+        `#{cmd}`
+        
+        dummy_gene = Gene.find_or_create_dummy(species_name)
+        progress = ProgressBar.new(species_name, `grep '^//' '#{filename}' |wc -l`.to_i)
+        File.foreach(filename) do |line|
+          if line == "//\n"
+            count += 1
+            progress.inc
+            #current uniprot is finished - upload it
+            #puts current_uniprot_string
+            u = Bio::UniProt.new(current_uniprot_string)
+            
+            # Upload the UniProt name as the
+            axes = u.ac
+            
+            protein_name = axes[0]
+            raise unless protein_name
+            code = CodingRegion.find_or_create_by_gene_id_and_string_id(
+                                                                        dummy_gene.id,
+                                                                        protein_name
+            )
+            raise unless code.save!
+            
+            protein_alternate_names = axes.no_nils
+            protein_alternate_names.each do |name|
+              CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+                                                                                                   code.id, name, 'UniProt'
+              ) or raise
+            end
+            
+            goes = u.dr["GO"]
+            goes ||= [] #no go terms associated - best to still make it to the end of the method, because it is too complex here for such hackery
+            
+            goes.each do |go_array|
+              go_id = go_array[0]
+              evidence_almost = go_array[2]
+              evidence = nil
+              if (matches = evidence_almost.match(/^([A-Z]{2,3})\:.*$/))
+                evidence = matches[1]
+              end
+              
+              # error checking
+              if evidence.nil?
+                raise Exception, "No evidence code found in #{go_array.inspect} from #{evidence_almost}!"
+              end
+              
+              
+              go = GoTerm.find_by_go_identifier_or_alternate go_id
+              if go
+                CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
+                                                                                                       code.id, go.id, evidence
+                ).save!
+              else
+                $stderr.puts "Couldn't find GO id #{go_id}"
+              end
+            end
+            
+            current_uniprot_string = ''
+          else
+            current_uniprot_string += line
           end
-          
-          goes = u.dr["GO"]
-          goes ||= [] #no go terms associated - best to still make it to the end of the method, because it is too complex here for such hackery
-          
-          goes.each do |go_array|
-            go_id = go_array[0]
-            evidence_almost = go_array[2]
-            evidence = nil
-            if (matches = evidence_almost.match(/^([A-Z]{2,3})\:.*$/))
-              evidence = matches[1]
-            end
-            
-            # error checking
-            if evidence.nil?
-              raise Exception, "No evidence code found in #{go_array.inspect} from #{evidence_almost}!"
-            end
-            
-            
-            go = GoTerm.find_by_go_identifier_or_alternate go_id
-            if go
-              CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
-                                                                                                     code.id, go.id, evidence
-              ).save!
-            else
-              $stderr.puts "Couldn't find GO id #{go_id}"
-            end
-          end
-          
-          current_uniprot_string = ''
-        else
-          current_uniprot_string += line
         end
-      end
-      progress.finish
-      `rm '#{filename}'`
+        progress.finish
+        
+      end #tempfile
       $stderr.puts "Uploaded #{count} from #{species_name}, now there is #{CodingRegion.s(species_name).count} coding regions in #{species_name}."
     end
     #uploadin the last one not required because the last line is always

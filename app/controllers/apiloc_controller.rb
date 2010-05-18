@@ -7,13 +7,14 @@ class ApilocController < ApplicationController
     :developmental_stage
   ]
   
-  # Define each of the caches
-  APILOC_CACHES.each do |c|
-    caches_page c
-  end
-  
-  # sweeper so caches don't get in the way
-  cache_sweeper :apiloc_sweeper
+#  I gave up on caches because they weren't really working and just causing problems.
+#  # Define each of the caches
+#  APILOC_CACHES.each do |c|
+#    caches_page c
+#  end
+#  
+#  # sweeper so caches don't get in the way
+#  cache_sweeper :apiloc_sweeper
   
   def index
   end

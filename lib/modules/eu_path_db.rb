@@ -292,10 +292,6 @@ class BScript
     
     LocalisationSpreadsheet.new.upload
     proteomics_to_database
-    Publication.fill_in_all_extras! #has to be after spreadsheet and proteomics and gondii_gene_table, because they provide the pubmed ids to expand on
-    
-    DevelopmentalStageTopLevelDevelopmentalStage.new.upload_apiloc_top_level_developmental_stages
-    ApilocLocalisationTopLevelLocalisation.new.upload_apiloc_top_level_localisations
   end
   
   def upload_apiloc_gffs

@@ -89,6 +89,8 @@ class BScript
     File.foreach(filename) do |line|
       line.strip!
       
+      parsed = OrthomclDeflineParser.parse(line)
+      
       # Parse out the official ID
       line = line.gsub(/^>/,'')
       splits_space = line.split(' ')

@@ -887,6 +887,7 @@ module LocalisationConstants
   LOCALISATIONS_WITH_AND_IN_THEIR_NAME = [
     'between er and golgi',
     'between parasite pellicle and PVM',
-    'between pellicle and parasitophorous vacuole membrane'
+    'between pellicle and parasitophorous vacuole membrane',
+    'dispersed fluorescent patches underneath erythrocyte surface',
   ]
 end

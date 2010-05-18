@@ -370,6 +370,7 @@ module DevelopmentalStageConstants
       'mid hepatic',
       'liver trophozoite',
       'early liver schizont',
+      'liver schizont',
       'late hepatic',
       'late hepatic schizont',
       'terminal hepatic',
