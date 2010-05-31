@@ -90,6 +90,12 @@ class SpeciesData
       :source => 'CryptoDB'
     },
 
+    'Theileria annulata' => {
+      :name => 'Theileria annulata',
+    },
+    'Theileria parva' => {
+      :name => 'Theileria annulata',
+    },
   }
   # Duplicate so both the species name and genus-species name work
   @@data.keys.each do |key|
@@ -111,8 +117,14 @@ class SpeciesData
 
 
   def initialize(nickname)
-    @species_data = @@data[nickname]
-    @species_data ||= @@data[nickname.capitalize.gsub('_',' ')]
+    @species_data = @@data[nickname] # try the full name
+    @species_data ||= @@data[nickname.capitalize.gsub('_',' ')] #try replacing underscores
+    if @species_data.nil? # try using just the second word
+      splits = nickname.split(' ')
+      if splits.length == 2
+        @species_data = @@data[splits[1]]
+      end
+    end
 
     raise Exception, "Couldn't find species data for #{nickname}" unless @species_data
   end

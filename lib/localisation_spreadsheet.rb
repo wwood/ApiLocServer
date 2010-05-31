@@ -227,7 +227,6 @@ class LocalisationSpreadsheet
   # Upload localisations and associated data from the spreadsheet (localisation, developmental stage, publication, gene mapping, etc.),
   # It makes the assumption that the gene IDs and common names have already been uploaded, though
   def upload_list_localisations(overall_species, filename)
-    loc = Localisation.new
     overall_species_name = nil
     overall_species_name = overall_species.name unless overall_species.nil?
     
@@ -254,6 +253,7 @@ class LocalisationSpreadsheet
   
   # Localise the the
   def regular_localisation_spreadsheet_upload_list_localisations(sp, filename)
+    loc = Localisation.new
     upload_list_localisations(overall_species, filename) do |sp, code, info|
       # Create the publication(s) we are relying on
       if info.pubmed_id
@@ -438,7 +438,7 @@ class LocalisationSpreadsheetRow
   
   def generate_prefix_from_binomial_name(species_name)
     splits = species_name.split(' ')
-    raise unless splits.length == 2
+    raise Exception, "Unexpected number of words in binomial name '#{species_name}': #{splits.length}" unless splits.length == 2
     raise Exception, "Incorrect first name in #{species_name}" unless splits[0][0..0].upcase!.nil?
     raise unless splits[1][0..0].downcase!.nil?
     "#{splits[0][0..0].upcase}#{splits[1][0..0]}"

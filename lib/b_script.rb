@@ -36,6 +36,7 @@ require 'modules/positional_dependence'
 require 'modules/orthomcl'
 require 'modules/proteomics'
 require 'modules/endomembrane_retrieval'
+require 'modules/second_class_citizens'
 require 'b_script2'
 
 

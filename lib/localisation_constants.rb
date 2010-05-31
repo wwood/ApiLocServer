@@ -47,7 +47,12 @@ module LocalisationConstants
       'cytostome',
       'mitochondrion',
       'mitochondrial inner membrane',
+      'mitochondrial outer membrane',
+      'matrix side of mitochondrial inner membrane',
+      'inner membrane space side of inner membrane of mitochondria',
       'mitochondrial membrane',
+      'mitochondrial matrix',
+      'mitochondrial inner membrane space',
       'apicoplast',
       'nowhere except apicoplast',
       'near apicoplast membranes',
@@ -880,6 +885,13 @@ module LocalisationConstants
       'periphery of nuclei' => 'perhiphery of nucleus',
       'host cell membrane' => 'erythrocyte plasma membrane',
       'nowhere except merozoite surface' => 'nowhere except parasite plasma membrane',
+      'infected erythrocytes' => 'erythrocyte',
+      'mitochrondrial ims' => 'mitochondrial inner membrane space',
+      'mitochondrial' => 'mitochondrion',
+      'ims of mitochondria' => 'mitochondrial inner membrane space',
+      'ims side of inner membrane of mitochondria' => 'inner membrane space side of inner membrane of mitochondria',
+      'mitochondrial ims' => 'mitochondrial inner membrane space',
+      'ims side of mitochondrial inner membrane' => 'inner membrane space side of inner membrane of mitochondria',
     }
   }
 

@@ -38,6 +38,7 @@ class CodingRegion < ActiveRecord::Base
   has_many :microarray_measurements, :dependent => :destroy
   has_many :microarray_timepoints, :through => :microarray_measurements
   has_many :expression_contexts, :dependent => :destroy
+  has_many :second_class_citizen_expression_contexts, :dependent => :destroy
   has_many :localisation_annotations, :dependent => :destroy
   has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation
   has_many :expressed_developmental_stages, :through => :expression_contexts, :source => :developmental_stage
@@ -771,6 +772,15 @@ class CodingRegion < ActiveRecord::Base
   # Print a coding region out like it is in my other localisation spreadsheet
   def localisation_english
     ExpressionContextGroup.new(expression_contexts).english
+  end
+  
+  def inclusive_localisation_english
+    experimentals = ExpressionContextGroup.new(expression_contexts).english
+    seconds = ExpressionContextGroup.new(second_class_citizen_expression_contexts).english
+    result = ""
+    result += "Experimental: '#{experimentals}'. " if experimentals.length > 0
+    result += "Bioinformatic: '#{seconds}'" if seconds.length > 0
+    return result
   end
   
   # return true if there is only 1 top level localisation associated with this coding region

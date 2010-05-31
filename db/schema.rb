@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100531003512) do
+ActiveRecord::Schema.define(:version => 20100531114915) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -871,16 +871,6 @@ ActiveRecord::Schema.define(:version => 20100531003512) do
 
   add_index "scaffolds", ["species_id"], :name => "index_scaffolds_on_species_id"
 
-  create_table "second_class_citizen_informations", :force => true do |t|
-    t.integer  "evidence_coded_expression_context_id"
-    t.string   "gene_mapping_comments"
-    t.string   "reasoning"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "second_class_citizen_informations", ["evidence_coded_expression_context_id"], :name => "index_second_class_citizen_informations_on_evidence_coded_expre"
-
   create_table "sequences", :force => true do |t|
     t.string   "type",             :null => false
     t.integer  "coding_region_id", :null => false
@@ -1110,8 +1100,6 @@ ActiveRecord::Schema.define(:version => 20100531003512) do
   add_foreign_key "proteomic_experiments", "publications", :name => "proteomic_experiments_publication_id_fk", :dependent => :delete
 
   add_foreign_key "scaffolds", "species", :name => "scaffolds_species_id_fk", :dependent => :delete
-
-  add_foreign_key "second_class_citizen_informations", "evidence_coded_expression_contexts", :name => "second_class_citizen_informations_evidence_coded_expression_con", :dependent => :delete
 
   add_foreign_key "transmembrane_domain_measurements", "coding_regions", :name => "transmembrane_domain_measurements_coding_region_id_fk", :dependent => :delete
 

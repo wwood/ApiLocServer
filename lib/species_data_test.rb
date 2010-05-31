@@ -15,6 +15,7 @@ class SpeciesDataTest < Test::Unit::TestCase
   def test_nickname
     spd = SpeciesData.new('Plasmodium yoelii').fasta_file_species_name
     assert_equal spd, SpeciesData.new('yoelii').fasta_file_species_name
+    assert_equal spd, SpeciesData.new('P. yoelii').fasta_file_species_name #check for not exactly the last name but close enough
   end
 
   def test_protein_data_path
