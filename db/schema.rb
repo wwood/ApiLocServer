@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100413042739) do
+ActiveRecord::Schema.define(:version => 20100531003512) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -348,6 +348,20 @@ ActiveRecord::Schema.define(:version => 20100413042739) do
 
   add_index "drosophila_rnai_lethalities", ["lethality"], :name => "index_drosophila_rnai_lethalities_on_lethality", :unique => true
 
+  create_table "evidence_coded_expression_contexts", :force => true do |t|
+    t.integer  "coding_region_id",                                            :null => false
+    t.integer  "publication_id"
+    t.integer  "localisation_id"
+    t.integer  "developmental_stage_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "localisation_modifier_id"
+    t.integer  "localisation_annotation_id",                                  :null => false
+    t.string   "type",                       :default => "ExpressionContext", :null => false
+  end
+
+  add_index "evidence_coded_expression_contexts", ["coding_region_id"], :name => "index_expression_contexts_on_coding_region_id"
+
   create_table "export_preds", :force => true do |t|
     t.integer  "coding_region_id", :null => false
     t.boolean  "predicted"
@@ -355,19 +369,6 @@ ActiveRecord::Schema.define(:version => 20100413042739) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
-
-  create_table "expression_contexts", :force => true do |t|
-    t.integer  "coding_region_id",           :null => false
-    t.integer  "publication_id"
-    t.integer  "localisation_id"
-    t.integer  "developmental_stage_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.integer  "localisation_modifier_id"
-    t.integer  "localisation_annotation_id", :null => false
-  end
-
-  add_index "expression_contexts", ["coding_region_id"], :name => "index_expression_contexts_on_coding_region_id"
 
   create_table "float_coding_region_measurements", :force => true do |t|
     t.string   "type"
@@ -870,6 +871,16 @@ ActiveRecord::Schema.define(:version => 20100413042739) do
 
   add_index "scaffolds", ["species_id"], :name => "index_scaffolds_on_species_id"
 
+  create_table "second_class_citizen_informations", :force => true do |t|
+    t.integer  "evidence_coded_expression_context_id"
+    t.string   "gene_mapping_comments"
+    t.string   "reasoning"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "second_class_citizen_informations", ["evidence_coded_expression_context_id"], :name => "index_second_class_citizen_informations_on_evidence_coded_expre"
+
   create_table "sequences", :force => true do |t|
     t.string   "type",             :null => false
     t.integer  "coding_region_id", :null => false
@@ -1050,10 +1061,10 @@ ActiveRecord::Schema.define(:version => 20100413042739) do
 
   add_foreign_key "drosophila_allele_phenotype_drosophila_allele_genes", "drosophila_allele_phenotypes", :name => "dafk", :dependent => :delete
 
-  add_foreign_key "expression_contexts", "coding_regions", :name => "expression_contexts_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "expression_contexts", "developmental_stages", :name => "expression_contexts_developmental_stage_id_fk", :dependent => :delete
-  add_foreign_key "expression_contexts", "localisations", :name => "expression_contexts_localisation_id_fk", :dependent => :delete
-  add_foreign_key "expression_contexts", "publications", :name => "expression_contexts_publication_id_fk", :dependent => :delete
+  add_foreign_key "evidence_coded_expression_contexts", "coding_regions", :name => "expression_contexts_coding_region_id_fk", :dependent => :delete
+  add_foreign_key "evidence_coded_expression_contexts", "developmental_stages", :name => "expression_contexts_developmental_stage_id_fk", :dependent => :delete
+  add_foreign_key "evidence_coded_expression_contexts", "localisations", :name => "expression_contexts_localisation_id_fk", :dependent => :delete
+  add_foreign_key "evidence_coded_expression_contexts", "publications", :name => "expression_contexts_publication_id_fk", :dependent => :delete
 
   add_foreign_key "gene_alternate_names", "genes", :name => "gene_alternate_names_gene_id_fk", :dependent => :delete
 
@@ -1099,6 +1110,8 @@ ActiveRecord::Schema.define(:version => 20100413042739) do
   add_foreign_key "proteomic_experiments", "publications", :name => "proteomic_experiments_publication_id_fk", :dependent => :delete
 
   add_foreign_key "scaffolds", "species", :name => "scaffolds_species_id_fk", :dependent => :delete
+
+  add_foreign_key "second_class_citizen_informations", "evidence_coded_expression_contexts", :name => "second_class_citizen_informations_evidence_coded_expression_con", :dependent => :delete
 
   add_foreign_key "transmembrane_domain_measurements", "coding_regions", :name => "transmembrane_domain_measurements_coding_region_id_fk", :dependent => :delete
 

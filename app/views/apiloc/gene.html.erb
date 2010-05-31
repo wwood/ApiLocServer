@@ -37,10 +37,10 @@
     <% ogenes = @code.calculate_official_orthomcl_genes
     if ogenes.length == 0 %>
       No entry found in OrthoMCL.
-    <% elsif ogenes.length == 1
+    <% elsif ogenes.length == 1 and ogenes[0].orthomcl_groups.length == 1
       ogene = ogenes[0]
       groups = ogene.orthomcl_groups
-      raise unless groups.length == 1
+      raise if groups.length > 1
       group = groups[0] %>
       <p>Part of OrthoMCL group <%= link_to group.orthomcl_name, "http://orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=groupList&type=ackeyword&q=#{group.orthomcl_name}&in=Group+or+Seq+Accession%28s%29" %></p>
       <h5>Localised Genes in this Group</h5>

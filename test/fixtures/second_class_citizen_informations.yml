@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  second_class_citizen_expression_context_id: 
+  gene_mapping_comments: MyString
+  reasoning: MyString
+
+two:
+  second_class_citizen_expression_context_id: 
+  gene_mapping_comments: MyString
+  reasoning: MyString
