@@ -702,28 +702,33 @@ PFI1740c).include?(f)
     end
   end
 
+  PLASMIT_FILENAME = "/home/ben/phd/data/falciparum/plasmit/20100604.html"
   def plasmit_falciparum
-    plasmit_filename = "#{DATA_DIR}/falciparum/plasmit/20091117.html"
-    `rm #{plasmit_filename}`
+    plasmit_filename = PLASMIT_FILENAME
+    `rm '#{plasmit_filename}'`
 
-    CodingRegion.falciparum.all(
+    codes = CodingRegion.falciparum.all(
       :joins => :amino_acid_sequence,
       :include => :amino_acid_sequence
-    ).each do |code|
+    )
+    progress = ProgressBar.new('plasmit',codes.length)
+    codes.each do |code|
       aa = code.amino_acid_sequence
+      progress.inc
       # only the first 24 amino acids are used, but given that the length
       # output recorded for a 24 amino acid length protein is 23, I'm playing
       # it safe here
       next unless aa.sequence.length > 25
       Tempfile.open('plasmit') do |tempfile|
-        `wget 'http://gecco.org.chemie.uni-frankfurt.de/cgi-bin/plasmit/runanalysis.cgi?output=simple&sequence=>#{code.string_id}%0A#{aa.sequence[0..25]}' -O #{tempfile.path}`
+        `wget -nv 'http://gecco.org.chemie.uni-frankfurt.de/cgi-bin/plasmit/runanalysis.cgi?output=simple&sequence=>#{code.string_id}%0A#{aa.sequence[0..25]}' -O #{tempfile.path}`
         `cat #{tempfile.path} >>#{plasmit_filename}`
       end
     end
+    progress.finish
   end
 
   def upload_plasmit_results
-    File.foreach("#{DATA_DIR}/falciparum/plasmit/20091117.html") do |line|
+    File.foreach(PLASMIT_FILENAME) do |line|
       next unless line.match(/Lines read with presumably/)
       matches = line.match(/>>(.*?)<\/TD><TD>(.*?)</)
       raise unless matches

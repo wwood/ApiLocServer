@@ -21,6 +21,9 @@ class OrthomclDeflineParser
     
     return obj
   end
+  class << self
+    alias_method :parse, :parse_defline
+  end
 end
 
 class OrthomclDefline

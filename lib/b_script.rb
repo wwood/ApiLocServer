@@ -37,6 +37,7 @@ require 'modules/orthomcl'
 require 'modules/proteomics'
 require 'modules/endomembrane_retrieval'
 require 'modules/second_class_citizens'
+require 'modules/voss_proteomics'
 require 'b_script2'
 
 
@@ -5506,16 +5507,20 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
     
 
   
-  
+  GILSON_GPI_LIST_NAME = "Gilson Published GPI 2006"
   def upload_gilson_gpi_list
-    l = PlasmodbGeneList.find_or_create_by_description("Gilson Published GPI 2006")
+    l = PlasmodbGeneList.find_or_create_by_description(GILSON_GPI_LIST_NAME)
     File.open("#{DATA_DIR}/falciparum/localisation/Gilson2006Apr7.GPI.list.csv").each do |line|
+      line.strip!
       p line
-      code = CodingRegion.ff(line.strip)
-      raise if !code
-      PlasmodbGeneListEntry.find_or_create_by_plasmodb_gene_list_id_and_coding_region_id(
-        l.id, code.id
-      )
+      code = CodingRegion.ff(line)
+      if code
+        PlasmodbGeneListEntry.find_or_create_by_plasmodb_gene_list_id_and_coding_region_id(
+          l.id, code.id
+        )
+      else
+        $stderr.puts "Unable to find coding region #{line}" 
+      end
     end
   end
     
