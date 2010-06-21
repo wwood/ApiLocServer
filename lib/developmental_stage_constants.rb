@@ -151,6 +151,7 @@ module DevelopmentalStageConstants
       'shortly after invasion of tachyzoite',
       'mother tachyzoite',
       'mother tachyzoite mitotic division',
+      'tachyzoites undergoing intracellular replication',
       'daughter tachyzoite',
       'daughter tachyzoites before acquisition of plasma membrane',
       'first division of bradyzoite',
@@ -528,6 +529,7 @@ module DevelopmentalStageConstants
       'free tachyzoite' => 'extracellular tachyzoite',
       'released mature tachyzoite' => 'extracellular tachyzoite',
       'shortly after tachyzoite invasion' => 'shortly after invasion of tachyzoite',
+      'newly invaded tachyzoite' => 'shortly after invasion of tachyzoite',
     },
     Species::FALCIPARUM_NAME => {
       'immature oocyst' => 'early oocyst',

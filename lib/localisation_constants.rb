@@ -216,6 +216,7 @@ module LocalisationConstants
       'cytoplasmic structure',
       'cytoplasmic foci',
       'anterior vesicle',
+      'prerhoptry',
       'posterior vesicle',
       'vesicle budding off zoite posterior',
       'multi-vesicular endosome',
@@ -262,6 +263,7 @@ module LocalisationConstants
       'vesicle-like structure just under the parasite membrane',
       'apical conoid',
       'basal complex',
+      'vac' #VAC from "Cathepsin L occupies a vacuolar compartment and is a protein maturase within the endo/exocytic system of Toxoplasma gondii"
     ],
     Species::BABESIA_BOVIS_NAME => [
       'apical',
@@ -653,6 +655,7 @@ module LocalisationConstants
     },
     Species::TOXOPLASMA_GONDII_NAME => {
       'golgi' => 'golgi apparatus',
+      'golgi cisternae' => 'golgi apparatus',
       'cytoplasmic structures' => 'cytoplasmic structure',
       'vesicles' => 'vesicle',
       'cytoplasmic vesicles' => 'cytoplasmic vesicle',
@@ -725,6 +728,8 @@ module LocalisationConstants
       'periphery of pv' => 'periphery of parasitophorous vacuole',
       'membranous pv tubules' => 'membranous parasitophorous vacuole tubules',
       'ring structure at posterior imc' => 'ring structure at posterior inner membrane complex',
+      'cytoplasmic granules of unidentified nature' => 'cytoplasmic foci',
+      'cytoplasmic aggregate' => 'cytoplasmic foci',
     },
     Species::FALCIPARUM_NAME => {
       'host cell' => 'erythrocyte',
@@ -738,7 +743,7 @@ module LocalisationConstants
       'released extracellularly' => 'beyond erythrocyte membrane',
       'small structures in parasite' => 'cytoplasmic structure',
       'parasite nucleus' => 'nucleus',
-      'dispersed fluorescent patches underneath erythrocyte surface' => 'erythrocyte periphery',
+      'underneath erythrocyte surface' => 'erythrocyte periphery',
       'membrane bound vesicles' => 'vesicle',
       'tvn' => 'tubulovesicular membrane',
       'fvm' => 'food vacuole membrane',

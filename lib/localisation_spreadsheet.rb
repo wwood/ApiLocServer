@@ -38,19 +38,19 @@ class LocalisationSpreadsheet
     end
     upload_list_gene_ids sp, filename
     
-    # this could be faster but eh.
-    # If sp.nil? == true that means the species are in each line.
-    if sp.nil?
-      collection = []
-      parse_spreadsheet(nil, filename, false) do |r,line_number|
-        collection.push r.species_name
-      end
-      collection.uniq.each do |name|
-        LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency name
-      end
-    else
-      LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency sp.name
-    end
+#    # this could be faster but eh.
+#    # If sp.nil? == true that means the species are in each line.
+#    if sp.nil?
+#      collection = []
+#      parse_spreadsheet(nil, filename, false) do |r,line_number|
+#        collection.push r.species_name
+#      end
+#      collection.uniq.each do |name|
+#        LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency name
+#      end
+#    else
+#      LiteratureDefinedCodingRegionAlternateStringId.new.check_for_inconsistency sp.name
+#    end
     regular_localisation_spreadsheet_upload_list_localisations(sp, filename)
   end
   
@@ -86,6 +86,7 @@ class LocalisationSpreadsheet
   # If species is nil, this indicates that the name of the species is in the
   # first column of the spreadsheet itself.
   def upload_list_gene_ids(overall_species, filename)
+    
     ignore_mapping_complaints = overall_species.nil? #don't care about mapping problems if there is just a genbank in the gene id column
     
     overall_species_name = nil
@@ -252,7 +253,7 @@ class LocalisationSpreadsheet
   end
   
   # Localise the the
-  def regular_localisation_spreadsheet_upload_list_localisations(sp, filename)
+  def regular_localisation_spreadsheet_upload_list_localisations(overall_species, filename)
     loc = Localisation.new
     upload_list_localisations(overall_species, filename) do |sp, code, info|
       # Create the publication(s) we are relying on

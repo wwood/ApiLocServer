@@ -51,6 +51,9 @@ class ProteomicExperiment < ActiveRecord::Base
     'T. gondii Wastling 1-D SDS PAGE Soluble' => 11796121,
     'T. gondii Wastling MudPIT Insoluble' => 11796121,
     'T. gondii Wastling MudPIT Soluble' => 11796121,
-    'T. gondii Wastling Rhoptry' => 16002398
+    'T. gondii Wastling Rhoptry' => 16002398,
+    # new ones in ToxoDB 6.4
+    'T. gondii Wastling 2-D' => 16002398,
+    'T. gondii Mass SPec data of RH secretome' => 'S. Moreno unpublished',
   }
 end

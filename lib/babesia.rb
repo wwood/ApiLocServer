@@ -1,4 +1,4 @@
-require 'b_script'
+#require 'b_script'
 
 class Babesia
   def seven_species_orthomcl_upload

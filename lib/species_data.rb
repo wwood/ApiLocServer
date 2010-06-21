@@ -68,7 +68,7 @@ class SpeciesData
       :fasta_file_species_name => 'Cryptosporidium_parvum',
       :proteins_fasta_filename => lambda {|version| "CparvumAnnotatedProteins_CryptoDB-#{version}.fasta"},
       :transcripts_fasta_filename => lambda {|version| "CparvumAnnotatedTranscripts_CryptoDB-#{version}.fasta"},
-      :gff_filename => lambda {|version| "c_parvum_iowa_ii.gff"},
+      #:gff_filename => lambda {|version| "c_parvum_iowa_ii.gff"}, #changed as of version 4.3
       :source => 'CryptoDB'
     },
     'Cryptosporidium hominis' => {
@@ -77,7 +77,7 @@ class SpeciesData
       :fasta_file_species_name => 'Cryptosporidium_hominis',
       :proteins_fasta_filename => lambda {|version| "ChominisAnnotatedProteins_CryptoDB-#{version}.fasta"},
       :transcripts_fasta_filename => lambda {|version| "ChominisAnnotatedTranscripts_CryptoDB-#{version}.fasta"},
-      :gff_filename => lambda {|version| "c_hominis_tu502.gff"},
+      #:gff_filename => lambda {|version| "c_hominis_tu502.gff"}, #changed as of version 4.3
       :source => 'CryptoDB'
     },
     'Cryptosporidium muris' => {
@@ -86,7 +86,7 @@ class SpeciesData
       :fasta_file_species_name => 'Cryptosporidium_muris',
       :proteins_fasta_filename => lambda {|version| "CmurisAnnotatedProteins_CryptoDB-#{version}.fasta"},
       :transcripts_fasta_filename => lambda {|version| "CmurisAnnotatedTranscripts_CryptoDB-#{version}.fasta"},
-      :gff_filename => lambda {|version| "c_muris.gff"},
+      #:gff_filename => lambda {|version| "c_muris.gff"}, #changed as of version 4.3
       :source => 'CryptoDB'
     },
 
@@ -141,7 +141,7 @@ class SpeciesData
     raise unless gz #a default will probably come around some time.
     "#{local_download_directory}/#{gz.call(version)}"
   end
-
+  
   def version
     SOURCE_VERSIONS[@species_data[:source]]
   end

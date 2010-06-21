@@ -25,7 +25,7 @@ require 'rarff'
 require 'stdlib'
 require 'babesia'
 require 'spoctopus_wrapper'
-require 'b_script'
+#require 'b_script'
 require 'eu_path_d_b_gene_information_table'
 require 'zlib'
 

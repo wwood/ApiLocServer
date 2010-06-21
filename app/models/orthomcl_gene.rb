@@ -212,7 +212,8 @@ class OrthomclGene < ActiveRecord::Base
     options = {
       :warn=>false, #warn if there is no coding region that matches
       :upload_species_orthomcl_codes_first=>true, #before even looking at the orthomcl data, upload the four letter codes into the species table?
-      :accept_multiple_coding_regions => false #allow multiple coding regions to match to a single coding region - useful in rare cases
+      :accept_multiple_coding_regions => false, #allow multiple coding regions to match to a single coding region - useful in rare cases,
+      :verbose => false, #Tell for each sequence identifier that is being uploaded
     }.merge(options)
 
     Species.new.update_known_four_letters if options[:upload_species_orthomcl_codes_first]
@@ -237,6 +238,7 @@ class OrthomclGene < ActiveRecord::Base
     progress = ProgressBar.new('orthomclink', orthomcls.length)
     orthomcls.each do |orthomcl_gene|
       progress.inc
+      $stderr.puts "Linking OrthoMCL gene `#{orthomcl_gene.id}, #{orthomcl_gene.orthomcl_name}'" if options[:verbose]
     
       codes = orthomcl_gene.compute_coding_regions
       if !codes or codes.length == 0

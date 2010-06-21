@@ -1,7 +1,7 @@
 class LocalisationModifier < ActiveRecord::Base
   KNOWN_MODIFIERS = %w(
-    weak  some little sporadically reduced variable partially barely
-    strong substantial mainly throughout predominantly bright especially concentrated disperse
+    weak some little sporadically reduced variable partially barely minority
+    strong substantial mainly throughout predominantly bright especially concentrated dispersed
     punctate homogenous homogenously diffuse uniform heterogenous entire granular
     semi-punctate smooth beaded patchy varied dotty foci faint
   ).push([

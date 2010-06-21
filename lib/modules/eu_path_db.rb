@@ -83,14 +83,14 @@ class BScript
   def upload_gene_information_table_coding_region(species, gzfile)
     upload_gene_information_table_plumbing(gzfile) do |info|
       # find the gene
-      gene_id = info.get_info('ID')
+      gene_id = info.get_info('Gene Id')
       if info.get_info('Gene') # Toxo is 'ID', whereas falciparum is 'Gene'.
         raise unless gene_id.nil?
         gene_id = info.get_info('Gene')
       end
       code = CodingRegion.fs(gene_id, species.name)
       unless code and code.species.name == species.name
-        $stderr.puts "Couldn't find coding region #{gene_id}, skipping"
+        $stderr.puts "Couldn't find coding region `#{gene_id}, skipping"
         next
       end
       
@@ -257,41 +257,40 @@ class BScript
   
   
   def upload_apiloc_from_scratch
-    go_to_database
-#    download_uniprot_data
-#    uniprot_to_database
-    orthomcl_to_database
+    #    go_to_database
+    #    download_uniprot_data
+    #    uniprot_to_database
+    #    orthomcl_to_database
     
     # Upload basic gene identifiers
-    upload_apiloc_gffs
-    upload_gondii_gene_table_to_database
-    upload_apiloc_fasta_files
-    
-    proteomics_to_database
-    
-    tetrahymena_orf_names_to_database
-    tetrahymena_gene_aliases_to_database
-    yeastgenome_ids_to_database
-    elegans_wormbase_identifiers
-    uniprot_ensembl_databases
-    uniprot_refseq_databases
-    chlamydomonas_link_to_orthomcl_ids
+#    upload_apiloc_gffs
+#    upload_gondii_gene_table_to_database
+#    upload_apiloc_fasta_files
+#    
+#    proteomics_to_database
+#    
+#    tetrahymena_orf_names_to_database
+#    tetrahymena_gene_aliases_to_database
+#    yeastgenome_ids_to_database
+#    elegans_wormbase_identifiers
+#    uniprot_ensembl_databases
+#    uniprot_refseq_databases
+#    chlamydomonas_link_to_orthomcl_ids
     
     Species.new.update_known_four_letters
-    OrthomclGene.new.link_orthomcl_and_coding_regions(
-      "hsap mmus scer drer osat crei atha dmel cele",
-      :accept_multiple_coding_regions => true
-    )
+#    OrthomclGene.new.link_orthomcl_and_coding_regions(
+#      "hsap mmus scer drer osat crei atha dmel cele",
+#      :accept_multiple_coding_regions => true
+#    )
     OrthomclGene.new.link_orthomcl_and_coding_regions(
                                                       Species::APICOMPLEXAN_NAMES.reject{|a|
       a == Species::BABESIA_BOVIS_NAME
     }.collect { |a|
       Species.find_by_name(a).orthomcl_three_letter
-    }
+    }, {:verbose => true, :warn => true}
     )
     
     LocalisationSpreadsheet.new.upload
-    proteomics_to_database
   end
   
   def upload_apiloc_gffs
@@ -450,6 +449,12 @@ class BScript
           # transcripts
           unless File.exists?(spd.transcript_fasta_filename)
             `wget #{spd.eu_path_db_download_directory}/#{spd.transcript_fasta_filename}`
+          end
+          # gene information table - only download for toxo
+          if spd.name == 'Toxoplasma gondii'
+            unless File.exists?(spd.gene_information_gzfile_path)
+              `wget '#{spd.eu_path_db_download_directory}/#{File.basename spd.gene_information_gzfile_path}'`
+            end
           end
         end
       end

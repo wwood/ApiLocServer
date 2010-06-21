@@ -458,7 +458,7 @@ class CodingRegion < ActiveRecord::Base
     # from different species.
     return CodingRegionStrainOrthologue.find_all_by_name(string_id).select{|o|
       o.coding_region.species.name == species_common_name
-    }
+    }.collect{|s| s.coding_region}
   end
   
   def self.find_by_name_or_alternate_and_organism(string_id, organism_common_name)
