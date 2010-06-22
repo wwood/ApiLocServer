@@ -1,7 +1,16 @@
 class CodingRegion < ActiveRecord::Base
   
-  def agreement_with_top_level_localisation(top_level_localisation)
-    known_tops = topsa
+  def agreement_with_top_level_localisation(top_level_localisation, parameter_options={})
+    options = {
+    :by_literature => false,
+    }.merge(parameter_options)
+    
+    known_tops = nil
+    if options[:by_literature]
+      known_tops = literature_based_top_level_localisations
+    else
+      known_tops = topsa
+    end
     
     raise Exception, 
       "Not a TopLevelLocalisation: #{top_level_localisation.inspect}" unless
@@ -44,8 +53,19 @@ class CodingRegion < ActiveRecord::Base
   
   # like CodingRegion#agreement_with_top_level_localisation, except only return
   # these strings: agree, disagree, conflict, "" (for not localised)
-  def agreement_with_top_level_localisation_simple(top_level_localisation)
-    agreement = agreement_with_top_level_localisation(top_level_localisation)
+  def agreement_with_top_level_localisation_simple(top_level_localisation, parameter_options={})
+    options = {
+    :by_literature => false,
+    }.merge(parameter_options)
+    
+    # Get the overall agreement
+    agreement = nil
+    if options[:by_literature]
+      agreement = agreement_with_top_level_localisation(top_level_localisation)
+    else
+      agreement = agreement_with_top_level_localisation(top_level_localisation, :by_literature => true)
+    end
+    
     if [
         "agree but not exclusively",
         "agree exclusively"

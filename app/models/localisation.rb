@@ -8,6 +8,7 @@ class Localisation < ActiveRecord::Base
   has_many :coding_regions, :through => :coding_region_localisations
   has_many :coding_region_localisations, :dependent => :destroy
   has_many :expression_contexts, :dependent => :destroy
+  has_many :second_class_citizen_expression_contexts, :dependent => :destroy
   has_many :expressed_coding_regions, :through => :expression_contexts, :source => :coding_region
   
   has_one :malaria_localisation_top_level_localisation
