@@ -13,8 +13,8 @@ class BScript
     
     puts [
       'PlasmoDB',
-    #      'Annotation',
-    #      'Common names',
+          'Annotation',
+          'Common names',
     #      'Localisation(s)',
     #      'Localisation in Apicomplexan Orthologues',
     #      'PlasmoAP?',
@@ -72,21 +72,22 @@ class BScript
         
         
         puts [
-        #          code.annotation.annotation,
-        #          code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', '),
+                  code.annotation.annotation,
+                  code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.uniq.join(', '),
         #          code.localisation_english,
         #          orth_str,
         #          code.plasmo_a_p.signal?,
         #          code.signalp_however.signal?,
         #          code.tmhmm.transmembrane_domains.length,
         #          code.amino_acid_sequence.exportpred.predicted?,
+#        code.names.reject{|n| n==code.string_id}.join(', '),
         code.agreement_with_top_level_localisation_simple(
                                                           TopLevelLocalisation.find_by_name('nucleus')
         ),
         code.agreement_with_top_level_localisation_simple(
                                                           TopLevelLocalisation.find_by_name('endoplasmic reticulum')
         ),
-        code.literature_based_top_level_localisations.reach.name.uniq.join(', '),
+        code.localisation_english(:by_literature => true),
         code.agreement_with_top_level_localisation_simple(
                                                           TopLevelLocalisation.find_by_name('nucleus'),
             :by_literature => true

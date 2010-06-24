@@ -6,10 +6,13 @@ class CodingRegion < ActiveRecord::Base
     }.merge(parameter_options)
     
     known_tops = nil
+    expressed_locs = nil
     if options[:by_literature]
       known_tops = literature_based_top_level_localisations
+      expressed_locs = expressed_second_class_citizen_localisations
     else
       known_tops = topsa
+      expressed_locs = expressed_localisations
     end
     
     raise Exception, 
@@ -19,7 +22,7 @@ class CodingRegion < ActiveRecord::Base
     if known_tops.include?(top_level_localisation)
       if known_tops.length == 1
         # if top_levels agree, but there is some rubbish left over?
-        if expressed_localisations.select {|l|
+        if expressed_locs.select {|l|
             l.apiloc_top_level_localisation.nil?
           }.length > 0
           return "agree but not exclusively"
@@ -42,7 +45,7 @@ class CodingRegion < ActiveRecord::Base
       if known_tops.include?(top_level_localisation.negation)
         return "disagree specifically"
       else
-        if expressed_localisations.length == 0
+        if expressed_locs.length == 0
           return "not localised"
         else
           return "disagree but not specifically"
@@ -61,9 +64,9 @@ class CodingRegion < ActiveRecord::Base
     # Get the overall agreement
     agreement = nil
     if options[:by_literature]
-      agreement = agreement_with_top_level_localisation(top_level_localisation)
-    else
       agreement = agreement_with_top_level_localisation(top_level_localisation, :by_literature => true)
+    else
+      agreement = agreement_with_top_level_localisation(top_level_localisation)
     end
     
     if [

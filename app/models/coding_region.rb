@@ -42,6 +42,7 @@ class CodingRegion < ActiveRecord::Base
   has_many :localisation_annotations, :dependent => :destroy
   has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation
   has_many :expressed_developmental_stages, :through => :expression_contexts, :source => :developmental_stage
+  has_many :expressed_second_class_citizen_localisations, :through => :second_class_citizen_expression_contexts, :source => :localisation
   has_many :integer_coding_region_measurements, :dependent => :destroy
   has_many :proteomic_experiment_results, :dependent => :destroy
   has_many :proteomic_experiment_peptides, :dependent => :destroy
