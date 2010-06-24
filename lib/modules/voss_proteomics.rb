@@ -26,7 +26,8 @@ class BScript
       'Literature survey localisation description',
       'Literature survey nuclear agreement',
       'Localisation description of Orthologue(s)',
-      'Included in Maurer\'s Cleft proteome?'
+      'Included in Maurer\'s Cleft proteome?',
+      'Included in Food Vacuole proteome?',
     #      top_names.collect{|n| "'#{n}' Agreement"},
     #      'In Lifecycle Proteomics at all?',
     #      'In Lifecycle Proteomics with at least 2 peptides'
@@ -69,6 +70,7 @@ class BScript
         end
         
         maurers_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME)
+        fv_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME)
         
         
         puts [
@@ -94,6 +96,7 @@ class BScript
         ),
         lit_orth_str,
         maurers_proteome.coding_regions.include?(code),
+        fv_proteome.coding_regions.include?(code),
         #          top_names.collect{|top_name|
         #            code.agreement_with_top_level_localisation(
         #              TopLevelLocalisation.find_by_name(top_name)
