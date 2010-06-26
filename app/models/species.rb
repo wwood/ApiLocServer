@@ -345,7 +345,7 @@ class Species < ActiveRecord::Base
   
   def self.four_letter_to_species_name(abbreviation)
     ORTHOMCL_FOUR_LETTERS.each do |name, four|
-      return name if abbreviation==name
+      return name if abbreviation==four
     end
     raise Exception, "Four letter OrthoMCL letter not recorded: `#{abbreviation}'"
   end
