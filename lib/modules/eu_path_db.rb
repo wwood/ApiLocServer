@@ -259,7 +259,7 @@ class BScript
   def upload_apiloc_from_scratch
     #    go_to_database
     #    download_uniprot_data
-    #    uniprot_to_database
+        uniprot_to_database
     #    orthomcl_to_database
     
     # Upload basic gene identifiers
@@ -273,15 +273,15 @@ class BScript
 #    tetrahymena_gene_aliases_to_database
 #    yeastgenome_ids_to_database
 #    elegans_wormbase_identifiers
-#    uniprot_ensembl_databases
-#    uniprot_refseq_databases
+    uniprot_ensembl_databases
+    uniprot_refseq_databases
 #    chlamydomonas_link_to_orthomcl_ids
     
     Species.new.update_known_four_letters
-#    OrthomclGene.new.link_orthomcl_and_coding_regions(
-#      "hsap mmus scer drer osat crei atha dmel cele",
-#      :accept_multiple_coding_regions => true
-#    )
+    OrthomclGene.new.link_orthomcl_and_coding_regions(
+      "hsap mmus scer drer osat crei atha dmel cele",
+      :accept_multiple_coding_regions => true
+    )
     OrthomclGene.new.link_orthomcl_and_coding_regions(
                                                       Species::APICOMPLEXAN_NAMES.reject{|a|
       a == Species::BABESIA_BOVIS_NAME
