@@ -1027,14 +1027,16 @@ class BScript
         protein_name = axes[0]
         raise unless protein_name
         code = CodingRegion.fs(protein_name, species_name)
-        raise unless code
-        
-        unless u.gn.empty?
-          u.gn[0][:loci].each do |orfname|
-            CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
-                                                                                      code.id, orfname
-            )
+        if code
+          unless u.gn.empty?
+            u.gn[0][:loci].each do |orfname|
+              CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
+                                                                                        code.id, orfname
+              )
+            end
           end
+        else
+          $stderr.puts "Unable to find protein `#{protein_name}'"  
         end
         
         current_uniprot_string = ''
@@ -2100,5 +2102,98 @@ class BScript
     
     progress.finish
     pp answer
+  end
+  
+  def stuarts_basel_spreadsheet
+    # Copy the data out of the database to a csv file. Beware that there is duplicates in this file
+    tempfile = File.open('/tmp/eukaryotic_conservation','w')
+    #    Tempfile.open('eukaryotic_conservation') do |tempfile|
+    `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
+    OrthomclGene.find_by_sql "copy (select groupa.orthomcl_name, gene.orthomcl_name, cache.compartment from orthomcl_groups groupa inner join orthomcl_gene_orthomcl_group_orthomcl_runs ogogor on groupa.id=ogogor.orthomcl_group_id inner join orthomcl_genes gene on ogogor.orthomcl_gene_id=gene.id inner join orthomcl_gene_coding_regions ogc on ogc.orthomcl_gene_id=gene.id inner join coding_regions code on ogc.coding_region_id=code.id inner join coding_region_compartment_caches cache on code.id=cache.coding_region_id order by groupa.orthomcl_name) to '#{tempfile.path}'"
+    tempfile.close
+    
+    groups_genes = {}
+    genes_localisations = {}
+    
+    # Read groups, genes, and locs into memory
+    FasterCSV.foreach(tempfile.path, :col_sep => "\t") do |row|
+      # name columns
+      raise unless row.length == 3
+      group = row[0]
+      gene = row[1]
+      compartment = row[2]
+      
+      groups_genes[group] ||= []
+      groups_genes[group].push gene
+      groups_genes[group].uniq!
+      
+      genes_localisations[gene] ||= []
+      genes_localisations[gene].push compartments
+      genes_localisations[gene].uniq!
+    end
+    
+    # Iterate through each OrthoMCL group, printing them out if they fit the criteria
+    groups_genes.each do |group, ogenes|
+      # associate genes with species
+      species_gene = {}
+      ogenes.each do |ogene|
+        sp = Species.four_letter_to_species_name(OrthomclGene.new.official_split(ogene)[0])
+        
+        species_gene[sp] ||= []
+        species_gene[sp].push ogene
+        species_gene[sp].uniq!
+      end
+      
+      # skip groups that are only localised in a single species
+      next if species_gene.length == 1
+      
+      # skip groups that have more than 2 localised genes in each group.
+      species_gene.each do |species, genes|
+        next if genes.length > 2
+      end
+      
+      # procedure for making printing easier
+      generate_cell = lambda do |gene|
+        locs = genes_localisations[gene]
+        if %(cytoplasm nucleus) == locs.sort
+          locs = %w(nucleus)
+        end
+        
+        if locs.length == 1
+          [OrthomclGene.new.official_split(gene)[1], locs[0]]
+        elsif locs.length == 0
+          raise Exception, "Unexpected lack of loc information"
+        else
+          nil
+        end
+      end
+      
+      row = [group]
+      failed = false #fail if genes have >1 localisation
+      [
+      Species::ARABIDOPSIS_NAME,
+      Species::FALCIPARUM,
+      Species::TOXOPLASMA_GONDII,
+      Species::YEAST_NAME,
+      Species::MOUSE_NAME,
+      Species::HUMAN_NAME
+      ].each do |s|
+        if species_gene[s].length == 0
+          row.push ['','']
+          row.push ['','']
+        elsif species_gene[s].length == 1
+          row.push ['','']
+          r = generate_cell species_gene[s][0]
+          failed = true if r.nil?
+          row.push r
+        else
+          species_gene[s].each do |g|
+            r = generate_cell g
+            failed = true if r.nil?  
+          end
+        end
+      end
+      puts row.join("\t") unless failed
+    end
   end
 end
