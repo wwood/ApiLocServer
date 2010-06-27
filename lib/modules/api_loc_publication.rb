@@ -2107,12 +2107,12 @@ class BScript
   end
   
   def stuarts_basel_spreadsheet_yeast_setup
-#    uniprot_to_database(Species::YEAST_NAME)
-#    yeastgenome_ids_to_database
-#    OrthomclGene.new.link_orthomcl_and_coding_regions(
-#      "scer",
-#      :accept_multiple_coding_regions => true
-#    )
+    #    uniprot_to_database(Species::YEAST_NAME)
+    #    yeastgenome_ids_to_database
+    #    OrthomclGene.new.link_orthomcl_and_coding_regions(
+    #      "scer",
+    #      :accept_multiple_coding_regions => true
+    #    )
     
     # cache compartments
     codes = CodingRegion.s(Species::YEAST_NAME).go_cc_usefully_termed.all
@@ -2129,7 +2129,7 @@ class BScript
     progress.finish
   end
   
-  def stuarts_basel_spreadsheet
+  def stuarts_basel_spreadsheet(accept_multiples = false)
     species_of_interest = [
     Species::ARABIDOPSIS_NAME,
     Species::FALCIPARUM,
@@ -2216,8 +2216,8 @@ class BScript
       # procedure for making printing easier
       generate_cell = lambda do |gene|
         locs = genes_localisations[gene]
-        if %w(cytoplasm nucleus) == locs.sort
-          locs = %w(nucleus)
+        if locs.include?('cytoplasm') and locs.include?('nucleus')
+          locs.reject!{|l| l=='cytoplasm'}
         end
         
         if locs.length == 1
@@ -2225,8 +2225,12 @@ class BScript
         elsif locs.length == 0
           raise Exception, "Unexpected lack of loc information"
         else
-          $stderr.puts "Returning nil for #{gene} because there is #{locs.length} localisations"
-          nil
+          if accept_multiples
+            [OrthomclGene.new.official_split(gene)[1], locs.sort.join(', ')]
+          else
+            $stderr.puts "Returning nil for #{gene} because there is #{locs.length} localisations"
+            nil
+          end
         end
       end
       
