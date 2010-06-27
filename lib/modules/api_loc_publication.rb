@@ -2105,25 +2105,27 @@ class BScript
     progress.finish
     pp answer
   end
+  
   def stuarts_basel_spreadsheet_yeast_setup
-uniprot_to_database(Species::YEAST_NAME)
-yeastgenome_ids_to_database
+    uniprot_to_database(Species::YEAST_NAME)
+    yeastgenome_ids_to_database
     OrthomclGene.new.link_orthomcl_and_coding_regions(
       "scer",
       :accept_multiple_coding_regions => true
     )
-end
+  end
+  
   def stuarts_basel_spreadsheet
-species_of_interest = [
-      Species::ARABIDOPSIS_NAME,
-      Species::FALCIPARUM,
-      Species::TOXOPLASMA_GONDII,
-      Species::YEAST_NAME,
-      Species::MOUSE_NAME,
-      Species::HUMAN_NAME
-      ]
-
-$stderr.puts "Copying data to tempfile.."
+    species_of_interest = [
+    Species::ARABIDOPSIS_NAME,
+    Species::FALCIPARUM,
+    Species::TOXOPLASMA_GONDII,
+    Species::YEAST_NAME,
+    Species::MOUSE_NAME,
+    Species::HUMAN_NAME
+    ]
+    
+    $stderr.puts "Copying data to tempfile.."
     # Copy the data out of the database to a csv file. Beware that there is duplicates in this file
     tempfile = File.open('/tmp/eukaryotic_conservation','w')
     #    Tempfile.open('eukaryotic_conservation') do |tempfile|
@@ -2135,9 +2137,9 @@ $stderr.puts "Copying data to tempfile.."
     genes_localisations = {}
     
     # Read groups, genes, and locs into memory
-$stderr.puts "Reading into memory sql results.."
+    $stderr.puts "Reading into memory sql results.."
     FasterCSV.foreach(tempfile.path, :col_sep => "\t") do |row|
-#FasterCSV.foreach('/tmp/eukaryotic_conservation_test', :col_sep => "\t") do |row|
+      #FasterCSV.foreach('/tmp/eukaryotic_conservation_test', :col_sep => "\t") do |row|
       # name columns
       raise unless row.length == 3
       group = row[0]
@@ -2152,29 +2154,29 @@ $stderr.puts "Reading into memory sql results.."
       genes_localisations[gene].push compartment
       genes_localisations[gene].uniq!
     end
-
-# Print headers
-header = ['']
-species_of_interest.each do |s|
-header.push "#{s} ID 1"
-header.push "#{s} loc 1"
-header.push "#{s} ID 2"
-header.push "#{s} loc 2"
-end
-puts header.join("\t")
+    
+    # Print headers
+    header = ['']
+    species_of_interest.each do |s|
+      header.push "#{s} ID 1"
+      header.push "#{s} loc 1"
+      header.push "#{s} ID 2"
+      header.push "#{s} loc 2"
+    end
+    puts header.join("\t")
     
     # Iterate through each OrthoMCL group, printing them out if they fit the criteria
-$stderr.puts "Iterating through groups.."
+    $stderr.puts "Iterating through groups.."
     groups_genes.each do |group, ogenes|
-$stderr.puts "looking at group #{group}"
+      $stderr.puts "looking at group #{group}"
       # associate genes with species
       species_gene = {}
       ogenes.each do |ogene|
         sp = Species.four_letter_to_species_name(OrthomclGene.new.official_split(ogene)[0])
-unless species_of_interest.include?(sp)
-  $stderr.puts "Ignoring info for #{sp}"
-  next
-end
+        unless species_of_interest.include?(sp)
+          $stderr.puts "Ignoring info for #{sp}"
+          next
+        end
         
         species_gene[sp] ||= []
         species_gene[sp].push ogene
@@ -2183,19 +2185,19 @@ end
       
       # skip groups that are only localised in a single species
       if species_gene.length == 1
-$stderr.puts "Rejecting #{group} because it only has localised genes in 1 species of interest"
-next
-end
+        $stderr.puts "Rejecting #{group} because it only has localised genes in 1 species of interest"
+        next
+      end
       
       # skip groups that have more than 2 localised genes in each group.
-failed = false
+      failed = false
       species_gene.each do |species, genes|
-if genes.length > 2
-$stderr.puts "Rejecting #{group}, because there are >2 genes with localisation info in #{species}.."
-failed = true
-end
+        if genes.length > 2
+          $stderr.puts "Rejecting #{group}, because there are >2 genes with localisation info in #{species}.."
+          failed = true
+        end
       end
-next if failed
+      next if failed
       
       # procedure for making printing easier
       generate_cell = lambda do |gene|
@@ -2209,7 +2211,7 @@ next if failed
         elsif locs.length == 0
           raise Exception, "Unexpected lack of loc information"
         else
-$stderr.puts "Returning nil for #{gene} because there is #{locs.length} localisations"
+          $stderr.puts "Returning nil for #{gene} because there is #{locs.length} localisations"
           nil
         end
       end
@@ -2217,7 +2219,7 @@ $stderr.puts "Returning nil for #{gene} because there is #{locs.length} localisa
       row = [group]
       failed = false #fail if genes have >1 localisation
       species_of_interest.each do |s|
-$stderr.puts "What's in #{s}? #{species_gene[s].inspect}"
+        $stderr.puts "What's in #{s}? #{species_gene[s].inspect}"
         if species_gene[s].nil? or species_gene[s].length == 0
           row.push ['','']
           row.push ['','']
@@ -2230,7 +2232,7 @@ $stderr.puts "What's in #{s}? #{species_gene[s].inspect}"
           species_gene[s].each do |g|
             r = generate_cell.call g
             failed = true if r.nil? 
-row.push r 
+            row.push r 
           end
         end
       end
