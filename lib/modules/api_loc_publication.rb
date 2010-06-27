@@ -2107,12 +2107,26 @@ class BScript
   end
   
   def stuarts_basel_spreadsheet_yeast_setup
-    uniprot_to_database(Species::YEAST_NAME)
-    yeastgenome_ids_to_database
-    OrthomclGene.new.link_orthomcl_and_coding_regions(
-      "scer",
-      :accept_multiple_coding_regions => true
-    )
+#    uniprot_to_database(Species::YEAST_NAME)
+#    yeastgenome_ids_to_database
+#    OrthomclGene.new.link_orthomcl_and_coding_regions(
+#      "scer",
+#      :accept_multiple_coding_regions => true
+#    )
+    
+    # cache compartments
+    codes = CodingRegion.s(Species::YEAST_NAME).go_cc_usefully_termed.all
+    progress = ProgressBar.new('eukaryotes', codes.length)
+    codes.each do |code|
+      progress.inc
+      comps = code.compartments
+      comps.each do |comp|
+        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                        code.id, comp
+        )
+      end
+    end   
+    progress.finish
   end
   
   def stuarts_basel_spreadsheet
