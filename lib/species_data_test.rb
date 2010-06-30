@@ -11,47 +11,53 @@ class SpeciesDataTest < Test::Unit::TestCase
     spd = SpeciesData.new('Plasmodium yoelii')
     assert_equal 'yoelii', spd.directory
   end
-
+  
   def test_nickname
     spd = SpeciesData.new('Plasmodium yoelii').fasta_file_species_name
     assert_equal spd, SpeciesData.new('yoelii').fasta_file_species_name
     assert_equal spd, SpeciesData.new('P. yoelii').fasta_file_species_name #check for not exactly the last name but close enough
   end
-
+  
   def test_protein_data_path
     spd = SpeciesData.new('Plasmodium yoelii')
     assert_equal "/home/ben/phd/data/Plasmodium yoelii/genome/PlasmoDB/#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/PyoeliiAnnotatedProteins_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.fasta",
-      spd.protein_fasta_path
+    spd.protein_fasta_path
   end
-
+  
   def test_one_word_name
     spd = SpeciesData.new('Plasmodium chabaudi')
     assert_equal 'Pchabaudi', spd.one_word_name
   end
-
+  
   def test_download_directory
     spd = SpeciesData.new('Plasmodium chabaudi')
     assert_equal "http://plasmodb.org/common/downloads/release-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/Pchabaudi", spd.eu_path_db_download_directory
   end
-
+  
   def test_transcript_path_default
     spd = SpeciesData.new('Plasmodium chabaudi')
     assert_equal "/home/ben/phd/data/Plasmodium chabaudi/genome/PlasmoDB/#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/PchabaudiAnnotatedTranscripts_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.fasta",
-      spd.transcript_fasta_path
+    spd.transcript_fasta_path
   end
-
+  
   def test_transcript_fasta_filename
     spd = SpeciesData.new('falciparum')
     assert_equal "Pfalciparum_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.gff",
-      spd.gff_filename
+    spd.gff_filename
   end
-
+  
   def test_gzfile_path_toxo
     spd = SpeciesData.new('gondii')
-    assert_equal '/home/ben/phd/data/Toxoplasma gondii/genome/ToxoDB/5.2/TgondiiME49Gene_ToxoDB-5.2.txt.gz',
-      spd.gene_information_gzfile_path
+    assert_equal "/home/ben/phd/data/Toxoplasma gondii/genome/ToxoDB/#{SpeciesData::SOURCE_VERSIONS['ToxoDB']}/TgondiiME49Gene_ToxoDB-#{SpeciesData::SOURCE_VERSIONS['ToxoDB']}.txt.gz",
+    spd.gene_information_gzfile_path
   end
-
+  
+  def test_gzfile_path_default
+    spd = SpeciesData.new('falciparum')
+    assert_equal "/home/ben/phd/data/Plasmodium falciparum/genome/PlasmoDB/#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/PfalciparumGene_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.txt.gz",
+    spd.gene_information_gzfile_path
+  end
+  
   def test_directories_for_mkdir
     spd = SpeciesData.new('gondii')
     assert_equal [
@@ -59,11 +65,11 @@ class SpeciesDataTest < Test::Unit::TestCase
       '/home/ben/phd/data/Toxoplasma gondii',
       '/home/ben/phd/data/Toxoplasma gondii/genome',
       '/home/ben/phd/data/Toxoplasma gondii/genome/ToxoDB',
-      '/home/ben/phd/data/Toxoplasma gondii/genome/ToxoDB/5.2'
+      "/home/ben/phd/data/Toxoplasma gondii/genome/ToxoDB/#{SpeciesData::SOURCE_VERSIONS['ToxoDB']}"
     ],
-      spd.directories_for_mkdir
+    spd.directories_for_mkdir
   end
-
+  
   def test_one_word_name
     assert_equal 'NeosporaCaninum', SpeciesData.new('Neospora caninum').one_word_name
     spd = SpeciesData.new('Plasmodium falciparum')

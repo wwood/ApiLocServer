@@ -138,8 +138,13 @@ class SpeciesData
   # The path to the EuPathDB gene information table (stored as a gzip)
   def gene_information_gzfile_path
     gz = @species_data[:gene_information_gzip_filename]
-    raise unless gz #a default will probably come around some time.
-    "#{local_download_directory}/#{gz.call(version)}"
+    if gz
+      "#{local_download_directory}/#{gz.call(version)}"
+    else
+      # TgondiiME49Gene_ToxoDB-5.2.txt.gz
+      # PfalciparumGene_PlasmoDB-6.1.txt.gz
+      "#{local_download_directory}/#{one_word_name}Gene_#{database}-#{version}.txt.gz"
+    end
   end
   
   def version
