@@ -58,6 +58,12 @@ class SpeciesDataTest < Test::Unit::TestCase
     spd.gene_information_gzfile_path
   end
   
+  def test_gzfile_filename_default
+    spd = SpeciesData.new('falciparum')
+    assert_equal "PfalciparumGene_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.txt.gz",
+    spd.gene_information_gzfile_filename
+  end
+  
   def test_directories_for_mkdir
     spd = SpeciesData.new('gondii')
     assert_equal [
