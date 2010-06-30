@@ -152,6 +152,10 @@ class SpeciesData
     end
   end
   
+  def gene_information_filename
+    "#{one_word_name}Gene_#{database}-#{version}.txt"
+  end
+  
   def version
     SOURCE_VERSIONS[@species_data[:source]]
   end
@@ -186,6 +190,15 @@ class SpeciesData
   
   def transcript_blast_database_path
     "/blastdb/#{transcript_fasta_filename}"
+  end
+  
+  def genomic_fasta_filename
+    genomic = @species_data[:genomic_fasta_filename]
+    if genomic
+      return "#{genomic.call(version)}"
+    else
+      return "#{one_word_name}Genomic_#{database}-#{version}.fasta"
+    end
   end
 
   def gff_filename

@@ -81,4 +81,10 @@ class SpeciesDataTest < Test::Unit::TestCase
     spd = SpeciesData.new('Plasmodium falciparum')
     assert_equal 'Pfalciparum', spd.one_word_name
   end
+  
+  def test_genomic_filename
+    spd = SpeciesData.new('falciparum')
+    assert_equal "PfalciparumGenomic_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.fasta",
+    spd.genomic_fasta_filename
+  end
 end
