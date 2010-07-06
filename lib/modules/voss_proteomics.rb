@@ -13,25 +13,34 @@ class BScript
     
     puts [
       'PlasmoDB',
-    #      'Annotation',
-    #      'Common names',
-    #      'Localisation(s)',
-    #      'Localisation in Apicomplexan Orthologues',
+    #          'Annotation',
+    #          'Common names',
+    #          'ApiLoc Localisation(s)',
+    #          'ApiLoc Localisation(s) in Apicomplexan Orthologues',
     #      'PlasmoAP?',
-    'Plasmit?',
+    #        'Plasmit?',
     #      'SignalP?',
     #      #      'Transmembrane domain # (TMHMM)',
     #      'ExportPred score > 0?',
-    #  'Agreement with nuclear simple',
-    #  'Agreement with ER simple',
-    #  'Literature survey localisation description',
-    #  'Literature survey nuclear agreement',
+    #      'Agreement with nuclear simple',
+    #      'Agreement with ER simple',
+    #'Literature survey localisations',
+    #      'Literature survey localisation description',
+    #      'Literature survey nuclear agreement',
+    #  'Literature survey ER agreement',
+    
     #  'Localisation description of Orthologue(s)',
     #  'Included in Maurer\'s Cleft proteome?',
     #  'Included in Food Vacuole proteome?',
     #      top_names.collect{|n| "'#{n}' Agreement"},
     #      'In Lifecycle Proteomics at all?',
     #      'In Lifecycle Proteomics with at least 2 peptides'
+    #    'Winzeler iRBC+Spz+Gam Affy Max Percentile'
+'Winzeler ring expression percentage',
+'Winzeler troph expression percentage',
+'Winzeler schizont expression percentage',
+    #'Length',
+    #'Number of Hydrophilic Residues',
     ].flatten.join("\t")
     
     $stdin.each do |plasmodb_id|
@@ -41,71 +50,114 @@ class BScript
       if code.nil?
         puts "Couldn't find this gene ID"
       else
-                #orth_str = nil
-                #begin
-                #  localised_orths = code.localised_apicomplexan_orthomcl_orthologues
-                #  if localised_orths.nil?
-                #    orth_str = 'no entry in OrthoMCL v3'
-                #  else
-                #    orth_str = localised_orths.reject{
-                #      |c| c.id == code.id
-                #    }.reach.localisation_english.join(' | ')
-                #  end
-                #rescue OrthomclGene::UnexpectedCodingRegionCount
-                #  orth_str = 'multiple OrthoMCL orthologues found'
-                #end
+        #        orth_str = nil
+        #        begin
+        #          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
+        #          if localised_orths.nil?
+        #            orth_str = 'no entry in OrthoMCL v3'
+        #          else
+        #            orth_str = localised_orths.reject{
+        #              |c| c.id == code.id
+        #            }.reach.localisation_english.join(' | ')
+        #          end
+        #        rescue OrthomclGene::UnexpectedCodingRegionCount
+        #          orth_str = 'multiple OrthoMCL orthologues found'
+        #        end
         
-     #   # second class the same thing
-     #   lit_orth_str = nil
-     #   begin
-     #     localised_orths = code.localised_apicomplexan_orthomcl_orthologues(:by_literature => true)
-     #     if localised_orths.nil?
-     #       lit_orth_str = 'no entry in OrthoMCL v3'
-     #     else
-     #       lit_orth_str = localised_orths.reject{
-     #         |c| c.id == code.id
-     #       }.reach.localisation_english(:by_literature => true).join(' | ')
-     #     end
-     #   rescue OrthomclGene::UnexpectedCodingRegionCount
-     #     lit_orth_str = 'multiple OrthoMCL orthologues found'
-     #   end
+        # second class the same thing
+        #        lit_orth_str = nil
+        #        begin
+        #          localised_orths = code.localised_apicomplexan_orthomcl_orthologues(:by_literature => true)
+        #          if localised_orths.nil?
+        #            lit_orth_str = 'no entry in OrthoMCL v3'
+        #          else
+        #            lit_orth_str = localised_orths.reject{
+        #              |c| c.id == code.id
+        #            }.reach.localisation_english(:by_literature => true).join(' | ')
+        #          end
+        #        rescue OrthomclGene::UnexpectedCodingRegionCount
+        #          lit_orth_str = 'multiple OrthoMCL orthologues found'
+        #        end
         
-     #   maurers_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME)
-     #   fv_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME)
+        #        maurers_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME)
+        #        fv_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME)
         
+        #        measurements = MicroarrayMeasurement.timepoint_name(MicroarrayTimepoint::WINZELER_IRBC_SPZ_GAM_MAX_PERCENTILE_TIMEPOINT).find_all_by_coding_region_id(
+        #                                                                                                                                                              code.id
+        #        ).reach.measurement.retract
+        #        measure = measurements.empty? ? '' : measurements.average
+        
+        measure_ring = code.microarray_measurements.timepoint_names([
+                                                                    MicroarrayTimepoint::WINZELER_2003_EARLY_RING_SORBITOL,
+        MicroarrayTimepoint::WINZELER_2003_LATE_RING_SORBITOL,
+        MicroarrayTimepoint::WINZELER_2003_EARLY_RING_TEMPERATURE,
+        MicroarrayTimepoint::WINZELER_2003_LATE_RING_TEMPERATURE,
+        ]
+        ).all.reach.measurement.median
+        measure_troph = code.microarray_measurements.timepoint_names([
+                                                                     MicroarrayTimepoint::WINZELER_2003_EARLY_TROPHOZOITE_SORBITOL,
+        MicroarrayTimepoint::WINZELER_2003_LATE_TROPHOZOITE_SORBITOL,
+        MicroarrayTimepoint::WINZELER_2003_EARLY_TROPHOZOITE_TEMPERATURE,
+        MicroarrayTimepoint::WINZELER_2003_LATE_TROPHOZOITE_TEMPERATURE
+        ]
+        ).all.reach.measurement.median
+        measure_schizont = code.microarray_measurements.timepoint_names([
+                                                                        MicroarrayTimepoint::WINZELER_2003_EARLY_SCHIZONT_SORBITOL,
+        MicroarrayTimepoint::WINZELER_2003_LATE_SCHIZONT_SORBITOL,
+        MicroarrayTimepoint::WINZELER_2003_EARLY_SCHIZONT_TEMPERATURE,
+        MicroarrayTimepoint::WINZELER_2003_LATE_SCHIZONT_TEMPERATURE,
+        ]
+        ).all.reach.measurement.median
         
         puts [
-code.plasmit?
-        #          code.annotation.annotation,
-        #          code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.uniq.join(', '),
-        #          code.localisation_english,
-        #          orth_str,
+        #        code.annotation.annotation,
+        #        code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.uniq.join(', '),
+        #        code.localisation_english,
+        #        orth_str,
         #          code.plasmo_a_p.signal?,
+        #                code.plasmit?,
         #          code.signalp_however.signal?,
         #          code.tmhmm.transmembrane_domains.length,
         #          code.amino_acid_sequence.exportpred.predicted?,
-#        code.names.reject{|n| n==code.string_id}.join(', '),
-#        code.agreement_with_top_level_localisation_simple(
-#                                                          TopLevelLocalisation.find_by_name('nucleus')
-#        ),
-#        code.agreement_with_top_level_localisation_simple(
-#                                                          TopLevelLocalisation.find_by_name('endoplasmic reticulum')
-#        ),
-#        code.localisation_english(:by_literature => true),
-#        code.agreement_with_top_level_localisation_simple(
-#                                                          TopLevelLocalisation.find_by_name('nucleus'),
-#            :by_literature => true
-#        ),
-        #orth_str,
-        #maurers_proteome.coding_regions.include?(code),
-        #fv_proteome.coding_regions.include?(code),
-        #          top_names.collect{|top_name|
-        #            code.agreement_with_top_level_localisation(
-        #              TopLevelLocalisation.find_by_name(top_name)
-        #            )
-        #          },
+        #        code.names.reject{|n| n==code.string_id}.join(', '),
+        #        code.agreement_with_top_level_localisation_simple(
+        #                                                          TopLevelLocalisation.find_by_name('nucleus')
+        #        ),
+        #        code.agreement_with_top_level_localisation_simple(
+        #                                                          TopLevelLocalisation.find_by_name('endoplasmic reticulum')
+        #        ),
+        #code.literature_based_top_level_localisations.reach.name.uniq.join(', '),
+        #        code.localisation_english(:by_literature => true),
+        #        code.agreement_with_top_level_localisation_simple(
+        #                                                          TopLevelLocalisation.find_by_name('nucleus'),
+        #                    :by_literature => true
+        #        ),
+        #code.agreement_with_top_level_localisation_simple(
+        #                                                  TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
+        #            :by_literature => true
+        #),
+        #        lit_orth_str,
+        #        maurers_proteome.coding_regions.include?(code),
+        #        fv_proteome.coding_regions.include?(code),
+        #        top_names.collect{|top_name|
+        #          code.agreement_with_top_level_localisation(
+        #                                                     TopLevelLocalisation.find_by_name(top_name)
+        #          )
+        #        },
+        #        top_names.collect{|top_name|
+        #          code.agreement_with_top_level_localisation(
+        #                                                     TopLevelLocalisation.find_by_name(top_name),
+        #                                                     :by_literature => true
+        #          )
+        #        },
         #          code.proteomics(nil, 1).length > 0,
         #          code.proteomics.length > 0
+        #        measure,
+        measure_ring,
+        measure_troph,
+        measure_schizont,
+        #(code.aaseq.nil? ? '' : code.aaseq.length),
+        #code.number_of_hydrophilic_residues,
         ].flatten.join("\t")
       end
     end
@@ -339,5 +391,16 @@ code.plasmit?
       b.to_f/count.to_f
     }.join("\n")
     $stderr.puts "Included #{count} proteins"
+  end
+  
+  def distribution_of_microarray(timepoint_name=MicroarrayTimepoint::WINZELER_IRBC_SPZ_GAM_MAX_PERCENTILE_TIMEPOINT)
+    CodingRegion.falciparum.all.each do |code|
+      measurements = MicroarrayMeasurement.timepoint_name(timepoint_name).find_all_by_coding_region_id(
+                                                                                                       code.id
+      ).reach.measurement.retract
+      unless measurements.empty?
+        puts measurements.average
+      end
+    end
   end
 end

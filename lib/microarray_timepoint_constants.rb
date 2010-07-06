@@ -109,4 +109,6 @@ module MicroarrayTimepointNames
     WINZELER_2003_TIMEPOINTS,
     WINZELER_2005_TIMEPOINTS
   ].flatten
+  
+  WINZELER_IRBC_SPZ_GAM_MAX_PERCENTILE_TIMEPOINT = 'Pf-iRBC+Spz+Gam max expr %ile'
 end

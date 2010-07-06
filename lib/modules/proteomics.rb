@@ -7,6 +7,7 @@ class BScript
     maurers_cleft_proteome_to_database
     sumoylation2008_proteome_to_database
     gametocytogenesis2010_proteome_to_database
+    berghei_microneme2009_proteome_to_database
   end
   
   def food_vacuole_proteome_to_database
@@ -296,6 +297,34 @@ class BScript
           end
         end
       end
+    end
+  end
+  
+  def berghei_microneme2009_proteome_to_database
+    pub = Publication.find_or_create_by_pubmed_id(ProteomicExperiment::FALCIPARUM_GAMETOCYTOGENESIS_2010_PUBMED_ID)
+    name = ProteomicExperiment::BERGHEI_MICRONEME_2009_NAME
+    filename = "#{DATA_DIR}/Plasmodium berghei/proteome/Lal 2009/sm003.csv"
+    
+    experiment = ProteomicExperiment.find_or_create_by_name_and_publication_id(
+                                                                               name, pub.id
+    )
+    corrections = {
+    'AAF27978.1' => 'PB300286.00.0',
+    }
+    FasterCSV.foreach(filename, :col_sep => "\t") do |row|
+      plasmodb = row[0]
+      if corrections[plasmodb] # manually curate some
+        plasmodb = corrections[plasmodb]
+      end
+      
+      code = CodingRegion.fs(plasmodb, Species::BERGHEI_NAME)
+      if code.nil?
+        $stderr.puts "Unable to find P. berghei protein `#{plasmodb}'"
+      else
+        raise unless ProteomicExperimentResult.find_or_create_by_coding_region_id_and_proteomic_experiment_id(
+                                                                                                 code.id, experiment.id
+        )
+      end    
     end
   end
 end

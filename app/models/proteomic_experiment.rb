@@ -56,4 +56,7 @@ class ProteomicExperiment < ActiveRecord::Base
     'T. gondii Wastling 2-D' => 16002398,
     'T. gondii Mass SPec data of RH secretome' => 'S. Moreno unpublished',
   }
+  
+  BERGHEI_MICRONEME_2009_NAME = 'P. berghei Microneme Lal et. al. 2009'
+  BERGHEI_MICRONEME_2009_PUBMED_ID = 19206106 
 end

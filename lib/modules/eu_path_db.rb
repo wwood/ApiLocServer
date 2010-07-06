@@ -40,11 +40,15 @@ class BScript
   
   # low level method. don't create coding regions or GO terms, just
   # parse the file
-  def upload_gene_information_table_plumbing(gzfile)
-    oracle = EuPathDBGeneInformationTable.new(
-                                              Zlib::GzipReader.open(
-                          gzfile
-    ))
+  def upload_gene_information_table_plumbing(filename)
+    oracle = nil
+    
+    # We may or may not want a gz file to be uploaded
+    if filename.match(/gz$/)
+      oracle = EuPathDBGeneInformationTable.new(Zlib::GzipReader.open(filename))
+    else
+      oracle = EuPathDBGeneInformationTable.new(File.open(filename,'r'))
+    end
     
     oracle.each do |info|
       yield info #have to give a block, otherwise why are you calling me?
@@ -249,10 +253,28 @@ class BScript
     end
   end
   
-  def upload_falciparum_gene_table_to_database
-    upload_gene_information_table(Species.find_by_name(Species::FALCIPARUM_NAME),
-      "#{DATA_DIR}/Plasmodium falciparum/genome/plasmodb/#{PLASMODB_VERSION}/PfalciparumGene_PlasmoDB-#{PLASMODB_VERSION}.txt.gz"
+  def falciparum_gene_table_to_database
+    species_data = SpeciesData.new(Species::FALCIPARUM_NAME)
+    
+    # Setup Winzeler data
+    max_microarray = Microarray.find_or_create_by_description Microarray::WINZELER_IRBC_SPZ_GAM_MAX_PERCENTILE
+    max_timepoint = MicroarrayTimepoint.find_or_create_by_name_and_microarray_id(
+                                                                                 WINZELER_IRBC_SPZ_GAM_MAX_PERCENTILE_TIMEPOINT,
+                                                                                 max_microarray.id
     )
+    
+    upload_gene_information_table(Species.find_by_name(Species::FALCIPARUM_NAME),
+    species_data.gene_information_path
+    ) do |info, code|
+      # Upload Winzeler gene table stuffs
+      max_percentile = info['Pf-iRBC+Spz+Gam max expr %ile (Affy)']
+      unless max_percentile == 'null'
+        percent = max_percentile.to_f
+        MicroarrayMeasurement.find_or_create_by_coding_region_id_and_microarray_timepoint_id_and_measurement(
+                                                                                                             code.id, max_timepoint.id, percent
+        )
+      end
+    end
   end
   
   
@@ -450,12 +472,14 @@ class BScript
           unless File.exists?(spd.transcript_fasta_filename)
             `wget #{spd.eu_path_db_download_directory}/#{spd.transcript_fasta_filename}`
           end
-          # gene information table - only download for toxo
-          if spd.name == 'Toxoplasma gondii'
-            unless File.exists?(spd.gene_information_gzfile_path)
-              `wget '#{spd.eu_path_db_download_directory}/#{File.basename spd.gene_information_gzfile_path}'`
-            end
+          # gene information table
+          unless File.exists?(spd.gene_information_filename)
+            `wget '#{spd.eu_path_db_download_directory}/#{spd.gene_information_filename}'`
           end
+          # genomic
+          unless File.exists?(spd.genomic_fasta_filename)
+            `wget '#{spd.eu_path_db_download_directory}/#{spd.genomic_fasta_filename}'`
+          end          
         end
       end
     end
@@ -508,4 +532,5 @@ class BScript
       puts [code.species.name, code.string_id, code.apiloc_url].join("\t")
     end
   end
+  
 end
