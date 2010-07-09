@@ -9,5 +9,5 @@ class ApplicationController < ActionController::Base
   protect_from_forgery # :secret => 'db24b81d2e5a7ae24451ee5970875118'
 
   # Including memory profiler to track down memory leaks
-  include Memorylogic
+  #include Memorylogic
 end

@@ -38,6 +38,7 @@ require 'modules/proteomics'
 require 'modules/endomembrane_retrieval'
 require 'modules/second_class_citizens'
 require 'modules/voss_proteomics'
+require 'modules/hydrophobic_mysteries'
 require 'b_script2'
 
 

@@ -341,58 +341,6 @@ class BScript
     end
   end
   
-  def hydrophobicity_bias_length_properly_normalised(species_name = nil)
-    puts "Hydrophobicities"
-    bins = []
-    count = 0
-    
-    # Create the modular counter
-    counter = lambda do |code|
-      next unless code and code.aaseq #skip ncRNA and stuff
-      count += 1
-      
-      # find hydrophobicities and counts for this protein
-      my_bin = []
-      my_counts = []
-      l = code.aaseq.length
-      pro = code.hydrophobicity_profile
-      pro.each_with_index do |h,i|
-        next if i==0 #ignore the first residue
-        index = i.to_f/l.to_f*100
-        my_bin[index] ||= 0
-        my_bin[index] += h
-        my_counts[index] ||= 0
-        my_counts[index] += 1
-      end
-      
-      # Add the normalised amounts to the total so each protein is weighted equally
-      my_bin.each_with_index do |h, index|
-        next if h.nil?
-        bins[index] ||= 0.0
-        bins[index] += h/(my_counts[index].to_f)
-      end
-    end
-    
-    # Abuse the modular counter
-    if species_name.nil?
-      $stdin.each do |line|
-        code = CodingRegion.ff(line.strip.gsub('"',''))
-        counter.call(code)
-      end
-    else
-      CodingRegion.s(species_name).all.each do |code|
-        next if code.cruft?
-        counter.call(code)
-      end
-    end
-    
-    # Output
-    puts bins.collect {|b|
-      b.to_f/count.to_f
-    }.join("\n")
-    $stderr.puts "Included #{count} proteins"
-  end
-  
   def distribution_of_microarray(timepoint_name=MicroarrayTimepoint::WINZELER_IRBC_SPZ_GAM_MAX_PERCENTILE_TIMEPOINT)
     CodingRegion.falciparum.all.each do |code|
       measurements = MicroarrayMeasurement.timepoint_name(timepoint_name).find_all_by_coding_region_id(
@@ -400,6 +348,36 @@ class BScript
       ).reach.measurement.retract
       unless measurements.empty?
         puts measurements.average
+      end
+    end
+  end
+  
+  def plasmodbs_to_yeast_sgd_ids
+    $stdin.each do |line|
+      name = line.strip.gsub('"','')
+      code = CodingRegion.ff(name)
+      if code.nil?
+        $stderr.puts "Couldn't find #{name}, ignoring"
+        next
+      end
+      
+      orth = code.single_orthomcl!
+      unless orth
+        puts [name, "Unable to find Orthomcl v3 ID"].join("\t")
+        next
+      end
+      group = orth.official_group
+      if group.nil? #doesn't have orthologues
+        puts name
+        next
+      end
+      yeasts = group.orthomcl_genes.code('scer').all
+      if yeasts.length == 1
+        puts [name, yeasts[0].official_split[1]].join("\t")
+      elsif yeasts.length > 1
+        puts [name, "#{yeasts.length} yeast genes found"].join("\t")
+      else
+        puts [name].join("\t")
       end
     end
   end
