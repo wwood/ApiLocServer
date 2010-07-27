@@ -349,4 +349,17 @@ class Species < ActiveRecord::Base
     end
     raise Exception, "Four letter OrthoMCL letter not recorded: `#{abbreviation}'"
   end
+  
+  # Is the two letter prefix of a gene such as Tg in TgSPP the same
+  # as the species name given. Returns true if yes or there is
+  # no matching coding_region_string_id
+  def self.agreeable_name_and_two_letter_prefix?(species_name, coding_region_string_id)
+    sp = Species.find_species_from_prefix(coding_region_string_id)
+    sp2 = Species.find_by_name(species_name)
+    if sp.nil? or sp == sp2
+      return true
+    else
+      return false
+    end
+  end
 end

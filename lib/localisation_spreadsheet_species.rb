@@ -60,12 +60,20 @@ module LocalisationSpreadsheetSpecies
   end
   
   def upload_species(species, filename)
+    # upload locs & dev stages
+    upload_static_info(species)
+    #
+    upload_localisations_for_species species, filename
+    #    TopLevelLocalisation.new.upload_localisations species.name
+  end
+  
+  # Upload the info that is static in the db code (localisations, dev stages)
+  # except top level encodings, which are done in a separate method
+  def upload_static_info(species)
     DevelopmentalStage.new.upload_known_developmental_stages species
     Localisation.new.upload_known_localisations species
     Localisation.new.upload_localisation_synonyms species
     LocalisationModifier.new.upload_known_modifiers
-    upload_localisations_for_species species, filename
-    #    TopLevelLocalisation.new.upload_localisations species.name
   end
   
   def upload_falciparum(filename="#{ENV['HOME']}/phd/gene lists/falciparum.csv")

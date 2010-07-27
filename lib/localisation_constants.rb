@@ -16,6 +16,7 @@ module LocalisationConstants
       'exposed erythrocyte plasma membrane',
       'erythrocyte periphery',
       'erythrocyte cytoplasmic structure',
+      'dot like structures in host cell',
       'erythrocyte cytoplasmic structure near parasitophorous vacuole',
       'erythrocyte',
       'single small vesicle in erythrocyte',
@@ -43,11 +44,13 @@ module LocalisationConstants
       'food vacuole',
       'food vacuole membrane',
       'food vacuole lumen',
+      'food vacuole region',
       'parasitophorous vacuole close to food vacuole',
       'cytostome',
       'mitochondrion',
       'mitochondrial inner membrane',
       'mitochondrial outer membrane',
+      'mitochondrial membrane',
       'matrix side of mitochondrial inner membrane',
       'inner membrane space side of inner membrane of mitochondria',
       'mitochondrial membrane',
@@ -58,6 +61,7 @@ module LocalisationConstants
       'near apicoplast membranes',
       'innermost apicoplast membrane',
       'outermost apicoplast membrane',
+      'apicoplast lumen',
       'cytosol',
       'cytoplasm',
       'nucleus',
@@ -284,12 +288,14 @@ module LocalisationConstants
       'rhoptry',
       'rhoptry neck',
       'parasitophorous vacuole',
+      'parasitophorous vacuole lumen',
       'area around nucleus',
       'cell surface',
       'cytoplasm',
       'posterior cytoplasm',
       'anterior cytoplasm',
       'cyst wall',
+      'cyst matrix',
       'moving junction'
     ],
     Species::OTHER_SPECIES => { #for unsequenced species most likely
@@ -432,6 +438,7 @@ module LocalisationConstants
     ],
     Species::PLASMODIUM_BERGHEI_NAME => [
       'apical',
+      'apical most tip',
       'microneme',
       'peripheral of microneme',
       'rhoptry',
@@ -455,6 +462,7 @@ module LocalisationConstants
       'outer nuclear envelope',
       'nuclear membrane',
       'perinuclear',
+      'basal of nucleus',
       'inner membrane complex',
       'sporozoite surface',
       'ookinete surface',
@@ -645,6 +653,9 @@ module LocalisationConstants
       'mj' => 'moving junction',
       'surface' => 'cell surface',
       'parasite surface' => 'cell surface',
+      'intraparasitic space' => 'cytoplasm',
+      'pv' => 'parasitophorous vacuole',
+      'pv lumen' => 'parasitophorous vacuole lumen',
     },
     Species::BABESIA_BOVIS_NAME => {
       'cytoplasmic accumulations' => 'cytoplasmic accumulation',
@@ -730,6 +741,8 @@ module LocalisationConstants
       'ring structure at posterior imc' => 'ring structure at posterior inner membrane complex',
       'cytoplasmic granules of unidentified nature' => 'cytoplasmic foci',
       'cytoplasmic aggregate' => 'cytoplasmic foci',
+      'internal vesicles' => 'cytoplasmic vesicle',
+      'cell periphery' => 'peripheral',
     },
     Species::FALCIPARUM_NAME => {
       'host cell' => 'erythrocyte',
@@ -897,6 +910,8 @@ module LocalisationConstants
       'ims side of inner membrane of mitochondria' => 'inner membrane space side of inner membrane of mitochondria',
       'mitochondrial ims' => 'mitochondrial inner membrane space',
       'ims side of mitochondrial inner membrane' => 'inner membrane space side of inner membrane of mitochondria',
+      'cytoskeleton microtubules' => 'microtubule',
+      'parasitophorous vacuolar membrane' => 'parasitophorous vacuole membrane',
     }
   }
 

@@ -13,4 +13,11 @@ class SpeciesTest < ActiveSupport::TestCase
       Species.four_letter_to_species_name('aaaa')
     end
   end
+  
+  def test_agreeable_name_and_two_letter_prefix
+    assert_equal true,
+    Species.agreeable_name_and_two_letter_prefix?(Species.falciparum_name, 'PfNAddaco')
+    assert_equal false,
+    Species.agreeable_name_and_two_letter_prefix?(Species.falciparum_name, 'TgNAddaco')
+  end
 end

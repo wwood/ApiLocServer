@@ -407,6 +407,24 @@ class CodingRegion < ActiveRecord::Base
     end
   end
   
+  # Return the coding region associated with the string id. The string_id
+  # can be either a real id, or an alternate id.
+  def self.find_all_by_partial_name_or_alternate(string_id)
+    like = "%#{string_id}%"
+    codes = CodingRegion.all(
+    :conditions => ['string_id like ?', like]
+    )
+    annotations = CodingRegion.all(
+    :joins => :annotation,
+    :conditions => ['annotation like ?', like]
+    )
+    alts = CodingRegion.all(
+    :joins => :coding_region_alternate_string_ids,
+    :conditions => ['coding_region_alternate_string_ids.name like ?', like]
+    )
+    [codes, annotations, alts].flatten.uniq
+  end
+  
   def self.find_all_by_name_or_alternate_maybe_with_species_prefix(string_id)
     sp = Species.find_species_from_prefix(string_id)
     if sp
@@ -418,21 +436,35 @@ class CodingRegion < ActiveRecord::Base
     end
   end
   
+  def self.find_all_by_partial_name_or_alternate_maybe_with_species_prefix(string_id)
+    sp = Species.find_species_from_prefix(string_id)
+    if sp
+      return find_all_by_partial_name_or_alternate_and_species(sp.remove_species_prefix(string_id), sp.name)
+    else
+      return find_all_by_partial_name_or_alternate(string_id)
+    end
+  end
+  
   # Given a gene name that may or may not have a prefix and a species
   # common name, return all genes that fit the criteria
   def self.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(string_id, species_common_name)
-    sp = Species.find_species_from_prefix(string_id)
-    sp2 = Species.find_by_name(species_common_name)
-    if sp
-      # if there is a prefix and it isn't the same as the common name, something has gone wrong.
+    unless Species.agreeable_name_and_two_letter_prefix(species_common_name, string_id)
       raise Exception,
-        "Prefix of gene name does not fit species common name: #{string_id}, #{species_common_name}" unless sp2 == sp or sp.nil?
-      return find_all_by_name_or_alternate_and_species(
-                                                       sp.remove_species_prefix(string_id), species_common_name
-      )
-    else
-      return find_all_by_name_or_alternate_and_species(string_id, species_common_name)
+        "Prefix of gene name does not fit species common name: #{string_id}, #{species_common_name}"
     end
+    sp2 = Species.find_by_name(species_common_name)
+    return find_all_by_name_or_alternate_and_species(string_id, species_common_name)
+  end
+  
+  # Given a gene name that may or may not have a prefix and a species
+  # common name, return all genes that fit the criteria
+  def self.find_all_by_partial_name_or_alternate_and_species_maybe_with_species_prefix(string_id, species_common_name)
+    unless Species.agreeable_name_and_two_letter_prefix?(species_common_name, string_id)
+      raise Exception,
+        "Prefix of gene name does not fit species common name: #{string_id}, #{species_common_name}"
+    end
+    sp2 = Species.find_by_name(species_common_name)
+    return find_all_by_partial_name_or_alternate_and_species(string_id, species_common_name)
   end
   
   # Return the coding region associated with the string id. The string_id
@@ -485,6 +517,23 @@ class CodingRegion < ActiveRecord::Base
         return nil
       end
     end    
+  end
+  
+  def self.find_all_by_partial_name_or_alternate_and_species(string_id, organism_common_name)
+    simple = CodingRegion.s(organism_common_name).all(
+      :conditions => ["coding_regions.string_id like ?", 
+    "%#{string_id}%"
+    ]
+    ).uniq
+    return simple unless simple.empty?
+    
+    alts = CodingRegionAlternateStringId.all(
+        :include => {:coding_region => {:gene => {:scaffold => :species}}},
+        :conditions => ["species.name= ? and coding_region_alternate_string_ids.name like ?", 
+    organism_common_name, "%#{string_id}%"
+    ]
+    ).uniq
+    return alts.pick(:coding_region).uniq
   end
   
   def find_by_name_or_alternate_and_orthomcl_three_letter(name, orthomcl_three_letter)

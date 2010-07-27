@@ -7,14 +7,14 @@ class ApilocController < ApplicationController
     :developmental_stage
   ]
   
-#  I gave up on caches because they weren't really working and just causing problems.
-#  # Define each of the caches
-#  APILOC_CACHES.each do |c|
-#    caches_page c
-#  end
-#  
-#  # sweeper so caches don't get in the way
-#  cache_sweeper :apiloc_sweeper
+  #  I gave up on caches because they weren't really working and just causing problems.
+  #  # Define each of the caches
+  #  APILOC_CACHES.each do |c|
+  #    caches_page c
+  #  end
+  #  
+  #  # sweeper so caches don't get in the way
+  #  cache_sweeper :apiloc_sweeper
   
   def index
   end
@@ -39,43 +39,34 @@ class ApilocController < ApplicationController
       
       # we have a given gene_id
       if params[:species]
-        begin
-          codes = CodingRegion.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
-        rescue
-          # rescue when the gene id says differently to the species prefix. In
-          # that case, trust the species name 
-          codes = CodingRegion.fs(gene_id, params[:species])
+        # if agreeable then you might need to remove the species 2 letter,
+        # otherwise trust the specifically given species id
+        if Species.agreeable_name_and_two_letter_prefix?(params[:species], gene_id)
+          codes = CodingRegion.find_all_by_partial_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
+        else
+          codes = CodingRegion.find_all_by_partial_name_or_alternate_and_species(gene_id, params[:species])
         end
       else
-        codes = CodingRegion.find_all_by_name_or_alternate_maybe_with_species_prefix(gene_id)
-        if codes.empty?
-          codes = CodingRegion.all(
-          :joins => [:annotation, :coding_region_alternate_string_ids],
-          :select => 'distinct(coding_regions.*)',
-          :conditions => [
-            'annotations.annotation like ? or coding_region_alternate_string_ids.name like ?',
-            "%#{gene_id}%", "%#{gene_id}%"
-          ]
-          )
-        end
+        codes = CodingRegion.find_all_by_partial_name_or_alternate_maybe_with_species_prefix(gene_id)
       end
     end
     
     # possible problem here - what happens for legitimately conflicting names like PfSPP?
-    unless codes.length == 1
+    # Answer - must use (the unique) EuPathDB ids, which are given in the
+    # redirected page
+    if codes.length == 1
+      @code = codes[0]
+      
+      # redirect non-species specific requests to species-specific ones, because
+      # then the caching will be better
+      unless params[:species]
+        redirect_to :controller => :apiloc, :action => :gene, :species => @code.species.name, :id => gene_id
+      end
+    else
       @gene_id = gene_id
       @codes = codes.sort{|a,b| a.string_id <=> b.string_id}
       @species_name = params[:species]
       render :action => :choose_species
-      return
-    end
-    
-    @code = codes[0]
-    
-    # redirect non-species specific requests to species-specific ones, because
-    # then the caching will be better
-    unless params[:species]
-      redirect_to :controller => :apiloc, :action => :gene, :species => @code.species.name, :id => gene_id
     end
   end
   
@@ -90,7 +81,7 @@ class ApilocController < ApplicationController
   
   def localisation
     params[:id].downcase! if params[:id] == 'Golgi apparatus' #damn case-sensitive
-    params[:id] = 'cytoplasm' if params[:id] = Localisation::CYTOPLASM_NOT_ORGANELLAR_PUBLIC_NAME
+    params[:id] = 'cytoplasm' if params[:id] == Localisation::CYTOPLASM_NOT_ORGANELLAR_PUBLIC_NAME
     if params[:id]
       @top_level_localisation = TopLevelLocalisation.find_by_name(params[:id])
       if @top_level_localisation.nil?

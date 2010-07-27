@@ -6,7 +6,9 @@
     e.g. <%= link_to 'not apicoplast', :action => :localisation, :id => 'not apicoplast' %>,
     see the <%= link_to 'negative localisations', negative_species_url(@species.name) %>
   <% else %>
-    See all <%= link_to 'positive localisations', :action => :species, :id => @species.name %>
+    See all <%= link_to 'positive localisations', :action => :species, :id => @species.name %>.
+	
+	<%= negative_localisation_spiel %>
   <% end %>
 </p>
 

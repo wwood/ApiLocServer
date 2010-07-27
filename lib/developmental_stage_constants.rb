@@ -24,6 +24,8 @@ module DevelopmentalStageConstants
       'segmenting schizonts',
       'rupturing schizont',
       'merozoite',
+      'invading merozoite',
+      'newly invaded merozoite',
       'after parasitophorous vacuole membrane breakdown',
       'after microneme exocytosis',
       'gametocytogenesis',
@@ -46,6 +48,7 @@ module DevelopmentalStageConstants
       'female gametocyte stage IV',
       'female gametocyte stage V',
       'developing gametocyte',
+      'early gametocyte',
       'gametocyte ring',
       'emerging gametocyte',
       'non-activated gametocyte', #a unemerged gametocyte
@@ -187,7 +190,9 @@ module DevelopmentalStageConstants
     ],
     Species::NEOSPORA_CANINUM_NAME => [
       'tachyzoite',
-      'bradyzoite'
+      'extracellular tachyzoite',
+      'intracellular tachyzoite',
+      'bradyzoite',
     ],
     Species::OTHER_SPECIES => { #for unsequenced species most likely
       'Plasmodium gallinaceum' => [
@@ -353,7 +358,9 @@ module DevelopmentalStageConstants
       'midgut oocyst',
       'sporulating oocyst',
       'mature oocyst',
+      'day 2 oocyst',
       'day 5 oocyst',
+      'day 12 oocyst',
       'day 15 oocyst',
       'extracellular sporozoite',
       'sporozoite',
@@ -633,6 +640,7 @@ module DevelopmentalStageConstants
       'liver stage day 2' => 'hepatocyte stage day 2',
       'liver stage day 4' => 'hepatocyte stage day 4',
       'liver stage day 7' => 'hepatocyte stage day 7',
+      'early gametocytes' => 'early gametocyte',
     }
   }
 end

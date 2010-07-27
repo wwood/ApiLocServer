@@ -326,16 +326,21 @@ class Localisation < ActiveRecord::Base
 
   # return the negative of this localisation
   def negation
-    if matches = name.match(/^not (.*)/)
+    if negative?
       t = Localisation.find_by_name(matches[1])
       raise if t.nil?
       return t
     else
-      t = Localisation.find_by_name("not #{name}")
+      t = Localisation.find_by_name(self.add_negation(name))
       raise if t.nil?
       return t
     end
   end
+  
+  # Is this a negative localisation?
+  def negative?
+    !(name.match(/^not (.*)/).nil?)
+  end 
 
   def map_to_go_term_multiple
     # manually mapped ones

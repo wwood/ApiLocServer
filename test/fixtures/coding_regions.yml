@@ -6,17 +6,20 @@ one:
   jgi_protein_id: 2
   upstream_distance: 10
   orientation: +
+  string_id: the very first protein
 two:
   id: 2
   gene_id: 1
   jgi_protein_id: 3
   upstream_distance: 10
   orientation: "-"
+  string_id: the very second protein
 three:
   id: 3
   gene_id: 2
   jgi_protein_id: 4
   orientation: +
+  string_id: the very third protein
 four:
   id: 4
   gene_id: 3
@@ -26,7 +29,7 @@ five:
   id: 5
   gene_id: 3
   string_id: 'PF1'
-  orientation: -
+  orientation: '-'
 six:
   id: 6
   gene_id: 3
@@ -103,3 +106,9 @@ hap:
   jgi_protein_id: 5
   orientation: +
   string_id: PF14_0078
+falciparum entry but gondii prefix:
+  id: 21
+  gene_id: 3
+  jgi_protein_id: 5
+  orientation: +
+  string_id: TgPF1

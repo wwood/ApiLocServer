@@ -11,6 +11,10 @@ Localisation.all(
 ).collect {|d| link_to d.name, :action => :specific_localisation, :id => d.name}.join(', ')
 %></p>
 
+<% if !@localisations[0].nil? and @localisations[0].negative? %>
+<%= negative_localisation_spiel %>
+<% end %>
+
 <% Species.all.sort.each do |sp|
 codes = CodingRegion.s(sp.name).all(
   :joins => {:expressed_localisations => :apiloc_top_level_localisation},

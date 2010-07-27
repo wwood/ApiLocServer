@@ -1,11 +1,14 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 
-one:
+small:
   id: 1
   coding_region_id: 1
-  annotation: MyString1
-
-two:
+  annotation: A massively small protein
+medium:
   id: 2
-  coding_region_id: 1
-  annotation: MyString
+  coding_region_id: 2
+  annotation: medium protein
+big:
+  id: 3
+  coding_region_id: 3
+  annotation: A massively big protein

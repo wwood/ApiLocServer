@@ -2,6 +2,28 @@
 
 cytoplasm:
   name: cytoplasm
-
 nucleus:
   name: nucleus
+apicoplast:
+  name: apicoplast
+apical:
+  name: apical
+inner membrane complex:
+  name: inner membrane complex
+endoplasmic reticulum:
+  name: endoplasmic reticulum
+golgi apparatus:
+  name: golgi apparatus
+exported:
+  name: exported
+parasite plasma membrane:
+  name: parasite plasma membrane
+food vacuole:
+  name: food vacuole
+mitochondrion:
+  name: mitochondrion
+parasitophorous vacuole:
+  name: parasitophorous vacuole
+other:
+  name: other
+  
