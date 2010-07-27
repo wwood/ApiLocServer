@@ -381,4 +381,36 @@ class BScript
       end
     end
   end
+  
+  # For each protein taken in on $stdin, print out
+  # the plasmodb id and percentile (in blocks of 5)
+  # max in ER, LR, ET, LT, ES, LS from Winzeler 2003
+  # Affy data, as downloaded from plasmodb
+  def microarray_percentiles_from_stdin
+    # Read in the PlasmoDB id mappings
+    plasmodbs_to_blocks = {}
+     (0..19).each do |i|
+      start = i*5
+      stop = start+5
+      
+      filename = "#{DATA_DIR}/Plasmodium falciparum/microarray/Winzeler2003/percentile_blocks/sorbitol#{start}to#{stop}.txt"
+      FasterCSV.foreach(filename, :headers => true) do |row|
+        plasmodb = row[0].strip
+        plasmodbs_to_blocks[plasmodb] = start #may overwrite, but because we are in order that's ok
+      end
+    end
+    
+    $stdin.each do |line|
+      plasmodb = line.strip
+      if plasmodbs_to_blocks[plasmodb].nil?
+        $stderr.puts "Unable to find coding region for #{plasmodb}"
+        puts "#{plasmodb}\t"
+      else
+        puts [
+        plasmodb,
+        plasmodbs_to_blocks[plasmodb]
+        ].join("\t")
+      end
+    end
+  end
 end
