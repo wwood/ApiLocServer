@@ -76,7 +76,7 @@
       <li style="display:none" id="expandable_<%=loc%>">
         <ul><% top_loc = loc; top_loc = 'cytoplasm' if top_loc == 'cytoplasm but not organellar';
           raise Exception, "unable to find top level loc #{top_loc}" unless TopLevelLocalisation.find_by_name(top_loc.downcase) %>
-          <% TopLevelLocalisation.find_by_name(top_loc.downcase).apiloc_localisations.all(:select => 'distinct(localisations.name)', :joins => :expression_contexts).each do |l| %>
+          <% TopLevelLocalisation.find_by_name(top_loc.downcase).apiloc_localisations.all(:select => 'distinct(localisations.name)', :joins => :expression_contexts).sort{|a,b| a.name <=> b.name}.each do |l| %>
             <li><%= link_to l.name, :action => :specific_localisation, :id => l.name %></li>
           <% end %>
         </ul>
