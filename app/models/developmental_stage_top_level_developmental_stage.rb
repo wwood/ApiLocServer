@@ -19,6 +19,7 @@ class DevelopmentalStageTopLevelDevelopmentalStage < ActiveRecord::Base
     '8 hours after sporozoite invasion of hepatocyte' => "liver stage",
     'activated microgametocyte' => "gametocyte",
     'after assembly of tachyzoite daughter cells' => "tachyzoite",
+    'after tachyzoite cell division' => 'tachyzoite',
     'after liver stage completion of daughter parasite development' => 'liver stage',
     'after microneme exocytosis' => "merozoite",
     'after parasitophorous vacuole membrane breakdown' => "schizont",

@@ -327,11 +327,13 @@ class Localisation < ActiveRecord::Base
   # return the negative of this localisation
   def negation
     if negative?
+      matches = name.match(/^not (.*)/)
+      raise Exception, "Programmming error!" if matches.nil?
       t = Localisation.find_by_name(matches[1])
       raise if t.nil?
       return t
     else
-      t = Localisation.find_by_name(self.add_negation(name))
+      t = Localisation.find_by_name(Localisation.add_negation(name))
       raise if t.nil?
       return t
     end

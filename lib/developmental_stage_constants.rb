@@ -173,6 +173,7 @@ module DevelopmentalStageConstants
       'tachyzoite cell division',
       'early tachyzoite cell division',
       'late tachyzoite cell division',
+      'after tachyzoite cell division',
       'mature schizont merozoite',
       'early merozoite',
       'extracellular merozoite',
@@ -398,6 +399,7 @@ module DevelopmentalStageConstants
       'ookinete'
     ],
     Species::YOELII_NAME => [
+      'blood stages',
       'ring',
       'trophozoite',
       'early trophozoite',
@@ -408,6 +410,7 @@ module DevelopmentalStageConstants
       'gametocyte',
       'zygote',
       'ookinete',
+      'oocyst',
       '7 day old oocyst',
       'sporozoite',
       'oocyst sporozoite',
@@ -415,6 +418,11 @@ module DevelopmentalStageConstants
       'salivary gland sporozoite',
       'hepatic',
       'hepatocyte schizont',
+      '7 hours post sporozoite infection',
+      '14 hours post sporozoite infection',
+      '24 hours post sporozoite infection',
+      '40 hours post sporozoite infection',
+      '48 hours post sporozoite infection',
     ],
     Species::KNOWLESI_NAME => [
       'merozoite',
@@ -437,6 +445,9 @@ module DevelopmentalStageConstants
       'mature schizont' => 'late schizont',
       'liver stages' => 'hepatic',
       'liver stage schizont' => 'hepatocyte schizont',
+      'mosquito midgut oocysts' => 'oocyst',
+      'oocyst sporozoites' => 'oocyst sporozoite',
+      'salivary gland sporozoites' => 'salivary gland sporozoite',
     },
     Species::VIVAX_NAME => {
       'rbc stages' => %w(ring trophozoite schizont).push('extracellular merozoite'),
@@ -537,6 +548,9 @@ module DevelopmentalStageConstants
       'released mature tachyzoite' => 'extracellular tachyzoite',
       'shortly after tachyzoite invasion' => 'shortly after invasion of tachyzoite',
       'newly invaded tachyzoite' => 'shortly after invasion of tachyzoite',
+      'initial stage of cell division' => 'early tachyzoite cell division',
+      'after endodyogeny' => 'after tachyzoite cell division',
+      'endodyogeny' => 'tachyzoite cell division',
     },
     Species::FALCIPARUM_NAME => {
       'immature oocyst' => 'early oocyst',
