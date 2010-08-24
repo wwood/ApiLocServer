@@ -49,4 +49,10 @@ class PublicationTest < ActiveSupport::TestCase
       Publication.find_create_from_ids_or_urls(id)
     end
   end
+  
+  def test_year
+    assert_equal 1997, Publication.new(:date => '1997').year
+    assert_equal nil, Publication.new(:date => 'ages ago').year
+    assert_equal 2003, Publication.new(:date => 'May, 2003').year
+  end
 end

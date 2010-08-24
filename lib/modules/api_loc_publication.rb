@@ -2257,4 +2257,71 @@ class BScript
       puts row.join("\t") unless failed
     end
   end
+  
+  # Generate the data for 
+  def publication_per_year_graphing
+    years = {}
+    fails = 0
+    Publication.all(:joins => {:expression_contexts => :localisation}).uniq.each do |p|
+      y = p.year
+      if y.nil?
+        fails += 1
+        $stderr.puts "Failed: #{p.inspect}"
+      else
+        years[y] ||= 0
+        years[y] += 1
+      end
+    end
+    
+    puts ['Year','Number of Publications'].join("\t")
+    years.sort.each do |a,b|
+      puts [a,b].join("\t")
+    end
+    $stderr.puts "Failed to year-ify #{fails} publications."
+  end
+  
+  def localisation_per_year_graphing
+    already_localised = []
+    years = {}
+    fails = 0
+    
+    # Get all the publications that have localisations in order
+    Publication.all(:joins => {:expression_contexts => :localisation}).uniq.sort {|p1,p2|
+      if p1.year.nil?
+        -1
+      elsif p2.year.nil?
+        1
+      else
+        p1.year <=> p2.year
+      end
+    }.each do |pub|
+      y = pub.year
+      if y.nil? #ignore publications with improperly parsed years
+        fails += 1
+        next
+      end
+      
+      ids = CodingRegion.all(:select => 'coding_regions.id',
+      :joins => {
+      :expression_contexts => [:localisation, :publication]
+      },
+      :conditions => {:publications => {:id => pub.id}}
+      )
+      
+      ids.each do |i|
+        unless already_localised.include?(i)
+          already_localised.push i
+          years[y] ||= 0
+          years[y] += 1
+        end
+      end
+    end
+    
+    puts ['Year','Number of New Protein Localisations'].join("\t")
+    years.sort.each do |a,b|
+      puts [a,b].join("\t")
+    end
+    
+    $stderr.puts "Failed to year-ify #{fails} publications."
+  end
 end
