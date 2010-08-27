@@ -64,7 +64,7 @@ Rails::Initializer.run do |config|
   # Commented out so I can it on reefedge
   #config.gem "wwood-rsruby", :source => "http://gems.github.com", :lib => 'rsruby' 
   config.gem "fastercsv"
-#  config.gem 'wwood-rarff', :source => "http://gems.github.com", :lib => 'rarff', :version => '0.2.3'
+  config.gem 'wwood-rarff', :lib => 'rarff'
 #  config.gem 'wwood-bioruby', :source => "http://gems.github.com", :lib => 'bio'
   config.gem 'schleyfox-peach', :source => "http://gems.github.com", :lib => 'peach'
   config.gem 'rio'
@@ -73,6 +73,7 @@ Rails::Initializer.run do |config|
   config.gem "matthuhiggins-foreigner", :lib => "foreigner", :source => 'http://gemcutter.org'
   config.gem 'array_pair', :source => 'http://gemcutter.org'
   config.gem 'goruby', :lib => 'go', :source => 'http://gemcutter.org'
+  config.gem 'progressbar'
   
   # include a cache sweeper directory that fits into the app/ scheme, as suggested by
   # http://railsenvy.com/2007/2/28/rails-caching-tutorial#sweepers
