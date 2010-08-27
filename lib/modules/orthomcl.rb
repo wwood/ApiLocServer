@@ -10,21 +10,25 @@ class BScript
   # in the process
   def orthomcl2_groups_to_database
     orthomcl_groups_to_database(
-      "#{DATA_DIR}/orthomcl/v2/groups_orthomcl-2.txt.gz",
+      "#{ORTHOMCL_BASE_DIR}/v2/groups_orthomcl-2.txt.gz",
     OrthomclRun.official_run_v2
     )
   end
   
-  def orthomcl_groups_to_database(
-                                  filename="#{DATA_DIR}/orthomcl/v3/groups_OrthoMCL-3.txt.gz",
-    run = OrthomclRun.official_run_v3
+  def orthomcl_groups_to_database(run_name = OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME,
+    gz_filename=nil
     )
-    #    OrthomclGene.delete_all
-    #    OrthomclGroup.delete_all
-    #    OrthomclGeneCodingRegion.delete_all
+    if gz_filename.nil?
+      gz_filename = "#{ORTHOMCL_BASE_DIR}/#{OrthomclRun.version_name_to_local_data_dir(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}/#{OrthomclRun.groups_gz_filename(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}"
+    end
     
-    Zlib::GzipReader.open(filename) do |gz|
+    run = OrthomclRun.find_or_create_by_name(run_name)
+    wc = `gunzip -c '#{gz_filename}' |wc -l`.to_i
+    progress = ProgressBar.new('orthomcl_groups',wc)
+    
+    Zlib::GzipReader.open(gz_filename) do |gz|
       gz.each do |line|
+        progress.inc
         next if !line or line === ''
         
         splits1 = line.split(': ')
@@ -46,6 +50,7 @@ class BScript
         end
       end
     end
+    progress.finish
   end
   
   # The directory of the orthomcl data
@@ -62,7 +67,7 @@ class BScript
   
   # Download the data from orthomcl used in apiloc
   def download_orthomcl(orthomcl_version=OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)
-    orthomcl_base_dir = "#{DATA_DIR}/orthomcl"
+    orthomcl_base_dir = ORTHOMCL_BASE_DIR
     dir = "#{orthomcl_base_dir}/#{OrthomclRun.version_name_to_local_data_dir(orthomcl_version)}"
     
     # Ensure the directories to be downloaded exist
@@ -92,12 +97,20 @@ class BScript
   end
   
   # upload just using the deflines - I don't really need the sequences
-  def upload_orthomcl_official_deflines(gz_filename)
-    run = OrthomclRun.find_by_name(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)
+  def upload_orthomcl_official_deflines(run_name = OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME,
+    gz_filename=nil)
+    if gz_filename.nil?
+      gz_filename = "#{ORTHOMCL_BASE_DIR}/#{OrthomclRun.version_name_to_local_data_dir(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}/#{OrthomclRun.groups_gz_filename(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}"
+    end
+    
+    run = OrthomclRun.find_or_create_by_name(run_name)
+    wc = `gunzip -c '#{gz_filename}' |wc -l`.to_i
+    progress = ProgressBar.new('orthomcl_deflines',wc)
     
     Zlib::GzipReader.open(gz_filename) do |gz|
       gz.each do |line|
         line.strip!
+        progress.inc
         
         parsed = OrthomclDeflineParser.parse(line)
         
@@ -154,6 +167,7 @@ class BScript
         )
       end
     end
+    progress.finish
   end
   
   def upload_orthomcl_official_sequences(fasta_filename="#{WORK_DIR}/Orthomcl/seqs_orthomcl-2.fasta")
