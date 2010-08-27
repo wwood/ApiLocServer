@@ -29,6 +29,7 @@ require 'spoctopus_wrapper'
 require 'uni_prot_iterator'
 
 # Modules to split up this massive file. Each one is included
+require 'modules/b_script_constants'
 require 'modules/at_bias'
 require 'modules/api_loc_publication'
 require 'modules/eu_path_db'
@@ -51,9 +52,6 @@ WORK_DIR = "#{ENV['HOME']}/Workspace"
 
 
 class BScript
-  PHD_DIR = "#{ENV['HOME']}/phd"
-  DATA_DIR = "#{ENV['HOME']}/phd/data"
-  
   require 'microarray_timepoint' #include the constants for less typing
   include MicroarrayTimepointNames
 
