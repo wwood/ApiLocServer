@@ -140,7 +140,7 @@ class BScript
           if ogenes.length != 1
             if ogenes.length == 0
               # Raise exceptions now because singlets are uploaded now - this gene apparently has a group
-              raise Exception, "No gene found for #{line} when there should be"
+              raise Exception, "No gene found for #{orthomcl_id} when there should be when uploading orthomcl deflines. Are the singletons uploaded?"
             else
               raise Exception, "Too many genes found for #{orthomcl_id}"
             end
@@ -204,7 +204,7 @@ class BScript
         if ogenes.length != 1
           if ogenes.length == 0
             # Raise exceptions now because singlets are uploaded now - this gene apparently has a group
-            raise Exception, "No gene found for #{line} when there should be"
+            raise Exception, "No gene found for #{orthomcl_id} when there should be when uploading orthomcl sequences"
           else
             raise Exception, "Too many genes found for #{orthomcl_id}"
           end
