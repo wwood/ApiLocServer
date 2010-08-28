@@ -100,7 +100,7 @@ class BScript
   def upload_orthomcl_official_deflines(run_name = OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME,
     gz_filename=nil)
     if gz_filename.nil?
-      gz_filename = "#{ORTHOMCL_BASE_DIR}/#{OrthomclRun.version_name_to_local_data_dir(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}/#{OrthomclRun.groups_gz_filename(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}"
+      gz_filename = "#{ORTHOMCL_BASE_DIR}/#{OrthomclRun.version_name_to_local_data_dir(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}/#{OrthomclRun.deflines_gz_filename(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}"
     end
     
     run = OrthomclRun.find_or_create_by_name(run_name)
