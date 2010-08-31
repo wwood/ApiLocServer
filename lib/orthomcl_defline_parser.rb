@@ -6,18 +6,15 @@ class OrthomclDeflineParser
   # The line may have the '>' or not - this method should handle both
   def self.parse_defline(line)
     obj = OrthomclDefline.new
-    
-    # Remove the initial '>' character if given
-    line.gsub!(/^>/,'')
-    
-    splits_space = line.split(' ')
-    if splits_space.length < 3
-      raise Exception, "Badly handled line because of spaces: #{line}"
+      # return accession, group and annotation for a given defline. E.g.
+    matches = line.match(/^>([a-z]+)\|(.+?) \| (.+?) \|(.*)$/)
+    if matches.nil?
+      raise Exception, "Unable to parse orthomcl defline #{line}!"
     end
     
-    obj.gene_id = splits_space[0]
-    obj.group_id = splits_space[2]
-    obj.annotation = splits_space[4..(splits_space.length)].join(' ')
+    obj.gene_id = "#{matches[1]}|#{matches[2]}"
+    obj.group_id = matches[3]
+    obj.annotation = matches[4].gsub(/^ /,'')
     
     return obj
   end

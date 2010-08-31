@@ -424,7 +424,7 @@ class BScript
   # a catch-all for the pesky uploading of gff and amino acid sequences
   def method_missing(symbol, *args)
     meth = symbol.to_s
-    if matches = meth.match(/(.+)_fasta_to_database/)
+    if matches = meth.match(/(.+)_fasta_to_database$/)
       spd = SpeciesData.new(matches[1])
       fa = EuPathDb2009.new(
                             spd.fasta_file_species_name,
@@ -432,7 +432,7 @@ class BScript
       ).load(spd.protein_fasta_path)
       sp = Species.find_by_name(spd.name)
       upload_fasta_general!(fa, sp)
-    elsif matches = meth.match(/(.+)_to_database/)
+    elsif matches = meth.match(/(.+)_to_database$/)
       spd = SpeciesData.new(matches[1])
       apidb_species_to_database(
                                 spd.name,
