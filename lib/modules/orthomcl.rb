@@ -113,7 +113,7 @@ class BScript
         progress.inc
         
         parsed = OrthomclDeflineParser.parse(line)
-        attr_accessor :group_id, :gene_id, :annotation
+
         orthomcl_id = parsed.gene_id
         orthomcl_group_name = parsed.group_id
         annot = parsed.annotation
