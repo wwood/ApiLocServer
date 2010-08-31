@@ -21,7 +21,6 @@ class CodingRegion < ActiveRecord::Base
   has_many :literature_defined_coding_region_alternate_string_ids, :dependent => :destroy
   has_many :case_sensitive_literature_defined_coding_region_alternate_string_ids, :dependent => :destroy
   has_many :coding_region_strain_orthologues, :dependent => :destroy
-  has_many :derisi20063d7_logmeans
   has_many :plasmodb_gene_list_entries
   has_many :plasmodb_gene_lists, :through => :plasmodb_gene_list_entries
   has_many :localisations, :through => :coding_region_localisations
