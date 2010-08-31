@@ -113,16 +113,11 @@ class BScript
         progress.inc
         
         parsed = OrthomclDeflineParser.parse(line)
+        attr_accessor :group_id, :gene_id, :annotation
+        orthomcl_id = parsed.gene_id
+        orthomcl_group_name = parsed.group_id
+        annot = parsed.annotation
         
-        # Parse out the official ID
-        line = line.gsub(/^>/,'')
-        splits_space = line.split(' ')
-        if splits_space.length < 3
-          raise Exception, "Badly handled line because of spaces: #{line}"
-        end
-        orthomcl_id = splits_space[0]
-        
-        orthomcl_group_name = splits_space[2]
         ogene = nil
         
         if orthomcl_group_name == 'no_group'
@@ -150,21 +145,12 @@ class BScript
         end
         
         # find the annotation
-        splits_bar = line.split('|')
-        if splits_bar.length == 3
-          annot = ''
-        elsif splits_bar.length > 4
-          annot = splits_bar[3..splits_bar.length-1].join('|')
-        elsif splits_bar.length != 4
-          raise Exception, "Bad number of bars (#{splits_bar.length}): #{line}"
-        else
-          annot = splits_bar[3].strip
+        unless annot == ''
+          OrthomclGeneOfficialData.find_or_create_by_orthomcl_gene_id_and_annotation(
+                                                                                     ogene.id,
+                                                                                     annot
+          )
         end
-        
-        OrthomclGeneOfficialData.find_or_create_by_orthomcl_gene_id_and_annotation(
-                                                                                   ogene.id,
-                                                                                   annot
-        )
       end
     end
     progress.finish
