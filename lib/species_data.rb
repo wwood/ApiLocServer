@@ -115,6 +115,8 @@ class SpeciesData
     'ToxoDB' => '6.0',
     'CryptoDB' => '4.3'
   }
+
+  BASE_DOWNLOAD_DIRECTORY = "#{ENV['HOME']}/phd/data"
   
   
   def initialize(nickname)
@@ -254,7 +256,7 @@ class SpeciesData
   
   def local_download_directory
     s = @species_data
-    "/home/ben/phd/data/#{s[:name]}/genome/#{s[:source]}/#{SOURCE_VERSIONS[s[:source]]}"
+    "#{BASE_DOWNLOAD_DIRECTORY}/#{s[:name]}/genome/#{s[:source]}/#{SOURCE_VERSIONS[s[:source]]}"
   end
   
   # an array of directory names. mkdir is called on each of them in order,
@@ -263,7 +265,7 @@ class SpeciesData
   def directories_for_mkdir
     s = @species_data
     components = [
-      '/home/ben/phd/data',
+      BASE_DOWNLOAD_DIRECTORY,
     s[:name],
       'genome',
     s[:source],

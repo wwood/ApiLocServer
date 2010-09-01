@@ -278,13 +278,14 @@ class BScript
   end
   
   def upload_apiloc_from_scratch
-    go_to_database
-    download_uniprot_data
-    uniprot_to_database
-    download_orthomcl
-    orthomcl_to_database
+    #go_to_database
+    #download_uniprot_data
+    #uniprot_to_database
+    #download_orthomcl
+    #orthomcl_to_database
     
     # Upload basic gene identifiers
+    download
     upload_apiloc_gffs
     upload_gondii_gene_table_to_database
     upload_apiloc_fasta_files
