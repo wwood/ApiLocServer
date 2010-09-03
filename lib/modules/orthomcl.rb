@@ -100,7 +100,7 @@ class BScript
   def upload_orthomcl_official_deflines(run_name = OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME,
     gz_filename=nil)
     if gz_filename.nil?
-      gz_filename = "#{ORTHOMCL_BASE_DIR}/#{OrthomclRun.version_name_to_local_data_dir(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}/#{OrthomclRun.groups_gz_filename(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}"
+      gz_filename = "#{ORTHOMCL_BASE_DIR}/#{OrthomclRun.version_name_to_local_data_dir(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}/#{OrthomclRun.deflines_gz_filename(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME)}"
     end
     
     run = OrthomclRun.find_or_create_by_name(run_name)
@@ -113,16 +113,11 @@ class BScript
         progress.inc
         
         parsed = OrthomclDeflineParser.parse(line)
+
+        orthomcl_id = parsed.gene_id
+        orthomcl_group_name = parsed.group_id
+        annot = parsed.annotation
         
-        # Parse out the official ID
-        line = line.gsub(/^>/,'')
-        splits_space = line.split(' ')
-        if splits_space.length < 3
-          raise Exception, "Badly handled line because of spaces: #{line}"
-        end
-        orthomcl_id = splits_space[0]
-        
-        orthomcl_group_name = splits_space[2]
         ogene = nil
         
         if orthomcl_group_name == 'no_group'
@@ -140,7 +135,7 @@ class BScript
           if ogenes.length != 1
             if ogenes.length == 0
               # Raise exceptions now because singlets are uploaded now - this gene apparently has a group
-              raise Exception, "No gene found for #{line} when there should be"
+              raise Exception, "No gene found for #{orthomcl_id} when there should be when uploading orthomcl deflines. Are the singletons uploaded?"
             else
               raise Exception, "Too many genes found for #{orthomcl_id}"
             end
@@ -150,21 +145,12 @@ class BScript
         end
         
         # find the annotation
-        splits_bar = line.split('|')
-        if splits_bar.length == 3
-          annot = ''
-        elsif splits_bar.length > 4
-          annot = splits_bar[3..splits_bar.length-1].join('|')
-        elsif splits_bar.length != 4
-          raise Exception, "Bad number of bars (#{splits_bar.length}): #{line}"
-        else
-          annot = splits_bar[3].strip
+        unless annot == ''
+          OrthomclGeneOfficialData.find_or_create_by_orthomcl_gene_id_and_annotation(
+                                                                                     ogene.id,
+                                                                                     annot
+          )
         end
-        
-        OrthomclGeneOfficialData.find_or_create_by_orthomcl_gene_id_and_annotation(
-                                                                                   ogene.id,
-                                                                                   annot
-        )
       end
     end
     progress.finish
@@ -204,7 +190,7 @@ class BScript
         if ogenes.length != 1
           if ogenes.length == 0
             # Raise exceptions now because singlets are uploaded now - this gene apparently has a group
-            raise Exception, "No gene found for #{line} when there should be"
+            raise Exception, "No gene found for #{orthomcl_id} when there should be when uploading orthomcl sequences"
           else
             raise Exception, "Too many genes found for #{orthomcl_id}"
           end

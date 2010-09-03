@@ -18,4 +18,12 @@ class OrthomclTest < Test::Unit::TestCase
     assert_equal 'OG30_14385', obj.group_id
     assert_equal '', obj.annotation
   end
+  
+  def test_with_spaces
+    line = '>lbic|MRE_C4-methyl sterol oxidase | no_group | '
+    obj = OrthomclDeflineParser.parse_defline line
+    assert_equal 'lbic|MRE_C4-methyl sterol oxidase', obj.gene_id
+    assert_equal 'no_group', obj.group_id
+    assert_equal '', obj.annotation
+  end
 end
