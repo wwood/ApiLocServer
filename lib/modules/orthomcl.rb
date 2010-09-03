@@ -2,7 +2,7 @@
 
 class BScript
   def orthomcl_to_database
-    #orthomcl_groups_to_database
+    orthomcl_groups_to_database
     upload_orthomcl_official_deflines
   end
   

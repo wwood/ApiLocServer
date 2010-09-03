@@ -1,9 +1,11 @@
 #!/usr/bin/env ruby
 
+$:.unshift File.join(File.dirname(__FILE__),'..','vendor/plugins/ben_bioinformatics/lib')
+
+require 'rubygems'
 require 'transmembrane'
 include Transmembrane
 require 'tempfile'
-require 'rubygems'
 gem 'rio'
 require 'rio'
 
