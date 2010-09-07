@@ -108,7 +108,7 @@ class BScript
   def upload_gondii_gene_table_to_database
     upload_gene_information_table(
                                   Species.find_by_name(Species::TOXOPLASMA_GONDII),
-      "#{DATA_DIR}/Toxoplasma gondii/genome/ToxoDB/#{TOXODB_VERSION}/TgondiiME49Gene_ToxoDB-#{TOXODB_VERSION}.txt.gz"
+      "#{DATA_DIR}/Toxoplasma gondii/genome/ToxoDB/#{TOXODB_VERSION}/TgondiiME49Gene_ToxoDB-#{TOXODB_VERSION}.txt"
     ) do |info, code|
       # Add release 4 IDs as direct aliases
       release_fours = info.get_info('Release4 IDs')
