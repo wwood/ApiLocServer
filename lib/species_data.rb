@@ -117,7 +117,9 @@ class SpeciesData
   }
   
   
-  def initialize(nickname)
+  
+  
+  def initialize(nickname, base_data_directory="#{ENV['HOME']}/phd/data")
     @species_data = @@data[nickname] # try the full name
     @species_data ||= @@data[nickname.capitalize.gsub('_',' ')] #try replacing underscores
     if @species_data.nil? # try using just the second word
@@ -126,6 +128,8 @@ class SpeciesData
         @species_data = @@data[splits[1]]
       end
     end
+    
+    @base_data_directory = base_data_directory
     
     raise Exception, "Couldn't find species data for #{nickname}" unless @species_data
   end
@@ -254,7 +258,7 @@ class SpeciesData
   
   def local_download_directory
     s = @species_data
-    "/home/ben/phd/data/#{s[:name]}/genome/#{s[:source]}/#{SOURCE_VERSIONS[s[:source]]}"
+    "#{@base_data_directory}/#{s[:name]}/genome/#{s[:source]}/#{SOURCE_VERSIONS[s[:source]]}"
   end
   
   # an array of directory names. mkdir is called on each of them in order,
@@ -263,7 +267,7 @@ class SpeciesData
   def directories_for_mkdir
     s = @species_data
     components = [
-      '/home/ben/phd/data',
+      @base_data_directory,
     s[:name],
       'genome',
     s[:source],
