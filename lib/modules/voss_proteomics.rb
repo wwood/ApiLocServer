@@ -28,7 +28,6 @@ class BScript
           'Literature survey localisation description',
           'Literature survey nuclear agreement',
       'Literature survey ER agreement',
-    
       'Localisation description of Orthologue(s)',
     #  'Included in Maurer\'s Cleft proteome?',
     #  'Included in Food Vacuole proteome?',
@@ -50,6 +49,7 @@ class BScript
       if code.nil?
         puts "Couldn't find this gene ID"
       else
+
         orth_str = nil
         begin
           localised_orths = code.localised_apicomplexan_orthomcl_orthologues
@@ -111,32 +111,33 @@ class BScript
         
         puts [
         #        code.annotation.annotation,
-        code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.uniq.join(', '),
-        code.localisation_english,
-        orth_str,
+                code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.uniq.join(', '),
+                code.localisation_english,
+                orth_str,
         #          code.plasmo_a_p.signal?,
         #                code.plasmit?,
         #          code.signalp_however.signal?,
         #          code.tmhmm.transmembrane_domains.length,
         #          code.amino_acid_sequence.exportpred.predicted?,
-        #        code.names.reject{|n| n==code.string_id}.join(', '),
-        code.agreement_with_top_level_localisation_simple(
-                                                          TopLevelLocalisation.find_by_name('nucleus')
-        ),
-        code.agreement_with_top_level_localisation_simple(
-                                                          TopLevelLocalisation.find_by_name('endoplasmic reticulum')
-        ),
+                code.names.reject{|n| n==code.string_id}.join(', '),
+                code.agreement_with_top_level_localisation_simple(
+                                                                  TopLevelLocalisation.find_by_name('nucleus')
+                ),
+                code.agreement_with_top_level_localisation_simple(
+                                                                  TopLevelLocalisation.find_by_name('endoplasmic reticulum')
+                ),
         code.literature_based_top_level_localisations.reach.name.uniq.join(', '),
-        code.localisation_english(:by_literature => true),
-        code.agreement_with_top_level_localisation_simple(
-                                                          TopLevelLocalisation.find_by_name('nucleus'),
+                code.localisation_english(:by_literature => true),
+                code.agreement_with_top_level_localisation_simple(
+                                                                  TopLevelLocalisation.find_by_name('nucleus'),
                             :by_literature => true
-        ),
+                ),
         code.agreement_with_top_level_localisation_simple(
                                                           TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
                     :by_literature => true
         ),
-        lit_orth_str,
+                lit_orth_str,
+
         #        maurers_proteome.coding_regions.include?(code),
         #        fv_proteome.coding_regions.include?(code),
         #        top_names.collect{|top_name|
@@ -153,6 +154,7 @@ class BScript
         #          code.proteomics(nil, 1).length > 0,
         #          code.proteomics.length > 0
         #        measure,
+
         #        measure_ring,
         #        measure_troph,
         #        measure_schizont,
@@ -361,6 +363,7 @@ class BScript
         next
       end
       
+      sgds = sgd_homologues(code)
       orth = code.single_orthomcl!
       unless orth
         puts [name, "Unable to find Orthomcl v3 ID"].join("\t")
@@ -379,6 +382,54 @@ class BScript
       else
         puts [name].join("\t")
       end
+    end
+  end
+  
+  def plasmodbs_to_yeast_sgd_info
+    $stdin.each do |line|
+      name = line.strip.gsub('"','')
+      code = CodingRegion.ff(name)
+      if code.nil?
+        $stderr.puts "Couldn't find #{name}, ignoring"
+        next
+      end
+      
+      ogenes = code.orthomcl_genes
+      if ogenes.length > 1
+        puts [name, "Linking problems - one orthomcl genes has 2 coding regions, ignoring"]
+        next
+      end
+      orth = ogenes.empty? ? nil : ogenes[0]
+      unless orth
+        puts [name, "Unable to find Orthomcl v3 ID"].join("\t")
+        next
+      end
+      group = orth.official_group
+      if group.nil? #doesn't have orthologues
+        puts name
+        next
+      end
+      yeasts = group.orthomcl_genes.code('scer').all
+      compartments = yeasts.collect do |y|
+        codes = y.coding_regions
+        if codes.empty?
+          []
+        else
+          codes.reach.cached_compartments.uniq
+        end
+      end
+      compartments.flatten!
+      compartments.uniq!
+      
+      to_print = [
+      name,
+      yeasts.length,
+      yeasts.collect{|y| y.official_split[1]}.join(', '),
+      compartments.join(", "),
+      compartments.empty? ? nil : compartments.include?(OntologyComparison::NUCLEUS_NAME),
+      compartments.empty? ? nil : compartments.include?(OntologyComparison::ENDOPLASMIC_RETICULUM_NAME)
+      ]
+      puts to_print.join("\t")
     end
   end
   
@@ -411,6 +462,35 @@ class BScript
         plasmodbs_to_blocks[plasmodb]
         ].join("\t")
       end
+    end
+  end
+  
+  def gametocyte_whole_cell_proteomics
+    # troph genes are not gametocyte genes, if you read the paper. "For the trophozoite sample, synchronous trophozoites of gametocyte-less clone F12 (15) from a high parasitemia culture were MACS-purified."
+    #    troph_coding_regions = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_GAMETOCYTOGENESIS_2010_TROPHOZOITE_NAME).coding_regions
+    stage_i_and_ii_coding_regions = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_GAMETOCYTOGENESIS_2010_GAMETOCYTE_STAGE_I_AND_II_NAME).coding_regions
+    stage_v_coding_regions = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_GAMETOCYTOGENESIS_2010_GAMETOCYTE_STAGE_V_NAME).coding_regions
+    
+    puts [
+    'PlasmoDB',
+    'Stage I/II gametocyte proteome',
+    'Stage V gametocyte proteome',
+    ].join("\t")
+    
+    $stdin.each do |line|
+      plasmodb = line.strip.gsub('"','')
+      code = CodingRegion.ff(plasmodb)
+      if code.nil?
+        puts [plasmodb, "Couldn't find coding region id `#{plasmodb}', ignoring"].join("\t")
+        next
+      end
+      
+      puts [
+      plasmodb,
+      #      troph_coding_regions.include?(code),
+      stage_i_and_ii_coding_regions.include?(code),
+      stage_v_coding_regions.include?(code)
+      ].join("\t")
     end
   end
 end
