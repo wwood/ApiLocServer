@@ -1,28 +1,28 @@
-
 <script type="text/javascript">
   /* Toggle a list between expanded and retracted forms */
   function toggle(list_id, image_id){
-    if (document.getElementById(list_id).style.display == 'block'){
-      document.getElementById(list_id).style.display = 'none';
-      document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_plus.gif")%>');
-    } else {
-      document.getElementById(list_id).style.display = 'block';
-      document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_minus.gif")%>');
-    }
+      if (document.getElementById(list_id).style.display == 'block') {
+          document.getElementById(list_id).style.display = 'none';
+          document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_plus.gif")%>');
+      }
+      else {
+          document.getElementById(list_id).style.display = 'block';
+          document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_minus.gif")%>');
+      }
   }
   
   /* Dynamically change the gene ID search form entry so that the form submission is RESTful */
   function setup_gene_search_action(){
-  	url = '<%= url_for :controller => :apiloc, :action => :gene %>/'+document.getElementById('gene_search_textbox').value
-	document.getElementById('gene_search_form').action = url;
-	return url
+      url = '<%= url_for :controller => :apiloc, :action => :gene %>/' + document.getElementById('gene_search_textbox').value
+      document.getElementById('gene_search_form').action = url;
+      return url;
   }
   
   /* Dynamically change the text search form entry so that the form submission is RESTful */
   function setup_text_search_action(){
-  	url = 'http://google.com/#q=site:apiloc.bio21.unimelb.edu.au '+document.getElementById('text_search_textbox').value
-	document.getElementById('text_search_form').action = url;
-	return url
+      url = 'http://google.com/#q=site:apiloc.bio21.unimelb.edu.au ' + document.getElementById('text_search_textbox').value
+      document.getElementById('text_search_form').action = url;
+      return url;
   }
 </script>
 <% category_counter = 0 %>
@@ -154,5 +154,15 @@
 </div>
 
 
-<%= link_to 'Acknowledgements', :action => :acknowledgements %>
-
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Acknowledgements</h2>
+  <table>
+    <tr valign=center>
+      <td>
+        <% @acknowledgement_image_height = 100 %>
+        ApiLoc is a product of the <%= link_to 'Ralph Lab', 'http://www.biochemistry.unimelb.edu.au/research/res_ralph.html' %>, </td><td><%= link_to image_tag('bio21.jpg', :width=>@acknowledgement_image_height*672.0/1150, :height=>@acknowledgement_image_height), 'http://www.bio21.unimelb.edu.au' %>,<%= link_to image_tag('unimelb.jpg', :width=>@acknowledgement_image_height*403.0/406, :height=>@acknowledgement_image_height), 'http://unimelb.edu.au' %>,<%= link_to image_tag('wehi.jpg', :width=>@acknowledgement_image_height*190.0/172, :height=>@acknowledgement_image_height), 'http://wehi.edu.au' %></td>
+        <td>and <%= link_to 'others', :action => :acknowledgements %>.</td>
+      </td>
+    </tr>
+  </table>
+</div>
