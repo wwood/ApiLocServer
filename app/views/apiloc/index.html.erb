@@ -100,15 +100,17 @@
     <% popular_species.each do |species_name| %>
       <li><i><%= link_to species_name, :action => :species, :controller => :apiloc, :id => species_name %></i> (<%= Species.find_by_name(species_name).number_or_proteins_localised_in_apiloc %>)</li>
     <% end %>
-    <li>Other:
-      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
-        <% Species.apicomplexan.all(
+	<li><%= image_tag("sqr_bullet_plus.gif", :id=>"expandable_unpopular_species_image", :alt=>"expand", :onclick=>"toggle('expandable_unpopular_species','expandable_unpopular_species_image')")%>&nbsp;&nbsp;
+      other</li>
+    <li style="display:none" id="expandable_unpopular_species">
+	  <ul>
+	  	<% Species.apicomplexan.all(
           :select => 'distinct(species.*) ',
           :order => 'name',
           :conditions => "name not in #{popular_species.to_sql_in_string}").each do |sp| %>
-          <option value="../apiloc/species/<%= sp.name %>"><i><%= "#{sp.name} (#{sp.number_or_proteins_localised_in_apiloc})" %></i></option>
+		  <li><%= link_to sp.name, :action => :species, :id => sp.name %> (<%=sp.number_or_proteins_localised_in_apiloc %>)</li>
         <% end %>
-      </select>
+      </ul>
     </li>
   </ul>
 </div>
