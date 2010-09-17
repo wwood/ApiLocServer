@@ -11,25 +11,42 @@
     }
   }
   
-  /* Dynamically change the search form entry so that the form submission is RESTful */
+  /* Dynamically change the gene ID search form entry so that the form submission is RESTful */
   function setup_gene_search_action(){
   	url = '<%= url_for :controller => :apiloc, :action => :gene %>/'+document.getElementById('gene_search_textbox').value
 	document.getElementById('gene_search_form').action = url;
+	return url
+  }
+  
+  /* Dynamically change the text search form entry so that the form submission is RESTful */
+  function setup_text_search_action(){
+  	url = 'http://google.com/#q=site:apiloc.bio21.unimelb.edu.au '+document.getElementById('text_search_textbox').value
+	document.getElementById('text_search_form').action = url;
 	return url
   }
 </script>
 <% category_counter = 0 %>
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
-  <form id="gene_search_form" onsubmit="setup_gene_search_action()">
-    <label>Gene ID/Name:</label><input type="text" id="gene_search_textbox" value="PF11_0344" size="12"/>
-	<input type="submit" value="search"">
-  </form>
+  <table cellpadding="10">
+    <tr>
+      <td align=right border>
+        <form id="gene_search_form" onsubmit="setup_gene_search_action()">
+          <input type="text" id="gene_search_textbox" value="PF11_0344" size="12"/><input type="submit" value="Gene ID/name">
+        </form>
+      </td>
+      <td align=right>
+        <form id="text_search_form" onsubmit="setup_text_search_action()">
+          <input type="text" id="text_search_textbox" value="membrane" size="12"/><input type="submit" value="Google">
+        </form>
+      </td>
+    </tr>
+  </table>
 </div>
 
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
-<table border=0>
+<table cellpadding=20>
 	<tr>
 		<td>
   <h2>Localisations</h2>
@@ -50,8 +67,8 @@
 
 </td>
 
-<td valign=top halign=right>
-<div align="right">
+<td valign=top align=right>
+<div>
   <img src="<%= image_path('apicomplexan.png') %>" alt="a model apicomplexan" usemap="#apicomplexan" border="none"/>
   <map name="apicomplexan">
     <area shape="rect" coords="279,0,352,19" alt="conoid" href="<%="#{url_for :action => :specific_localisation, :id => 'conoid'}" %>"/>
