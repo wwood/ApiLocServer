@@ -7,13 +7,15 @@ because otherwise unassigned genes have the incorrect name %>
 </p>
 <% end %>
 <p>
-  <%= @code.annotation.annotation unless @code.annotation.nil? %>
+	<% if @code.annotation.nil? %>
+	A 
+	<% else %>
+  <i><%= @code.annotation.annotation %></i>, a
+  <% end %>
+  gene from <%= link_to @code.species.name, :action => :species, :id => @code.species.name %>
 </p>
 <p>
-  A gene from <%= link_to @code.species.name, :action => :species, :id => @code.species.name %>
-</p>
-<p>
-  <%= coding_region_localisation_html(@code) %>
+  <b>Compiled localisation:</b> <%= coding_region_localisation_html(@code) %>
 </p>
 <div class="categorybig">
   <h2>Associated publications</h2>
@@ -177,37 +179,6 @@ because otherwise unassigned genes have the incorrect name %>
   <% end %>
 </div>
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
-  <h3>Gene Model Mapping</h3>
-  The common name of this protein has mapped to a sequence via these means:
-  <ul>
-    <% if Species::UNSEQUENCED_APICOMPLEXANS.include?(@code.species.name) %>
-    <% LocalisationAnnotation.all(:joins => :expression_contexts,
-    :conditions => [
-    "#{ExpressionContext.table_name}.coding_region_id = ?",
-    @code.id]
-    ).uniq.sort{|a,b|
-    a.expression_contexts[0].publication <=> b.expression_contexts[0].publication
-    }.each do |an| %>
-    <li>
-      <%= mapping_comments(an) %>
-    </li>
-    <% end %>
-    <% else %>
-    <% LocalisationAnnotation.all(:joins => :expression_contexts,
-    :conditions => [
-    "#{ExpressionContext.table_name}.coding_region_id = ? and gene_mapping_comments is not null",
-    @code.id]
-    ).uniq.sort{|a,b|
-    a.expression_contexts[0].publication <=> b.expression_contexts[0].publication
-    }.each do |an| %>
-    <li>
-      <%= mapping_comments(an) %>
-    </li>
-    <% end %>
-    <% end %>
-  </ul>
-</div>
-<div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
   <h2>Proteomics</h2>
   <% @proteomics_partitions = popular_proteomic_experiments(@code.species.name).partition {
   |experiment|
@@ -233,12 +204,25 @@ because otherwise unassigned genes have the incorrect name %>
   </ul>
 </div>
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
-  <h3>Links</h3>
+  <h2>Links</h2>
   <ul>
     <% if @code.species.plasmodb? %>
-    <li>
-      <%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@code.string_id}" %>
-    </li>
+    	  <li><%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@code.string_id}" %>:</li>
+		  <ul>
+		  <li><%= link_to @code.string_id, "http://plasmodb.org/gene/#{@code.string_id}" %> gene page</li>
+			<li><%= link_to 'Predicted Signal Peptide', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesWithSignalPeptide' %></li>
+		<li><%= link_to 'ExportPred', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesByExportPrediction' %></li>
+		<li><%= link_to 'Apicoplast transit peptide prediction', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesBySubcellularLocalization' %>, see also apicoplast-related tools below.</li>
+			<li><%= link_to 'Pexel/HT motif', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesBySubcellularLocalization' %></li>
+		</ul>
+		<li><%= link_to 'Malaria Parasite Metabolic Pathways', 'http://sites.huji.ac.il/malaria/' %></li>
+		<li><%= link_to 'MalSig', 'http://131.172.128.59/cgi-bin/pfsigseq_refs.py' %>, prediction of Plasmodial signal peptides</li>
+		<li><%= link_to 'PlasMit', 'http://gecco.org.chemie.uni-frankfurt.de/plasmit/index.html' %>, prediction of Plasmodial mitochondrial transit peptides</li>
+		<li><%= link_to 'TargetP', 'http://www.cbs.dtu.dk/services/TargetP/' %>, prediction of signal peptides, as well as chloroplast and mitochondrial transit peptides</li>
+		<li>Apicoplast Leader Predictors:</li><ul>
+			<li>PlasmoAP <%= link_to 'web interface', 'http://v4-4.plasmodb.org/restricted/PlasmoAPcgi.shtml' %>, prediction of Plasmodial apicoplast transit peptides</li>
+		<li><%= link_to 'PATS', 'http://gecco.org.chemie.uni-frankfurt.de/pats/pats-index.php' %>, prediction of Plasmodial apicoplast transit peptides</li>
+		</ul>
     <% elsif @code.species.toxodb? %>
     <li>
       <%= link_to 'ToxoDB', "http://toxodb.org/gene/#{@code.string_id}" %>
