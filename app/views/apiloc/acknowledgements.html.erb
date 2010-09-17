@@ -1,20 +1,38 @@
-<h2>Acknowledgements</h2>
-Several softwares were created and built upon in the creation of ApiLoc. All are available as free software.
+<h2>ApiLoc was created by</h2>
 <ul>
-  <li><%= link_to 'reach', 'http://github.com/wwood/reach' %></li>
-  <li><%= link_to 'bbbin', 'http://github.com/wwood/bbbin' %></li>
-  <li><%= link_to 'apiloc', 'http://github.com/wwood/apiloc' %></li>
-  <li><%= link_to 'EZProxy FireGesture', '' %></li>
-  <li><%= link_to 'Bioinformatics-specific ubiquity commands', 'blog' %></li>
+  <li>Ben J. Woodcroft</li>
+  <li>Krystie-Lee Scanlon</li>
+  <li>Maria Doyle</li>
+  <li><%= link_to 'Terry Speed', 'http://www.wehi.edu.au/faculty_members/professor_terry_speed' %></li>
+  <li><%= link_to 'Stuart A. Ralph', 'http://www.biochemistry.unimelb.edu.au/research/res_ralph.html' %></li>
 </ul>
-
-<%= link_to 'Free software', 'http://en.wikipedia.org/wiki/Free_software' %> used in the creation and maintenance of ApiLoc:
-
+<p>Thanks also to <%= link_to 'Boris Striepen', 'http://www.striepen.uga.edu' %> for providing the 'generalised' apicomplexan parasite, <%= link_to 'released', 'http://www.plospathogens.org/article/slideshow.action?uri=info:doi/10.1371/journal.ppat.0030078&imageURI=info:doi/10.1371/journal.ppat.0030078.g001' %> under Creative Commons license.</p>
+<h2>Apicomplexan Localisation Resources</h2>
 <ul>
-  <li>OrthoMCL</li>
-  <li>EuPathDB</li>
-  <li><a href="http://www.ubuntu.com/"><img width="200"src=<%= image_path('UbuntuLogo.png')%>></a></li>
-  <li>Ruby</li>
-  <li>Rails</li>
-  <li>Mozilla Ubiquity</li>
-</ul
+  <li><%= link_to 'PlasmoDB', 'http://plasmodb.org' %>:</li>
+  <ul>
+  	<li><%= link_to 'Predicted Signal Peptide', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesWithSignalPeptide' %></li>
+	<li><%= link_to 'ExportPred', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesByExportPrediction' %>, NB: the source code is available from the <%= link_to 'WEHI website', 'http://bioinf.wehi.edu.au/exportpred/' %>)</li>
+	<li><%= link_to 'Apicoplast transit peptide prediction', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesBySubcellularLocalization' %>, see also apicoplast-related tools below.</li>
+  	<li><%= link_to 'Pexel/HT motif', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesBySubcellularLocalization' %></li>
+  </ul>
+  <li><%= link_to 'Malaria Parasite Metabolic Pathways', 'http://sites.huji.ac.il/malaria/' %></li>
+  <li><%= link_to 'MalSig', 'http://131.172.128.59/cgi-bin/pfsigseq_refs.py' %>, prediction of Plasmodial signal peptides</li>
+  <li><%= link_to 'PlasMit', 'http://gecco.org.chemie.uni-frankfurt.de/plasmit/index.html' %>, prediction of Plasmodial mitochondrial transit peptides</li>
+  <li><%= link_to 'TargetP', 'http://www.cbs.dtu.dk/services/TargetP/' %>, prediction of signal peptides, as well as chloroplast and mitochondrial transit peptides</li>
+  <li>Apicoplast Leader Predictors:</li><ul>
+  	<li>PlasmoAP <%= link_to 'web interface', 'http://v4-4.plasmodb.org/restricted/PlasmoAPcgi.shtml' %>, prediction of Plasmodial apicoplast transit peptides</li>
+	<li>PlasmoAP <%= link_to 'source code', 'http://github.com/wwood/bbbin/blob/master/plasmo_a_p.rb' %>, same algorithm as at PlasmoDB but written independently</li>
+	<li><%= link_to 'PATS', 'http://gecco.org.chemie.uni-frankfurt.de/pats/pats-index.php' %>, prediction of Plasmodial apicoplast transit peptides</li>
+  </ul>
+  <li><%= link_to 'OrthoMCL', 'http://orthomcl.org' %></li>
+</ul>
+<h2>Biology-Related Software</h2>
+Some software was created and built upon in for ApiLoc, available as <%= link_to 'free software', 'http://en.wikipedia.org/wiki/Free_software' %>.
+<ul>
+  <li><%= link_to 'reach', 'http://github.com/wwood/reach' %> - a <%= link_to 'Ruby', 'http://www.ruby-lang.org' %> library for more easily working with arrays</li>
+  <li><%= link_to 'bbbin', 'http://github.com/wwood/bbbin' %> - Ben's Bioinformatics Bin - a collection of working and non-working bioinformatics scripts written in variety of programmaing languages</li>
+</ul>
+<h2>Other Software</h2>
+The ApiLoc website was created entirely with <%= link_to 'free software', 'http://en.wikipedia.org/wiki/Free_software' %>. Some of these software are as follows. ApiLoc was built using <%= link_to 'Ruby on Rails', 'http://rubyonrails.org/' %> with <%= link_to 'RadRails', 'http://www.aptana.com/products/radrails' %> and <%= link_to 'Eclipse', 'http://www.eclipse.org/'%>,
+on an <%= link_to 'Ubuntu', 'http://ubuntu.com' %> development computer and server, and tested with <%= link_to 'Firefox', 'http://getfirefox.com' %>. The now obsolete <%= link_to 'Mozilla Ubiquity', 'https://mozillalabs.com/ubiquity/' %> was also used heavily used during the curation process.
