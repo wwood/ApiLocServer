@@ -164,10 +164,11 @@ because otherwise unassigned genes have the incorrect name %>
   <% else %>
   This gene does not have an OrthoMCL group.<% end %>
   <% end %>
+  <!--
   <h4>BLAST hits to localised proteins</h4>
   <%# @code.apiloc_blast_hits.each do |blast_code| %>
   <%#= link_to blast_code.string_id %>
-  <%# end %>
+  <%# end %>-->
 </div>
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
   <h3>Amino Acid Sequence</h3>
