@@ -1,33 +1,74 @@
-
 <script type="text/javascript">
   /* Toggle a list between expanded and retracted forms */
   function toggle(list_id, image_id){
-    if (document.getElementById(list_id).style.display == 'block'){
-      document.getElementById(list_id).style.display = 'none';
-      document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_plus.gif")%>');
-    } else {
-      document.getElementById(list_id).style.display = 'block';
-      document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_minus.gif")%>');
-    }
+      if (document.getElementById(list_id).style.display == 'block') {
+          document.getElementById(list_id).style.display = 'none';
+          document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_plus.gif")%>');
+      }
+      else {
+          document.getElementById(list_id).style.display = 'block';
+          document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_minus.gif")%>');
+      }
   }
   
-  /* Dynamically change the search form entry so that the form submission is RESTful */
+  /* Dynamically change the gene ID search form entry so that the form submission is RESTful */
   function setup_gene_search_action(){
-  	url = '<%= url_for :controller => :apiloc, :action => :gene %>/'+document.getElementById('gene_search_textbox').value
-	document.getElementById('gene_search_form').action = url;
-	return url
+      url = '<%= url_for :controller => :apiloc, :action => :gene %>/' + document.getElementById('gene_search_textbox').value
+      document.getElementById('gene_search_form').action = url;
+      return url;
+  }
+  
+  /* Dynamically change the text search form entry so that the form submission is RESTful */
+  function setup_text_search_action(){
+      url = 'http://google.com/#q=site:apiloc.bio21.unimelb.edu.au ' + document.getElementById('text_search_textbox').value
+      document.getElementById('text_search_form').action = url;
+      return url;
   }
 </script>
 <% category_counter = 0 %>
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
-  <form id="gene_search_form" onsubmit="setup_gene_search_action()">
-    <label>Gene ID/Name:</label><input type="text" id="gene_search_textbox" value="PF11_0344" size="12"/>
-	<input type="submit" value="search"">
-  </form>
+  <table cellpadding="10">
+    <tr>
+      <td align=right border>
+        <form id="gene_search_form" onsubmit="setup_gene_search_action()">
+          <input type="text" id="gene_search_textbox" value="PF11_0344" size="12"/><input type="submit" value="Gene ID/name">
+        </form>
+      </td>
+      <td align=right>
+        <form id="text_search_form" onsubmit="setup_text_search_action()">
+          <input type="text" id="text_search_textbox" value="membrane" size="12"/><input type="submit" value="Google">
+        </form>
+      </td>
+    </tr>
+  </table>
 </div>
 
-<div align="right" class="category<%= category_counter+=1; category_counter.odd? %>">
+
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+<table cellpadding=20>
+	<tr>
+		<td>
+  <h2>Localisations</h2>
+  <ul>
+    <% popular_localisations.each do |loc| %>
+      <li><%= image_tag("sqr_bullet_plus.gif", :id => "image_#{loc}", :alt=>"expand", :onclick=>"toggle('expandable_#{loc}', 'image_#{loc}')")%>&nbsp;&nbsp;
+      <%= link_to loc, :action => :localisation, :id => loc %></li>
+      <li style="display:none" id="expandable_<%=loc%>">
+        <ul><% top_loc = loc; top_loc = 'cytoplasm' if top_loc == 'cytoplasm but not organellar';
+          raise Exception, "unable to find top level loc #{top_loc}" unless TopLevelLocalisation.find_by_name(top_loc.downcase) %>
+          <% TopLevelLocalisation.find_by_name(top_loc.downcase).apiloc_localisations.all(:select => 'distinct(localisations.name)', :joins => :expression_contexts).sort{|a,b| a.name <=> b.name}.each do |l| %>
+            <li><%= link_to l.name, :action => :specific_localisation, :id => l.name %></li>
+          <% end %>
+        </ul>
+      </li>
+    <% end %>
+  </ul>
+
+</td>
+
+<td valign=top align=right>
+<div>
   <img src="<%= image_path('apicomplexan.png') %>" alt="a model apicomplexan" usemap="#apicomplexan" border="none"/>
   <map name="apicomplexan">
     <area shape="rect" coords="279,0,352,19" alt="conoid" href="<%="#{url_for :action => :specific_localisation, :id => 'conoid'}" %>"/>
@@ -48,6 +89,10 @@
   </map>
   Image modified from <a href='http://www.plospathogens.org/article/info%3Adoi%2F10.1371%2Fjournal.ppat.0030078'>Striepen et. al. 2007</a>
 </div>
+</td>
+</tr>
+</table>
+</div>
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <h2>Species</h2>
@@ -55,36 +100,22 @@
     <% popular_species.each do |species_name| %>
       <li><i><%= link_to species_name, :action => :species, :controller => :apiloc, :id => species_name %></i> (<%= Species.find_by_name(species_name).number_or_proteins_localised_in_apiloc %>)</li>
     <% end %>
-    <li>Other:
-      <select onchange="if(this.options[this.selectedIndex].value != ''){window.top.location.href=this.options[this.selectedIndex].value}">
-        <% Species.apicomplexan.all(
+	<li><%= image_tag("sqr_bullet_plus.gif", :id=>"expandable_unpopular_species_image", :alt=>"expand", :onclick=>"toggle('expandable_unpopular_species','expandable_unpopular_species_image')")%>&nbsp;&nbsp;
+      other</li>
+    <li style="display:none" id="expandable_unpopular_species">
+	  <ul>
+	  	<% Species.apicomplexan.all(
           :select => 'distinct(species.*) ',
           :order => 'name',
           :conditions => "name not in #{popular_species.to_sql_in_string}").each do |sp| %>
-          <option value="../apiloc/species/<%= sp.name %>"><i><%= "#{sp.name} (#{sp.number_or_proteins_localised_in_apiloc})" %></i></option>
+		  <li><%= link_to sp.name, :action => :species, :id => sp.name %> (<%=sp.number_or_proteins_localised_in_apiloc %>)</li>
         <% end %>
-      </select>
+      </ul>
     </li>
   </ul>
 </div>
 
-<div class="category<%= category_counter+=1; category_counter.odd? %>">
-  <h2>Localisations</h2>
-  <ul>
-    <% popular_localisations.each do |loc| %>
-      <li><%= image_tag("sqr_bullet_plus.gif", :id => "image_#{loc}", :alt=>"expand", :onclick=>"toggle('expandable_#{loc}', 'image_#{loc}')")%>&nbsp;&nbsp;
-      <%= link_to loc, :action => :localisation, :id => loc %></li>
-      <li style="display:none" id="expandable_<%=loc%>">
-        <ul><% top_loc = loc; top_loc = 'cytoplasm' if top_loc == 'cytoplasm but not organellar';
-          raise Exception, "unable to find top level loc #{top_loc}" unless TopLevelLocalisation.find_by_name(top_loc.downcase) %>
-          <% TopLevelLocalisation.find_by_name(top_loc.downcase).apiloc_localisations.all(:select => 'distinct(localisations.name)', :joins => :expression_contexts).sort{|a,b| a.name <=> b.name}.each do |l| %>
-            <li><%= link_to l.name, :action => :specific_localisation, :id => l.name %></li>
-          <% end %>
-        </ul>
-      </li>
-    <% end %>
-  </ul>
-</div>
+
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <h2>Developmental Stages</h2>
@@ -123,5 +154,15 @@
 </div>
 
 
-<%= link_to 'Acknowledgements', :action => :acknowledgements %>
-
+<div class="category<%= category_counter+=1; category_counter.odd? %>">
+  <h2>Acknowledgements</h2>
+  <table>
+    <tr valign=center>
+      <td>
+        <% @acknowledgement_image_height = 100 %>
+        ApiLoc is a product of the <%= link_to 'Ralph Lab', 'http://www.biochemistry.unimelb.edu.au/research/res_ralph.html' %>, </td><td><%= link_to image_tag('bio21.jpg', :width=>@acknowledgement_image_height*672.0/1150, :height=>@acknowledgement_image_height), 'http://www.bio21.unimelb.edu.au' %>,<%= link_to image_tag('unimelb.jpg', :width=>@acknowledgement_image_height*403.0/406, :height=>@acknowledgement_image_height), 'http://unimelb.edu.au' %>,<%= link_to image_tag('wehi.jpg', :width=>@acknowledgement_image_height*190.0/172, :height=>@acknowledgement_image_height), 'http://wehi.edu.au' %></td>
+        <td>and <%= link_to 'others', :action => :acknowledgements %>.</td>
+      </td>
+    </tr>
+  </table>
+</div>

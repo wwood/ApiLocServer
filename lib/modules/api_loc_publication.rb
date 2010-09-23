@@ -2324,4 +2324,26 @@ class BScript
     
     $stderr.puts "Failed to year-ify #{fails} publications."
   end
+  
+  # How many and which genes are recorded in the malaria metabolic pathways database,
+  # but aren't recorded in ApiLoc?
+  def comparison_with_hagai
+    File.open("#{PHD_DIR}/screenscraping_hagai/localised_genes_and_links.txt").each_line do |line|
+      line.strip!
+      splits = line.split(' ')
+      #next unless splits[0].match(/#{splits[1]}/) #ignore possibly incorrect links
+      
+      code = CodingRegion.ff(splits[1])
+      unless code
+        puts "Couldn't find plasmodb id #{splits[1]}"
+        next
+      end
+      
+      if code.expressed_localisations.count == 0
+        puts "Not found in ApiLoc: #{splits[1]}"
+      else
+        puts "Found in ApiLoc: #{splits[1]}"
+      end
+    end
+  end
 end

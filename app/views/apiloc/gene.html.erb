@@ -1,133 +1,168 @@
 <%# the coding region should use the name method and not the string_id
- because otherwise unassigned genes have the incorrect name %>
-<h2><%= @code.name %> (<%=  @code.literature_defined_names.join(', ') %>) <% if @code.gene_model_inconsistent? %>*<% end %></h2>
+because otherwise unassigned genes have the incorrect name %>
+<h2><%= @code.name %> (<%= @code.literature_defined_names.join(', ') %>) <% if @code.gene_model_inconsistent? %>*<% end %></h2>
 <% if @code.gene_model_inconsistent? %>
-  <p>* The amino acid sequence is recorded as differing between ApiLoc and the genome database. See the gene model mapping comments in each localisation for more information.</p>
+<p>
+  * The amino acid sequence is recorded as differing between ApiLoc and the genome database. See the gene model mapping comments in each localisation for more information.
+</p>
 <% end %>
-<p><%= @code.annotation.annotation unless @code.annotation.nil? %></p>
-<p>A gene from <%= link_to @code.species.name, :action => :species, :id => @code.species.name %></p>
-
-<p><%= coding_region_localisation_html(@code) %></p>
-
-<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
-  <h3>Associated publications</h3>
+<p>
+	<% if @code.annotation.nil? %>
+	A 
+	<% else %>
+  <i><%= @code.annotation.annotation %></i>, a
+  <% end %>
+  gene from <%= link_to @code.species.name, :action => :species, :id => @code.species.name %>
+</p>
+<p>
+  <b>Compiled localisation:</b> <%= coding_region_localisation_html(@code) %>
+</p>
+<div class="categorybig">
+  <h2>Associated publications</h2>
   <% if @code.expression_contexts.empty? %>
-    No localisations are recorded in ApiLoc.
-  <% else %>
-    <% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b <=> a}.each do |publication| %>
-      <p><%= publication.authors %> (<%= publication.date %>, <%= publication.journal %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><br />
-        <b><%= ExpressionContextGroup.new(ExpressionContext.find_all_by_publication_id_and_coding_region_id(
-              publication.id, @code.id
-            )).english %></b></p>
+  No localisations are recorded in ApiLoc.
+</div>
+<% else %>
+<!-- for each publication associated with this coding region --><% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b <=> a}.each do |publication| %>
+<div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
+  <%= publication.authors %>(<%= publication.date %>, <%= publication.journal %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %>
+  <br/>
+  <% @relevant_expression_contexts = ExpressionContext.find_all_by_publication_id_and_coding_region_id(publication.id, @code.id).uniq %>
+  <b><%= ExpressionContextGroup.new(@relevant_expression_contexts).english %></b>
+  <!-- for each annotation of this gene in the publication (there may be multiple) --><% @relevant_expression_contexts.reach.localisation_annotation.uniq.each do |a| %>
+  <ul>
+    <li>
+      <b>Quote inferring localisation: </b>"<%= a.quote %>"
+    </li>
+    <li>
+      <b>Microscopy type:</b>
+      <%= a.microscopy_type %>
+    </li>
+    <li>
+      <b>Microscopy method:</b>
+      <%= a.microscopy_method %>
+    </li>
+    <li>
+      <b>Strain:</b>
+      <%= a.strain %>
+    </li>
+    <li>
+      <b>Gene model mapping comments:</b>
+      <%= mapping_comments(a) %>
+    </li>
+    <li>
+      <b>Localisation record:</b>
+      <%= a.localisation %>
+    </li>
+    <% a.comments.each do |c| %>
+    <li>
+      <b>Comment:</b>
+      <%= c.comment %>
+    </li>
     <% end %>
+  </ul>
   <% end %>
 </div>
-
-<% if ENV['UNPUBLISHED'] %>
-  <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
-
-  </div>
 <% end %>
-
-<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
-  <h3>Orthology</h3>
+<% end %>
+</div>
+<!-- make this always a white background -->
+<div class="category<%= @category_counter = 0; @category_counter.odd? %>">
+<h3>Orthology</h3>
   <h4>OrthoMCL</h4>
   <% if @code.species.orthomcl_three_letter.nil? %>
-    This species does not currently exist in the OrthoMCL database.
-  <% else %>
-    <% ogenes = @code.calculate_official_orthomcl_genes
-    if ogenes.length == 0 %>
-      No entry found in OrthoMCL.
-    <% elsif ogenes.length == 1 and ogenes[0].orthomcl_groups.length == 1
-      ogene = ogenes[0]
-      groups = ogene.orthomcl_groups
-      raise if groups.length > 1
-      group = groups[0] %>
-      <p>Part of OrthoMCL group <%= link_to group.orthomcl_name, "http://orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=groupList&type=ackeyword&q=#{group.orthomcl_name}&in=Group+or+Seq+Accession%28s%29" %></p>
-      <h5>Localised Genes in this Group</h5>
-      <ul>
-        <% codes = CodingRegion.all(
-          :joins => [
-            {:orthomcl_genes => :orthomcl_groups},
-            :expression_contexts
-          ],
-          :conditions => {:orthomcl_groups => {:id => group.id}},
-          :select => 'distinct(coding_regions.*)'
-        )
-        if codes.length > 0
-          codes.each do |code| %>
-            <li><%= code_name(code) %> <%= coding_region_localisation_html(code) %> </li>
-          <% end %>
-        <% else %>
-          No apicomplexan genes in this OrthoMCL group have been localised.
-        <% end %>
-      </ul>
-      <h5>Other Apicomplexan Genes in this Group</h5>
-      <%
-      codes2 = CodingRegion.apicomplexan.all(
-        :joins => [
-          {:orthomcl_genes => :orthomcl_groups}
-        ],
-        :conditions =>
-          codes.empty? ?
-          ["orthomcl_groups.id = ?", group.id] :
-          ["orthomcl_groups.id = ? and coding_regions.id NOT IN "+
-            codes.collect{|c| c.id}.to_sql_in_string,
-          group.id
-        ],
-        :select => 'distinct(coding_regions.*)')
-    %>
-      <ul>
-        <% if codes2.empty? %>
-          There are no other apicomplexan genes.
-        <% else %>
-          <% codes2.each do |code| %>
-            <li><%= code_name_annotation(code) %></li>
-          <% end %>
-        <% end %>
-      </ul>
-
-      <h5>Non-Apicomplexan Genes in this OrthoMCL Group with Gene Ontology 'Inferred from Direct Assay (IDA)' Cellular Component Terms</h5>
-      <ul>
-        <%
-        codes3 = CodingRegion.go_cc_usefully_termed.not_apicomplexan.all(
-          :joins => {:orthomcl_genes => :orthomcl_groups},
-          :conditions =>
-            codes.empty? ?
-            ["orthomcl_groups.id = ?", group.id] :
-            ["orthomcl_groups.id = ? and coding_regions.id NOT IN "+
-              codes.collect{|c| c.id}.to_sql_in_string,
-            group.id
-          ],
-          :select => 'distinct(coding_regions.*)',
-          :order => 'coding_regions.id'
-        )
-
-        # Sometimes there is more than one UniProt gene for a single orthomcl gene. These shouldn't
-        # appear as separate genes. Sometimes there is also several OrthoMCL genes for a
-        # single coding region, such as for A8HSA7
-        partitions = {}
-        codes3.each do |c3|
-          c3.orthomcl_genes.official.all.each do |ogene|
-            partitions[ogene] ||= []
-            partitions[ogene].push c3
-          end
-        end
-
-      %>
-        <% if partitions.empty? %>
-          There are no non-apicomplexan genes that have manually annotated evidence codes.
-        <% else %>
-          <% partitions.to_a.sort{|a,b| a[0].orthomcl_name<=>b[0].orthomcl_name}.each do |part| ogene = part[0]; codes = part[1] %>
-            <% codes.each do |code| %>
-              <li><%= code.species.name %>: <%= link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}" %> - <%= code.coding_region_go_terms.cc.useful.all.uniq.collect{|crgt| link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"}.join(', ') %></li>
-            <% end %>
-          <% end %>
-        <% end %>
-      </ul>
-    <% else %>
-      This gene does not have an OrthoMCL group.
+  This species does not currently exist in the OrthoMCL database.<% else %>
+  <% ogenes = @code.calculate_official_orthomcl_genes
+  if ogenes.length == 0 %>
+  No entry found in OrthoMCL.<% elsif ogenes.length == 1 and ogenes[0].orthomcl_groups.length == 1
+  ogene = ogenes[0]
+  groups = ogene.orthomcl_groups
+  raise if groups.length > 1
+  group = groups[0] %>
+  <p>
+    Part of OrthoMCL group <%= link_to group.orthomcl_name, "http://orthomcl.org/cgi-bin/OrthoMclWeb.cgi?rm=groupList&type=ackeyword&q=#{group.orthomcl_name}&in=Group+or+Seq+Accession%28s%29" %>
+  </p>
+  <h5>Localised Genes in this Group</h5>
+  <ul>
+    <% codes = CodingRegion.all(
+    :joins => [
+    {:orthomcl_genes => :orthomcl_groups},
+    :expression_contexts
+    ],
+    :conditions => {:orthomcl_groups => {:id => group.id}},
+    :select => 'distinct(coding_regions.*)'
+    )
+    if codes.length > 0
+    codes.each do |code| %>
+    <li>
+      <%= code_name(code) %><%= coding_region_localisation_html(code) %>
+    </li>
     <% end %>
+    <% else %>
+    No apicomplexan genes in this OrthoMCL group have been localised.<% end %>
+  </ul>
+  <h5>Other Apicomplexan Genes in this Group</h5>
+  <%
+  codes2 = CodingRegion.apicomplexan.all(
+  :joins => [
+  {:orthomcl_genes => :orthomcl_groups}
+  ],
+  :conditions =>
+  codes.empty? ?
+  ["orthomcl_groups.id = ?", group.id] :
+  ["orthomcl_groups.id = ? and coding_regions.id NOT IN "+
+  codes.collect{|c| c.id}.to_sql_in_string,
+  group.id
+  ],
+  :select => 'distinct(coding_regions.*)') %>
+  <ul>
+    <% if codes2.empty? %>
+    There are no other apicomplexan genes.<% else %>
+    <% codes2.each do |code| %>
+    <li>
+      <%= code_name_annotation(code) %>
+    </li>
+    <% end %>
+    <% end %>
+  </ul>
+  <h5>Non-Apicomplexan Genes in this OrthoMCL Group with Gene Ontology 'Inferred from Direct Assay (IDA)' Cellular Component Terms</h5>
+  <ul>
+    <%
+    codes3 = CodingRegion.go_cc_usefully_termed.not_apicomplexan.all(
+    :joins => {:orthomcl_genes => :orthomcl_groups},
+    :conditions =>
+    codes.empty? ?
+    ["orthomcl_groups.id = ?", group.id] :
+    ["orthomcl_groups.id = ? and coding_regions.id NOT IN "+
+    codes.collect{|c| c.id}.to_sql_in_string,
+    group.id
+    ],
+    :select => 'distinct(coding_regions.*)',
+    :order => 'coding_regions.id'
+    )
+    # Sometimes there is more than one UniProt gene for a single orthomcl gene. These shouldn't
+    # appear as separate genes. Sometimes there is also several OrthoMCL genes for a
+    # single coding region, such as for A8HSA7
+    partitions = {}
+    codes3.each do |c3|
+    c3.orthomcl_genes.official.all.each do |ogene|
+    partitions[ogene] ||= []
+    partitions[ogene].push c3
+    end
+    end %>
+    <% if partitions.empty? %>
+    There are no non-apicomplexan genes that have manually annotated evidence codes.<% else %>
+    <% partitions.to_a.sort{|a,b| a[0].orthomcl_name<=>b[0].orthomcl_name}.each do |part| ogene = part[0]; codes = part[1] %>
+    <% codes.each do |code| %>
+    <li>
+      <%= code.species.name %>: <%= link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}" %>- <%= code.coding_region_go_terms.cc.useful.all.uniq.collect{|crgt| link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"}.join(', ') %>
+    </li>
+    <% end %>
+    <% end %>
+    <% end %>
+  </ul>
+  <% else %>
+  This gene does not have an OrthoMCL group.<% end %>
   <% end %>
 
 <!--  <h4>BLAST hits to localised proteins</h4>
@@ -142,101 +177,100 @@
 <div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
   <h3>Amino Acid Sequence</h3>
   <% if @code.amino_acid_sequence.nil? %>
-    amino acid sequence not recorded
-  <% else %>
-    ><%= @code.string_id %> <%= @code.annotation.annotation %><br />
-    <%= @code.amino_acid_sequence.sequence.wrap.gsub(/\n/,'<br >') %>
+  amino acid sequence not recorded<% else %>
+  ><%= @code.string_id %><%= @code.annotation.annotation %>
+  <br/>
+  <%= @code.amino_acid_sequence.sequence.wrap.gsub(/\n/,'<br >') %>
   <% end %>
 </div>
-
-
-<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
-  <h3>Gene Model Mapping</h3>
-  The common name of this protein has mapped to a sequence via these means:
-  <ul>
-    <% if Species::UNSEQUENCED_APICOMPLEXANS.include?(@code.species.name) %>
-      <% LocalisationAnnotation.all(:joins => :expression_contexts,
-        :conditions => [
-          "#{ExpressionContext.table_name}.coding_region_id = ?",
-          @code.id]
-      ).uniq.sort{|a,b|
-        a.expression_contexts[0].publication <=> b.expression_contexts[0].publication
-      }.each do |an| %>
-        <li><%= mapping_comments(an) %></li>
-      <% end %>
-    <% else %>
-      <% LocalisationAnnotation.all(:joins => :expression_contexts,
-        :conditions => [
-          "#{ExpressionContext.table_name}.coding_region_id = ? and gene_mapping_comments is not null",
-          @code.id]
-      ).uniq.sort{|a,b|
-        a.expression_contexts[0].publication <=> b.expression_contexts[0].publication
-      }.each do |an| %>
-        <li><%= mapping_comments(an) %></li>
-      <% end %>
-    <% end %>
-  </ul>
-</div>
-
-<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
+<div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
   <h2>Proteomics</h2>
-
   <% @proteomics_partitions = popular_proteomic_experiments(@code.species.name).partition {
-    |experiment|
-    ProteomicExperimentResult.find_by_coding_region_id_and_proteomic_experiment_id(
-      @code.id, experiment.id
-    ).nil?
-  }%>
+  |experiment|
+  ProteomicExperimentResult.find_by_coding_region_id_and_proteomic_experiment_id(
+  @code.id, experiment.id
+  ).nil?
+  } %>
   <h3>Found in:</h3>
   <ul>
     <% @proteomics_partitions[1].each do |experiment| %>
-      <li><%= proteomic_experiment_name_to_html_link(experiment.name) %></li>
+    <li>
+      <%= proteomic_experiment_name_to_html_link(experiment.name) %>
+    </li>
     <% end %>
   </ul>
   <h3>Not found in:</h3>
   <ul>
     <% @proteomics_partitions[0].each do |experiment| %>
-      <li><%= proteomic_experiment_name_to_html_link(experiment.name) %></li>
+    <li>
+      <%= proteomic_experiment_name_to_html_link(experiment.name) %>
+    </li>
     <% end %>
   </ul>
 </div>
-
-
-<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
-  <h3>Links</h3>
+<div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
+  <h2>Links</h2>
   <ul>
     <% if @code.species.plasmodb? %>
-      <li><%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@code.string_id}" %></li>
+    	  <li><%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@code.string_id}" %>:</li>
+		  <ul>
+		  <li><%= link_to @code.string_id, "http://plasmodb.org/gene/#{@code.string_id}" %> gene page</li>
+			<li><%= link_to 'Predicted Signal Peptide', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesWithSignalPeptide' %></li>
+		<li><%= link_to 'ExportPred', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesByExportPrediction' %></li>
+		<li><%= link_to 'Apicoplast transit peptide prediction', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesBySubcellularLocalization' %>, see also apicoplast-related tools below.</li>
+			<li><%= link_to 'Pexel/HT motif', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesBySubcellularLocalization' %></li>
+		</ul>
+		<li><%= link_to 'Malaria Parasite Metabolic Pathways', 'http://sites.huji.ac.il/malaria/' %></li>
+		<li><%= link_to 'MalSig', 'http://131.172.128.59/cgi-bin/pfsigseq_refs.py' %>, prediction of Plasmodial signal peptides</li>
+		<li><%= link_to 'PlasMit', 'http://gecco.org.chemie.uni-frankfurt.de/plasmit/index.html' %>, prediction of Plasmodial mitochondrial transit peptides</li>
+		<li><%= link_to 'TargetP', 'http://www.cbs.dtu.dk/services/TargetP/' %>, prediction of signal peptides, as well as chloroplast and mitochondrial transit peptides</li>
+		<li>Apicoplast Leader Predictors:</li><ul>
+			<li>PlasmoAP <%= link_to 'web interface', 'http://v4-4.plasmodb.org/restricted/PlasmoAPcgi.shtml' %>, prediction of Plasmodial apicoplast transit peptides</li>
+		<li><%= link_to 'PATS', 'http://gecco.org.chemie.uni-frankfurt.de/pats/pats-index.php' %>, prediction of Plasmodial apicoplast transit peptides</li>
+		</ul>
     <% elsif @code.species.toxodb? %>
-      <li><%= link_to 'ToxoDB', "http://toxodb.org/gene/#{@code.string_id}" %></li>
+    <li>
+      <%= link_to 'ToxoDB', "http://toxodb.org/gene/#{@code.string_id}" %>
+    </li>
     <% elsif @code.species.cryptodb? %>
-      <li><%= link_to 'CryptoDB', "http://cryptodb.org/gene/#{@code.string_id}" %></li>
+    <li>
+      <%= link_to 'CryptoDB', "http://cryptodb.org/gene/#{@code.string_id}" %>
+    </li>
     <% else %>
-      <li><%= link_to 'GenBank', "http://www.ncbi.nlm.nih.gov/sites/entrez?db=nuccore&term=#{@code.string_id}" %></li>
+    <li>
+      <%= link_to 'GenBank', "http://www.ncbi.nlm.nih.gov/sites/entrez?db=nuccore&term=#{@code.string_id}" %>
+    </li>
     <% end %>
   </ul>
 </div>
-
-<!-- For testing in disqus comments, set the required variable. 
+<!-- For testing in disqus comments, set the required variable.
 Currently disqus developer mode is required for production mode as well because ApiLoc is
 password protected behind apache (for now). -->
-<script type="text/javascript">disqus_developer = true</script>
-
+<script type="text/javascript">
+  disqus_developer = true
+</script>
 <!-- don't ask again if the comment submitter wants to be a guest -->
-<script type="text/javascript">disqus_skip_auth = true</script>
-
+<script type="text/javascript">
+  disqus_skip_auth = true
+</script>
 <!-- Change the text at the top of the comment section to be more specific -->
 <script type="text/javascript">
   function disqus_callback(){
-    document.getElementById('dsq-new-post').innerHTML = document.getElementById('dsq-new-post').innerHTML.replace('Add New Comment','Add New Comment About Localisation')
+      document.getElementById('dsq-new-post').innerHTML = document.getElementById('dsq-new-post').innerHTML.replace('Add New Comment', 'Add New Comment About Localisation')
   }
 </script>
-
-<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
-  <div id="disqus_thread"></div><script type="text/javascript" src="http://disqus.com/forums/apiloc/embed.js"></script><noscript><a href="http://disqus.com/forums/apiloc/?url=ref">View the discussion thread.</a></noscript><a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+<div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
+  <div id="disqus_thread">
+  </div>
+  <script type="text/javascript" src="http://disqus.com/forums/apiloc/embed.js">
+  </script>
+  <noscript>
+    <a href="http://disqus.com/forums/apiloc/?url=ref">View the discussion thread.</a>
+  </noscript>
+  <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
 </div>
-
 <script type="text/javascript">
+<<<<<<< HEAD
 //<![CDATA[
 (function() {
 	var links = document.getElementsByTagName('a');
@@ -249,4 +283,18 @@ password protected behind apache (for now). -->
 	document.write('<script charset="utf-8" type="text/javascript" src="http://disqus.com/forums/apiloc/get_num_replies.js' + query + '"></' + 'script>');
 })();
 //]]>
+=======
+  //<![CDATA[
+  (function(){
+      var links = document.getElementsByTagName('a');
+      var query = '?';
+      for (var i = 0; i < links.length; i++) {
+          if (links[i].href.indexOf('#disqus_thread') >= 0) {
+              query += 'url' + i + '=' + encodeURIComponent(links[i].href) + '&';
+          }
+      }
+      document.write('<script charset="utf-8" type="text/javascript" src="http://disqus.com/forums/apiloc/get_num_replies.js' + query + '"></' + 'script>');
+  })();
+  //]]>
+>>>>>>> cb17671ff62c88c4dc48d0b42fc8585dc186d436
 </script>

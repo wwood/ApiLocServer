@@ -147,7 +147,7 @@ module ApilocHelper
                                                coding_region.expression_contexts.collect do |ec|
         LocalisationsAndDevelopmentalStages.new(
                                                 ec.localisation ?
-            "<a href='#{url_for :action => :specific_localisation, :id => ec.localisation.name}'>#{ec.localisation.name}</a>" : [],
+            "<a href='#{url_for :action => :specific_localisation, :id => url_encode(ec.localisation.name)}'>#{ec.localisation.name}</a>" : [],
         ec.developmental_stage ?
             "<a href='#{url_for :action => :specific_developmental_stage, :id => ec.developmental_stage.name}'>#{ec.developmental_stage.name}</a>" : []
         )
