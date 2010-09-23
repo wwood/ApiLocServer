@@ -12,7 +12,7 @@ because otherwise unassigned genes have the incorrect name %>
 	<% else %>
   <i><%= @code.annotation.annotation %></i>, a
   <% end %>
-  gene from <%= link_to @code.species.name, :action => :species, :id => @code.species.name %>
+  gene from <i><%= link_to @code.species.name, :action => :species, :id => @code.species.name %></i>
 </p>
 <p>
   <b>Compiled localisation:</b> <%= coding_region_localisation_html(@code) %>
@@ -164,6 +164,7 @@ because otherwise unassigned genes have the incorrect name %>
   <% else %>
   This gene does not have an OrthoMCL group.<% end %>
   <% end %>
+</div>
 
 <!--  <h4>BLAST hits to localised proteins</h4>
 <%# @code.apiloc_blast_hits.each do |blast_code| %>
@@ -174,24 +175,25 @@ because otherwise unassigned genes have the incorrect name %>
 
 
 
-<div class="category<%= category_counter ||= 0; category_counter+=1; category_counter.odd? %>">
+<div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
   <h3>Amino Acid Sequence</h3>
   <% if @code.amino_acid_sequence.nil? %>
   amino acid sequence not recorded<% else %>
-  ><%= @code.string_id %><%= @code.annotation.annotation %>
+  ><%= @code.string_id %> <%= @code.annotation.annotation %>
   <br/>
-  <%= @code.amino_acid_sequence.sequence.wrap.gsub(/\n/,'<br >') %>
+  <font face=courier><%= @code.amino_acid_sequence.sequence.wrap.gsub(/\n/,'<br />') %></font>
   <% end %>
 </div>
+
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
-  <h2>Proteomics</h2>
+  <h3>Proteomics</h3>
   <% @proteomics_partitions = popular_proteomic_experiments(@code.species.name).partition {
   |experiment|
   ProteomicExperimentResult.find_by_coding_region_id_and_proteomic_experiment_id(
   @code.id, experiment.id
   ).nil?
   } %>
-  <h3>Found in:</h3>
+  <h4>Found in:</h4>
   <ul>
     <% @proteomics_partitions[1].each do |experiment| %>
     <li>
@@ -199,7 +201,7 @@ because otherwise unassigned genes have the incorrect name %>
     </li>
     <% end %>
   </ul>
-  <h3>Not found in:</h3>
+  <h4>Not found in:</h4>
   <ul>
     <% @proteomics_partitions[0].each do |experiment| %>
     <li>
