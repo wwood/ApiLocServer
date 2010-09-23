@@ -47,4 +47,11 @@ class ApilocControllerTest < ActionController::TestCase
     assert_template 'apiloc/species'
     assert_equal false, assigns(:viewing_positive_localisations)
   end
+  
+  test "cytoplasm not organellar" do
+    get(:localisation, :id => Localisation::CYTOPLASM_NOT_ORGANELLAR_PUBLIC_NAME)
+    assert_response :success
+    assert_nil flash[:error]
+    assert_equal 'cytoplasm', assigns(:top_level_localisation).name
+  end
 end
