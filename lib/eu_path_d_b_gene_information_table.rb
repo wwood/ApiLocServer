@@ -77,6 +77,7 @@ class EuPathDBGeneInformation
   def get_info(key)
     @info[key]
   end
+  alias_method :[], :get_info
 
   def get_table(table_name)
     @tables[table_name]

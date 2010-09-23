@@ -397,7 +397,11 @@ class Mscript
     #14-3-3epsilon[PL00784]  FBal0148516     embryo | germ-line clone | maternal effect  
 
     # skip headers, the first 6 lines
-    File.open("#{dir}/allele_phenotypic_data_fb_2008_06.tsv").each do |row|
+    filename = "#{dir}/allele_phenotypic_data_fb_2008_06.tsv"
+    progress = ProgressBar.new('drosAlleleGene', `wc -l <#{filename}`.to_i)
+    pheno_count = 0
+    File.foreach(filename) do |row|
+      progress.inc
       next if $. <= 6
       splits = row.split("\t")
 

@@ -9,6 +9,8 @@ class Microarray < ActiveRecord::Base
 
   TOXOPLASMA_ARCHETYPAL_LINEAGE_PERCENTILES_NAME = 'Three archetypal T. gondii lineages - Percentiles'
   
+  WINZELER_IRBC_SPZ_GAM_MAX_PERCENTILE = 'Pf-iRBC+Spz+Gam max expr %ile (Affy)'
+  
   def self.yeast_alpha_arrest_name
     'Yeast Spellman Alpha Arrest'
   end

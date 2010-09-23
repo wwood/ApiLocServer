@@ -105,21 +105,21 @@ class LocalisationTest < ActiveSupport::TestCase
 
   #api, mito during 1 stage
   def test_two_locs_one_stage
-    stuff = @l.parse_name('apicoplast and mitochondria during schizont', @sp)
+    stuff = @l.parse_name('apicoplast and mitochondrion during schizont', @sp)
     assert_equal_expression_contexts [
       ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'), :developmental_stage => DevelopmentalStage.find_by_name('schizont')),
-      ExpressionContext.new(:localisation => Localisation.find_by_name('mitochondria'), :developmental_stage => DevelopmentalStage.find_by_name('schizont'))
+      ExpressionContext.new(:localisation => Localisation.find_by_name('mitochondrion'), :developmental_stage => DevelopmentalStage.find_by_name('schizont'))
     ], stuff, '2 during 1'
   end
 
   # 2 during 2
   def test_two_and_two
-    stuff = @l.parse_name('apicoplast and mitochondria during schizont and ring', @sp)
+    stuff = @l.parse_name('apicoplast and mitochondrion during schizont and ring', @sp)
     contexts = [
       ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'), :developmental_stage => DevelopmentalStage.find_by_name('schizont')),
-      ExpressionContext.new(:localisation => Localisation.find_by_name('mitochondria'), :developmental_stage => DevelopmentalStage.find_by_name('schizont')),
+      ExpressionContext.new(:localisation => Localisation.find_by_name('mitochondrion'), :developmental_stage => DevelopmentalStage.find_by_name('schizont')),
       ExpressionContext.new(:localisation => Localisation.find_by_name('apicoplast'), :developmental_stage => DevelopmentalStage.find_by_name('ring')),
-      ExpressionContext.new(:localisation => Localisation.find_by_name('mitochondria'), :developmental_stage => DevelopmentalStage.find_by_name('ring'))
+      ExpressionContext.new(:localisation => Localisation.find_by_name('mitochondrion'), :developmental_stage => DevelopmentalStage.find_by_name('ring'))
     ].sort
     assert_equal_expression_contexts contexts, stuff.sort, '2 during 2'
   end
@@ -130,10 +130,10 @@ class LocalisationTest < ActiveSupport::TestCase
   end
 
   def test_known_named_scope
-    assert_equal 1, Localisation.known.find_all_by_name('mitochondria').length #good
-    assert Localisation.known.find_by_name('mitochondria') #good again
-    assert_equal 'mitochondria', Localisation.known.find_by_name('mitochondria').name #good again
-    assert_equal 0, Localisation.known.find_all_by_name('mitochondrias').length #stupid
+    assert_equal 1, Localisation.known.find_all_by_name('mitochondrion').length #good
+    assert Localisation.known.find_by_name('mitochondrion') #good again
+    assert_equal 'mitochondrion', Localisation.known.find_by_name('mitochondrion').name #good again
+    assert_equal 0, Localisation.known.find_all_by_name('mitochondrions').length #stupid
     assert_equal 0, Localisation.known.find_all_by_name('fv').length #synonym
   end
 
@@ -230,5 +230,19 @@ class LocalisationTest < ActiveSupport::TestCase
     assert_equal [
       ExpressionContext.new(:localisation => Localisation.find_by_name('between er and golgi'))
     ], Localisation.new.parse_name('Between ER and golgi', @sp)
+  end
+  
+  def test_negative?
+    assert_equal false, Localisation.new(:name => 'absolutely positive').negative?
+    assert_equal true, Localisation.new(:name => 'not absolutely positive').negative?
+  end
+  
+  def test_add_negation
+    assert_equal 'not absolutely positive', Localisation.add_negation('absolutely positive')
+  end
+  
+  def test_negation
+    assert_equal 'mitochondrion', Localisation.new(:name => 'not mitochondrion').negation.name
+    assert_equal 'not apicoplast', Localisation.new(:name => 'apicoplast').negation.name
   end
 end

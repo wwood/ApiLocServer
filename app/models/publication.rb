@@ -6,7 +6,7 @@ class Publication < ActiveRecord::Base
   # Given a pubmed id, or url (or more than one separated by commas. Create them and return an array of them
   def self.find_create_from_ids_or_urls(publications_string)
     pubs = []
-
+    
     publications_string.strip!
     pub = nil
     if publications_string.to_i.to_s === publications_string #if it is an integer, it's a pubmed id
@@ -22,7 +22,7 @@ class Publication < ActiveRecord::Base
       pub = Publication.find_or_create_by_url publications_string
     end
     pubs.push pub
-
+    
     return pubs
   end
   
@@ -54,14 +54,14 @@ class Publication < ActiveRecord::Base
       return "#{id}"
     end
   end
-
+  
   # Sorting is used so that the newest publications are first
   # in the apiloc page
   # have to have to_s otherwise it is possible to try to compare String with Fixnum
   def <=>(another_publication)
     definition.to_s <=> another_publication.definition.to_s
   end
-
+  
   # Assuming that the pubmed ID has been recorded, fill in the abstract, title,
   # and authors columns with the required info from the interwebs
   def fill_in_extras
@@ -80,10 +80,10 @@ class Publication < ActiveRecord::Base
         end
       end
     end
-
+    
     self #convenience
   end
-
+  
   def self.fill_in_all_extras!
     pubs = Publication.all
     progress = ProgressBar.new('publications', pubs.length)
@@ -92,6 +92,17 @@ class Publication < ActiveRecord::Base
       progress.inc
     end
     progress.finish
+  end
+  
+  # Attempt to parse the year from the date field, returning an integer.
+  # Returns nil if the year cannot be properly parsed
+  def year
+    if date and matches = date.match(/\d\d\d\d/)
+      y = matches[0].to_i
+      return y
+    else
+      return nil
+    end
   end
 end
 

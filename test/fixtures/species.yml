@@ -22,3 +22,25 @@ berghei:
 vivax:
   id: 7
   name: Plasmodium vivax
+    #  def popular_species
+    #    [
+    #      'Plasmodium falciparum',
+    #      'Toxoplasma gondii',
+    #      'Plasmodium berghei',
+    #      'Plasmodium yoelii',
+    #      'Cryptosporidium parvum',
+    #      'Neospora caninum',
+    #    ]
+    #  end
+Toxoplasma gondii:
+  id: 8
+  name: Toxoplasma gondii
+Plasmodium yoelii:
+  id: 9
+  name: Plasmodium yoelii
+Cryptosporidium parvum:
+  id: 10
+  name: Cryptosporidium parvum
+Neospora caninum:
+  id: 11
+  name: Neospora caninum

@@ -50,4 +50,15 @@ class EuPathDBGeneInformationTableTest < Test::Unit::TestCase
     assert_equal [{'Product' => 'hypothetical protein'}],
       first.get_table('Product')
   end
+  
+  def test_alias_brackets
+    eu = EuPathDBGeneInformationTable.new(File.open('testFiles/eupathGeneInformation.txt','r'))
+    genes = %w(TGME49_000010 TGME49_000110)
+    total = 0
+    eu.each_with_index do |info, i|
+      total += 1
+      assert_equal genes[i], info['ID']
+    end
+    assert_equal 2, total
+  end
 end

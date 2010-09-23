@@ -19,8 +19,8 @@ class ProteomicExperiment < ActiveRecord::Base
   FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME = 'P. falciparum Whole Cell Florens et al 2008 during Gametocyte'
   FALCIPARUM_WHOLE_CELL_2002_PUBMED_ID = 12368866
 
-  FALCIPARUM_MAURERS_CLEFT_2005_NAME = 'P. falciparum Maurer\'s Cleft Vinvensini et al 2005'
-  FALCIPARUM_MAURERS_CLEFT_2005_PUBMED_ID = 15140830
+  FALCIPARUM_MAURERS_CLEFT_2005_NAME = 'P. falciparum Maurer\'s Cleft Vincensini et al 2005' 
+  FALCIPARUM_MAURERS_CLEFT_2005_PUBMED_ID = 15671043
 
   FALCIPARUM_SUMOYLATION_2008_NAME = 'P. falciparum Sumoylated Isaar et al 2008'
   FALCIPARUM_SUMOYLATION_2008_PUBMED_ID = 18547337
@@ -51,6 +51,12 @@ class ProteomicExperiment < ActiveRecord::Base
     'T. gondii Wastling 1-D SDS PAGE Soluble' => 11796121,
     'T. gondii Wastling MudPIT Insoluble' => 11796121,
     'T. gondii Wastling MudPIT Soluble' => 11796121,
-    'T. gondii Wastling Rhoptry' => 16002398
+    'T. gondii Wastling Rhoptry' => 16002398,
+    # new ones in ToxoDB 6.4
+    'T. gondii Wastling 2-D' => 16002398,
+    'T. gondii Mass SPec data of RH secretome' => 'S. Moreno unpublished',
   }
+  
+  BERGHEI_MICRONEME_2009_NAME = 'P. berghei Microneme Lal et. al. 2009'
+  BERGHEI_MICRONEME_2009_PUBMED_ID = 19206106 
 end

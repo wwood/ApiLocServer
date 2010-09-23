@@ -40,11 +40,15 @@ class BScript
   
   # low level method. don't create coding regions or GO terms, just
   # parse the file
-  def upload_gene_information_table_plumbing(gzfile)
-    oracle = EuPathDBGeneInformationTable.new(
-                                              Zlib::GzipReader.open(
-                          gzfile
-    ))
+  def upload_gene_information_table_plumbing(filename)
+    oracle = nil
+    
+    # We may or may not want a gz file to be uploaded
+    if filename.match(/gz$/)
+      oracle = EuPathDBGeneInformationTable.new(Zlib::GzipReader.open(filename))
+    else
+      oracle = EuPathDBGeneInformationTable.new(File.open(filename,'r'))
+    end
     
     oracle.each do |info|
       yield info #have to give a block, otherwise why are you calling me?
@@ -83,14 +87,14 @@ class BScript
   def upload_gene_information_table_coding_region(species, gzfile)
     upload_gene_information_table_plumbing(gzfile) do |info|
       # find the gene
-      gene_id = info.get_info('ID')
+      gene_id = info.get_info('Gene Id')
       if info.get_info('Gene') # Toxo is 'ID', whereas falciparum is 'Gene'.
         raise unless gene_id.nil?
         gene_id = info.get_info('Gene')
       end
       code = CodingRegion.fs(gene_id, species.name)
       unless code and code.species.name == species.name
-        $stderr.puts "Couldn't find coding region #{gene_id}, skipping"
+        $stderr.puts "Couldn't find coding region `#{gene_id}, skipping"
         next
       end
       
@@ -104,7 +108,7 @@ class BScript
   def upload_gondii_gene_table_to_database
     upload_gene_information_table(
                                   Species.find_by_name(Species::TOXOPLASMA_GONDII),
-      "#{DATA_DIR}/Toxoplasma gondii/genome/ToxoDB/#{TOXODB_VERSION}/TgondiiME49Gene_ToxoDB-#{TOXODB_VERSION}.txt.gz"
+      "#{DATA_DIR}/Toxoplasma gondii/genome/ToxoDB/#{TOXODB_VERSION}/TgondiiME49Gene_ToxoDB-#{TOXODB_VERSION}.txt"
     ) do |info, code|
       # Add release 4 IDs as direct aliases
       release_fours = info.get_info('Release4 IDs')
@@ -249,17 +253,35 @@ class BScript
     end
   end
   
-  def upload_falciparum_gene_table_to_database
-    upload_gene_information_table(Species.find_by_name(Species::FALCIPARUM_NAME),
-      "#{DATA_DIR}/Plasmodium falciparum/genome/plasmodb/#{PLASMODB_VERSION}/PfalciparumGene_PlasmoDB-#{PLASMODB_VERSION}.txt.gz"
+  def falciparum_gene_table_to_database
+    species_data = SpeciesData.new(Species::FALCIPARUM_NAME)
+    
+    # Setup Winzeler data
+    max_microarray = Microarray.find_or_create_by_description Microarray::WINZELER_IRBC_SPZ_GAM_MAX_PERCENTILE
+    max_timepoint = MicroarrayTimepoint.find_or_create_by_name_and_microarray_id(
+                                                                                 WINZELER_IRBC_SPZ_GAM_MAX_PERCENTILE_TIMEPOINT,
+                                                                                 max_microarray.id
     )
+    
+    upload_gene_information_table(Species.find_by_name(Species::FALCIPARUM_NAME),
+    species_data.gene_information_path
+    ) do |info, code|
+      # Upload Winzeler gene table stuffs
+      max_percentile = info['Pf-iRBC+Spz+Gam max expr %ile (Affy)']
+      unless max_percentile == 'null'
+        percent = max_percentile.to_f
+        MicroarrayMeasurement.find_or_create_by_coding_region_id_and_microarray_timepoint_id_and_measurement(
+                                                                                                             code.id, max_timepoint.id, percent
+        )
+      end
+    end
   end
-  
   
   def upload_apiloc_from_scratch
     go_to_database
     download_uniprot_data
     uniprot_to_database
+    download_orthomcl
     orthomcl_to_database
     
     # Upload basic gene identifiers
@@ -287,15 +309,10 @@ class BScript
       a == Species::BABESIA_BOVIS_NAME
     }.collect { |a|
       Species.find_by_name(a).orthomcl_three_letter
-    }
+    }, {:verbose => true, :warn => true}
     )
     
     LocalisationSpreadsheet.new.upload
-    proteomics_to_database
-    Publication.fill_in_all_extras! #has to be after spreadsheet and proteomics and gondii_gene_table, because they provide the pubmed ids to expand on
-    
-    DevelopmentalStageTopLevelDevelopmentalStage.new.upload_apiloc_top_level_developmental_stages
-    ApilocLocalisationTopLevelLocalisation.new.upload_apiloc_top_level_localisations
   end
   
   def upload_apiloc_gffs
@@ -407,7 +424,7 @@ class BScript
   # a catch-all for the pesky uploading of gff and amino acid sequences
   def method_missing(symbol, *args)
     meth = symbol.to_s
-    if matches = meth.match(/(.+)_fasta_to_database/)
+    if matches = meth.match(/(.+)_fasta_to_database$/)
       spd = SpeciesData.new(matches[1])
       fa = EuPathDb2009.new(
                             spd.fasta_file_species_name,
@@ -415,7 +432,7 @@ class BScript
       ).load(spd.protein_fasta_path)
       sp = Species.find_by_name(spd.name)
       upload_fasta_general!(fa, sp)
-    elsif matches = meth.match(/(.+)_to_database/)
+    elsif matches = meth.match(/(.+)_to_database$/)
       spd = SpeciesData.new(matches[1])
       apidb_species_to_database(
                                 spd.name,
@@ -455,6 +472,14 @@ class BScript
           unless File.exists?(spd.transcript_fasta_filename)
             `wget #{spd.eu_path_db_download_directory}/#{spd.transcript_fasta_filename}`
           end
+          # gene information table
+          unless File.exists?(spd.gene_information_filename)
+            `wget '#{spd.eu_path_db_download_directory}/#{spd.gene_information_filename}'`
+          end
+          # genomic
+          unless File.exists?(spd.genomic_fasta_filename)
+            `wget '#{spd.eu_path_db_download_directory}/#{spd.genomic_fasta_filename}'`
+          end          
         end
       end
     end
@@ -507,4 +532,5 @@ class BScript
       puts [code.species.name, code.string_id, code.apiloc_url].join("\t")
     end
   end
+  
 end

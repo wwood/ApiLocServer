@@ -20,13 +20,14 @@ class OntologyComparison
   NUCLEUS_NAME = 'nucleus'
   CYTOSOL_NAME = 'cytosol'
   PLASTID_NAME = 'plastid'
+  ENDOPLASMIC_RETICULUM_NAME = 'endoplasmic reticulum'
   
   RECOGNIZED_LOCATIONS = [
   NUCLEUS_NAME,
   PLASTID_NAME,
   'apoplast',
   'mitochondrion',
-  'endoplasmic reticulum',
+  ENDOPLASMIC_RETICULUM_NAME,
   'Golgi apparatus',
   CYTOSOL_NAME,
   'plasma membrane',

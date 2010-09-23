@@ -19,8 +19,33 @@ class OrthomclGroup < ActiveRecord::Base
     }
   }
   
+  # The group needs to include a species
+  named_scope :with_species, lambda {|species_orthomcl_code|
+    # check name because it needs to be suitable for SQL table name
+    raise Exception, "Unexpected OrthoMCL species abbreviation: #{species_orthomcl_code}" unless species_orthomcl_code.match(/^\w+$/)
+    # add randomness because I want each table name to be different. Perhaps not
+    # needed because each species_orthomcl_code will be different, but
+    # just to be strict..
+    ogogor_name = "ogogor_#{species_orthomcl_code}"
+    ogene_name = orthomcl_gene_table_name_for_with_species_named_scope(species_orthomcl_code)
+    {
+      :joins => "inner join orthomcl_gene_orthomcl_group_orthomcl_runs #{ogogor_name} on #{ogogor_name}.orthomcl_group_id = orthomcl_groups.id"+
+      " inner join orthomcl_genes #{ogene_name} on #{ogogor_name}.orthomcl_gene_id = #{ogene_name}.id",
+      :conditions => ["#{ogene_name}.orthomcl_name like ?", "#{species_orthomcl_code}|%"]
+    }
+  }
+  
   named_scope :official, {:joins => :orthomcl_run, :conditions => ['orthomcl_runs.name = ?', OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME]}
   
+  # The table name used in a particular named_scope, so that further joins can
+  # be made to other table through the orthomcl group
+  def self.orthomcl_gene_table_name_for_with_species_named_scope(species_orthomcl_code)
+    "ogene_#{species_orthomcl_code}"
+  end
+  
+  # Deprecated - use the much more flexible :with_species named scope. For
+  # multiple species, chain them together.
+  #
   # Find all the groups that have one or more genes from each of multiple species. 
   # For instance OrthomclGroup.all_overlapping_groups(['dme','cel') will find all the
   # groups that have genes from both drosophila melanogaster (dme) and elegans (cme).

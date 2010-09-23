@@ -24,6 +24,8 @@ module DevelopmentalStageConstants
       'segmenting schizonts',
       'rupturing schizont',
       'merozoite',
+      'invading merozoite',
+      'newly invaded merozoite',
       'after parasitophorous vacuole membrane breakdown',
       'after microneme exocytosis',
       'gametocytogenesis',
@@ -46,6 +48,7 @@ module DevelopmentalStageConstants
       'female gametocyte stage IV',
       'female gametocyte stage V',
       'developing gametocyte',
+      'early gametocyte',
       'gametocyte ring',
       'emerging gametocyte',
       'non-activated gametocyte', #a unemerged gametocyte
@@ -88,7 +91,9 @@ module DevelopmentalStageConstants
       'early hepatocyte',
       'late hepatocyte',
       'hepatocyte schizont',
+      'hepatocyte stage day 2',
       'hepatocyte stage day 3',
+      'hepatocyte stage day 4',
       'hepatocyte stage day 5',
       'hepatocyte stage day 7',
       'hepatocyte merozoite',
@@ -149,6 +154,7 @@ module DevelopmentalStageConstants
       'shortly after invasion of tachyzoite',
       'mother tachyzoite',
       'mother tachyzoite mitotic division',
+      'tachyzoites undergoing intracellular replication',
       'daughter tachyzoite',
       'daughter tachyzoites before acquisition of plasma membrane',
       'first division of bradyzoite',
@@ -167,6 +173,7 @@ module DevelopmentalStageConstants
       'tachyzoite cell division',
       'early tachyzoite cell division',
       'late tachyzoite cell division',
+      'after tachyzoite cell division',
       'mature schizont merozoite',
       'early merozoite',
       'extracellular merozoite',
@@ -184,7 +191,9 @@ module DevelopmentalStageConstants
     ],
     Species::NEOSPORA_CANINUM_NAME => [
       'tachyzoite',
-      'bradyzoite'
+      'extracellular tachyzoite',
+      'intracellular tachyzoite',
+      'bradyzoite',
     ],
     Species::OTHER_SPECIES => { #for unsequenced species most likely
       'Plasmodium gallinaceum' => [
@@ -306,9 +315,12 @@ module DevelopmentalStageConstants
     ],
     Species::THEILERIA_ANNULATA_NAME => [
       'macroschizont',
-      'schizont'
+      'schizont',
+      'merogeny',
     ],
     Species::THEILERIA_PARVA_NAME => [
+      'schizont',
+      'merogeny',
     ],
     Species::PLASMODIUM_BERGHEI_NAME => [
       'blood stages',
@@ -347,7 +359,9 @@ module DevelopmentalStageConstants
       'midgut oocyst',
       'sporulating oocyst',
       'mature oocyst',
+      'day 2 oocyst',
       'day 5 oocyst',
+      'day 12 oocyst',
       'day 15 oocyst',
       'extracellular sporozoite',
       'sporozoite',
@@ -356,15 +370,20 @@ module DevelopmentalStageConstants
       'midgut sporozoite',
       'hemolymph sporozoite',
       'salivary gland sporozoite',
+      'sporozoites in the presence of host hepatocytes',
       'after sporozoite invasion of hepatocyte',
       '2 hours after sporozoite invasion of hepatocyte',
       '8 hours after sporozoite invasion of hepatocyte',
       'hepatic',
       'early hepatic',
       'mid hepatic',
+      'liver trophozoite',
+      'early liver schizont',
+      'liver schizont',
       'late hepatic',
       'late hepatic schizont',
       'terminal hepatic',
+      'after liver stage completion of daughter parasite development',
       'merozome',
       'cytomere',
       'hepatocyte merozoite',
@@ -380,6 +399,7 @@ module DevelopmentalStageConstants
       'ookinete'
     ],
     Species::YOELII_NAME => [
+      'blood stages',
       'ring',
       'trophozoite',
       'early trophozoite',
@@ -390,6 +410,7 @@ module DevelopmentalStageConstants
       'gametocyte',
       'zygote',
       'ookinete',
+      'oocyst',
       '7 day old oocyst',
       'sporozoite',
       'oocyst sporozoite',
@@ -397,6 +418,11 @@ module DevelopmentalStageConstants
       'salivary gland sporozoite',
       'hepatic',
       'hepatocyte schizont',
+      '7 hours post sporozoite infection',
+      '14 hours post sporozoite infection',
+      '24 hours post sporozoite infection',
+      '40 hours post sporozoite infection',
+      '48 hours post sporozoite infection',
     ],
     Species::KNOWLESI_NAME => [
       'merozoite',
@@ -419,6 +445,9 @@ module DevelopmentalStageConstants
       'mature schizont' => 'late schizont',
       'liver stages' => 'hepatic',
       'liver stage schizont' => 'hepatocyte schizont',
+      'mosquito midgut oocysts' => 'oocyst',
+      'oocyst sporozoites' => 'oocyst sporozoite',
+      'salivary gland sporozoites' => 'salivary gland sporozoite',
     },
     Species::VIVAX_NAME => {
       'rbc stages' => %w(ring trophozoite schizont).push('extracellular merozoite'),
@@ -518,6 +547,10 @@ module DevelopmentalStageConstants
       'free tachyzoite' => 'extracellular tachyzoite',
       'released mature tachyzoite' => 'extracellular tachyzoite',
       'shortly after tachyzoite invasion' => 'shortly after invasion of tachyzoite',
+      'newly invaded tachyzoite' => 'shortly after invasion of tachyzoite',
+      'initial stage of cell division' => 'early tachyzoite cell division',
+      'after endodyogeny' => 'after tachyzoite cell division',
+      'endodyogeny' => 'tachyzoite cell division',
     },
     Species::FALCIPARUM_NAME => {
       'immature oocyst' => 'early oocyst',
@@ -618,6 +651,10 @@ module DevelopmentalStageConstants
       'erythrocytic' => 'intraerythrocytic',
       'stage iii-v gametocyte' => 'gametocyte stage III-V',
       '60 hours after sporozoite invasion' => '60 hours after sporozoite invasion of hepatocyte',
+      'liver stage day 2' => 'hepatocyte stage day 2',
+      'liver stage day 4' => 'hepatocyte stage day 4',
+      'liver stage day 7' => 'hepatocyte stage day 7',
+      'early gametocytes' => 'early gametocyte',
     }
   }
 end

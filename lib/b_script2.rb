@@ -25,7 +25,7 @@ require 'rarff'
 require 'stdlib'
 require 'babesia'
 require 'spoctopus_wrapper'
-require 'b_script'
+#require 'b_script'
 require 'eu_path_d_b_gene_information_table'
 require 'zlib'
 
@@ -423,142 +423,6 @@ PFI1740c).include?(f)
     end
   end
 
-  def voss_proteomics_spreadsheet
-
-    apis = ApilocLocalisationTopLevelLocalisation.all.reach.top_level_localisation.uniq
-    top_names = (%w(nucleus cytoplasm).push apis.reject{
-        |top| [
-          'nucleus',
-          'cytoplasm',
-        ].include?(top.name) or top.negative?
-      }.reach.name.retract).flatten
-
-    puts [
-      'PlasmoDB',
-      #      'Annotation',
-      #      'Common names',
-      #      'Localisation(s)',
-      #      'Localisation in Apicomplexan Orthologues',
-      #      'PlasmoAP?',
-      #      'SignalP?',
-      #      #      'Transmembrane domain # (TMHMM)',
-      #      'ExportPred score > 0?',
-      'Agreement with nuclear simple',
-      'Agreement with ER simple',
-      top_names.collect{|n| "'#{n}' Agreement"},
-      #      'In Lifecycle Proteomics at all?',
-      #      'In Lifecycle Proteomics with at least 2 peptides'
-    ].flatten.join("\t")
-
-    $stdin.each do |plasmodb_id|
-      plasmodb_id.strip!
-      code = CodingRegion.ff(plasmodb_id)
-      print "#{plasmodb_id}\t"
-      if code.nil?
-        puts "Couldn't find this gene ID"
-      else
-        #        orth_str = nil
-        #        begin
-        #          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
-        #          if localised_orths.nil?
-        #            orth_str = 'no entry in OrthoMCL v3'
-        #          else
-        #            orth_str = localised_orths.reject{
-        #              |c| c.id == code.id
-        #            }.reach.localisation_english.join(' | ')
-        #          end
-        #        rescue OrthomclGene::UnexpectedCodingRegionCount
-        #          orth_str = 'multiple OrthoMCL orthologues found'
-        #        end
-
-
-        puts [
-          #          code.annotation.annotation,
-          #          code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', '),
-          #          code.localisation_english,
-          #          orth_str,
-          #          code.plasmo_a_p.signal?,
-          #          code.signalp_however.signal?,
-          #          code.tmhmm.transmembrane_domains.length,
-          #          code.amino_acid_sequence.exportpred.predicted?,
-          code.agreement_with_top_level_localisation_simple(
-            TopLevelLocalisation.find_by_name('nucleus')
-          ),
-          code.agreement_with_top_level_localisation_simple(
-            TopLevelLocalisation.find_by_name('endoplasmic reticulum')
-          ),
-          top_names.collect{|top_name|
-            code.agreement_with_top_level_localisation(
-              TopLevelLocalisation.find_by_name(top_name)
-            )
-          },
-          #          code.proteomics(nil, 1).length > 0,
-          #          code.proteomics.length > 0
-        ].flatten.join("\t")
-      end
-    end
-  end
-
-  def nuclear_or_er
-    CodingRegion.falciparum.all.each do |code|
-      nuc = code.agreement_with_top_level_localisation_simple(
-        TopLevelLocalisation.find_by_name('nucleus')
-      )
-      er = code.agreement_with_top_level_localisation_simple(
-        TopLevelLocalisation.find_by_name('endoplasmic reticulum')
-      )
-      print "#{code.string_id}\t"
-      if nuc == 'agree' or er == 'agree'
-        puts 'agree'
-      elsif nuc == 'disagree' or er == 'disagree'
-        puts 'disagree'
-      else
-        puts
-      end
-    end
-  end
-
-  def localisation_for_list
-    $stdin.each do |plasmodb_id|
-      plasmodb_id.strip!
-
-      code = CodingRegion.ff(plasmodb_id)
-      print "#{plasmodb_id}\t"
-
-      if code.nil?
-        puts "Couldn't find this gene ID"
-      else
-
-        orth_str = nil
-        orth_pubs = nil
-        begin
-          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
-          if localised_orths.nil?
-            orth_str = 'no entry in OrthoMCL v3'
-          else
-            orth_str = localised_orths.reject{
-              |c| c.id == code.id
-            }.reach.localisation_english.join(' | ')
-            orth_pubs = localised_orths.reject{
-              |c| c.id == code.id
-            }.reach.expression_contexts.flatten.reach.publication.definition.uniq.join(', ')
-          end
-        rescue OrthomclGene::UnexpectedCodingRegionCount
-          orth_str = 'multiple OrthoMCL orthologues found'
-        end
-
-        puts [
-          code.annotation.annotation,
-          code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.join(', '),
-          code.localisation_english,
-          code.expression_contexts.reach.publication.definition.uniq.join(', '),
-          orth_str,
-          orth_pubs
-        ].join("\t")
-      end
-    end
-  end
-
   # read in a blastclust file and print out the different annotations
   def clusters_to_annotation
     File.foreach(ARGV[0]) do |line|
@@ -702,28 +566,33 @@ PFI1740c).include?(f)
     end
   end
 
+  PLASMIT_FILENAME = "/home/ben/phd/data/falciparum/plasmit/20100604.html"
   def plasmit_falciparum
-    plasmit_filename = "#{DATA_DIR}/falciparum/plasmit/20091117.html"
-    `rm #{plasmit_filename}`
+    plasmit_filename = PLASMIT_FILENAME
+    `rm '#{plasmit_filename}'`
 
-    CodingRegion.falciparum.all(
+    codes = CodingRegion.falciparum.all(
       :joins => :amino_acid_sequence,
       :include => :amino_acid_sequence
-    ).each do |code|
+    )
+    progress = ProgressBar.new('plasmit',codes.length)
+    codes.each do |code|
       aa = code.amino_acid_sequence
+      progress.inc
       # only the first 24 amino acids are used, but given that the length
       # output recorded for a 24 amino acid length protein is 23, I'm playing
       # it safe here
       next unless aa.sequence.length > 25
       Tempfile.open('plasmit') do |tempfile|
-        `wget 'http://gecco.org.chemie.uni-frankfurt.de/cgi-bin/plasmit/runanalysis.cgi?output=simple&sequence=>#{code.string_id}%0A#{aa.sequence[0..25]}' -O #{tempfile.path}`
+        `wget -nv 'http://gecco.org.chemie.uni-frankfurt.de/cgi-bin/plasmit/runanalysis.cgi?output=simple&sequence=>#{code.string_id}%0A#{aa.sequence[0..25]}' -O #{tempfile.path}`
         `cat #{tempfile.path} >>#{plasmit_filename}`
       end
     end
+    progress.finish
   end
 
   def upload_plasmit_results
-    File.foreach("#{DATA_DIR}/falciparum/plasmit/20091117.html") do |line|
+    File.foreach(PLASMIT_FILENAME) do |line|
       next unless line.match(/Lines read with presumably/)
       matches = line.match(/>>(.*?)<\/TD><TD>(.*?)</)
       raise unless matches
@@ -1035,6 +904,20 @@ PFI1740c).include?(f)
           puts "add_foreign_key :#{foreign_key_table.pluralize}, :#{matches[1].pluralize}, :dependent => :delete"
         end
       end
+    end
+  end
+  
+  def robot_targets_foreach_predictor
+    File.foreach("#{PHD_DIR}/robot_targets/targets.list").each do |n|
+      name = n.strip
+      next if name.empty?
+      code = CodingRegion.fs(name, Species::FALCIPARUM_NAME)
+      raise Exception, name unless code
+      puts [
+      code.string_id,
+      code.annotation.annotation,
+      code.plasmo_a_p.predicted?
+      ].join("\t")
     end
   end
 end

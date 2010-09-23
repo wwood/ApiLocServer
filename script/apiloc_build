@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Create apiloc from scratch, so that the database can eventually replace the production apiloc database.
+
+export RAILS_ENV=apiloc_build
+rake db:drop
+rake db:setup
+
+script/runner BScript.new.upload_apiloc_from_scratch
+

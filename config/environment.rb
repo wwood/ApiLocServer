@@ -7,7 +7,7 @@
 # Specifies gem version of Rails to use when vendor/rails is not present
 # Ben removed this because I couldn't be bothered changing manually when
 # every new version of rails is released.
-#RAILS_GEM_VERSION = '2.2.2' unless defined? RAILS_GEM_VERSION
+RAILS_GEM_VERSION = '2.3.8' unless defined? RAILS_GEM_VERSION
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')
@@ -64,7 +64,7 @@ Rails::Initializer.run do |config|
   # Commented out so I can it on reefedge
   #config.gem "wwood-rsruby", :source => "http://gems.github.com", :lib => 'rsruby' 
   config.gem "fastercsv"
-#  config.gem 'wwood-rarff', :source => "http://gems.github.com", :lib => 'rarff', :version => '0.2.3'
+  config.gem 'wwood-rarff', :lib => 'rarff'
 #  config.gem 'wwood-bioruby', :source => "http://gems.github.com", :lib => 'bio'
   config.gem 'schleyfox-peach', :source => "http://gems.github.com", :lib => 'peach'
   config.gem 'rio'
@@ -73,6 +73,7 @@ Rails::Initializer.run do |config|
   config.gem "matthuhiggins-foreigner", :lib => "foreigner", :source => 'http://gemcutter.org'
   config.gem 'array_pair', :source => 'http://gemcutter.org'
   config.gem 'goruby', :lib => 'go', :source => 'http://gemcutter.org'
+  config.gem 'progressbar'
   
   # include a cache sweeper directory that fits into the app/ scheme, as suggested by
   # http://railsenvy.com/2007/2/28/rails-caching-tutorial#sweepers
@@ -89,5 +90,3 @@ class FlorianApicoplastTransmembraneDomain < TransmembraneDomain; end
 class FlorianMitochondriaTransmembraneDomain < TransmembraneDomain; end
 class FlorianPlasmaMembraneAndAlikeTransmembraneDomain < TransmembraneDomain; end
 class FlorianIntracellularTransmembraneDomain < TransmembraneDomain; end
-
-ExceptionNotifier.exception_recipients = %w(ben@localhost b.woodcroft@pgrad.unimelb.edu.au)

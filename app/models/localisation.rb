@@ -8,6 +8,7 @@ class Localisation < ActiveRecord::Base
   has_many :coding_regions, :through => :coding_region_localisations
   has_many :coding_region_localisations, :dependent => :destroy
   has_many :expression_contexts, :dependent => :destroy
+  has_many :second_class_citizen_expression_contexts, :dependent => :destroy
   has_many :expressed_coding_regions, :through => :expression_contexts, :source => :coding_region
   
   has_one :malaria_localisation_top_level_localisation
@@ -325,16 +326,23 @@ class Localisation < ActiveRecord::Base
 
   # return the negative of this localisation
   def negation
-    if matches = name.match(/^not (.*)/)
+    if negative?
+      matches = name.match(/^not (.*)/)
+      raise Exception, "Programmming error!" if matches.nil?
       t = Localisation.find_by_name(matches[1])
       raise if t.nil?
       return t
     else
-      t = Localisation.find_by_name("not #{name}")
+      t = Localisation.find_by_name(Localisation.add_negation(name))
       raise if t.nil?
       return t
     end
   end
+  
+  # Is this a negative localisation?
+  def negative?
+    !(name.match(/^not (.*)/).nil?)
+  end 
 
   def map_to_go_term_multiple
     # manually mapped ones

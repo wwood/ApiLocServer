@@ -54,6 +54,7 @@ module Bio
       def predicted?
         @predicted
       end
+      alias_method :signal?, :predicted?
       
       def self.all_result_names
         @@all_result_names

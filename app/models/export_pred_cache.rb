@@ -25,4 +25,5 @@ class ExportPredCache < ActiveRecord::Base
   def predicted?
     to_exportpred_result.predicted?
   end
+  alias_method :signal?, :predicted?
 end

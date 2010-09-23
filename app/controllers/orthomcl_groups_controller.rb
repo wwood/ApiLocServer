@@ -14,7 +14,7 @@ class OrthomclGroupsController < ApplicationController
   # GET /orthomcl_groups/1.xml
   def show
     # always render HTML. This statement fixes the problems with gene IDs with dots in them
-    format.html
+#    format.html
     @orthomcl_group = OrthomclGroup.find_by_orthomcl_name(params[:id])
 
     respond_to do |format|

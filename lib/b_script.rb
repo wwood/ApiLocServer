@@ -29,6 +29,7 @@ require 'spoctopus_wrapper'
 require 'uni_prot_iterator'
 
 # Modules to split up this massive file. Each one is included
+require 'modules/b_script_constants'
 require 'modules/at_bias'
 require 'modules/api_loc_publication'
 require 'modules/eu_path_db'
@@ -36,6 +37,10 @@ require 'modules/positional_dependence'
 require 'modules/orthomcl'
 require 'modules/proteomics'
 require 'modules/endomembrane_retrieval'
+require 'modules/second_class_citizens'
+require 'modules/voss_proteomics'
+require 'modules/hydrophobic_mysteries'
+require 'modules/microarray'
 require 'b_script2'
 
 
@@ -48,9 +53,6 @@ WORK_DIR = "#{ENV['HOME']}/Workspace"
 
 
 class BScript
-  PHD_DIR = "#{ENV['HOME']}/phd"
-  DATA_DIR = "#{ENV['HOME']}/phd/data"
-  
   require 'microarray_timepoint' #include the constants for less typing
   include MicroarrayTimepointNames
 
@@ -2488,63 +2490,6 @@ class BScript
     localisation_measurements.keys.each do |loc_key|
       localisation_measurements[loc_key].each do |entry|
         puts "#{entry[0]}\t#{loc_key}\t#{entry[1..entry.length-1].join("\t")}"
-      end
-    end
-  end
-  
-  
-  # upload the derisi data to my second microarray database implementation
-  def derisi_microarray_to_database2
-    microarray = Microarray.find_or_create_by_description Microarray.derisi_2006_3D7_default
-    
-    microarray.microarray_timepoints.each do |t|
-      # destroys timepoint and all measurements as well
-      t.destroy
-    end
-          
-    alpha_cols = 2..63
-    orf_name_col = 1
-    timepoints = []
-    
-    first = true
-    
-    CSV.open("#{DATA_DIR}/falciparum/microarray/DeRisi2006/S03_3D7_QC.tab", 'r', "\t") do |row|
-      if first
-        timepoints = row[alpha_cols].collect do |name|
-          MicroarrayTimepoint.find_or_create_by_microarray_id_and_name(
-            microarray.id,
-            name
-          )
-        end
-        
-        first = false
-        next
-      end
-      
-      # find the coding regions
-      orf_name = row[orf_name_col]
-      code = CodingRegion.falciparum.find_by_name_or_alternate(orf_name)
-      if !code
-        $stderr.puts "No coding region #{orf_name} found"
-        next
-      end
-
-      # Normal Column. Add the data
-      alpha_cols.each do |i|
-        cell = row[i]
-        value = cell
-        if value
-          t = timepoints[i-alpha_cols.begin]
-          
-          # Uploading mulitple at one time is fine. Assume the whole dataset is being uploaded at once here
-          
-          # There is actually a small bug here. It is theoretically possible that you can have the same region be measured twice.
-          MicroarrayMeasurement.create!(
-            :microarray_timepoint_id => t.id,
-            :measurement => value,
-            :coding_region_id => code.id
-          )
-        end
       end
     end
   end
@@ -5505,16 +5450,20 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
     
 
   
-  
+  GILSON_GPI_LIST_NAME = "Gilson Published GPI 2006"
   def upload_gilson_gpi_list
-    l = PlasmodbGeneList.find_or_create_by_description("Gilson Published GPI 2006")
+    l = PlasmodbGeneList.find_or_create_by_description(GILSON_GPI_LIST_NAME)
     File.open("#{DATA_DIR}/falciparum/localisation/Gilson2006Apr7.GPI.list.csv").each do |line|
+      line.strip!
       p line
-      code = CodingRegion.ff(line.strip)
-      raise if !code
-      PlasmodbGeneListEntry.find_or_create_by_plasmodb_gene_list_id_and_coding_region_id(
-        l.id, code.id
-      )
+      code = CodingRegion.ff(line)
+      if code
+        PlasmodbGeneListEntry.find_or_create_by_plasmodb_gene_list_id_and_coding_region_id(
+          l.id, code.id
+        )
+      else
+        $stderr.puts "Unable to find coding region #{line}" 
+      end
     end
   end
     
@@ -7135,19 +7084,21 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
 
   # Upload the GO annotations for a given species
   def gene_ontology_to_database(species_name, gz_gene_association_filename)
-    require 'gene_association'
     goods = 0
     bads = 0
 
     io = Zlib::GzipReader.open(
       gz_gene_association_filename
     )
+    
+    progress = ProgressBar.new('gene_association', `gunzip -c '#{gz_gene_association_filename}' |wc -l`.to_i, STDOUT)
 
-    Bio::GeneAssociation.new(io).entries.each do |entry|
+    Bio::FlatFile.foreach(Bio::GO::GeneAssociation, io) do |entry|
+      progress.inc
       names = [
-        entry.primary_id,
-        entry.gene_name,
-        entry.alternate_gene_ids,
+      entry.db_object_id,
+      entry.db_object_symbol,
+      entry.db_object_synonym,
       ].flatten
 
       code = nil
@@ -7159,26 +7110,27 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
         break unless code.nil?
       end
       unless code
-        puts "Couldn't find coding region called #{names.join(',')}"
+        #puts "Couldn't find coding region called #{names.join(',')}"
         bads += 1
         next
       end
 
       # GO terms should already be there
-      go_term = GoTerm.find_by_go_identifier_or_alternate(entry.go_identifier)
+      go_term = GoTerm.find_by_go_identifier_or_alternate(entry.goid('fuckin oath'))
 
       unless go_term
-        puts "Couldn't find GO term #{entry.go_identifier}"
+        $stderr.puts "Couldn't find GO term #{entry.go_identifier}"
         bads += 1
         next
       end
 
       raise unless CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
-        code.id, go_term.id, entry.evidence_code
+                                                                                                          code.id, go_term.id, entry.evidence
       )
       goods += 1
     end
-
+    progress.finish
+    
     puts "Uploaded #{goods}, failed to upload #{bads}."
   end
 

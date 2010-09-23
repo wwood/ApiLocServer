@@ -106,7 +106,7 @@ class OrthomclGene < ActiveRecord::Base
     #species specific workarounds below
 
     # Drosophila had problems in Orthomcl v2, but less so in v3
-    if matches[1] === 'dmel' and orthomcl_run.name == OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_2_NAME
+    if matches[1] === 'dme' and orthomcl_run.name == OrthomclRun::ORTHOMCL_OFFICIAL_VERSION_2_NAME
       # for drosophila drop the -PA or -PB at the end of it
       matches = name.match(/^(.*)\-(.*)$/)
       if matches
@@ -212,7 +212,8 @@ class OrthomclGene < ActiveRecord::Base
     options = {
       :warn=>false, #warn if there is no coding region that matches
       :upload_species_orthomcl_codes_first=>true, #before even looking at the orthomcl data, upload the four letter codes into the species table?
-      :accept_multiple_coding_regions => false #allow multiple coding regions to match to a single coding region - useful in rare cases
+      :accept_multiple_coding_regions => false, #allow multiple coding regions to match to a single coding region - useful in rare cases,
+      :verbose => false, #Tell for each sequence identifier that is being uploaded
     }.merge(options)
 
     Species.new.update_known_four_letters if options[:upload_species_orthomcl_codes_first]
@@ -237,6 +238,7 @@ class OrthomclGene < ActiveRecord::Base
     progress = ProgressBar.new('orthomclink', orthomcls.length)
     orthomcls.each do |orthomcl_gene|
       progress.inc
+      $stderr.puts "Linking OrthoMCL gene `#{orthomcl_gene.id}, #{orthomcl_gene.orthomcl_name}'" if options[:verbose]
     
       codes = orthomcl_gene.compute_coding_regions
       if !codes or codes.length == 0
@@ -303,7 +305,7 @@ class OrthomclGene < ActiveRecord::Base
       end
       
       species = Species.find_by_orthomcl_three_letter(org)
-      raise if !species
+      raise unless species
       codes = CodingRegion.find_all_by_name_or_alternate_and_species(name, species.name)
       if !codes or codes.length == 0
         if warn

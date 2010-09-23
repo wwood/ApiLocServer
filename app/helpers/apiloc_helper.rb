@@ -9,7 +9,7 @@ module ApilocHelper
       'endoplasmic reticulum',
       'Golgi apparatus',
       'inner membrane complex',
-      Localisation::CYTOPLASM_NOT_ORGANELLAR_PUBLIC_NAME,
+    Localisation::CYTOPLASM_NOT_ORGANELLAR_PUBLIC_NAME,
       'food vacuole',
       'parasite plasma membrane',
       'other'
@@ -153,5 +153,21 @@ module ApilocHelper
         )
       end
       )
+    end
+    
+    # Explaining how a protein can be both negative and positive umbrella localisation simultaneously.
+    def negative_localisation_spiel
+      <<EOP
+<p>NB: For umbrella localisations such as #{link_to 'apicoplast', :action => :localisation, :id => 'apicoplast'}, 
+a single gene can be classified as both the positive and negative in the same localisation. This may occur if 
+the protein is localised to sub-structure such as the #{link_to 'apicoplast membrane', :action => :localisation, :id => 'apicoplast membrane'}. 
+If the localisation is 
+#{link_to 'apicoplast membrane', :action => :specific_localisation, :id => 'apicoplast membrane'} and 
+#{link_to 'not apicoplast lumen', :action => :specific_localisation, :id => 'not apicoplast lumen'}, 
+the gene would be classified both under the positive umbrella localisation 
+#{link_to 'apicoplast', :action => :localisation, :id => 'apicoplast'} and the negative umbrella localisation
+#{link_to 'not apicoplast', :action => :localisation, :id => 'not apicoplast'}.
+</p>
+EOP
     end
   end

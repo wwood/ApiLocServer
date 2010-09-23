@@ -1,4 +1,5 @@
 require "zlib"
+require 'pp'
 # Methods used in the ApiLoc publication
 class BScript
   def apiloc_stats
@@ -380,10 +381,6 @@ class BScript
     end
   end
   
-  def blast_genomes_against_apiloc
-    
-  end
-  
   # Taking all the falciparum proteins, where are the orthologues localised?
   def orthomcl_localisation_annotations
     CodingRegion.falciparum.all(
@@ -405,10 +402,6 @@ class BScript
         $stderr.puts "Couldn't map #{code.string_id}/#{code.annotation.annotation} to orthomcl"
       end
     end
-  end
-  
-  def apiloc_relevant_human_genes
-    
   end
   
   def upload_apiloc_relevant_go_terms
@@ -509,6 +502,8 @@ class BScript
       'scer' => 'yeast',
       'crei' => 'chlamydomonas',
       'tthe' => 'tetrahymena',
+      'rnor' => 'rat',
+      'spom' => 'pombe',
     }.each do |code, name|
       $stderr.puts name
       out = File.open("#{species_orthologue_folder}/#{name}.txt",'w')
@@ -553,6 +548,7 @@ class BScript
     {
       'human' => Species::HUMAN_NAME,
       'mouse' => Species::MOUSE_NAME,
+      'rat' => Species::RAT_NAME,
     }.each do |this_name, proper_name|
       $stderr.puts this_name
       FasterCSV.foreach("#{species_orthologue_folder}/biomart_results/#{this_name}.csv",
@@ -560,8 +556,8 @@ class BScript
         :headers => true
       ) do |row|
         protein_name = row['Ensembl Protein ID']
-        go_id = row['GO Term Accession']
-        evidence = row['GO Term Evidence Code']
+        go_id = row['GO Term Accession (cc)']
+        evidence = row['GO Term Evidence Code (cc)']
         
         next if go_id.nil? #ignore empty columns
         
@@ -832,6 +828,16 @@ class BScript
     end
   end
   
+  # Delete all the data associated with the uniprot species so
+  # I can start again.
+  def destroy_all_uniprot_species
+    APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
+      s = Species.find_by_name(species_name)
+      puts "#{species_name}..."
+      s.delete unless s.nil?
+    end
+  end
+  
   UNIPROT_SPECIES_ID_NAME_HASH = {
     9606 => Species::HUMAN_NAME,
     4932 => Species::YEAST_NAME,
@@ -844,8 +850,12 @@ class BScript
     7955 => Species::DANIO_RERIO_NAME,
     4530 => Species::RICE_NAME,
     
+    # Species below added on the second attempt
+    4896 => Species::POMBE_NAME,
+    10116 => Species::RAT_NAME,
+    
     # species below have no non-IEA gene ontology terms so are a waste of time
-    #    4087 => Species::TOBACCO_NAME,
+    #    4087 => Species::TOBACCO_NAME, 
     #    70448 => Species::PLANKTON_NAME,
     #    3218 => Species::MOSS_NAME,
     #    3988 => Species::CASTOR_BEAN_NAME
@@ -859,79 +869,85 @@ class BScript
   #
   # This method could be more DRY - UniProtIterator could replace
   # much of the code here. But eh for the moment.
-  def uniprot_to_database
-    APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
+  def uniprot_to_database(species_names=nil)
+    species_names ||= APILOC_UNIPROT_SPECIES_NAMES
+    species_names = [species_names] unless species_names.kind_of?(Array)
+    species_names.each do |species_name|
       count = 0
       current_uniprot_string = ''
       complete_filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
       
       # Convert the whole gzip in to a smaller one, so parsing is faster:
-      filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}_reduced"
-      cmd = "zcat '#{complete_filename}' |egrep '^(AC|DR   GO|//)' >'#{filename}'"
-      `#{cmd}`
-      
-      dummy_gene = Gene.find_or_create_dummy(species_name)
-      progress = ProgressBar.new(species_name, `grep '^//' '#{filename}' |wc -l`.to_i)
-      File.foreach(filename) do |line|
-        if line == "//\n"
-          count += 1
-          progress.inc
-          #current uniprot is finished - upload it
-          #puts current_uniprot_string
-          u = Bio::UniProt.new(current_uniprot_string)
-          
-          # Upload the UniProt name as the
-          axes = u.ac
-          
-          protein_name = axes[0]
-          raise unless protein_name
-          code = CodingRegion.find_or_create_by_gene_id_and_string_id(
-                                                                      dummy_gene.id,
-                                                                      protein_name
-          )
-          raise unless code.save!
-          
-          protein_alternate_names = axes.no_nils
-          protein_alternate_names.each do |name|
-            CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
-                                                                                                 code.id, name, 'UniProt'
-            ) or raise
+      # Don't use a static name because if two instance are running clashes occur.
+      Tempfile.open("#{species_name}_reduced") do |tempfile|
+        filename = tempfile.path
+        
+        cmd = "zcat '#{complete_filename}' |egrep '^(AC|DR   GO|//)' >'#{filename}'"
+        `#{cmd}`
+        
+        dummy_gene = Gene.find_or_create_dummy(species_name)
+        progress = ProgressBar.new(species_name, `grep '^//' '#{filename}' |wc -l`.to_i)
+        File.foreach(filename) do |line|
+          if line == "//\n"
+            count += 1
+            progress.inc
+            #current uniprot is finished - upload it
+            #puts current_uniprot_string
+            u = Bio::UniProt.new(current_uniprot_string)
+            
+            # Upload the UniProt name as the
+            axes = u.ac
+            
+            protein_name = axes[0]
+            raise unless protein_name
+            code = CodingRegion.find_or_create_by_gene_id_and_string_id(
+                                                                        dummy_gene.id,
+                                                                        protein_name
+            )
+            raise unless code.save!
+            
+            protein_alternate_names = axes.no_nils
+            protein_alternate_names.each do |name|
+              CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+                                                                                                   code.id, name, 'UniProt'
+              ) or raise
+            end
+            
+            goes = u.dr["GO"]
+            goes ||= [] #no go terms associated - best to still make it to the end of the method, because it is too complex here for such hackery
+            
+            goes.each do |go_array|
+              go_id = go_array[0]
+              evidence_almost = go_array[2]
+              evidence = nil
+              if (matches = evidence_almost.match(/^([A-Z]{2,3})\:.*$/))
+                evidence = matches[1]
+              end
+              
+              # error checking
+              if evidence.nil?
+                raise Exception, "No evidence code found in #{go_array.inspect} from #{evidence_almost}!"
+              end
+              
+              
+              go = GoTerm.find_by_go_identifier_or_alternate go_id
+              if go
+                CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
+                                                                                                       code.id, go.id, evidence
+                ).save!
+              else
+                $stderr.puts "Couldn't find GO id #{go_id}"
+              end
+            end
+            
+            current_uniprot_string = ''
+          else
+            current_uniprot_string += line
           end
-          
-          goes = u.dr["GO"]
-          goes ||= [] #no go terms associated - best to still make it to the end of the method, because it is too complex here for such hackery
-          
-          goes.each do |go_array|
-            go_id = go_array[0]
-            evidence_almost = go_array[2]
-            evidence = nil
-            if (matches = evidence_almost.match(/^([A-Z]{2,3})\:.*$/))
-              evidence = matches[1]
-            end
-            
-            # error checking
-            if evidence.nil?
-              raise Exception, "No evidence code found in #{go_array.inspect} from #{evidence_almost}!"
-            end
-            
-            
-            go = GoTerm.find_by_go_identifier_or_alternate go_id
-            if go
-              CodingRegionGoTerm.find_or_create_by_coding_region_id_and_go_term_id_and_evidence_code(
-                                                                                                     code.id, go.id, evidence
-              ).save!
-            else
-              $stderr.puts "Couldn't find GO id #{go_id}"
-            end
-          end
-          
-          current_uniprot_string = ''
-        else
-          current_uniprot_string += line
         end
-      end
-      progress.finish
-      `rm '#{filename}'`
+        progress.finish
+        
+      end #tempfile
       $stderr.puts "Uploaded #{count} from #{species_name}, now there is #{CodingRegion.s(species_name).count} coding regions in #{species_name}."
     end
     #uploadin the last one not required because the last line is always
@@ -1013,14 +1029,16 @@ class BScript
         protein_name = axes[0]
         raise unless protein_name
         code = CodingRegion.fs(protein_name, species_name)
-        raise unless code
-        
-        unless u.gn.empty?
-          u.gn[0][:loci].each do |orfname|
-            CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
-                                                                                      code.id, orfname
-            )
+        if code
+          unless u.gn.empty?
+            u.gn[0][:loci].each do |orfname|
+              CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
+                                                                                        code.id, orfname
+              )
+            end
           end
+        else
+          $stderr.puts "Unable to find protein `#{protein_name}'"  
         end
         
         current_uniprot_string = ''
@@ -1481,7 +1499,7 @@ class BScript
       comps = code.compartments
       comps.each do |comp|
         CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
-                                                                                          code.id, comp
+                                                                                        code.id, comp
         )
       end
     end
@@ -1495,7 +1513,7 @@ class BScript
       comps = code.compartments
       comps.each do |comp|
         CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
-                                                                                          code.id, comp
+                                                                                        code.id, comp
         )
       end
     end   
@@ -1504,15 +1522,25 @@ class BScript
   
   # How conserved is localisation between the three branches of life with significant
   # data known about them?
+  # This method FAILS due to memory and compute time issues - I ended up
+  # essentially abandoning rails for this effort.
   def conservation_of_eukaryotic_sub_cellular_localisation(debug = false)
     groups_to_counts = {}
     
     # For each orthomcl group that has a connection to coding region, and
     # that coding region has a cached compartment
-    OrthomclGroup.all(
-    :select => 'distinct(orthomcl_groups.*)',
+    groups = OrthomclGroup.all(
+                               #    :select => 'distinct(orthomcl_groups.*)',
     :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}}
-    ).each do |ortho_group|
+    #    :limit => 10,
+    #    :include => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}}
+    )
+    
+    # ProgressBar on stdout, because debug is on stderr
+    progress = ProgressBar.new('conservation', groups.length, STDOUT)
+    
+    groups.each do |ortho_group|
+      progress.inc
       
       $stderr.puts "---------------------------------------------" if debug
       
@@ -1522,10 +1550,16 @@ class BScript
       # This is nicely abstracted already!
       # However, a single orthomcl gene can have multiple CodingRegion's associated.
       # Therefore each has to be analysed as an array, frustratingly.
-      orthomcl_genes = ortho_group.orthomcl_genes.uniq.reject do |s|
-        # reject the orthomcl gene if it has no coding regions associated with it.
-        s.coding_regions.empty?
-      end
+      
+      # reject the orthomcl gene if it has no coding regions associated with it.
+      orthomcl_genes = OrthomclGene.all(
+      :joins => [:coding_regions, :orthomcl_groups], 
+      :conditions => {:orthomcl_groups => {:id => ortho_group.id}}
+      )
+      #      ortho_group.orthomcl_genes.uniq.reject do |s|
+      #        # reject the orthomcl gene if it has no coding regions associated with it.
+      #        s.coding_regions.empty?
+      #      end
       
       
       # Setup data structures
@@ -1534,7 +1568,11 @@ class BScript
       
       orthomcl_genes.each do |orthomcl_gene|
         # Localisations from all coding regions associated with an orthomcl gene are used.
-        locs = orthomcl_gene.coding_regions.reach.cached_compartments.flatten.uniq
+        locs = CodingRegionCompartmentCache.all(
+        :joins => {:coding_region => :orthomcl_genes},
+        :conditions => {:orthomcl_genes => {:id => orthomcl_gene.id}}
+        ).reach.compartment.uniq
+        #        locs = orthomcl_gene.coding_regions.reach.cached_compartments.flatten.uniq
         next if locs.empty? #ignore unlocalised genes completely from hereafter
         name = orthomcl_gene.orthomcl_name
         orthomcl_locs[name] = locs
@@ -1545,6 +1583,8 @@ class BScript
         kingdom_orthomcls[species.kingdom] ||= []
         kingdom_orthomcls[species.kingdom].push name
       end
+      $stderr.puts kingdom_orthomcls.inspect if debug
+      $stderr.puts orthomcl_locs.inspect if debug
       
       $stderr.puts "Kingdoms: #{kingdom_orthomcls.to_a.collect{|k| k[0]}.sort.join(', ')}" if debug
       
@@ -1553,7 +1593,7 @@ class BScript
         # If there is only a single coding region, then don't record
         number_in_kingdom_localised = orthomcls.length
         if number_in_kingdom_localised < 2
-          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdom}, skipping (#{orthomcls.join(', ')})"
+          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdom}, skipping (#{orthomcls.join(', ')})" if debug
           next
         end
         
@@ -1610,7 +1650,7 @@ class BScript
         # don't include unless there is an orthomcl in each kingdom
         zero_entriers = orthomcl_arrays.select{|o| o.length==0}
         if zero_entriers.length > 0
-          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping"
+          $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping" if debug
           next         
         end
         
@@ -1624,9 +1664,664 @@ class BScript
         groups_to_counts[index][agreement] += 1
       end
     end
+    progress.finish
     
     # print out the counts for each group of localisations
     p groups_to_counts
   end
   
+  # An attempt to make conservation_of_eukaryotic_sub_cellular_localisation faster
+  # as well as using less memory. In the end the easiest way was to stay away from Rails
+  # almost completely, and just use find_by_sql for the big database dump to a csv file,
+  # and then parse that csv file one line at a time.
+  def conservation_of_eukaryotic_sub_cellular_localisation_slimmer
+    # Cache all of the kingdom information as orthomcl_split to kingdom
+    orthomcl_abbreviation_to_kingdom = {}
+    Species.all(:conditions => 'orthomcl_three_letter is not null').each do |sp|
+      orthomcl_abbreviation_to_kingdom[sp.orthomcl_three_letter] = Species::NAME_TO_KINGDOM[sp.name]
+    end
+    
+    
+    # Copy the data out of the database to a csv file. Beware that there is duplicates in this file
+    tempfile = File.open('/tmp/eukaryotic_conservation','w')
+    #    Tempfile.open('eukaryotic_conservation') do |tempfile|
+    `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
+    OrthomclGene.find_by_sql "copy (select groupa.orthomcl_name, gene.orthomcl_name, cache.compartment from orthomcl_groups groupa inner join orthomcl_gene_orthomcl_group_orthomcl_runs ogogor on groupa.id=ogogor.orthomcl_group_id inner join orthomcl_genes gene on ogogor.orthomcl_gene_id=gene.id inner join orthomcl_gene_coding_regions ogc on ogc.orthomcl_gene_id=gene.id inner join coding_regions code on ogc.coding_region_id=code.id inner join coding_region_compartment_caches cache on code.id=cache.coding_region_id order by groupa.orthomcl_name) to '#{tempfile.path}'"
+    tempfile.close
+    
+    # Parse the csv file to get the answers I'm looking for
+    
+    data = {}
+    kingdom_orthomcls = {} #array of kingdoms to orthomcl genes
+    orthomcl_locs = {} #array of orthomcl_genes to localisations, cached for convenience and speed
+    
+    FasterCSV.foreach(tempfile.path, :col_sep => "\t") do |row|
+      # name columns
+      raise unless row.length == 3
+      group = row[0]
+      gene = row[1]
+      compartment = row[2]
+      
+      data[group] ||= {}
+      
+      kingdom = orthomcl_abbreviation_to_kingdom[OrthomclGene.new.official_split(gene)[0]]
+      data[group]['kingdom_orthomcls'] ||= {}
+      data[group]['kingdom_orthomcls'][kingdom] ||= []
+      data[group]['kingdom_orthomcls'][kingdom].push gene
+      data[group]['kingdom_orthomcls'][kingdom].uniq!
+      
+      data[group]['orthomcl_locs'] ||= {}
+      data[group]['orthomcl_locs'][gene] ||= []
+      data[group]['orthomcl_locs'][gene].push compartment
+      data[group]['orthomcl_locs'][gene].uniq!
+    end
+    #    end
+    
+    # Classify each of the groups into the different categories where possible
+    groups_to_counts = {}
+    data.each do |group, data2|
+      classify_eukaryotic_conservation_of_single_orthomcl_group(
+                                                                data2['kingdom_orthomcls'],
+      data2['orthomcl_locs'],
+      groups_to_counts
+      )
+    end
+    pp groups_to_counts
+  end
+  
+  # This is a modularisation of conservation_of_eukaryotic_sub_cellular_localisation,
+  # and does the calculations on the already transformed data (kingdom_orthomcls, orthomcl_locs).
+  # More details in conservation_of_eukaryotic_sub_cellular_localisation
+  def classify_eukaryotic_conservation_of_single_orthomcl_group(kingdom_orthomcls, orthomcl_locs, groups_to_counts, debug = false)
+    $stderr.puts kingdom_orthomcls.inspect if debug
+    $stderr.puts orthomcl_locs.inspect if debug
+    $stderr.puts "Kingdoms: #{kingdom_orthomcls.to_a.collect{|k| k[0]}.sort.join(', ')}" if debug
+    
+    # within the one kingdom, do they agree?
+    kingdom_orthomcls.each do |kingdom, orthomcls|
+      # If there is only a single coding region, then don't record
+      number_in_kingdom_localised = orthomcls.length
+      if number_in_kingdom_localised < 2
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdom}, skipping (#{orthomcls.join(', ')})" if debug
+        next
+      end
+      
+      # convert orthomcl genes to localisation arrays
+      locs = orthomcls.collect {|orthomcl|
+        orthomcl_locs[orthomcl]
+      }
+      
+      # OK, so now we are on. Let's do this
+      agreement = OntologyComparison.new.agreement_of_group(locs)
+      index = [kingdom]
+      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}, #{orthomcls.join(' ')}" if debug
+      groups_to_counts[index] ||= {}
+      groups_to_counts[index][agreement] ||= 0
+      groups_to_counts[index][agreement] += 1
+    end
+    
+    # within two kingdoms, do they agree?
+    kingdom_orthomcls.to_a.each_lower_triangular_matrix do |array1, array2|
+      kingdom1 = array1[0]
+      kingdom2 = array2[0]
+      orthomcl_array1 = array1[1]
+      orthomcl_array2 = array2[1]
+      orthomcl_arrays = [orthomcl_array1, orthomcl_array2]
+      
+      # don't include unless there is an orthomcl in each kingdom
+      zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+      if zero_entriers.length > 0
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping"
+        next         
+      end
+      
+      locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
+      agreement = OntologyComparison.new.agreement_of_group(locs_for_all)
+      
+      index = [kingdom1, kingdom2].sort
+      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+      groups_to_counts[index] ||= {}
+      groups_to_counts[index][agreement] ||= 0
+      groups_to_counts[index][agreement] += 1
+    end
+    
+    # within three kingdoms, do they agree?
+    kingdom_orthomcls.to_a.each_lower_triangular_3d_matrix do |a1, a2, a3|
+      kingdom1 = a1[0]
+      kingdom2 = a2[0]
+      kingdom3 = a3[0]
+      orthomcl_array1 = a1[1]
+      orthomcl_array2 = a2[1]
+      orthomcl_array3 = a3[1]
+      kingdoms = [kingdom1, kingdom2, kingdom3]
+      orthomcl_arrays = [orthomcl_array1, orthomcl_array2, orthomcl_array3]
+      
+      # don't include unless there is an orthomcl in each kingdom
+      zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+      if zero_entriers.length > 0
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping" if debug
+        next         
+      end
+      
+      locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
+      agreement = OntologyComparison.new.agreement_of_group locs_for_all
+      
+      index = kingdoms.sort
+      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+      groups_to_counts[index] ||= {}
+      groups_to_counts[index][agreement] ||= 0
+      groups_to_counts[index][agreement] += 1
+    end
+  end
+  
+  # Using the assumption that the yeast-mouse, yeast-human and falciparum-toxo divergences are approximately 
+  # equivalent, whatever that means, work out the conservation of localisation between each of those groups.
+  # Does yeast/mouse exhibit the same problems as falciparum/toxo when comparing localisations?
+  def localisation_conservation_between_pairs_of_species(species1 = Species::FALCIPARUM_NAME, species2 = Species::TOXOPLASMA_GONDII_NAME)
+    groups_to_counts = {} #this array ends up holding all the answers after we have finished going through everything
+    
+    toxo_fal_groups = OrthomclGroup.with_species(Species::ORTHOMCL_CURRENT_LETTERS[species1]).with_species(Species::ORTHOMCL_CURRENT_LETTERS[species2]).all(
+    :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+    #    :limit => 10,
+    :select => 'distinct(orthomcl_groups.*)'
+    #    :conditions => ['orthomcl_groups.orthomcl_name = ? or orthomcl_groups.orthomcl_name = ?','OG3_10042','OG3_10032']
+    )
+    
+    $stderr.puts "Found #{toxo_fal_groups.length} groups containing proteins from #{species1} and #{species2}"
+    progress = ProgressBar.new('tfal', toxo_fal_groups.length, STDOUT)
+    
+    toxo_fal_groups.each do |tfgroup|
+      progress.inc
+      
+      orthomcl_locs = {}
+      species_orthomcls = {} #used like kingdom_locs in previous methods
+      
+      # collect the orthomcl_locs array for each species
+      arrays = [species1, species2].collect do |species_name|
+        # collect compartments for each of the toxos
+        genes = tfgroup.orthomcl_genes.code(Species::ORTHOMCL_CURRENT_LETTERS[species_name]).all
+        gene_locs = {}
+        # add all the locs for a given gene
+        genes.each do |gene|
+          locs = gene.coding_regions.collect{|c| c.coding_region_compartment_caches.reach.compartment.retract}.flatten.uniq #all compartments associated with the gene
+          unless locs.empty?
+            gene_locs[gene.orthomcl_name] = locs
+          end
+        end
+        #        $stderr.puts "Found #{genes.length} orthomcl genes in #{species_name} from #{tfgroup.orthomcl_name}, of those, #{gene_locs.length} had localisations"
+        
+        gene_locs.each do |gene, locs|
+          species_orthomcls[species_name] ||= []
+          species_orthomcls[species_name].push gene
+          orthomcl_locs[gene] = locs
+        end
+      end
+      
+      #      pp species_orthomcls
+      #      pp orthomcl_locs
+      classify_eukaryotic_conservation_of_single_orthomcl_group(species_orthomcls, orthomcl_locs, groups_to_counts)
+    end
+    progress.finish
+    
+    pp groups_to_counts
+  end
+  
+  # Run localisation_conservation_between_pairs_of_species for each pair of species
+  # that I care about
+  def exhaustive_localisation_conservation_between_pairs_of_species
+    [
+    Species::YEAST_NAME,
+    Species::MOUSE_NAME,
+    Species::HUMAN_NAME,
+    Species::ARABIDOPSIS_NAME,
+    Species::FALCIPARUM_NAME,
+    Species::TOXOPLASMA_GONDII_NAME,
+    ].each_lower_triangular_matrix do |s1, s2|
+      puts '=============================================================='
+      localisation_conservation_between_pairs_of_species(s1, s2)
+    end
+  end
+  
+  def localisation_pairs_as_matrix
+    master = {}
+    File.foreach("#{PHD_DIR}/apiloc/pairs/results.ruby").each do |line|
+      hash = eval "{#{line}}"
+      master = master.merge hash
+    end
+    
+    organisms = [
+    Species::YEAST_NAME,
+    Species::MOUSE_NAME,
+    Species::HUMAN_NAME,
+    Species::ARABIDOPSIS_NAME,
+    Species::FALCIPARUM_NAME,
+    Species::TOXOPLASMA_GONDII_NAME,    
+    ]
+    print "\t"
+    puts organisms.join("\t")
+    organisms.each do |o1|
+      print o1
+      organisms.each do |o2|
+        print "\t"
+        next if o1 == o2
+        result = master[[o1,o2].sort]
+        raise Exception, "Couldn't find #{[o1,o2].sort}" if result.nil?
+        print result['complete agreement'].to_f/result.values.sum
+      end
+      puts
+    end
+  end
+  
+  # If you take only localised falciparum proteins with localised yeast and mouse orthologues,
+  # what are the chances that they are conserved
+  def falciparum_predicted_by_yeast_mouse(predicting_species=[Species::YEAST_NAME, Species::MOUSE_NAME], 
+    test_species=Species::FALCIPARUM_NAME)
+    
+    answer = {}
+    
+    # Build up the query using the with_species named_scope,
+    # retrieving all groups that have members in each species
+    fal_groups = OrthomclGroup.with_species(Species::ORTHOMCL_CURRENT_LETTERS[test_species])
+    predicting_species.each do |sp|
+      fal_groups = fal_groups.send(:with_species, Species::ORTHOMCL_CURRENT_LETTERS[sp])
+    end
+    fal_groups = fal_groups.all(:select => 'distinct(orthomcl_groups.*)')#, :limit => 20)
+    
+    $stderr.puts "Found #{fal_groups.length} groups with #{predicting_species.join(', ')} and #{test_species} proteins"
+    progress = ProgressBar.new('predictionByTwo', fal_groups.length, STDOUT)
+    
+    fal_groups.each do |fal_group|
+      progress.inc
+      $stderr.puts
+      # get the localisations from each of the predicting species
+      predicting_array = predicting_species.collect do |species_name|
+        genes = fal_group.orthomcl_genes.code(Species::ORTHOMCL_CURRENT_LETTERS[species_name]).all
+        gene_locs = {}
+        # add all the locs for a given gene
+        genes.each do |gene|
+          locs = gene.coding_regions.collect{|c| c.coding_region_compartment_caches.reach.compartment.retract}.flatten.uniq #all compartments associated with the gene
+          unless locs.empty?
+            gene_locs[gene.orthomcl_name] = locs
+          end
+        end
+        gene_locs
+      end
+      
+      $stderr.puts "OGroup #{fal_group.orthomcl_name} gave #{predicting_array.inspect}"
+      
+      # only consider cases where there is localisations in each of the predicting species
+      next if predicting_array.select{|a| a.empty?}.length > 0
+      
+      # only consider genes where the localisations from the predicting species agree
+      flattened = predicting_array.inject{|a,b| a.merge(b)}.values
+      $stderr.puts "flattened: #{flattened.inspect}"
+      agreement = OntologyComparison.new.agreement_of_group(flattened)
+      next unless agreement == OntologyComparison::COMPLETE_AGREEMENT
+      $stderr.puts "They agree..."
+      
+      # Now compare the agreement between a random falciparum hit and the locs from the predicting
+      prediction = flattened.to_a[0]
+      $stderr.puts "Prediction: #{prediction}"
+      
+      all_fals = CodingRegion.falciparum.all(
+      :joins => [:coding_region_compartment_caches, {:orthomcl_genes => :orthomcl_groups}],
+      :conditions => ['orthomcl_groups.id = ?', fal_group.id] 
+      )
+      next if all_fals.empty?
+      fal = all_fals[rand(all_fals.length)]
+      fal_compartments = fal.cached_compartments
+      $stderr.puts "fal: #{fal.string_id} #{fal_compartments}"
+      
+      agreement = OntologyComparison.new.agreement_of_group([prediction, fal_compartments])
+      $stderr.puts "Final agreement #{agreement}"
+      answer[agreement] ||= 0
+      answer[agreement] += 1
+    end
+    progress.finish
+    pp answer
+  end
+  
+  # Like falciparum_predicted_by_yeast_mouse, except only consider those groups
+  # where there is a single falciparum and single yeast and single mouse protein
+  # is that most? 
+  def falciparum_predicted_by_yeast_mouse_one_to_one
+    
+  end
+  
+  def how_many_genes_are_localised_in_each_species
+    interests = [
+    Species::FALCIPARUM_NAME,
+    Species::TOXOPLASMA_GONDII,
+    Species::MOUSE_NAME,
+    Species::HUMAN_NAME,
+    Species::YEAST_NAME,
+    Species::ARABIDOPSIS_NAME
+    ]
+    
+    # How many genes?
+    interests.each do |interest|
+      count = OrthomclGene.count(
+      :joins => {:coding_regions => [:coding_region_compartment_caches, {:gene => {:scaffold => :species}}]},
+      :select => 'distinct(orthomcl_genes.id)',
+      :conditions => {:species => {:name => interest}}
+      )
+      puts "Found #{count} genes with localisation from #{interest}"
+    end
+    
+    # how many orthomcl groups?
+    interests.each do |interest|
+      count = OrthomclGroup.official.count(
+      :joins => {:orthomcl_genes => {:coding_regions => [:coding_region_compartment_caches, {:gene => {:scaffold => :species}}]}},
+      :conditions => ['orthomcl_genes.orthomcl_name like ? and species.name = ?', "#{Species::ORTHOMCL_CURRENT_LETTERS[interest]}|%", interest],
+      :select => 'distinct(orthomcl_groups.id)'
+      )
+      puts "Found #{count} OrthoMCL groups with localisation from #{interest}"
+    end
+  end
+  
+  # Predict the localisation of a protein by determining the amount 
+  def prediction_by_most_common_localisation(predicting_species=[Species::YEAST_NAME, Species::MOUSE_NAME], 
+    test_species=Species::FALCIPARUM_NAME)
+    
+    answer = {}
+    
+    # Build up the query using the with_species named_scope,
+    # retrieving all groups that have members in each species
+    fal_groups = OrthomclGroup.with_species(Species::ORTHOMCL_CURRENT_LETTERS[test_species])
+    predicting_species.each do |sp|
+      fal_groups = fal_groups.send(:with_species, Species::ORTHOMCL_CURRENT_LETTERS[sp])
+    end
+    fal_groups = fal_groups.all(:select => 'distinct(orthomcl_groups.*)')#, :limit => 20)
+    
+    $stderr.puts "Found #{fal_groups.length} groups with #{predicting_species.join(', ')} and #{test_species} proteins"
+    progress = ProgressBar.new('predictionByCommon', fal_groups.length, STDOUT)
+    
+    fal_groups.each do |fal_group|
+      progress.inc
+      
+      # Only include gene that have exactly 1 gene from that species, otherwise it is harder to
+      # work out what is going on.
+      all_tests = fal_group.orthomcl_genes.code(Species::ORTHOMCL_CURRENT_LETTERS[test_species]).all
+      if all_tests.length > 1
+        answer['Too many orthomcl genes found'] ||= 0
+        answer['Too many orthomcl genes found'] += 1
+        next
+      end
+      
+      # gather the actual coding region - discard if there is not exactly 1
+      codes = all_tests[0].coding_regions
+      unless codes.length == 1
+        answer["#{codes.length} coding regions for the 1 orthomcl gene"] ||= 0
+        answer["#{codes.length} coding regions for the 1 orthomcl gene"] += 1
+        next
+      end
+      code = codes[0]
+      
+      # Find the most common localisation in each species predicting
+      preds = [] # the prediction of the most common localisations
+      commons = predicting_species.collect do |s|
+        common = code.localisation_prediction_by_most_common_localisation(s)
+        
+        # Ignore when no loc is found or it is confusing
+        if common.nil?
+          answer["No localisation found when trying to find common"] ||= 0
+          answer["No localisation found when trying to find common"] += 1
+          next
+        end
+        
+        # add the commonest localisation to the prediction array
+        preds.push [common]
+      end
+      
+      # Don't predict unless all species are present
+      if preds.length == predicting_species.length
+        
+        # Only predict if the top 2 species are in agreement
+        if OntologyComparison.new.agreement_of_group(preds) == OntologyComparison::COMPLETE_AGREEMENT
+          final_locs = code.cached_compartments
+          
+          if final_locs.empty?
+            answer["No test species localisation"] ||= 0
+            answer["No test species localisation"] += 1
+          else
+            # Add the final localisation compartments
+            preds.push final_locs
+            acc = OntologyComparison.new.agreement_of_group(preds)
+            
+            answer[acc] ||= 0
+            answer[acc] += 1
+          end
+        else
+          answer["Predicting species don't agree"] ||= 0
+          answer["Predicting species don't agree"] += 1
+        end
+        
+      else
+        answer["Not enough localisation info in predicting groups"] ||= 0
+        answer["Not enough localisation info in predicting groups"] += 1
+      end
+    end
+    
+    progress.finish
+    pp answer
+  end
+  
+  def stuarts_basel_spreadsheet_yeast_setup
+    #    uniprot_to_database(Species::YEAST_NAME)
+    #    yeastgenome_ids_to_database
+    #    OrthomclGene.new.link_orthomcl_and_coding_regions(
+    #      "scer",
+    #      :accept_multiple_coding_regions => true
+    #    )
+    
+    # cache compartments
+    codes = CodingRegion.s(Species::YEAST_NAME).go_cc_usefully_termed.all
+    progress = ProgressBar.new('eukaryotes', codes.length)
+    codes.each do |code|
+      progress.inc
+      comps = code.compartments
+      comps.each do |comp|
+        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                        code.id, comp
+        )
+      end
+    end   
+    progress.finish
+  end
+  
+  def stuarts_basel_spreadsheet(accept_multiples = false)
+    species_of_interest = [
+    Species::ARABIDOPSIS_NAME,
+    Species::FALCIPARUM,
+    Species::TOXOPLASMA_GONDII,
+    Species::YEAST_NAME,
+    Species::MOUSE_NAME,
+    Species::HUMAN_NAME
+    ]
+    
+    $stderr.puts "Copying data to tempfile.."
+    # Copy the data out of the database to a csv file. Beware that there is duplicates in this file
+    tempfile = File.open('/tmp/eukaryotic_conservation','w')
+    #    Tempfile.open('eukaryotic_conservation') do |tempfile|
+    `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
+    OrthomclGene.find_by_sql "copy (select groupa.orthomcl_name, gene.orthomcl_name, cache.compartment from orthomcl_groups groupa inner join orthomcl_gene_orthomcl_group_orthomcl_runs ogogor on groupa.id=ogogor.orthomcl_group_id inner join orthomcl_genes gene on ogogor.orthomcl_gene_id=gene.id inner join orthomcl_gene_coding_regions ogc on ogc.orthomcl_gene_id=gene.id inner join coding_regions code on ogc.coding_region_id=code.id inner join coding_region_compartment_caches cache on code.id=cache.coding_region_id order by groupa.orthomcl_name) to '#{tempfile.path}'"
+    tempfile.close
+    
+    groups_genes = {}
+    genes_localisations = {}
+    
+    # Read groups, genes, and locs into memory
+    $stderr.puts "Reading into memory sql results.."
+    FasterCSV.foreach(tempfile.path, :col_sep => "\t") do |row|
+      #FasterCSV.foreach('/tmp/eukaryotic_conservation_test', :col_sep => "\t") do |row|
+      # name columns
+      raise unless row.length == 3
+      group = row[0]
+      gene = row[1]
+      compartment = row[2]
+      
+      groups_genes[group] ||= []
+      groups_genes[group].push gene
+      groups_genes[group].uniq!
+      
+      genes_localisations[gene] ||= []
+      genes_localisations[gene].push compartment
+      genes_localisations[gene].uniq!
+    end
+    
+    # Print headers
+    header = ['']
+    species_of_interest.each do |s|
+      header.push "#{s} ID 1"
+      header.push "#{s} loc 1"
+      header.push "#{s} ID 2"
+      header.push "#{s} loc 2"
+    end
+    puts header.join("\t")
+    
+    # Iterate through each OrthoMCL group, printing them out if they fit the criteria
+    $stderr.puts "Iterating through groups.."
+    groups_genes.each do |group, ogenes|
+      $stderr.puts "looking at group #{group}"
+      # associate genes with species
+      species_gene = {}
+      ogenes.each do |ogene|
+        sp = Species.four_letter_to_species_name(OrthomclGene.new.official_split(ogene)[0])
+        unless species_of_interest.include?(sp)
+          $stderr.puts "Ignoring info for #{sp}"
+          next
+        end
+        
+        species_gene[sp] ||= []
+        species_gene[sp].push ogene
+        species_gene[sp].uniq!
+      end
+      
+      # skip groups that are only localised in a single species
+      if species_gene.length == 1
+        $stderr.puts "Rejecting #{group} because it only has localised genes in 1 species of interest"
+        next
+      end
+      
+      # skip groups that have more than 2 localised genes in each group.
+      failed = false
+      species_gene.each do |species, genes|
+        if genes.length > 2
+          $stderr.puts "Rejecting #{group}, because there are >2 genes with localisation info in #{species}.."
+          failed = true
+        end
+      end
+      next if failed
+      
+      # procedure for making printing easier
+      generate_cell = lambda do |gene|
+        locs = genes_localisations[gene]
+        if locs.include?('cytoplasm') and locs.include?('nucleus')
+          locs.reject!{|l| l=='cytoplasm'}
+        end
+        
+        if locs.length == 1
+          [OrthomclGene.new.official_split(gene)[1], locs[0]]
+        elsif locs.length == 0
+          raise Exception, "Unexpected lack of loc information"
+        else
+          if accept_multiples
+            [OrthomclGene.new.official_split(gene)[1], locs.sort.join(', ')]
+          else
+            $stderr.puts "Returning nil for #{gene} because there is #{locs.length} localisations"
+            nil
+          end
+        end
+      end
+      
+      row = [group]
+      failed = false #fail if genes have >1 localisation
+      species_of_interest.each do |s|
+        $stderr.puts "What's in #{s}? #{species_gene[s].inspect}"
+        if species_gene[s].nil? or species_gene[s].length == 0
+          row.push ['','']
+          row.push ['','']
+        elsif species_gene[s].length == 1
+          r = generate_cell.call species_gene[s][0]
+          failed = true if r.nil?
+          row.push r
+          row.push ['','']
+        else
+          species_gene[s].each do |g|
+            r = generate_cell.call g
+            failed = true if r.nil? 
+            row.push r 
+          end
+        end
+      end
+      puts row.join("\t") unless failed
+    end
+  end
+  
+  # Generate the data for 
+  def publication_per_year_graphing
+    years = {}
+    fails = 0
+    Publication.all(:joins => {:expression_contexts => :localisation}).uniq.each do |p|
+      y = p.year
+      if y.nil?
+        fails += 1
+        $stderr.puts "Failed: #{p.inspect}"
+      else
+        years[y] ||= 0
+        years[y] += 1
+      end
+    end
+    
+    puts ['Year','Number of Publications'].join("\t")
+    years.sort.each do |a,b|
+      puts [a,b].join("\t")
+    end
+    $stderr.puts "Failed to year-ify #{fails} publications."
+  end
+  
+  def localisation_per_year_graphing
+    already_localised = []
+    years = {}
+    fails = 0
+    
+    # Get all the publications that have localisations in order
+    Publication.all(:joins => {:expression_contexts => :localisation}).uniq.sort {|p1,p2|
+      if p1.year.nil?
+        -1
+      elsif p2.year.nil?
+        1
+      else
+        p1.year <=> p2.year
+      end
+    }.each do |pub|
+      y = pub.year
+      if y.nil? #ignore publications with improperly parsed years
+        fails += 1
+        next
+      end
+      
+      ids = CodingRegion.all(:select => 'coding_regions.id',
+      :joins => {
+      :expression_contexts => [:localisation, :publication]
+      },
+      :conditions => {:publications => {:id => pub.id}}
+      )
+      
+      ids.each do |i|
+        unless already_localised.include?(i)
+          already_localised.push i
+          years[y] ||= 0
+          years[y] += 1
+        end
+      end
+    end
+    
+    puts ['Year','Number of New Protein Localisations'].join("\t")
+    years.sort.each do |a,b|
+      puts [a,b].join("\t")
+    end
+    
+    $stderr.puts "Failed to year-ify #{fails} publications."
+  end
 end

@@ -7,6 +7,7 @@ require 'expression_context_group'
 require 'reach'
 require 'localisation_spreadsheet'
 require 'ontology_comparison'
+require 'hydrophobicity'
 
 class CodingRegion < ActiveRecord::Base
   
@@ -20,7 +21,6 @@ class CodingRegion < ActiveRecord::Base
   has_many :literature_defined_coding_region_alternate_string_ids, :dependent => :destroy
   has_many :case_sensitive_literature_defined_coding_region_alternate_string_ids, :dependent => :destroy
   has_many :coding_region_strain_orthologues, :dependent => :destroy
-  has_many :derisi20063d7_logmeans
   has_many :plasmodb_gene_list_entries
   has_many :plasmodb_gene_lists, :through => :plasmodb_gene_list_entries
   has_many :localisations, :through => :coding_region_localisations
@@ -38,15 +38,17 @@ class CodingRegion < ActiveRecord::Base
   has_many :microarray_measurements, :dependent => :destroy
   has_many :microarray_timepoints, :through => :microarray_measurements
   has_many :expression_contexts, :dependent => :destroy
+  has_many :second_class_citizen_expression_contexts, :dependent => :destroy
   has_many :localisation_annotations, :dependent => :destroy
   has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation
   has_many :expressed_developmental_stages, :through => :expression_contexts, :source => :developmental_stage
+  has_many :expressed_second_class_citizen_localisations, :through => :second_class_citizen_expression_contexts, :source => :localisation
   has_many :integer_coding_region_measurements, :dependent => :destroy
   has_many :proteomic_experiment_results, :dependent => :destroy
   has_many :proteomic_experiment_peptides, :dependent => :destroy
   has_one :tachyzoite_est_count, :dependent => :destroy
   has_one :non_tachyzoite_est_count, :dependent => :destroy
-
+  
   # Conserved domains
   has_many :conserved_domains, :dependent => :destroy
   has_many :pfams
@@ -68,12 +70,12 @@ class CodingRegion < ActiveRecord::Base
   has_one :memsat_average_transmembrane_domain_length, :dependent => :destroy
   has_one :memsat_transmembrane_domain_count, :dependent => :destroy
   has_one :memsat_max_transmembrane_domain_length, :dependent => :destroy
-
+  
   has_many :transmembrane_domains
   has_many :membrain_transmembrane_domains
-
+  
   has_many :spoctopus_transmembrane_domains
-
+  
   has_one :florian_secreted_transmembrane_domain
   has_one :florian_er_transmembrane_domain
   has_one :florian_ta_transmembrane_domain
@@ -83,7 +85,7 @@ class CodingRegion < ActiveRecord::Base
   has_one :florian_mitochondria_transmembrane_domain
   has_one :florian_plasma_membrane_and_alike_transmembrane_domain
   has_one :florian_intracellular_transmembrane_domain
-
+  
   # Measurements
   has_one :nucleo_nls
   has_one :nucleo_non_nls
@@ -112,8 +114,8 @@ class CodingRegion < ActiveRecord::Base
   has_one :mu_non_synonymous_snp
   has_one :mu_pi
   has_one :mu_theta
-
-
+  
+  
   # Worm project
   # elegans
   has_many :coding_region_phenotype_informations, :dependent => :destroy
@@ -224,7 +226,7 @@ class CodingRegion < ActiveRecord::Base
       "species.name = ? and scaffolds.name not in #{
       %w(apidb|PFC10_API_IRAB apidb|M76611).to_sql_in_string
 }",
-      Species.falciparum_name]
+    Species.falciparum_name]
   }
   named_scope :list, lambda {|gene_list_name|
     {
@@ -249,9 +251,9 @@ class CodingRegion < ActiveRecord::Base
   POSITIVE_ORIENTATION = '+'
   NEGATIVE_ORIENTATION = '-'
   UNKNOWN_ORIENTATION = 'U'
-
+  
   NO_MATCHING_GENE_MODEL = "A common gene for all genes not assigned to a gene model"
-
+  
   UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME =
     "A common gene for all genes not assigned to a gene model"
   
@@ -272,11 +274,11 @@ class CodingRegion < ActiveRecord::Base
       butting = Cd.find(:first, {:order => 'Cds.stop desc', 
           :include => [:coding_region => {:gene => :scaffold}],
           :conditions => "stop < #{first} and genes.scaffold_id=#{scaffold_id}"})
-
+      
       if !butting
         return nil
       end
-     
+      
       return first_base_scaffold_wise - butting.stop
     elsif negative_orientation?
       last = last_base_scaffold_wise
@@ -287,13 +289,13 @@ class CodingRegion < ActiveRecord::Base
       if !butting
         return nil
       end
-
+      
       return butting.start - last
     end
     
     raise Exception, "No proper orientation found so couldn't calculate upstream distance"
   end
-
+  
   # Find the coding region immediately upstream of this gene on the genome, taking
   # into account the orientation of the gene on the genome
   # Return that coding region, or nil if none exists
@@ -303,7 +305,7 @@ class CodingRegion < ActiveRecord::Base
     scaffold_id = gene.scaffold_id
     if positive_orientation?
       first = first_base_scaffold_wise
-
+      
       # find the nearest upstream cds of this coding region
       # that is on the same scaffold
       butting = Cd.first(:order => 'Cds.stop desc',
@@ -317,11 +319,11 @@ class CodingRegion < ActiveRecord::Base
     else
       raise Exception, "Cannot find upstream coding region since the orientation is not positive or negative: #{orientation}"
     end
-
+    
     return nil if butting.nil?
     return butting.coding_region
   end
-
+  
   def next_coding_region
     # for positive orientation genes, start<stop. Find the next positively
     # oriented gene with a higher start
@@ -334,7 +336,7 @@ class CodingRegion < ActiveRecord::Base
     
     gene.scaffold.downstreamest_coding_region(cutoff)
   end
-
+  
   
   def positive_orientation?
     return orientation === POSITIVE_ORIENTATION
@@ -343,8 +345,8 @@ class CodingRegion < ActiveRecord::Base
   def negative_orientation?
     return orientation === NEGATIVE_ORIENTATION
   end
-
-
+  
+  
   def first_base_scaffold_wise
     cs = cds_scaffold_wise
     if cs
@@ -403,33 +405,65 @@ class CodingRegion < ActiveRecord::Base
       end
     end
   end
-
+  
+  # Return the coding region associated with the string id. The string_id
+  # can be either a real id, or an alternate id.
+  def self.find_all_by_partial_name_or_alternate(string_id)
+    like = "%#{string_id}%"
+    codes = CodingRegion.all(
+    :conditions => ['string_id like ?', like]
+    )
+    annotations = CodingRegion.all(
+    :joins => :annotation,
+    :conditions => ['annotation like ?', like]
+    )
+    alts = CodingRegion.all(
+    :joins => :coding_region_alternate_string_ids,
+    :conditions => ['coding_region_alternate_string_ids.name like ?', like]
+    )
+    [codes, annotations, alts].flatten.uniq
+  end
+  
   def self.find_all_by_name_or_alternate_maybe_with_species_prefix(string_id)
     sp = Species.find_species_from_prefix(string_id)
     if sp
       return find_all_by_name_or_alternate_and_species(
-        sp.remove_species_prefix(string_id), sp.name
+                                                       sp.remove_species_prefix(string_id), sp.name
       )
     else
       return find_all_by_name_or_alternate(string_id)
     end
   end
-
+  
+  def self.find_all_by_partial_name_or_alternate_maybe_with_species_prefix(string_id)
+    sp = Species.find_species_from_prefix(string_id)
+    if sp
+      return find_all_by_partial_name_or_alternate_and_species(sp.remove_species_prefix(string_id), sp.name)
+    else
+      return find_all_by_partial_name_or_alternate(string_id)
+    end
+  end
+  
   # Given a gene name that may or may not have a prefix and a species
   # common name, return all genes that fit the criteria
   def self.find_all_by_name_or_alternate_and_species_maybe_with_species_prefix(string_id, species_common_name)
-    sp = Species.find_species_from_prefix(string_id)
-    sp2 = Species.find_by_name(species_common_name)
-    if sp
-      # if there is a prefix and it isn't the same as the common name, something has gone wrong.
+    unless Species.agreeable_name_and_two_letter_prefix(species_common_name, string_id)
       raise Exception,
-        "Prefix of gene name does not fit species common name: #{string_id}, #{species_common_name}" unless sp2 == sp or sp.nil?
-      return find_all_by_name_or_alternate_and_species(
-        sp.remove_species_prefix(string_id), species_common_name
-      )
-    else
-      return find_all_by_name_or_alternate_and_species(string_id, species_common_name)
+        "Prefix of gene name does not fit species common name: #{string_id}, #{species_common_name}"
     end
+    sp2 = Species.find_by_name(species_common_name)
+    return find_all_by_name_or_alternate_and_species(string_id, species_common_name)
+  end
+  
+  # Given a gene name that may or may not have a prefix and a species
+  # common name, return all genes that fit the criteria
+  def self.find_all_by_partial_name_or_alternate_and_species_maybe_with_species_prefix(string_id, species_common_name)
+    unless Species.agreeable_name_and_two_letter_prefix?(species_common_name, string_id)
+      raise Exception,
+        "Prefix of gene name does not fit species common name: #{string_id}, #{species_common_name}"
+    end
+    sp2 = Species.find_by_name(species_common_name)
+    return find_all_by_partial_name_or_alternate_and_species(string_id, species_common_name)
   end
   
   # Return the coding region associated with the string id. The string_id
@@ -447,25 +481,25 @@ class CodingRegion < ActiveRecord::Base
       end
     end
   end
-
+  
   def self.find_all_by_name_or_alternate_or_strain_orthologue_and_species(string_id, species_common_name)
     simple = find_all_by_name_or_alternate_and_species(string_id, species_common_name)
     return simple unless simple.empty?
-
+    
     # I reckon this will be faster than a join all the way through because
     # the there is unlikely to be many duplicate strain orthologue names
     # from different species.
     return CodingRegionStrainOrthologue.find_all_by_name(string_id).select{|o|
       o.coding_region.species.name == species_common_name
-    }
+    }.collect{|s| s.coding_region}
   end
   
   def self.find_by_name_or_alternate_and_organism(string_id, organism_common_name)
     simple = CodingRegion.find(:first,
       :include => {:gene => {:scaffold => :species}},
       :conditions => ["species.name=? and coding_regions.string_id=?", 
-        organism_common_name, string_id
-      ]
+    organism_common_name, string_id
+    ]
     )
     if simple
       return simple
@@ -473,8 +507,8 @@ class CodingRegion < ActiveRecord::Base
       alt = CodingRegionAlternateStringId.find(:first,
         :include => {:coding_region => {:gene => {:scaffold => :species}}},
         :conditions => ["species.name= ? and coding_region_alternate_string_ids.name= ?", 
-          organism_common_name, string_id
-        ]
+      organism_common_name, string_id
+      ]
       )
       if alt
         return alt.coding_region
@@ -484,12 +518,29 @@ class CodingRegion < ActiveRecord::Base
     end    
   end
   
+  def self.find_all_by_partial_name_or_alternate_and_species(string_id, organism_common_name)
+    simple = CodingRegion.s(organism_common_name).all(
+      :conditions => ["coding_regions.string_id like ?", 
+    "%#{string_id}%"
+    ]
+    ).uniq
+    return simple unless simple.empty?
+    
+    alts = CodingRegionAlternateStringId.all(
+        :include => {:coding_region => {:gene => {:scaffold => :species}}},
+        :conditions => ["species.name= ? and coding_region_alternate_string_ids.name like ?", 
+    organism_common_name, "%#{string_id}%"
+    ]
+    ).uniq
+    return alts.pick(:coding_region).uniq
+  end
+  
   def find_by_name_or_alternate_and_orthomcl_three_letter(name, orthomcl_three_letter)
     simple = CodingRegion.find(:first,
       :joins => {:gene => {:scaffold => :species}},
       :conditions => ["species.orthomcl_three_letter=? and coding_regions.string_id=?", 
-        orthomcl_three_letter, name
-      ]
+    orthomcl_three_letter, name
+    ]
     )
     if simple
       return simple
@@ -497,8 +548,8 @@ class CodingRegion < ActiveRecord::Base
       alt = CodingRegionAlternateStringId.find(:first,
         :joins => {:coding_region => {:gene => {:scaffold => :species}}},
         :conditions => ["species.orthomcl_three_letter=? and coding_regions.string_id=?", 
-          orthomcl_three_letter, name
-        ]
+      orthomcl_three_letter, name
+      ]
       )
       if alt
         return alt.coding_region
@@ -545,35 +596,35 @@ class CodingRegion < ActiveRecord::Base
     to_print = []
     
     to_print.push [
-      string_id,
-      annotation ? "\"#{annotation.annotation}\"" : nil #no annotation if I don't have any
+    string_id,
+    annotation ? "\"#{annotation.annotation}\"" : nil #no annotation if I don't have any
     ]
-      
-      
+    
+    
     # print tmhmm2 stuff
     minus_sp = sequence_without_signal_peptide
     tmhmm_result = TmHmmWrapper.new.calculate(minus_sp)
     if tmhmm_result.transmembrane_domains.length > 0
       to_print.push [
-        tmhmm_result.minimum_length,
-        tmhmm_result.average_length,
-        tmhmm_result.maximum_length,
-        tmhmm_result.transmembrane_domains.length
+      tmhmm_result.minimum_length,
+      tmhmm_result.average_length,
+      tmhmm_result.maximum_length,
+      tmhmm_result.transmembrane_domains.length
       ]
     else
-      (1..4).each do to_print.push '' end
+     (1..4).each do to_print.push '' end
     end
-      
+    
     #print memsat stuff
     if memsat_min_transmembrane_domain_length
       to_print.push [
-        memsat_min_transmembrane_domain_length.measurement,
-        memsat_average_transmembrane_domain_length.measurement,
-        memsat_max_transmembrane_domain_length.measurement,
-        memsat_transmembrane_domain_count.measurement
+      memsat_min_transmembrane_domain_length.measurement,
+      memsat_average_transmembrane_domain_length.measurement,
+      memsat_max_transmembrane_domain_length.measurement,
+      memsat_transmembrane_domain_count.measurement
       ]
     else
-      (1..4).each do to_print.push '' end
+     (1..4).each do to_print.push '' end
     end
     
     return to_print
@@ -583,23 +634,23 @@ class CodingRegion < ActiveRecord::Base
     minus_sp = sequence_without_signal_peptide
     TmHmmWrapper.new.calculate(minus_sp)
   end
-
+  
   def possibly_sensiblize_name(identifier, species_object)
     return 'No assigned gene identifier' if identifier == UNANNOTATED_CODING_REGIONS_DUMMY_GENE_NAME
     return nil if identifier.nil?
-
+    
     two_letter = species_object.two_letter_prefix
     if two_letter.nil?
       return identifier
     else
       if identifier.match(/^[\d\-]*$/) or
-          identifier.match(/^s[\d\-]*$/) #special case for Pfs25 and associates
+        identifier.match(/^s[\d\-]*$/) #special case for Pfs25 and associates
         return "#{two_letter}#{identifier}"
       end
       return identifier
     end
   end
-
+  
   # Return a good name for this gene. Often equivalent to the string_id column,
   # but fixed to something more sensible on other occasions
   def name
@@ -609,13 +660,13 @@ class CodingRegion < ActiveRecord::Base
   # return all the names (string_id and alternate string_ids) of this record
   def names
     [
-      name,
-      coding_region_alternate_string_ids.collect{|s|
-        possibly_sensiblize_name(s.name, species)
-      }
+    name,
+    coding_region_alternate_string_ids.collect{|s|
+      possibly_sensiblize_name(s.name, species)
+    }
     ].flatten
   end
-
+  
   def literature_defined_names
     case_sensitive_literature_defined_coding_region_alternate_string_ids.collect do |alt|
       possibly_sensiblize_name(alt.name, species)
@@ -701,7 +752,7 @@ class CodingRegion < ActiveRecord::Base
       return nil
     elsif get_species.name == Species.fly_name
       #if gene has an RNAi lethality entry check if it is lethal, note: a coding region can have multiple RNAi lethality values
-   
+      
       obsd = drosophila_rnai_lethalities.all
       raise Exception, "Unexpected lack of phenotype information for #{inspect}" if obsd.empty?
       obsd.each do |ob1|
@@ -769,8 +820,25 @@ class CodingRegion < ActiveRecord::Base
   end
   
   # Print a coding region out like it is in my other localisation spreadsheet
-  def localisation_english
-    ExpressionContextGroup.new(expression_contexts).english
+  def localisation_english(options = {})
+    options = {
+    :by_literature => false
+    }.merge(options)
+    
+    if options[:by_literature]
+      ExpressionContextGroup.new(second_class_citizen_expression_contexts).english
+    else
+      ExpressionContextGroup.new(expression_contexts).english
+    end
+  end
+  
+  def inclusive_localisation_english
+    experimentals = ExpressionContextGroup.new(expression_contexts).english
+    seconds = ExpressionContextGroup.new(second_class_citizen_expression_contexts).english
+    result = ""
+    result += "Experimental: '#{experimentals}'. " if experimentals.length > 0
+    result += "Bioinformatic: '#{seconds}'" if seconds.length > 0
+    return result
   end
   
   # return true if there is only 1 top level localisation associated with this coding region
@@ -780,22 +848,29 @@ class CodingRegion < ActiveRecord::Base
   
   def tops
     TopLevelLocalisation.all(
-      :joins => {:malaria_localisations => :expression_contexts},
-      :conditions => ['expression_contexts.coding_region_id = ?', id]
+      :joins => {:malaria_localisations => {:expression_contexts => :coding_region}},
+      :conditions => {:coding_regions => {:id => id}}
     )
   end
-
+  
   def topsa
     TopLevelLocalisation.all(
-      :joins => {:apiloc_localisations => :expression_contexts},
-      :conditions => ['expression_contexts.coding_region_id = ?', id]
+      :joins => {:apiloc_localisations => {:expression_contexts => :coding_region}},
+      :conditions => {:coding_regions => {:id => id}}
     )
   end
-
+  
+  def literature_based_top_level_localisations
+    TopLevelLocalisation.all(
+      :joins => {:apiloc_localisations => {:second_class_citizen_expression_contexts => :coding_region}},
+      :conditions => {:coding_regions => {:id => id}}
+    )
+  end
+  
   def topsap
     TopLevelLocalisation.all(
-      :joins => {:apiloc_localisations => :expression_contexts},
-      :conditions => ['expression_contexts.coding_region_id = ?', id]
+      :joins => {:apiloc_localisations => {:expression_contexts => :coding_region}},
+      :conditions => {:coding_regions => {:id => id}}
     ).uniq.reject{|t| t.negative?}
   end
   
@@ -815,7 +890,7 @@ class CodingRegion < ActiveRecord::Base
       return genes[0]
     end
   end
-
+  
   # like single_orthomcl, except return nil if no orthomcl gene are found.
   # raise if more than one are found
   def single_orthomcl!(run_name = OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME, options = {})
@@ -833,11 +908,11 @@ class CodingRegion < ActiveRecord::Base
   # annotation of the species with babesia orthologs
   def babesia_ortholog_anntoations
     results = [
-      string_id,
-      nice_names.join(', '),
-      annotation.annotation,
-      expressed_localisations.known.pick(:name).uniq.join(', '),
-      expression_contexts.all.reach.publication.definition.uniq.join(', ')
+    string_id,
+    nice_names.join(', '),
+    annotation.annotation,
+    expressed_localisations.known.pick(:name).uniq.join(', '),
+    expression_contexts.all.reach.publication.definition.uniq.join(', ')
     ]
     babesias = []
     begin
@@ -845,12 +920,12 @@ class CodingRegion < ActiveRecord::Base
       babesias = group.orthomcl_genes.all(
         :conditions => ['orthomcl_name like ?', 'BB%']
       )
-          
+      
       falciparums = CodingRegion.falciparum.all(
         :joins => :orthomcl_genes,
         :conditions => {:orthomcl_genes => {:orthomcl_group_id => group.id}}
       )
-
+      
       if !babesias.empty?
         results.push babesias.pick(:orthomcl_name).join(', ')
         results.push babesias.collect{|b| b.single_code.annotation.annotation}.join(' || ')
@@ -888,7 +963,7 @@ class CodingRegion < ActiveRecord::Base
       end
     end
   end
-
+  
   # Retrieve but not calculate the winning WoLF_PSORT localisation for this coding
   # region, given the sequence is already associated with this coding region
   def wolf_psort_localisation!(psort_organism_type)
@@ -926,7 +1001,7 @@ class CodingRegion < ActiveRecord::Base
       return preds[0].localisation
     else # not cached, run from scratch
       return nil
-     
+      
     end
   end
   
@@ -944,7 +1019,7 @@ class CodingRegion < ActiveRecord::Base
       result.score_hash.each do |loc, score|
         w = WolfPsortPrediction.find_or_create_by_coding_region_id_and_organism_type_and_localisation_and_score(id, organism_type, loc, score)
         self.wolf_psort_predictions << w
-      
+        
       end  
     end
     
@@ -972,12 +1047,12 @@ class CodingRegion < ActiveRecord::Base
   def wormnet_full_total_linkage_scores
     CodingRegionNetworkEdge.coding_region_id(id).wormnet.all.reach.strength.sum
   end
- 
-
+  
+  
   def wormnet_full_number_interactions
     CodingRegionNetworkEdge.coding_region_id(id).wormnet.count
   end
-
+  
   # determine whether this coding region is classified as an enzyme
   # according to the associated GO terms.
   # WARNING: This method is not thread-safe due
@@ -991,7 +1066,7 @@ class CodingRegion < ActiveRecord::Base
   def is_gpcr?(safe=false, check_for_synonym=true)
     go_term?(GoTerm::GPCR_GO_TERM, safe, check_for_synonym)
   end
-
+  
   def go_term?(go_identifier, safe=false, check_for_synonym=true)
     @@go_object ||= Bio::Go.new
     @@go_subsumers ||= {}
@@ -1004,7 +1079,7 @@ class CodingRegion < ActiveRecord::Base
       raise e unless safe
       return false
     end
-   
+    
     go_terms.all.reach.go_identifier.each do |go_id|
       begin
         if subsume_tester.subsume?(go_id, check_for_synonym)
@@ -1022,11 +1097,11 @@ class CodingRegion < ActiveRecord::Base
   def aaseq
     amino_acid_sequence ? amino_acid_sequence.sequence : nil
   end
-
+  
   def naseq
     transcript_sequence ? transcript_sequence.sequence : nil
   end
-
+  
   def cdsseq
     cds_sequence ? cds_sequence.sequence : nil
   end
@@ -1086,7 +1161,7 @@ class CodingRegion < ActiveRecord::Base
   def signalp_however
     return nil if aaseq.nil?
     return signal_p_cache if signal_p_cache #returned cached if possible
-
+    
     # otherwise just calculate the bastard
     logger.debug "Running SignalP on #{string_id}"
     result = SignalSequence::SignalPWrapper.new.calculate(aaseq)
@@ -1104,7 +1179,7 @@ class CodingRegion < ActiveRecord::Base
   def segmasker_low_complexity_percentage_however
     return nil if aaseq.nil?
     return segmasker_low_complexity_percentage.value if segmasker_low_complexity_percentage #returned cached if possible
-
+    
     # otherwise just calculate the bastard
     logger.debug "Running Segmasker on #{string_id}"
     result = Bio::SegmaskerWrapper.new.calculate(aaseq)
@@ -1112,14 +1187,14 @@ class CodingRegion < ActiveRecord::Base
     self.segmasker_low_complexity_percentage = res
     return res.value
   end
-
+  
   def segmasker_low_complexity_median
     return nil if aaseq.nil?
     logger.debug "Running Segmasker on #{string_id}"
     result = Bio::SegmaskerWrapper.new.calculate(aaseq)
     return result.median_masked_residue
   end
-
+  
   def segmasker
     Bio::SegmaskerWrapper.new.calculate(aaseq) unless aaseq.nil?
   end
@@ -1131,7 +1206,7 @@ class CodingRegion < ActiveRecord::Base
   def plasmo_a_p
     amino_acid_sequence.plasmo_a_p
   end
-
+  
   def plasmit?
     plasmit_result.nil? ? nil : plasmit_result.predicted?
   end
@@ -1142,7 +1217,7 @@ class CodingRegion < ActiveRecord::Base
   def to_param
     "#{string_id}"
   end
-
+  
   # Return an array of probes
   def winzeler_tiling_array_probes(nucleotide_sequence = nucleotide_sequence.sequence)
     hits = []
@@ -1164,7 +1239,7 @@ class CodingRegion < ActiveRecord::Base
     return hits
   end
   
-
+  
   # Return an array of interaction partners in the given network
   def interaction_partners(network_name)
     CodingRegionNetworkEdge.network_name(network_name).coding_region_id(id).all.collect do |edge|
@@ -1177,7 +1252,7 @@ class CodingRegion < ActiveRecord::Base
       end
     end
   end
-
+  
   # return a transmembrane domain representation of this coding region of a given
   # type, i.e. which predictor was used
   def to_transmembrane_domain_protein(transmembrane_domain_type)
@@ -1188,17 +1263,17 @@ class CodingRegion < ActiveRecord::Base
     if tmds.kind_of?(Array)
       tmds.each do |tmd|
         o.push Transmembrane::OrientedTransmembraneDomain.new(
-          tmd.start, tmd.stop, tmd.orientation
+                                                              tmd.start, tmd.stop, tmd.orientation
         )
       end
     else
       o.push Transmembrane::OrientedTransmembraneDomain.new(
-        tmds.start, tmds.stop, tmds.orientation
+                                                            tmds.start, tmds.stop, tmds.orientation
       )
     end
     return o
   end
-
+  
   def florian_says
     taken = false
     lists = {
@@ -1216,46 +1291,16 @@ class CodingRegion < ActiveRecord::Base
     end
     taken
   end
-
+  
   # Return an Array of indexes for the hydrophobicity of this protein,
   # according to the Kyle-Doolittle scheme:
   # http://en.wikipedia.org/wiki/Hydropathy_index
   # All other amino acids are given a 0
   def hydrophobicity_profile
     return nil if aaseq.nil?
-    hydrophobicities = {
-      'A' => 1.8,
-      'R' => -4.5,
-      'N' => -3.5,
-      'D' => -3.5,
-      'C' => 2.5,
-      'Q' => -3.5,
-      'E' => -3.5,
-      'G' => -0.4,
-      'H' => -3.2,
-      'I' => 4.5,
-      'L' => 3.8,
-      'K' => -3.9,
-      'M' => 1.9,
-      'F' => 2.8,
-      'P' => -1.6,
-      'S' => -0.8,
-      'T' => -0.7,
-      'W' => -0.9,
-      'Y' => -1.3,
-      'V' => 4.2
-    }
-    acmi = []
-    aaseq.each_char do |amino|
-      if hydrophobicities[amino]
-        acmi.push hydrophobicities[amino]
-      else
-        acmi.push 0.0
-      end
-    end
-    acmi
+    Hydrophobicity.new.hydrophobicity_profile(aaseq)
   end
-
+  
   # Return an Array of 1s and 0s the length of the transcript.
   # 1 means A or T, 0 means G or C
   def at_profile
@@ -1270,7 +1315,7 @@ class CodingRegion < ActiveRecord::Base
     end
     acmi
   end
-
+  
   # Return an Array of 1s and 0s the length of the transcript.
   # 1 means A or T, 0 means G or C
   def cds_at_profile
@@ -1285,24 +1330,34 @@ class CodingRegion < ActiveRecord::Base
     end
     acmi
   end
-
+  
+  def number_of_hydrophilic_residues(cutoff=0.0)
+    count = 0
+    profile = hydrophobicity_profile
+    return nil if profile.nil? or profile.length == 0
+    profile.each do |h|
+      count += 1 if h < cutoff
+    end
+    return count
+  end
+  
   # return an array of 1s and 0s corresponding to the amino acids, where
   # 1 indicates that amino acid is covered by at least one proteomics fragment,
   # and a 0 indicates that it is not.
   def proteomics_profile
     return nil if aaseq.nil? #let us be sensible here
     coverages = [0]*aaseq.length # initialize to the correct size
-
+    
     proteomic_experiment_peptides.each do |pep|
       if matches = aaseq.match(pep.regex)
-        (matches.begin(1)..(matches.end(1)-1)).each do |position|
+       (matches.begin(1)..(matches.end(1)-1)).each do |position|
           coverages[position] = 1 #don't add, because one or more matches is the same thing to me.
         end
       end
     end
     return coverages
   end
-
+  
   # Is this a member of a multigene family that would dominate proteome
   # wide scans? e.g. var genes or PfEMP1 genes
   def cruft?(species_name = nil)
@@ -1317,62 +1372,62 @@ class CodingRegion < ActiveRecord::Base
       return !(annotation.annotation.gsub('[^A-Z ]','').match(/ bir /i).nil?)
     end
   end
-
+  
   def calculate_official_orthomcl_genes
     four = species.orthomcl_three_letter
     raise Exception, "Couldn't find orthomcl species code for #{string_id}, #{id}" if four.nil? or four == ''
-
+    
     OrthomclGene.find_all_by_orthomcl_name("#{four}|#{string_id}")
   end
-
+  
   def calculate_official_orthomcl_gene!
     calculate_official_orthomcl_genes[0]
   end
-
+  
   def gene_model_inconsistent?
     !expression_contexts.reach.localisation_annotation.select{|a|
       a.gene_mapping_comments and
-        a.gene_mapping_comments.match(/gene model inconsistent/)
+      a.gene_mapping_comments.match(/gene model inconsistent/)
     }.empty?
   end
-
+  
   # return the experiments if is 2 or more peptides in any of the
   # P. falciparum lifecycle proteomics experiments. You can change the
   # experiments or miin number of peptides if you'd like
   def proteomics(
-      proteomic_experiment_names = [
-        ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME,
-        ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME,
-        ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_SPOROZOITE_NAME,
-        ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME,
-      ],
-      min_peptides = 2)
+                 proteomic_experiment_names = [
+                 ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME,
+    ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME,
+    ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_SPOROZOITE_NAME,
+    ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME,
+    ],
+    min_peptides = 2)
     proteomic_experiment_names ||= [
-      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME,
-      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME,
-      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_SPOROZOITE_NAME,
-      ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME,
+    ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME,
+    ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_MEROZOITE_NAME,
+    ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_SPOROZOITE_NAME,
+    ProteomicExperiment::FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME,
     ]
-      
+    
     ProteomicExperiment.all(
       :joins => :proteomic_experiment_peptides,
       :conditions => [
         "proteomic_experiments.name in #{proteomic_experiment_names.to_sql_in_string} and coding_region_id = ?",
-        id
-      ]
+    id
+    ]
     ).select do |experiment|
       ProteomicExperimentPeptide.count(
         :conditions => [
           'coding_region_id = ? and proteomic_experiment_id = ?',
-          id, experiment.id
-        ]
+      id, experiment.id
+      ]
       ) >= min_peptides
     end
   end
-
+  
   def self.find_or_create_dummy(string_id, species_name)
     CodingRegion.find_or_create_by_gene_id_and_string_id(
-      Gene.find_or_create_dummy(species_name).id, string_id
+                                                         Gene.find_or_create_dummy(species_name).id, string_id
     )
   end
 end

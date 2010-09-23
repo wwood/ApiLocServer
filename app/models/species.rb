@@ -37,6 +37,8 @@ class Species < ActiveRecord::Base
   PLANKTON_NAME = 'Ostreococcus tauri'
   MOSS_NAME = 'Physcomitrella patens'
   CASTOR_BEAN_NAME = 'Ricinus communis'
+  POMBE_NAME = 'Schizosaccharomyces pombe'
+  RAT_NAME = 'Rattus norvegicus'
   
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'
@@ -115,6 +117,8 @@ class Species < ActiveRecord::Base
     ARABIDOPSIS_NAME => 'atha',
     HUMAN_NAME => 'hsap',
   }
+  
+  ORTHOMCL_CURRENT_LETTERS = ORTHOMCL_FOUR_LETTERS
   
   SPECIES_PREFIXES = {
     FALCIPARUM_NAME => 'Pf',
@@ -337,5 +341,25 @@ class Species < ActiveRecord::Base
       raise Exception, "No kingdom assigned to species '#{name}', is it entered in the THREE_WAY_TAXONOMY_DEFINITIONS hash?"
     end
     king
+  end
+  
+  def self.four_letter_to_species_name(abbreviation)
+    ORTHOMCL_FOUR_LETTERS.each do |name, four|
+      return name if abbreviation==four
+    end
+    raise Exception, "Four letter OrthoMCL letter not recorded: `#{abbreviation}'"
+  end
+  
+  # Is the two letter prefix of a gene such as Tg in TgSPP the same
+  # as the species name given. Returns true if yes or there is
+  # no matching coding_region_string_id
+  def self.agreeable_name_and_two_letter_prefix?(species_name, coding_region_string_id)
+    sp = Species.find_species_from_prefix(coding_region_string_id)
+    sp2 = Species.find_by_name(species_name)
+    if sp.nil? or sp == sp2
+      return true
+    else
+      return false
+    end
   end
 end

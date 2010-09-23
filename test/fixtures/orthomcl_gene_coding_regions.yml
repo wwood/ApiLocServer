@@ -14,3 +14,7 @@ good:
 unofficial:
   coding_region_id: 3
   orthomcl_gene_id: 7
+hap:
+  coding_region_id: 20
+  orthomcl_gene_id: 8
+

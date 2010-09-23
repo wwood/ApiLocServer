@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100413042739) do
+ActiveRecord::Schema.define(:version => 20100531114915) do
 
   create_table "annotations", :force => true do |t|
     t.integer  "coding_region_id"
@@ -348,6 +348,20 @@ ActiveRecord::Schema.define(:version => 20100413042739) do
 
   add_index "drosophila_rnai_lethalities", ["lethality"], :name => "index_drosophila_rnai_lethalities_on_lethality", :unique => true
 
+  create_table "evidence_coded_expression_contexts", :force => true do |t|
+    t.integer  "coding_region_id",                                            :null => false
+    t.integer  "publication_id"
+    t.integer  "localisation_id"
+    t.integer  "developmental_stage_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "localisation_modifier_id"
+    t.integer  "localisation_annotation_id",                                  :null => false
+    t.string   "type",                       :default => "ExpressionContext", :null => false
+  end
+
+  add_index "evidence_coded_expression_contexts", ["coding_region_id"], :name => "index_expression_contexts_on_coding_region_id"
+
   create_table "export_preds", :force => true do |t|
     t.integer  "coding_region_id", :null => false
     t.boolean  "predicted"
@@ -355,19 +369,6 @@ ActiveRecord::Schema.define(:version => 20100413042739) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
-
-  create_table "expression_contexts", :force => true do |t|
-    t.integer  "coding_region_id",           :null => false
-    t.integer  "publication_id"
-    t.integer  "localisation_id"
-    t.integer  "developmental_stage_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.integer  "localisation_modifier_id"
-    t.integer  "localisation_annotation_id", :null => false
-  end
-
-  add_index "expression_contexts", ["coding_region_id"], :name => "index_expression_contexts_on_coding_region_id"
 
   create_table "float_coding_region_measurements", :force => true do |t|
     t.string   "type"
@@ -1050,10 +1051,10 @@ ActiveRecord::Schema.define(:version => 20100413042739) do
 
   add_foreign_key "drosophila_allele_phenotype_drosophila_allele_genes", "drosophila_allele_phenotypes", :name => "dafk", :dependent => :delete
 
-  add_foreign_key "expression_contexts", "coding_regions", :name => "expression_contexts_coding_region_id_fk", :dependent => :delete
-  add_foreign_key "expression_contexts", "developmental_stages", :name => "expression_contexts_developmental_stage_id_fk", :dependent => :delete
-  add_foreign_key "expression_contexts", "localisations", :name => "expression_contexts_localisation_id_fk", :dependent => :delete
-  add_foreign_key "expression_contexts", "publications", :name => "expression_contexts_publication_id_fk", :dependent => :delete
+  add_foreign_key "evidence_coded_expression_contexts", "coding_regions", :name => "expression_contexts_coding_region_id_fk", :dependent => :delete
+  add_foreign_key "evidence_coded_expression_contexts", "developmental_stages", :name => "expression_contexts_developmental_stage_id_fk", :dependent => :delete
+  add_foreign_key "evidence_coded_expression_contexts", "localisations", :name => "expression_contexts_localisation_id_fk", :dependent => :delete
+  add_foreign_key "evidence_coded_expression_contexts", "publications", :name => "expression_contexts_publication_id_fk", :dependent => :delete
 
   add_foreign_key "gene_alternate_names", "genes", :name => "gene_alternate_names_gene_id_fk", :dependent => :delete
 
