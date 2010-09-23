@@ -1199,7 +1199,7 @@ class BScript
       'Quotes'
     ].flatten.join("\t")
     
-    CodingRegion.all(:joins => :expression_contexts).uniq.each do |code|
+    CodingRegion.all(:joins => :expressed_localisations).uniq.each do |code|
       to_print = []
       organellar_locs = []
       
