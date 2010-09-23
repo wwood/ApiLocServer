@@ -24,7 +24,7 @@ because otherwise unassigned genes have the incorrect name %>
 <% else %>
 <!-- for each publication associated with this coding region --><% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b <=> a}.each do |publication| %>
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
-  <%= publication.authors %>&nbsp(<%= publication.date %>, <%= publication.journal %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><%= link_to 'further curated data recorded in ApiLoc', :action => :publication, :id => publication.definition %>, 
+  <%= publication.authors %>&nbsp(<%= publication.date %>, <%= publication.journal %>) <%= publication.title %> <%= link_to 'other genes localised in this publication', :action => :publication, :id => publication.definition %>, 
   <%= link_to 'linkout', publication.linkout_url %>
   <br/>
   <% @relevant_expression_contexts = ExpressionContext.find_all_by_publication_id_and_coding_region_id(publication.id, @code.id).uniq %>
