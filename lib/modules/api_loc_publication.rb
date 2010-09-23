@@ -1199,10 +1199,10 @@ class BScript
       'Quotes'
     ].flatten.join("\t")
     
-    codes = CodingRegion.all(:joins => :expression_contexts).uniq
+    codes = CodingRegion.all(:joins => :expressed_localisations).uniq
     progress = ProgressBar.new('apiloc_spreadsheet', codes.length)
     
-    CodingRegion.all(:joins => :expression_contexts).uniq.each do |code|
+    codes.each do |code|
       progress.inc
       
       to_print = []
