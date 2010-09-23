@@ -7,15 +7,14 @@ because otherwise unassigned genes have the incorrect name %>
 </p>
 <% end %>
 <p>
-	<% if @code.annotation.nil? %>
-	A 
-	<% else %>
-  <i><%= @code.annotation.annotation %></i>, a
-  <% end %>
+  <% if @code.annotation.nil? %>
+  A <% else %>
+  <i><%= @code.annotation.annotation %></i>, a<% end %>
   gene from <%= link_to @code.species.name, :action => :species, :id => @code.species.name %>
 </p>
 <p>
-  <b>Compiled localisation:</b> <%= coding_region_localisation_html(@code) %>
+  <b>Compiled localisation:</b>
+  <%= coding_region_localisation_html(@code) %>
 </p>
 <div class="categorybig">
   <h2>Associated publications</h2>
@@ -25,7 +24,8 @@ because otherwise unassigned genes have the incorrect name %>
 <% else %>
 <!-- for each publication associated with this coding region --><% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b <=> a}.each do |publication| %>
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
-  <%= publication.authors %>(<%= publication.date %>, <%= publication.journal %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %>
+  <%= publication.authors %>&nbsp(<%= publication.date %>, <%= publication.journal %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><%= link_to 'further curated data recorded in ApiLoc', :action => :publication, :id => publication.definition %>, 
+  <%= link_to 'linkout', publication.linkout_url %>
   <br/>
   <% @relevant_expression_contexts = ExpressionContext.find_all_by_publication_id_and_coding_region_id(publication.id, @code.id).uniq %>
   <b><%= ExpressionContextGroup.new(@relevant_expression_contexts).english %></b>
@@ -68,7 +68,7 @@ because otherwise unassigned genes have the incorrect name %>
 </div>
 <!-- make this always a white background -->
 <div class="category<%= @category_counter = 0; @category_counter.odd? %>">
-<h3>Orthology</h3>
+  <h3>Orthology</h3>
   <h4>OrthoMCL</h4>
   <% if @code.species.orthomcl_three_letter.nil? %>
   This species does not currently exist in the OrthoMCL database.<% else %>
@@ -95,7 +95,7 @@ because otherwise unassigned genes have the incorrect name %>
     if codes.length > 0
     codes.each do |code| %>
     <li>
-      <%= code_name(code) %><%= coding_region_localisation_html(code) %>
+      <%= code_name(code) %>: <%= coding_region_localisation_html(code) %>
     </li>
     <% end %>
     <% else %>
@@ -155,7 +155,7 @@ because otherwise unassigned genes have the incorrect name %>
     <% partitions.to_a.sort{|a,b| a[0].orthomcl_name<=>b[0].orthomcl_name}.each do |part| ogene = part[0]; codes = part[1] %>
     <% codes.each do |code| %>
     <li>
-      <%= code.species.name %>: <%= link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}" %>- <%= code.coding_region_go_terms.cc.useful.all.uniq.collect{|crgt| link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"}.join(', ') %>
+      <%= code.species.name %>- <%= link_to code.string_id, "http://www.uniprot.org/uniprot/#{code.string_id}" %>: <%= code.coding_region_go_terms.cc.useful.all.uniq.collect{|crgt| link_to crgt.go_term.term, "http://amigo.geneontology.org/cgi-bin/amigo/search.cgi?query=#{url_encode(crgt.go_term.go_identifier)}"}.join(', ') %>
     </li>
     <% end %>
     <% end %>
@@ -180,14 +180,14 @@ because otherwise unassigned genes have the incorrect name %>
   <% end %>
 </div>
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
-  <h2>Proteomics</h2>
+  <h3>Proteomics</h3>
   <% @proteomics_partitions = popular_proteomic_experiments(@code.species.name).partition {
   |experiment|
   ProteomicExperimentResult.find_by_coding_region_id_and_proteomic_experiment_id(
   @code.id, experiment.id
   ).nil?
   } %>
-  <h3>Found in:</h3>
+  <h4>Found in:</h4>
   <ul>
     <% @proteomics_partitions[1].each do |experiment| %>
     <li>
@@ -195,7 +195,7 @@ because otherwise unassigned genes have the incorrect name %>
     </li>
     <% end %>
   </ul>
-  <h3>Not found in:</h3>
+  <h4>Not found in:</h4>
   <ul>
     <% @proteomics_partitions[0].each do |experiment| %>
     <li>
@@ -205,38 +205,54 @@ because otherwise unassigned genes have the incorrect name %>
   </ul>
 </div>
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
-  <h2>Links</h2>
+<h3>Gene-Specific Links for <%= @code.string_id %></h3>
+<ul>
+  <% if @code.species.plasmodb? %>
+  <li>
+    <%= @code.string_id %>&nbsp;<%= link_to 'PlasmoDB gene page', "http://plasmodb.org/gene/#{@code.string_id}" %>
+  </li>
+  <% if @code.species.name == Species::FALCIPARUM_NAME %>
+  <li>
+    Search for <%= @code.string_id %>&nbsp;at the <%= link_to 'Malaria Parasite Metabolic Pathways database', "http://sites.huji.ac.il/htbin/malaria/search.cgi?pfIDText=#{@code.string_id}" %>
+  </li>
+  <li>
+    Search for <%= @code.string_id %>&nbsp; at <%= link_to 'PlasmoDraft', "http://www.lirmm.fr/~dufayard/plasmo_draft_beta/query_db.php?qs=#{@code.string_id}" %>
+  </li>
+  <% end %>
+</ul>
+<% elsif @code.species.toxodb? %>
+<li>
+  <%= link_to 'ToxoDB gene page', "http://toxodb.org/gene/#{@code.string_id}" %>
+</li>
+<% elsif @code.species.cryptodb? %>
+<li>
+  <%= link_to 'CryptoDB gene page', "http://cryptodb.org/gene/#{@code.string_id}" %>
+</li>
+<% else %>
+<li>
+  <%= link_to 'GenBank', "http://www.ncbi.nlm.nih.gov/sites/entrez?db=nuccore&term=#{@code.string_id}" %>
+</li>
+<% end %>
+</ul>
+</div>
+<div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
+  <h3>General Sub-Cellular Localisation Links</h3>
   <ul>
     <% if @code.species.plasmodb? %>
-    	  <li><%= link_to 'PlasmoDB', "http://plasmodb.org/gene/#{@code.string_id}" %>:</li>
-		  <ul>
-		  <li><%= link_to @code.string_id, "http://plasmodb.org/gene/#{@code.string_id}" %> gene page</li>
-			<li><%= link_to 'Predicted Signal Peptide', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesWithSignalPeptide' %></li>
-		<li><%= link_to 'ExportPred', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesByExportPrediction' %></li>
-		<li><%= link_to 'Apicoplast transit peptide prediction', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesBySubcellularLocalization' %>, see also apicoplast-related tools below.</li>
-			<li><%= link_to 'Pexel/HT motif', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesBySubcellularLocalization' %></li>
-		</ul>
-		<li><%= link_to 'Malaria Parasite Metabolic Pathways', 'http://sites.huji.ac.il/malaria/' %></li>
-		<li><%= link_to 'MalSig', 'http://131.172.128.59/cgi-bin/pfsigseq_refs.py' %>, prediction of Plasmodial signal peptides</li>
-		<li><%= link_to 'PlasMit', 'http://gecco.org.chemie.uni-frankfurt.de/plasmit/index.html' %>, prediction of Plasmodial mitochondrial transit peptides</li>
-		<li><%= link_to 'TargetP', 'http://www.cbs.dtu.dk/services/TargetP/' %>, prediction of signal peptides, as well as chloroplast and mitochondrial transit peptides</li>
-		<li>Apicoplast Leader Predictors:</li><ul>
-			<li>PlasmoAP <%= link_to 'web interface', 'http://v4-4.plasmodb.org/restricted/PlasmoAPcgi.shtml' %>, prediction of Plasmodial apicoplast transit peptides</li>
-		<li><%= link_to 'PATS', 'http://gecco.org.chemie.uni-frankfurt.de/pats/pats-index.php' %>, prediction of Plasmodial apicoplast transit peptides</li>
-		</ul>
-    <% elsif @code.species.toxodb? %>
     <li>
-      <%= link_to 'ToxoDB', "http://toxodb.org/gene/#{@code.string_id}" %>
+      <%= link_to 'PlasmoDB', "http://plasmodb.org/" %>:
     </li>
-    <% elsif @code.species.cryptodb? %>
-    <li>
-      <%= link_to 'CryptoDB', "http://cryptodb.org/gene/#{@code.string_id}" %>
-    </li>
-    <% else %>
-    <li>
-      <%= link_to 'GenBank', "http://www.ncbi.nlm.nih.gov/sites/entrez?db=nuccore&term=#{@code.string_id}" %>
-    </li>
+    <ul>
+      <li>
+        <%= link_to 'Predicted Signal Peptide', 'http://plasmodb.org/plasmo/showQuestion.do?questionFullName=GeneQuestions.GenesWithSignalPeptide' %>
+      </li>
+      <%= render :partial => 'falciparum_plasmodb_general_links' %>
+    </ul>
+    <% if @code.species.name == Species::FALCIPARUM_NAME %>
+    <%= render :partial => 'general_falciparum_sub_cellular_localisation_links' %>
     <% end %>
+    <% end %>
+    <%= render :partial => 'general_sub_cellular_localisation_links' %>
   </ul>
 </div>
 <!-- For testing in disqus comments, set the required variable.

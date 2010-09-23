@@ -1204,7 +1204,6 @@ class BScript
     
     codes.each do |code|
       progress.inc
-      
       to_print = []
       organellar_locs = []
       
