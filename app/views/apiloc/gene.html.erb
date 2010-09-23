@@ -24,7 +24,8 @@ because otherwise unassigned genes have the incorrect name %>
 <% else %>
 <!-- for each publication associated with this coding region --><% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b <=> a}.each do |publication| %>
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
-  <%= publication.authors %>&nbsp(<%= publication.date %>, <%= publication.journal %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %>
+  <%= publication.authors %>&nbsp(<%= publication.date %>, <%= publication.journal %>) <%= link_to publication.title, :action => :publication, :id => publication.definition %><%= link_to 'further curated data recorded in ApiLoc', :action => :publication, :id => publication.definition %>, 
+  <%= link_to 'linkout', publication.linkout_url %>
   <br/>
   <% @relevant_expression_contexts = ExpressionContext.find_all_by_publication_id_and_coding_region_id(publication.id, @code.id).uniq %>
   <b><%= ExpressionContextGroup.new(@relevant_expression_contexts).english %></b>
@@ -214,6 +215,9 @@ because otherwise unassigned genes have the incorrect name %>
   <li>
     Search for <%= @code.string_id %>&nbsp;at the <%= link_to 'Malaria Parasite Metabolic Pathways database', "http://sites.huji.ac.il/htbin/malaria/search.cgi?pfIDText=#{@code.string_id}" %>
   </li>
+  <li>
+    Search for <%= @code.string_id %>&nbsp; at <%= link_to 'PlasmoDraft', "http://www.lirmm.fr/~dufayard/plasmo_draft_beta/query_db.php?qs=#{@code.string_id}" %>
+  </li>
   <% end %>
 </ul>
 <% elsif @code.species.toxodb? %>
@@ -248,9 +252,7 @@ because otherwise unassigned genes have the incorrect name %>
     <%= render :partial => 'general_falciparum_sub_cellular_localisation_links' %>
     <% end %>
     <% end %>
-    <li>
-      <%= link_to 'TargetP', 'http://www.cbs.dtu.dk/services/TargetP/' %>, prediction of signal peptides, as well as chloroplast and mitochondrial transit peptides
-    </li>
+    <%= render :partial => 'general_sub_cellular_localisation_links' %>
   </ul>
 </div>
 <!-- For testing in disqus comments, set the required variable.

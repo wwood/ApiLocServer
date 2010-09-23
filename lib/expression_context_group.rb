@@ -111,7 +111,7 @@ class LocalisationsAndDevelopmentalStages
 
     if @localisation_ids.empty?
       if @developmental_stage_ids.empty?
-        raise #shouldn't ever happen, because otherwise there is no information
+        raise Exception, "No developmental stage or localisation found, so cannot give back a name." #shouldn't ever happen, because otherwise there is no information
       else
         "during #{@developmental_stage_ids.join(' and ')}"
       end
