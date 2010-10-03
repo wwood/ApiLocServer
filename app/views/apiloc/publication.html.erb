@@ -5,7 +5,12 @@ No publication identified by '<%= @publication_id %>' found. The best way to sea
 <h2><%= @publication.title %></h2>
 <p><%= @publication.authors %> (<%= @publication.date %>, <%= @publication.journal %>)</p>
 <p><%= @publication.abstract %></p>
-<p><%= link_to (@publication.pubmed_id? ? "PubMed: #{@publication.pubmed_id}" : @publication.url), @publication.linkout_url %></p>
+<p>
+<% unless @publication.pubmed_id.nil? %>
+<%= link_to "PubMed: #{@publication.pubmed_id}", @publication.linkout_url %>,
+<% end %>
+<%= link_to 'full text', @publication.fulltext_url%>
+</p>
 
 <h2>Localisation information</h2>
 <% @publication.expression_contexts.reach.localisation_annotation.uniq.each do |a|

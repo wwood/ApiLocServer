@@ -19,6 +19,7 @@ module LocalisationConstants
       'erythrocyte cytoplasmic structure',
       'dot like structures in host cell',
       'erythrocyte cytoplasmic structure near parasitophorous vacuole',
+      'erythrocyte cytoplasm adjacent to the parasitophorous vacuole',
       'erythrocyte',
       'single small vesicle in erythrocyte',
       'exported',
@@ -92,6 +93,7 @@ module LocalisationConstants
       'rhoptry neck',
       'rhoptry bulb',
       'nowhere except rhoptry',
+      'membranous whorls discharged from rhoptry matrix',
       'microneme',
       'mononeme',
       'dense granule',
@@ -913,6 +915,9 @@ module LocalisationConstants
       'ims side of mitochondrial inner membrane' => 'inner membrane space side of inner membrane of mitochondria',
       'cytoskeleton microtubules' => 'microtubule',
       'parasitophorous vacuolar membrane' => 'parasitophorous vacuole membrane',
+      'surface of the erythrocyte' => 'erythrocyte plasma membrane',
+      'host erythrocyte cytosol' => 'erythrocyte cytosol',
+      'extracellular' => 'exported',
     }
   }
 

@@ -120,6 +120,7 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'cytosolic side of host cell membrane',
       'erythrocyte',
       'erythrocyte cytoplasm',
+      'erythrocyte cytoplasm adjacent to the parasitophorous vacuole',
       'erythrocyte cytoplasmic structure',
       'erythrocyte cytoplasmic structure near parasitophorous vacuole',
       'erythrocyte cytoplasmic vesicle',

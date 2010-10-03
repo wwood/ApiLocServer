@@ -655,6 +655,12 @@ module DevelopmentalStageConstants
       'liver stage day 4' => 'hepatocyte stage day 4',
       'liver stage day 7' => 'hepatocyte stage day 7',
       'early gametocytes' => 'early gametocyte',
+      'erythrocytic schizont' => 'schizont',
+      'newly released merozoites' => 'merozoite',
+      'immature schizonts' => 'early schizont',
+      'trophozoites' => 'trophozoite',
+      'following erythrocyte invasion' => 'newly invaded merozoite',
+      'late schizogony' => 'late schizont',
     }
   }
 end
