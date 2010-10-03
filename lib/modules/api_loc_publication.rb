@@ -34,7 +34,7 @@ class BScript
     total_publications = 0
     
     puts '<table>'
-    puts '<tr><td>Species</td><td>Localised genes</td><td>Publications curated</td></tr>'
+    puts '<tr><th>Species</th><th>Localised genes</th><th>Publications curated</th></tr>'
     Species.apicomplexan.all(:order => 'name').each do |s|
       protein_count = s.number_or_proteins_localised_in_apiloc
       publication_count = s.number_or_publications_in_apiloc
