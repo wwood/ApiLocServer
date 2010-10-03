@@ -828,7 +828,15 @@ class CodingRegion < ActiveRecord::Base
     if options[:by_literature]
       ExpressionContextGroup.new(second_class_citizen_expression_contexts).english
     else
-      ExpressionContextGroup.new(expression_contexts).english
+      contexts = expression_contexts.reject{|e|
+        if e.localisation_id.nil? and e.developmental_stage_id.nil?
+	  $stderr.puts "Found an expression context without a localisation or developmental stage: #{e.inspect}"
+	  true #reject
+	else
+	  false #don't reject
+	end
+      }
+      ExpressionContextGroup.new(contexts).english
     end
   end
   

@@ -1203,6 +1203,7 @@ class BScript
     progress = ProgressBar.new('apiloc_spreadsheet', codes.length)
     
     codes.each do |code|
+      $stderr.puts code.string_id
       progress.inc
       to_print = []
       organellar_locs = []
