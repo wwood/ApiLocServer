@@ -27,6 +27,39 @@ class BScript
     ].join("\t")
   end
   
+  # Like HTML stats, but used for the version information part
+  # of the ApiLoc website
+  def apiloc_html_stats
+    total_proteins = 0
+    total_publications = 0
+    
+    puts '<table>'
+    puts '<tr><td>Species</td><td>Localised genes</td><td>Publications curated</td></tr>'
+    Species.apicomplexan.all(:order => 'name').each do |s|
+      protein_count = s.number_or_proteins_localised_in_apiloc
+      publication_count = s.number_or_publications_in_apiloc
+      
+      print '<tr><td>'
+      print [
+      s.name,
+      protein_count,
+      publication_count,
+      ].join("</td><td>")
+      puts '</td></tr>'
+      
+      total_proteins += protein_count
+      total_publications += publication_count
+    end
+    
+    print [
+    '<tr><td><b>Total</b>',
+    total_proteins,
+    total_publications
+    ].join("</b></td><td><b>")
+    puts '</b></td></tr>'
+    puts '</table>'
+  end
+  
   def species_localisation_breakdown
     #    names = Localisation.all(:joins => :apiloc_top_level_localisation).reach.name.uniq.push(nil)
     #    print "species\t"
