@@ -7,11 +7,11 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'apicoplast membrane',
       'apicoplast periphery',
       'innermost apicoplast membrane',
-      #      'near apicoplast membranes', # the only example of this ferrochelatase, which isn't apicoplast.
+    #      'near apicoplast membranes', # the only example of this ferrochelatase, which isn't apicoplast.
       'outermost apicoplast membrane',
       'nowhere except apicoplast'
     ],
-
+    
     'apical' => [
       'anterior cytoplasm',
       'anterior structure','anterior vacuole',
@@ -21,6 +21,7 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'apical end of endoplasmic reticulum',
       'apical end of surface',
       'apical end of the nuclear envelope',
+      'apical most tip',
       'apical parasite plasma membrane',
       'cap at basal end of daughter',
       'cap at basal end of mother',
@@ -42,6 +43,8 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'nascent conoid',
       'nascent rhoptry',
       'nowhere except rhoptry',
+      'nowhere except apical',
+      'nowhere except microneme',
       'pellicle',
       'pellicle membrane',
       'peripheral of microneme',
@@ -51,18 +54,18 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'rhoptry neck',
       'sub-apical',
       'sub-pellicular region at the anterior',
-
-      # merged merozoite surface locs below
-      #      'merozoite surface' => [
+    
+    # merged merozoite surface locs below
+    #      'merozoite surface' => [
       'merozoite surface',
       'apical plasma membrane',
       'apical surface',
       'around merozoite',
       'merozoite surface',
-      #      ],
-
+    #      ],
+    
     ],
-
+    
     'inner membrane complex' => [
       'attachment site of subpellicular microtubule',
       'beneath alveoli',
@@ -76,38 +79,40 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'ring at basal end',
       'ring structure at apical inner membrane complex',
       'ring structure at posterior inner membrane complex',
-
-
+      'nowhere except cytoplasmic face of inner membrane complex',
+    
+    
     ],
-
-
+    
+    
     'endoplasmic reticulum' => [
       'cortical endoplasmic reticulum',
       'endoplasmic reticulum',
       'endoplasmic reticulum associated vesicle',
       'perinuclear endoplasmic reticulum',
-
-
+    
+    
     ],
-
-
+    
+    
     'golgi apparatus' => [
       'cis-golgi',
       'cisternal rims of the late golgi',
       'cytoplasmic region close to the golgi',
       'golgi',
+      'golgi apparatus',
       'golgi associated transport vesicle',
       'golgi matrix',
       'post golgi compartment',
       'trans golgi',
       'trans-golgi network',
-
-
-
-
+    
+    
+    
+    
     ],
-
-
+    
+    
     'exported' => [
       'cleft like parasitophorous vacuole membrane protrusion',
       'close to parasitophorous vacuole membrane',
@@ -131,6 +136,7 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'exported',
       'exposed erythrocyte plasma membrane',
       'gametocyte attached erythrocytic vesicle',
+      'hepatocyte cytoplasm',
       'host cell',
       'host cell cytoplasm',
       'host cell cytosol',
@@ -142,19 +148,24 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'intraerythrocytic cysternae',
       'knob',
       'maurer\'s cleft',
+      'maurer\'s cleft tethers',
       'membrane of lysed erythrocyte',
       'single small vesicle in erythrocyte',
       'vesicle under erythrocyte surface',
-
-
+      'dot like structures in host cell',
+    
     ],
-
+    
     'parasite plasma membrane' => [
       'cyst wall',
+      'nowhere except parasite plasma membrane',
+      'nowhere except sporozoite plasma membrane',
+      'nowhere except sporozoite surface',
       'ookinete surface',
       'outer membrane of cyst wall',
       'parasite plasma membrane',
       'plasma membrane',
+      'plasma membrane surounding oocyst cytoplasm',
       'proximal to plasma membrane',
       'sporozoite surface',
       'straight side of d shaped parasite',
@@ -166,8 +177,8 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'vesicle-like structure just under the parasite membrane',
       'vesicles near parasite surface',
     ],
-
-
+    
+    
     'cytoplasm' => [
       'cytoplasm',
       'cytoplasm proximal to amylopectin-like granules',
@@ -181,12 +192,13 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'periphery of parasite',
       'throughout parasite',
     ],
-
-
+    
+    
     'nucleus' => [
       'far nuclear periphery',
       'interior of nucleus',
       'mitotic spindle in nucleus',
+      'nowhere except nucleus',
       'nuclear',
       'nuclear envelope',
       'nuclear interior',
@@ -199,28 +211,35 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'replication foci in nucleus',
       'telomeric cluster',
       'perinuclear',
-      'histones'
+      'histones',
+      'nuclear matrix',
+      'perhiphery of nucleus',
     ],
-
-
+    
+    
     'food vacuole' => [
       'food vacuole',
       'food vacuole lumen',
       'food vacuole membrane',
-
+    
     ],
-
-
+    
+    
     'mitochondrion' => [
+      'inner membrane space side of inner membrane of mitochondria',
+      'matrix side of mitochondrial inner membrane',
       'mitochondria',
       'mitochondrial inner membrane',
+      'mitochondrial inner membrane space',
+      'mitochondrial matrix',
       'mitochondrial membrane',
+      'mitochondrial outer membrane',
       'mitochondrion',
 
-
     ],
-
+    
     'parasitophorous vacuole' => [
+      'only parasitophorous vacuole membrane',
       'parasitophorous vacuole',
       'parasitophorous vacuole close to food vacuole',
       'parasitophorous vacuole membrane',
@@ -229,13 +248,124 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'punctate parasitophorous vacuole',
       'sporozoite parasitophorous vacuole 1',
       'tubular structure in parasitophorous vacuole',
-
-
+      'distal end of parasitophorous vacuole',
+      'parasitophorous vacuole lumen',
+      'membranous parasitophorous vacuole tubules',
     ],
-
+    
+    'other' => [
+    'acidocalcisome',
+'acrosome',
+'adjacent to mitochondrion',
+'adjacent to the inner membrane complex',
+'anterior adjacent to mitochondria',
+'anterior adjacent to mitochondrion',
+'anterior to nucleus',
+'area around nucleus',
+'area near nucleus',
+'around cytomeres',
+'basal',
+'basal complex',
+'basal of nucleus',
+'between endoplasmic reticulum and golgi',
+'between pellicle and parasitophorous vacuole membrane',
+'beyond erythrocyte membrane',
+'cell poles',
+'cell surface',
+'centriole',
+'centrocone',
+'centrosome',
+'cone shaped body of basal complex',
+'crystalloid',
+'crystalloid body',
+'cyst matrix',
+'cytoplasmic structure',
+'cytoplasmic vesicle',
+'cytoskeleton',
+'cytostome',
+'dense band',
+'developing cyst wall',
+'early endosome',
+'electron-dense heterochromatic region at the nuclear periphery',
+'endosomal membrane',
+'endosomal vacuole',
+'endosome-related compartment',
+'evacuole',
+'exflagellation centre',
+'extracellular',
+'feeder organelle',
+'flagellar basal bodies',
+'flagellate basal body',
+'food vacuole region',
+'gliding trail',
+'host tissue',
+'individual merozoites inside merozomes',
+'inner membrane space side of inner membrane of mitochondria',
+'inner surface of peripheral vacuoles',
+'internal membrane networks',
+'internal organelle',
+'internal structures',
+'intracellular vacuole',
+'intracellular vacuole membrane',
+'intravacuolar network',
+'intravacuolar tubular network',
+'invasion furrow',
+'lysosome',
+'membrane structure',
+'merozoite associated material',
+'microtubule',
+'multi-lamellar vesicle',
+'multi-vesicular endosome',
+'near apicoplast membranes',
+'oocyst capsule',
+'oocyst protrusion',
+'oocyst wall',
+'ookinete apical surface',
+'ookinete protrusion',
+'osmiophilic body',
+'p-body',
+'peripheral of oocyst protrusion',
+'periphery',
+'periphery of amylopectin-like granules',
+'peroxisome',
+'posterior',
+'posterior cytoplasm',
+'posterior extremity of cup-shaped inner membrane cytoskeleton scaffolds',
+'posterior structure',
+'posterior to nucleus',
+'posterior vacuole',
+'posterior vesicle',
+'prerhoptry',
+'released into extracellular mileiu',
+'residual body',
+'residual body membrane',
+'reticular staining outside apicoplast',
+'secretory organelle',
+'spherical body organelle',
+'spindle pole',
+'spread around parasite',
+'subcapsular areas',
+'subpellicular microtubule',
+'surrounding',
+'trail',
+'transformation bulb',
+'transport vesicle',
+'tubulovesicular membrane',
+'two unknown vesicular bodies',
+'vac',
+'vacuole',
+'vesicle',
+'vesicle budding off zoite posterior',
+'vesicles',
+'wall forming body',
+'wall forming body type ii',
+'zygote remnant',
+'zygote side',
+    ]
+    
   }
   @@loc_hash = APILOC_TOP_LEVEL_LOCALISATION_HASH
-
+  
   def upload_apiloc_top_level_localisations
     @@loc_hash.each do |top, underlings|
       t = TopLevelLocalisation.find_or_create_by_name(top)
@@ -245,36 +375,23 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
         els = Localisation.find_all_by_name(underling)
         els.each do |l|
           ApilocLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
-            l.id, t.id
+                                                                                                                 l.id, t.id
           )
         end
-
+        
         # negative
         els = Localisation.find_all_by_name("not #{underling}")
         els.each do |l|
           ApilocLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
-            l.id, t_negative.id
+                                                                                                                 l.id, t_negative.id
           )
         end
       end
     end
-
-    # Add 'others'
-    other = TopLevelLocalisation.find_or_create_by_name('other')
-    other_negative = TopLevelLocalisation.find_or_create_by_name('not other')
-    Localisation.all.each do |loc|
-      if loc.apiloc_top_level_localisation.nil?
-        ApilocLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
-          loc.id, other.id
-        )
-        l_negative = loc.negation
-        ApilocLocalisationTopLevelLocalisation.find_or_create_by_localisation_id_and_top_level_localisation_id(
-          l_negative.id, other_negative.id
-        )
-      end
-    end
+    
+    # Previously others were added by taking all not in positive, but that is dangerous, especially when adding new localisations
   end
-
+  
   # Check to make sure each loc is assigned a top level localisation
   def check_for_unclassified
     Localisation.positive.all.each do |loc|

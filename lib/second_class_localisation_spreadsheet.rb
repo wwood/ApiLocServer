@@ -57,6 +57,13 @@ class SecondClassLocalisationSpreadsheet < LocalisationSpreadsheet
         next
       end
       
+      # create a localisation annotations for this line.
+      la = LocalisationAnnotation.find_or_create_by_gene_mapping_comments_and_coding_region_id_and_quote(
+                                                                                                         info.mapping_comments,
+                                                                                                         code.id,
+                                                                                                         info.reasoning
+      ) or raise
+      
       info.comments.each do |comment|
         next if !comment
         Comment.find_or_create_by_localisation_annotation_id_and_comment(
@@ -65,12 +72,6 @@ class SecondClassLocalisationSpreadsheet < LocalisationSpreadsheet
         ) or raise
       end
       
-      # create a localisation annotations for this line.
-      la = LocalisationAnnotation.find_or_create_by_gene_mapping_comments_and_coding_region_id_and_quote(
-                                                                                                         info.mapping_comments,
-                                                                                                         code.id,
-                                                                                                         info.reasoning
-      ) or raise
       
       # add the coding region and publication for each of the names
       loc.parse_name(info.localisation_and_timing, sp).each do |context|

@@ -493,4 +493,17 @@ class BScript
       ].join("\t")
     end
   end
+  
+  # Print out a list of the second class citizens in P. falciparum
+  # and their compiled localisation
+  def second_class_citizens_list
+    CodingRegion.falciparum.all(:joins => :second_class_citizen_expression_contexts, :select => 'distinct(coding_regions.*)').each do |code|
+      puts [
+      code.string_id,
+      code.annotation.annotation,
+      code.literature_based_top_level_localisations.reach.name.uniq.sort.join((', ')),
+      code.second_class_citizen_expression_contexts.collect{|e| e.publication.definition}.sort.uniq.join(', ')
+      ].join("\t")
+    end
+  end
 end
