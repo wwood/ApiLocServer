@@ -39,15 +39,26 @@ class ApilocController < ApplicationController
       
       # we have a given gene_id
       if params[:species]
-        # if agreeable then you might need to remove the species 2 letter,
-        # otherwise trust the specifically given species id
-        if Species.agreeable_name_and_two_letter_prefix?(params[:species], gene_id)
-          codes = CodingRegion.find_all_by_partial_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
+        # If given a proper string id, then just match that, and don't try for anything else
+        code1 = CodingRegion.species(params[:species]).find_by_string_id(gene_id)
+        if code1
+          codes = [code1]
         else
-          codes = CodingRegion.find_all_by_partial_name_or_alternate_and_species(gene_id, params[:species])
+          # if agreeable then you might need to remove the species 2 letter,
+          # otherwise trust the specifically given species id
+          if Species.agreeable_name_and_two_letter_prefix?(params[:species], gene_id)
+            codes = CodingRegion.find_all_by_partial_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
+          else
+            codes = CodingRegion.find_all_by_partial_name_or_alternate_and_species(gene_id, params[:species])
+          end
         end
       else
-        codes = CodingRegion.find_all_by_partial_name_or_alternate_maybe_with_species_prefix(gene_id)
+        code1 = CodingRegion.find_by_string_id(gene_id)
+        if code1
+          codes = [code1]
+        else
+          codes = CodingRegion.find_all_by_partial_name_or_alternate_maybe_with_species_prefix(gene_id)
+        end
       end
     end
     
