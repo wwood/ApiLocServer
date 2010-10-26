@@ -8,6 +8,7 @@ class BlastsController < ApplicationController
   def blast
     @input = params[:sequence]
     @input ||= params[:id]
+    @input.strip!
 
     # if there are any numbers in the given sequence, maybe it is from a
     # database. Do that as priority. If not, just use the regular one
@@ -27,6 +28,7 @@ class BlastsController < ApplicationController
   def blast_genbank
     @genbank_id = params[:seq]
     @genbank_id ||= params[:id]
+    @genbank_id.strip!
     #identifiers are never lower case but NCBI is still case sensitive
     @genbank_id.upcase!
 

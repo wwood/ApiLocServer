@@ -462,23 +462,23 @@ class BScript
           #          $stderr.puts "chdir: #{Dir.pwd}"
           # protein
           unless File.exists?(spd.protein_fasta_filename)
-            `wget #{spd.eu_path_db_download_directory}/#{spd.protein_fasta_filename}`
+            `wget #{spd.eu_path_db_fasta_download_directory}/#{spd.protein_fasta_filename}`
           end
           # gff
           unless File.exists?(spd.gff_filename)
-            `wget #{spd.eu_path_db_download_directory}/#{spd.gff_filename}`
+            `wget #{spd.eu_path_db_gff_download_directory}/#{spd.gff_filename}`
           end
           # transcripts
           unless File.exists?(spd.transcript_fasta_filename)
-            `wget #{spd.eu_path_db_download_directory}/#{spd.transcript_fasta_filename}`
+            `wget #{spd.eu_path_db_fasta_download_directory}/#{spd.transcript_fasta_filename}`
           end
           # gene information table
           unless File.exists?(spd.gene_information_filename)
-            `wget '#{spd.eu_path_db_download_directory}/#{spd.gene_information_filename}'`
+            `wget '#{spd.eu_path_db_txt_download_directory}/#{spd.gene_information_filename}'`
           end
           # genomic
           unless File.exists?(spd.genomic_fasta_filename)
-            `wget '#{spd.eu_path_db_download_directory}/#{spd.genomic_fasta_filename}'`
+            `wget '#{spd.eu_path_db_fasta_download_directory}/#{spd.genomic_fasta_filename}'`
           end          
         end
       end
