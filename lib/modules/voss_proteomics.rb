@@ -271,39 +271,48 @@ class BScript
     
     puts [
     "PlasmoDB ID",
-    'Annotation (PlasmoDB 6.4)',
-    'ApiLoc localisation description',
-    'OrthoMCL links ApiLoc description',
-    'Agreement with nucleus',
-    "Number of transmembrane domains (not including Signal Peptide)",
-    "ER retention motifs",
-    'Plasmit?',
-    'GPI?',
-    'SignalP?',
-    'ExportPred?',
-    'PlasmoAP?'
+#    'Annotation (PlasmoDB 6.4)',
+#    'ApiLoc localisation description',
+#    'OrthoMCL links ApiLoc description',
+#    'Agreement with nucleus',
+    'Agreement with literature survey nucleus?',
+#    'nucleus GO term',
+#    "Number of transmembrane domains (not including Signal Peptide)",
+#    "ER retention motifs",
+#    'Plasmit?',
+#    'GPI?',
+#    'SignalP?',
+#    'ExportPred?',
+#    'PlasmoAP?'
     ].join("\t")
+    
+#    nucleus_go_term_list_plasmodbs = PlasmodbGeneList.find_by_description("PlasmoDB nucleus GO terms").coding_regions.reach.string_id.retract
     
     foreach_code = lambda do |code, plasmodb_id|
       to_print = []
       to_print.push plasmodb_id
-      to_print.push code.tmhmm.transmembrane_domains.length
-      matching_ers = ers.collect {|er|
-        if matches = er.regex.match(code.aaseq)
-          er.signal
-        else
-          nil
-        end
-      }.no_nils
-      to_print.push matching_ers.empty? ? 'none' : matching_ers.join(',')
-      
-      to_print.push code.plasmit?
-      
-      to_print.push gpi_list_codes.include?(code.string_id)
-      
-      to_print.push code.signalp_however.signal?
-      to_print.push code.export_pred_however.signal?
-      to_print.push code.plasmo_a_p.signal?
+      to_print.push code.agreement_with_top_level_localisation_simple(
+                                                                  TopLevelLocalisation.find_by_name('nucleus'),
+                            :by_literature => true
+                )
+#      to_print.push nucleus_go_term_list_plasmodbs.include?(code.string_id)
+#      to_print.push code.tmhmm.transmembrane_domains.length
+#      matching_ers = ers.collect {|er|
+#        if matches = er.regex.match(code.aaseq)
+#          er.signal
+#        else
+#          nil
+#        end
+#      }.no_nils
+#      to_print.push matching_ers.empty? ? 'none' : matching_ers.join(',')
+#      
+#      to_print.push code.plasmit?
+#      
+#      to_print.push gpi_list_codes.include?(code.string_id)
+#      
+#      to_print.push code.signalp_however.signal?
+#      to_print.push code.export_pred_however.signal?
+#      to_print.push code.plasmo_a_p.signal?
       
       
       puts to_print.join("\t")
@@ -338,7 +347,7 @@ class BScript
           next
         end
         
-        foreach_plasmodb_id.call(code, plasmodb_id)
+        foreach_code.call(code, plasmodb_id)
       end
     end
   end
@@ -505,5 +514,9 @@ class BScript
       code.second_class_citizen_expression_contexts.collect{|e| e.publication.definition}.sort.uniq.join(', ')
       ].join("\t")
     end
+  end
+  
+  def upload_nucleus_go_annotation
+    
   end
 end
