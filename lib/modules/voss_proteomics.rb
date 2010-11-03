@@ -519,7 +519,32 @@ class BScript
     end
   end
   
-  def upload_nucleus_go_annotation
+  def nucleus_go_annotation
+    go_decisions = {}
     
+    # Read in the data
+    FasterCSV.foreach("#{PHD_DIR}/voss_proteome/June2010/go_term_annotation/PfalciparumGene_PlasmoDB-7.0.txt.nucleus_agreement.txt",:col_sep => "\t") do |row|
+      go_decisions[row[0]] = row[1]
+    end
+    
+    failed_count = 0
+    $stdin.each do |code|
+      code.strip!
+      decision = go_decisions[code]
+      print "#{code}\t"
+      if decision == 'positive'
+        puts 'positive'
+      elsif decision == 'negative'
+        puts 'negative'
+      elsif decision == 'both'
+        puts 'positive'
+      elsif decision
+        puts 'unknown'
+      else
+        failed_count += 1
+        puts 'unknown'
+      end
+    end
+    $stderr.puts "Failed #{failed_count}."
   end
 end

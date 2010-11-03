@@ -1,6 +1,6 @@
 # Methods associated mainly with uploading data from PlasmoDB and ToxoDB etc.
 
-require 'eu_path_d_b_gene_information_table'
+require 'eupathdb_gene_information_table'
 require 'zlib'
 require 'species_data'
 
