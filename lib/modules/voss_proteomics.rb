@@ -74,8 +74,7 @@ class BScript
             lit_orth_str = localised_orths.reject{
               |c| c.id == code.id
             }.reach.localisation_english(:by_literature => true).join(' | ')
-          end
-        rescue OrthomclGene::UnexpectedCodingRegionCount
+          end        rescue OrthomclGene::UnexpectedCodingRegionCount
           lit_orth_str = 'multiple OrthoMCL orthologues found'
         end
         
@@ -275,7 +274,7 @@ class BScript
 #    'ApiLoc localisation description',
 #    'OrthoMCL links ApiLoc description',
 #    'Agreement with nucleus',
-    'Agreement with literature survey nucleus?',
+#    'Agreement with literature survey nucleus?',
 #    'nucleus GO term',
 #    "Number of transmembrane domains (not including Signal Peptide)",
 #    "ER retention motifs",
@@ -284,17 +283,20 @@ class BScript
 #    'SignalP?',
 #    'ExportPred?',
 #    'PlasmoAP?'
+    'HP1?'
     ].join("\t")
     
 #    nucleus_go_term_list_plasmodbs = PlasmodbGeneList.find_by_description("PlasmoDB nucleus GO terms").coding_regions.reach.string_id.retract
+    hp1_list_plasmodbs = PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_HP1_LIST_NAME).coding_regions.reach.string_id.retract
+    raise Exception, "bad hp1 list!" unless hp1_list_plasmodbs.length == 537
     
     foreach_code = lambda do |code, plasmodb_id|
       to_print = []
       to_print.push plasmodb_id
-      to_print.push code.agreement_with_top_level_localisation_simple(
-                                                                  TopLevelLocalisation.find_by_name('nucleus'),
-                            :by_literature => true
-                )
+#      to_print.push code.agreement_with_top_level_localisation_simple(
+#                                                                  TopLevelLocalisation.find_by_name('nucleus'),
+#                            :by_literature => true
+#                )
 #      to_print.push nucleus_go_term_list_plasmodbs.include?(code.string_id)
 #      to_print.push code.tmhmm.transmembrane_domains.length
 #      matching_ers = ers.collect {|er|
@@ -313,6 +315,7 @@ class BScript
 #      to_print.push code.signalp_however.signal?
 #      to_print.push code.export_pred_however.signal?
 #      to_print.push code.plasmo_a_p.signal?
+      to_print.push hp1_list_plasmodbs.include?(code.string_id)
       
       
       puts to_print.join("\t")
