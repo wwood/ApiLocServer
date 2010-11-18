@@ -24,7 +24,11 @@ because otherwise unassigned genes have the incorrect name %>
 <% else %>
 <!-- for each publication associated with this coding region --><% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b <=> a}.each do |publication| %>
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
+  <% if publication.authors %>
   <%= publication.authors %>&nbsp(<%= publication.date %>, <%= publication.journal %>) <%= publication.title %> <%= link_to 'other genes localised in this publication', :action => :publication, :id => publication.definition %>,
+  <% else %>
+  <%= link_to publication.linkout_url, publication.linkout_url %>
+  <% end %>
   <% if publication.pubmed_id? %><%= link_to 'PubMed', publication.linkout_url%>, <% end %> 
   <%= link_to 'full text', publication.fulltext_url %>
   <br/>
