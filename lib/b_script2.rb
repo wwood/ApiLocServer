@@ -920,7 +920,9 @@ PFI1740c).include?(f)
     end
   end
   
-  def localisation_from_hagai_pathways
+  def localisation_from_hagai_pathways(programmatic=false)
+    pathways = {} #hash of names to array of coding regions
+    
     manual_fixes = {
     'Pf11_0114' => 'PF11_0114',
     'PFB0305c' => 'PFB0305c-a', #-a and -b. -a is MSP5, presumably that's the one he is talking about
@@ -951,9 +953,73 @@ PFI1740c).include?(f)
           end
         end
       end
-#      puts
-      puts filename if codes.empty?
-#      puts codes.reach.string_id.join(", ")
+      
+      if codes.empty?
+        puts filename unless programmatic
+      else
+        if pathways[filename]
+          raise Exception, "Duplicate pathway #{filename}"
+        end
+        pathways[filename] = codes
+      end
+    end
+    pathways
+  end
+  
+  # Iterate through each of the "pathways" in Hagai's database. 
+  def hagai_pathways
+    # first, iterate through the regular pathways
+    pathways = {}#localisation_from_hagai_pathways(true) # has of pathway names to array of coding regions within
+    
+    # second, iterate through the manually parsed pathways
+    manual_fixes = {
+    'PF14_0172' => 'PF14_0173',
+    'PF00_0002' => "MAL7P1.206", # is this new to PlasmoDB 7?
+    }
+    known_to_ignore = %w(PF11_0377)
+    base_dir = "#{PHD_DIR}/screenscraping_hagai/manually_parsed"
+    Dir.foreach(base_dir) do |file|
+      filename = "#{base_dir}/#{file}"
+      next if File.directory?(filename) #Dir gives back "." as well as the plain 'ol files
+      File.open(filename) do |f|
+        codes = []
+        f.each_line do |plasmodb_id|
+          plasmodb_id.strip!
+          plasmodb_id = manual_fixes[plasmodb_id] if manual_fixes[plasmodb_id]
+          code = CodingRegion.ff(plasmodb_id)
+          if code.nil?
+            $stderr.puts "Couldn't parse `#{plasmodb_id}' from #{file}"
+          else
+            codes.push code
+          end
+        end
+        $stderr.puts "Couldn't find any genes in manually parsed pathway #{f}" if codes.empty?
+        raise if pathways[file]
+        pathways[file] = codes
+      end
+    end
+    
+    # yield each pathway
+    pathways.each do |pathway|
+      yield pathway
+    end
+  end
+  
+  # Output a table for each gene with:
+  # * gene id
+  # * falciparum locs
+  # * apicomplexan locs
+  # * yeast/other locs
+  def manual_inspection_of_hagai_pathways
+    hagai_pathways do |name, codes|
+      puts
+      puts name
+      codes.each do |code|
+        puts [
+        code.string_id,
+        code.apilocalisations
+        ].join("\t")
+      end
     end
   end
 end
