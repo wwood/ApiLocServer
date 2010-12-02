@@ -970,35 +970,35 @@ PFI1740c).include?(f)
   # Iterate through each of the "pathways" in Hagai's database. 
   def hagai_pathways
     # first, iterate through the regular pathways
-    pathways = {}#localisation_from_hagai_pathways(true) # has of pathway names to array of coding regions within
+    pathways = localisation_from_hagai_pathways(true) # has of pathway names to array of coding regions within
     
     # second, iterate through the manually parsed pathways
-    manual_fixes = {
-    'PF14_0172' => 'PF14_0173',
-    'PF00_0002' => "MAL7P1.206", # is this new to PlasmoDB 7?
-    }
-    known_to_ignore = %w(PF11_0377)
-    base_dir = "#{PHD_DIR}/screenscraping_hagai/manually_parsed"
-    Dir.foreach(base_dir) do |file|
-      filename = "#{base_dir}/#{file}"
-      next if File.directory?(filename) #Dir gives back "." as well as the plain 'ol files
-      File.open(filename) do |f|
-        codes = []
-        f.each_line do |plasmodb_id|
-          plasmodb_id.strip!
-          plasmodb_id = manual_fixes[plasmodb_id] if manual_fixes[plasmodb_id]
-          code = CodingRegion.ff(plasmodb_id)
-          if code.nil?
-            $stderr.puts "Couldn't parse `#{plasmodb_id}' from #{file}"
-          else
-            codes.push code
-          end
-        end
-        $stderr.puts "Couldn't find any genes in manually parsed pathway #{f}" if codes.empty?
-        raise if pathways[file]
-        pathways[file] = codes
-      end
-    end
+#    manual_fixes = {
+#    'PF14_0172' => 'PF14_0173',
+#    'PF00_0002' => "MAL7P1.206", # is this new to PlasmoDB 7?
+#    }
+#    known_to_ignore = %w(PF11_0377)
+#    base_dir = "#{PHD_DIR}/screenscraping_hagai/manually_parsed"
+#    Dir.foreach(base_dir) do |file|
+#      filename = "#{base_dir}/#{file}"
+#      next if File.directory?(filename) #Dir gives back "." as well as the plain 'ol files
+#      File.open(filename) do |f|
+#        codes = []
+#        f.each_line do |plasmodb_id|
+#          plasmodb_id.strip!
+#          plasmodb_id = manual_fixes[plasmodb_id] if manual_fixes[plasmodb_id]
+#          code = CodingRegion.ff(plasmodb_id)
+#          if code.nil?
+#            $stderr.puts "Couldn't parse `#{plasmodb_id}' from #{file}"
+#          else
+#            codes.push code
+#          end
+#        end
+#        $stderr.puts "Couldn't find any genes in manually parsed pathway #{f}" if codes.empty?
+#        raise if pathways[file]
+#        pathways[file] = codes
+#      end
+#    end
     
     # yield each pathway
     pathways.each do |pathway|

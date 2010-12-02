@@ -21,13 +21,17 @@ class ApilocController < ApplicationController
   
   def gene
     gene_id = params[:id]
+    # Some gene IDs have dots in them, and rails splits these up. Fix that.
     gene_id += ".#{params[:id2]}" unless params[:id2].nil?
     gene_id += ".#{params[:id3]}" unless params[:id3].nil?
     
+    # If a gene ID but not species is given, make it so.
     if params[:species] and gene_id.nil?
       gene_id = params[:species]
       params[:species] = nil
     end
+    #whitespace is pernicious, and isn't trailing or initialising gene ids I know of
+    gene_id.strip!
     
     codes = []
     if !gene_id or gene_id == ''
