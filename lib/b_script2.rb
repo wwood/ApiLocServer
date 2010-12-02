@@ -929,8 +929,9 @@ PFI1740c).include?(f)
     'PPFI1370c' => 'PFI1370c',
     'PFL2210' => 'PFL2210w',
     'PFE1030' => 'PFE1030c',
+    'PFE1030' => 'PFE1030c',
     }
-    known_to_ignore = %w(PFC0710w PF11_0410 PF10_0168 PFC0710w PFC0710w PF11_0410 coI coxIII)
+    known_to_ignore = %w(#PFC0710w PF11_0410 PF10_0168 PFC0710w PFC0710w PF11_0410 coI coxIII)
     
     # parse the html files in /home/ben/phd/screenscraping_hagai/sites.huji.ac.il/malaria/maps
     # and classify each pathway with a localisation, being careful of course.
@@ -1015,9 +1016,31 @@ PFI1740c).include?(f)
       puts
       puts name
       codes.each do |code|
+        ogene = code.single_orthomcl!
+        group = nil
+        unless ogene.nil? #unless there is not orthomcl linked
+          group = ogene.official_group
+        end
+        other_species = []
+        unless group.nil?
+          other_species = CodingRegion.go_cc_usefully_termed.not_apicomplexan.all(
+            :joins => {:orthomcl_genes => :orthomcl_groups},
+            :conditions => ["orthomcl_groups.id = ?", group.id],
+            :select => 'distinct(coding_regions.*)',
+            :order => 'coding_regions.id'
+          )
+        end
+        
+        
         puts [
         code.string_id,
-        code.apilocalisations
+        code.annotation.annotation,
+        code.apilocalisations.reach.name.join(", "),
+        other_species.collect{|c| 
+        [c.species.name, c.string_id,
+        c.coding_region_go_terms.cc.useful.all.uniq.reach.go_term.term.join(", "),
+        ].join('-')
+        }.join('   ')
         ].join("\t")
       end
     end
