@@ -144,6 +144,7 @@ class Localisation < ActiveRecord::Base
   end
   
   # Parse a line from the dirty localisation files. Return an array of (unsaved) ExpressionContext objects
+  # also needs a species object (not a species name)
   def parse_name(dirt, species)
     contexts = []
     # split on commas
