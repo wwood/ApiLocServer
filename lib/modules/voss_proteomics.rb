@@ -14,21 +14,23 @@ class BScript
     puts [
       'PlasmoDB',
     #          'Annotation',
-              'Common names',
-              'ApiLoc Localisation(s)',
-              'ApiLoc Localisation(s) in Apicomplexan Orthologues',
+#              'Common names',
+#              'ApiLoc Localisation(s)',
+#              'ApiLoc Localisation(s) in Apicomplexan Orthologues',
     #      'PlasmoAP?',
     #        'Plasmit?',
     #      'SignalP?',
     #      #      'Transmembrane domain # (TMHMM)',
     #      'ExportPred score > 0?',
-          'Agreement with nuclear simple',
-          'Agreement with ER simple',
-    'Literature survey localisations',
-          'Literature survey localisation description',
-          'Literature survey nuclear agreement',
-      'Literature survey ER agreement',
-      'Localisation description of Orthologue(s)',
+#          'Agreement with nuclear simple',
+#          'Agreement with ER simple',
+#    'Literature survey localisations',
+#          'Literature survey localisation description',
+#          'Literature survey nuclear agreement',
+#      'Literature survey ER agreement',
+#      'Localisation description of Orthologue(s)',
+      'Metabolic Maps nuclear agreement simple',
+      'Metabolic Maps ER agreement simple',
     #  'Included in Maurer\'s Cleft proteome?',
     #  'Included in Food Vacuole proteome?',
     #      top_names.collect{|n| "'#{n}' Agreement"},
@@ -49,34 +51,34 @@ class BScript
       if code.nil?
         puts "Couldn't find this gene ID"
       else
-
-        orth_str = nil
-        begin
-          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
-          if localised_orths.nil?
-            orth_str = 'no entry in OrthoMCL v3'
-          else
-            orth_str = localised_orths.reject{
-              |c| c.id == code.id
-            }.reach.localisation_english.join(' | ')
-          end
-        rescue OrthomclGene::UnexpectedCodingRegionCount
-          orth_str = 'multiple OrthoMCL orthologues found'
-        end
         
-        # second class the same thing
-        lit_orth_str = nil
-        begin
-          localised_orths = code.localised_apicomplexan_orthomcl_orthologues(:by_literature => true)
-          if localised_orths.nil?
-            lit_orth_str = 'no entry in OrthoMCL v3'
-          else
-            lit_orth_str = localised_orths.reject{
-              |c| c.id == code.id
-            }.reach.localisation_english(:by_literature => true).join(' | ')
-          end        rescue OrthomclGene::UnexpectedCodingRegionCount
-          lit_orth_str = 'multiple OrthoMCL orthologues found'
-        end
+#        orth_str = nil
+#        begin
+#          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
+#          if localised_orths.nil?
+#            orth_str = 'no entry in OrthoMCL v3'
+#          else
+#            orth_str = localised_orths.reject{
+#              |c| c.id == code.id
+#            }.reach.localisation_english.join(' | ')
+#          end
+#        rescue OrthomclGene::UnexpectedCodingRegionCount
+#          orth_str = 'multiple OrthoMCL orthologues found'
+#        end
+#        
+#        # second class the same thing
+#        lit_orth_str = nil
+#        begin
+#          localised_orths = code.localised_apicomplexan_orthomcl_orthologues(:by_literature => true)
+#          if localised_orths.nil?
+#            lit_orth_str = 'no entry in OrthoMCL v3'
+#          else
+#            lit_orth_str = localised_orths.reject{
+#              |c| c.id == code.id
+#            }.reach.localisation_english(:by_literature => true).join(' | ')
+#          end        rescue OrthomclGene::UnexpectedCodingRegionCount
+#          lit_orth_str = 'multiple OrthoMCL orthologues found'
+#        end
         
         #        maurers_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME)
         #        fv_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME)
@@ -110,33 +112,41 @@ class BScript
         
         puts [
         #        code.annotation.annotation,
-                code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.uniq.join(', '),
-                code.localisation_english,
-                orth_str,
+        #                code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.uniq.join(', '),
+        #                code.localisation_english,
+        #                orth_str,
         #          code.plasmo_a_p.signal?,
         #                code.plasmit?,
         #          code.signalp_however.signal?,
         #          code.tmhmm.transmembrane_domains.length,
         #          code.amino_acid_sequence.exportpred.predicted?,
-                code.names.reject{|n| n==code.string_id}.join(', '),
-                code.agreement_with_top_level_localisation_simple(
-                                                                  TopLevelLocalisation.find_by_name('nucleus')
-                ),
-                code.agreement_with_top_level_localisation_simple(
-                                                                  TopLevelLocalisation.find_by_name('endoplasmic reticulum')
-                ),
-        code.literature_based_top_level_localisations.reach.name.uniq.join(', '),
-                code.localisation_english(:by_literature => true),
-                code.agreement_with_top_level_localisation_simple(
-                                                                  TopLevelLocalisation.find_by_name('nucleus'),
-                            :by_literature => true
-                ),
+        #                code.names.reject{|n| n==code.string_id}.join(', '),
+        #                code.agreement_with_top_level_localisation_simple(
+        #                                                                  TopLevelLocalisation.find_by_name('nucleus')
+        #                ),
+        #                code.agreement_with_top_level_localisation_simple(
+        #                                                                  TopLevelLocalisation.find_by_name('endoplasmic reticulum')
+        #                ),
+        #        code.literature_based_top_level_localisations.reach.name.uniq.join(', '),
+        #                code.localisation_english(:by_literature => true),
+        #                code.agreement_with_top_level_localisation_simple(
+        #                                                                  TopLevelLocalisation.find_by_name('nucleus'),
+        #                            :by_literature => true
+        #                ),
+        #        code.agreement_with_top_level_localisation_simple(
+        #                                                          TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
+        #                    :by_literature => true
+        #        ),
+#        lit_orth_str,
+        code.agreement_with_top_level_localisation_simple(
+                                                          TopLevelLocalisation.find_by_name('nucleus'),
+                            :expression_context_evidence_class => :metabolic_maps_expression_contexts
+        ),
         code.agreement_with_top_level_localisation_simple(
                                                           TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
-                    :by_literature => true
+                    :expression_context_evidence_class => :metabolic_maps_expression_contexts
         ),
-                lit_orth_str,
-
+        
         #        maurers_proteome.coding_regions.include?(code),
         #        fv_proteome.coding_regions.include?(code),
         #        top_names.collect{|top_name|
@@ -153,7 +163,7 @@ class BScript
         #          code.proteomics(nil, 1).length > 0,
         #          code.proteomics.length > 0
         #        measure,
-
+        
         #        measure_ring,
         #        measure_troph,
         #        measure_schizont,
@@ -270,51 +280,51 @@ class BScript
     
     puts [
     "PlasmoDB ID",
-#    'Annotation (PlasmoDB 6.4)',
-#    'ApiLoc localisation description',
-#    'OrthoMCL links ApiLoc description',
-#    'Agreement with nucleus',
-#    'Agreement with literature survey nucleus?',
-#    'nucleus GO term',
-#    "Number of transmembrane domains (not including Signal Peptide)",
-#    "ER retention motifs",
-#    'Plasmit?',
-#    'GPI?',
-#    'SignalP?',
-#    'ExportPred?',
-#    'PlasmoAP?'
+    #    'Annotation (PlasmoDB 6.4)',
+    #    'ApiLoc localisation description',
+    #    'OrthoMCL links ApiLoc description',
+    #    'Agreement with nucleus',
+    #    'Agreement with literature survey nucleus?',
+    #    'nucleus GO term',
+    #    "Number of transmembrane domains (not including Signal Peptide)",
+    #    "ER retention motifs",
+    #    'Plasmit?',
+    #    'GPI?',
+    #    'SignalP?',
+    #    'ExportPred?',
+    #    'PlasmoAP?'
     'HP1?'
     ].join("\t")
     
-#    nucleus_go_term_list_plasmodbs = PlasmodbGeneList.find_by_description("PlasmoDB nucleus GO terms").coding_regions.reach.string_id.retract
+    #    nucleus_go_term_list_plasmodbs = PlasmodbGeneList.find_by_description("PlasmoDB nucleus GO terms").coding_regions.reach.string_id.retract
     hp1_list_plasmodbs = PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_HP1_LIST_NAME).coding_regions.reach.string_id.retract
     raise Exception, "bad hp1 list!" unless hp1_list_plasmodbs.length == 537
     
     foreach_code = lambda do |code, plasmodb_id|
       to_print = []
       to_print.push plasmodb_id
-#      to_print.push code.agreement_with_top_level_localisation_simple(
-#                                                                  TopLevelLocalisation.find_by_name('nucleus'),
-#                            :by_literature => true
-#                )
-#      to_print.push nucleus_go_term_list_plasmodbs.include?(code.string_id)
-#      to_print.push code.tmhmm.transmembrane_domains.length
-#      matching_ers = ers.collect {|er|
-#        if matches = er.regex.match(code.aaseq)
-#          er.signal
-#        else
-#          nil
-#        end
-#      }.no_nils
-#      to_print.push matching_ers.empty? ? 'none' : matching_ers.join(',')
-#      
-#      to_print.push code.plasmit?
-#      
-#      to_print.push gpi_list_codes.include?(code.string_id)
-#      
-#      to_print.push code.signalp_however.signal?
-#      to_print.push code.export_pred_however.signal?
-#      to_print.push code.plasmo_a_p.signal?
+      #      to_print.push code.agreement_with_top_level_localisation_simple(
+      #                                                                  TopLevelLocalisation.find_by_name('nucleus'),
+      #                            :by_literature => true
+      #                )
+      #      to_print.push nucleus_go_term_list_plasmodbs.include?(code.string_id)
+      #      to_print.push code.tmhmm.transmembrane_domains.length
+      #      matching_ers = ers.collect {|er|
+      #        if matches = er.regex.match(code.aaseq)
+      #          er.signal
+      #        else
+      #          nil
+      #        end
+      #      }.no_nils
+      #      to_print.push matching_ers.empty? ? 'none' : matching_ers.join(',')
+      #      
+      #      to_print.push code.plasmit?
+      #      
+      #      to_print.push gpi_list_codes.include?(code.string_id)
+      #      
+      #      to_print.push code.signalp_however.signal?
+      #      to_print.push code.export_pred_however.signal?
+      #      to_print.push code.plasmo_a_p.signal?
       to_print.push hp1_list_plasmodbs.include?(code.string_id)
       
       

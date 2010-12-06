@@ -39,10 +39,12 @@ class CodingRegion < ActiveRecord::Base
   has_many :microarray_timepoints, :through => :microarray_measurements
   has_many :expression_contexts, :dependent => :destroy
   has_many :second_class_citizen_expression_contexts, :dependent => :destroy
+  has_many :metabolic_maps_expression_contexts, :dependent => :destroy
   has_many :localisation_annotations, :dependent => :destroy
   has_many :expressed_localisations, :through => :expression_contexts, :source => :localisation, :conditions => ['evidence_coded_expression_contexts.type = ?','ExpressionContext']
   has_many :expressed_developmental_stages, :through => :expression_contexts, :source => :developmental_stage, :conditions => ['evidence_coded_expression_contexts.type = ?','ExpressionContext']
   has_many :expressed_second_class_citizen_localisations, :through => :second_class_citizen_expression_contexts, :source => :localisation
+  has_many :expressed_metabolic_maps_expression_contexts, :through => :metabolic_maps_expression_contexts, :source => :localisation
   has_many :integer_coding_region_measurements, :dependent => :destroy
   has_many :proteomic_experiment_results, :dependent => :destroy
   has_many :proteomic_experiment_peptides, :dependent => :destroy
@@ -259,7 +261,7 @@ class CodingRegion < ActiveRecord::Base
   
   concerned_with :machine_learning
   concerned_with :orthology
-  concerned_with :localisation
+  concerned_with :localisation_stuff
   concerned_with :ontology
   
   def calculate_upstream_region
@@ -880,6 +882,23 @@ class CodingRegion < ActiveRecord::Base
       :joins => {:apiloc_localisations => {:expression_contexts => :coding_region}},
       :conditions => {:coding_regions => {:id => id}}
     ).uniq.reject{|t| t.negative?}
+  end
+  
+  # E.g. tops_by_evidence(:second_class_citizen_expression_contexts) is 
+  # equivalent to literature_based_top_level_localisations()
+  def tops_by_evidence(expression_context_lower_class_name)
+    TopLevelLocalisation.all(
+      :joins => {:apiloc_localisations => {expression_context_lower_class_name => :coding_region}},
+      :conditions => {:coding_regions => {:id => id}}
+    )
+  end
+  
+  # E.g expressed_localisations_by_evidence(:second_class_citizen_expression_contexts)
+  def expressed_localisations_by_evidence(expression_context_lower_class_name)
+    Localisation.all(
+      :joins => {expression_context_lower_class_name => :coding_region},
+      :conditions => {:coding_regions => {:id => id}}
+    )
   end
   
   def single_top_level_localisation

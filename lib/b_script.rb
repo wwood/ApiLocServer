@@ -41,6 +41,7 @@ require 'modules/second_class_citizens'
 require 'modules/voss_proteomics'
 require 'modules/hydrophobic_mysteries'
 require 'modules/microarray'
+require 'modules/malaria_parasite_metabolic_pathways.rb'
 require 'b_script2'
 
 
