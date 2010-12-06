@@ -14,21 +14,21 @@ class BScript
     puts [
       'PlasmoDB',
     #          'Annotation',
-#              'Common names',
-#              'ApiLoc Localisation(s)',
-#              'ApiLoc Localisation(s) in Apicomplexan Orthologues',
+    #              'Common names',
+    #              'ApiLoc Localisation(s)',
+    #              'ApiLoc Localisation(s) in Apicomplexan Orthologues',
     #      'PlasmoAP?',
     #        'Plasmit?',
     #      'SignalP?',
     #      #      'Transmembrane domain # (TMHMM)',
     #      'ExportPred score > 0?',
-#          'Agreement with nuclear simple',
-#          'Agreement with ER simple',
-#    'Literature survey localisations',
-#          'Literature survey localisation description',
-#          'Literature survey nuclear agreement',
-#      'Literature survey ER agreement',
-#      'Localisation description of Orthologue(s)',
+    #          'Agreement with nuclear simple',
+    #          'Agreement with ER simple',
+    #    'Literature survey localisations',
+    #          'Literature survey localisation description',
+    #          'Literature survey nuclear agreement',
+    #      'Literature survey ER agreement',
+    #      'Localisation description of Orthologue(s)',
       'Metabolic Maps nuclear agreement simple',
       'Metabolic Maps ER agreement simple',
     #  'Included in Maurer\'s Cleft proteome?',
@@ -52,33 +52,33 @@ class BScript
         puts "Couldn't find this gene ID"
       else
         
-#        orth_str = nil
-#        begin
-#          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
-#          if localised_orths.nil?
-#            orth_str = 'no entry in OrthoMCL v3'
-#          else
-#            orth_str = localised_orths.reject{
-#              |c| c.id == code.id
-#            }.reach.localisation_english.join(' | ')
-#          end
-#        rescue OrthomclGene::UnexpectedCodingRegionCount
-#          orth_str = 'multiple OrthoMCL orthologues found'
-#        end
-#        
-#        # second class the same thing
-#        lit_orth_str = nil
-#        begin
-#          localised_orths = code.localised_apicomplexan_orthomcl_orthologues(:by_literature => true)
-#          if localised_orths.nil?
-#            lit_orth_str = 'no entry in OrthoMCL v3'
-#          else
-#            lit_orth_str = localised_orths.reject{
-#              |c| c.id == code.id
-#            }.reach.localisation_english(:by_literature => true).join(' | ')
-#          end        rescue OrthomclGene::UnexpectedCodingRegionCount
-#          lit_orth_str = 'multiple OrthoMCL orthologues found'
-#        end
+        #        orth_str = nil
+        #        begin
+        #          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
+        #          if localised_orths.nil?
+        #            orth_str = 'no entry in OrthoMCL v3'
+        #          else
+        #            orth_str = localised_orths.reject{
+        #              |c| c.id == code.id
+        #            }.reach.localisation_english.join(' | ')
+        #          end
+        #        rescue OrthomclGene::UnexpectedCodingRegionCount
+        #          orth_str = 'multiple OrthoMCL orthologues found'
+        #        end
+        #        
+        #        # second class the same thing
+        #        lit_orth_str = nil
+        #        begin
+        #          localised_orths = code.localised_apicomplexan_orthomcl_orthologues(:by_literature => true)
+        #          if localised_orths.nil?
+        #            lit_orth_str = 'no entry in OrthoMCL v3'
+        #          else
+        #            lit_orth_str = localised_orths.reject{
+        #              |c| c.id == code.id
+        #            }.reach.localisation_english(:by_literature => true).join(' | ')
+        #          end        rescue OrthomclGene::UnexpectedCodingRegionCount
+        #          lit_orth_str = 'multiple OrthoMCL orthologues found'
+        #        end
         
         #        maurers_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME)
         #        fv_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME)
@@ -137,7 +137,7 @@ class BScript
         #                                                          TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
         #                    :by_literature => true
         #        ),
-#        lit_orth_str,
+        #        lit_orth_str,
         code.agreement_with_top_level_localisation_simple(
                                                           TopLevelLocalisation.find_by_name('nucleus'),
                             :expression_context_evidence_class => :metabolic_maps_expression_contexts
@@ -556,5 +556,41 @@ class BScript
       end
     end
     $stderr.puts "Failed #{failed_count}."
+  end
+  
+  def voss_annotated_proteins_counting
+    {
+      ExpressionContext => :expression_contexts,
+      SecondClassCitizenExpressionContext => :second_class_citizen_expression_contexts,
+      MetabolicMapsExpressionContext => :metabolic_maps_expression_contexts,
+    }.each do |clazz, s|
+      nucs = []
+      not_nucs = []
+      nils = []
+      
+      nuc_top = TopLevelLocalisation.find_by_name('nucleus')
+      CodingRegion.falciparum.all(:joins => s).uniq.each do |code|
+        agree = code.agreement_with_top_level_localisation_simple(
+                                                                  TopLevelLocalisation.find_by_name('nucleus'),
+                            :expression_context_evidence_class => s
+        )
+        if agree == 'agree'
+          nucs.push code
+        elsif agree == 'disagree'
+          not_nucs.push code
+        elsif agree.nil? or agree == 'conflict'
+          nils.push code
+        else
+          raise Exception, "programming error - agree was #{agree}"
+        end
+      end
+      
+      puts [
+      s.to_s,
+      nucs.length,
+      not_nucs.length + nucs.length,
+      nils.length
+      ].join("\t")
+    end
   end
 end
