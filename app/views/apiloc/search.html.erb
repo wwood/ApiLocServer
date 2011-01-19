@@ -1,0 +1,46 @@
+<script type="text/javascript">
+  /* Toggle a list between expanded and retracted forms */
+  function toggle(list_id, image_id){
+      if (document.getElementById(list_id).style.display == 'block') {
+          document.getElementById(list_id).style.display = 'none';
+          document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_plus.gif")%>');
+      }
+      else {
+          document.getElementById(list_id).style.display = 'block';
+          document.getElementById(image_id).setAttribute('src', '<%= image_path("sqr_bullet_minus.gif")%>');
+      }
+  }
+</script>
+
+
+<h2>Search for Multiple Genes</h2>
+<p>
+    Input multiple gene identifiers separated by commas or newlines. It is preferable to input EuPathDB identifiers, but you can also try your luck with other identifiers as well. For instance TgROM4 should find <%= link_to 'TGME49_068590', :action => :gene, :id => 'TGME49_068590' %>
+</p>
+<% form_tag 'annotate'  do -%>
+<%= text_area_tag "ids", nil, :size => '40x10' %>
+<br/>
+<%= submit_tag 'Annotate' %>
+
+<!-- advanced options -->
+<h3>Advanced options</h3>
+<h4>Species</h4>
+Would you like to search by identifiers from all species, or one in particular
+<%= radio_button_tag 'species', 'whateva' %>
+<!-- popular species -->
+<% popular_species.each do |sp| %>
+  <%= radio_button_tag 'species', sp.name %>
+<% end %>
+<!-- unpopular species -->
+<li><%= image_tag("sqr_bullet_plus.gif", :id=>"expandable_unpopular_species_image", :alt=>"expand", :onclick=>"toggle('expandable_unpopular_species','expandable_unpopular_species_image')")%>&nbsp;&nbsp;
+  other</li>
+<li style="display:none" id="expandable_unpopular_species">
+  <ul>
+  	<% Species.apicomplexan.all(
+      :select => 'distinct(species.*) ',
+      :order => 'name',
+      :conditions => "name not in #{popular_species.to_sql_in_string}").each do |sp| %>
+	  <%= radio_button_tag 'species', sp.name %>
+    <% end %>
+  </ul>
+</li>

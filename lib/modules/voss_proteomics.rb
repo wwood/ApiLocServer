@@ -22,15 +22,15 @@ class BScript
     #      'SignalP?',
     #      #      'Transmembrane domain # (TMHMM)',
     #      'ExportPred score > 0?',
-    #          'Agreement with nuclear simple',
+              'Agreement with nuclear simple manually inspected',
     #          'Agreement with ER simple',
     #    'Literature survey localisations',
     #          'Literature survey localisation description',
     #          'Literature survey nuclear agreement',
     #      'Literature survey ER agreement',
     #      'Localisation description of Orthologue(s)',
-      'Metabolic Maps nuclear agreement simple',
-      'Metabolic Maps ER agreement simple',
+    #      'Metabolic Maps nuclear agreement simple',
+    #      'Metabolic Maps ER agreement simple',
     #  'Included in Maurer\'s Cleft proteome?',
     #  'Included in Food Vacuole proteome?',
     #      top_names.collect{|n| "'#{n}' Agreement"},
@@ -51,6 +51,12 @@ class BScript
       if code.nil?
         puts "Couldn't find this gene ID"
       else
+        
+        ## Determine nucleus agreement with manual annotation
+        nucleus_agreement_simple = manually_correct_some_nucleus_agreements(code)
+        nucleus_agreement_simple ||= code.agreement_with_top_level_localisation_simple(
+                                                          TopLevelLocalisation.find_by_name('nucleus')
+        )
         
         #        orth_str = nil
         #        begin
@@ -121,9 +127,7 @@ class BScript
         #          code.tmhmm.transmembrane_domains.length,
         #          code.amino_acid_sequence.exportpred.predicted?,
         #                code.names.reject{|n| n==code.string_id}.join(', '),
-        #                code.agreement_with_top_level_localisation_simple(
-        #                                                                  TopLevelLocalisation.find_by_name('nucleus')
-        #                ),
+        nucleus_agreement_simple
         #                code.agreement_with_top_level_localisation_simple(
         #                                                                  TopLevelLocalisation.find_by_name('endoplasmic reticulum')
         #                ),
@@ -138,14 +142,14 @@ class BScript
         #                    :by_literature => true
         #        ),
         #        lit_orth_str,
-        code.agreement_with_top_level_localisation_simple(
-                                                          TopLevelLocalisation.find_by_name('nucleus'),
-                            :expression_context_evidence_class => :metabolic_maps_expression_contexts
-        ),
-        code.agreement_with_top_level_localisation_simple(
-                                                          TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
-                    :expression_context_evidence_class => :metabolic_maps_expression_contexts
-        ),
+        #        code.agreement_with_top_level_localisation_simple(
+        #                                                          TopLevelLocalisation.find_by_name('nucleus'),
+        #                            :expression_context_evidence_class => :metabolic_maps_expression_contexts
+        #        ),
+        #        code.agreement_with_top_level_localisation_simple(
+        #                                                          TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
+        #                    :expression_context_evidence_class => :metabolic_maps_expression_contexts
+        #        ),
         
         #        maurers_proteome.coding_regions.include?(code),
         #        fv_proteome.coding_regions.include?(code),
@@ -565,16 +569,29 @@ class BScript
       MetabolicMapsExpressionContext => :metabolic_maps_expression_contexts,
     }.each do |clazz, s|
       nucs = []
+      sorta_nucs = []
       not_nucs = []
       nils = []
+      ers = []
       
       nuc_top = TopLevelLocalisation.find_by_name('nucleus')
       CodingRegion.falciparum.all(:joins => s).uniq.each do |code|
+        endo_agree = code.agreement_with_top_level_localisation_simple(
+                                                                       TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
+                            :expression_context_evidence_class => s
+        )
+        if endo_agree == 'agree'
+          ers.push code
+          next
+        end
         agree = code.agreement_with_top_level_localisation_simple(
                                                                   TopLevelLocalisation.find_by_name('nucleus'),
                             :expression_context_evidence_class => s
         )
         if agree == 'agree'
+          if code.tops_by_evidence(s).reject{|top| %w(nucleus cytoplasm).push('not cytoplasm').include?(top.name)}.length > 0
+            sorta_nucs.push code
+          end
           nucs.push code
         elsif agree == 'disagree'
           not_nucs.push code
@@ -589,8 +606,31 @@ class BScript
       s.to_s,
       nucs.length,
       not_nucs.length + nucs.length,
-      nils.length
+      nils.length,
+      ers.length
       ].join("\t")
+      
+      sorta_nucs.each do |code|
+        puts [
+        code.names.join(', '),
+        code.tops_by_evidence(s).sort{|a,b| a.name<=>b.name}.uniq.reach.name.join(', '),
+        code.localisation_english,
+        ].join("\t")
+      end
     end
+  end
+  
+  def manually_correct_some_nucleus_agreements(coding_region)
+    # by default, anything that is nuclear is in agreement. However, some are manually changed due to literature disagreements
+    hash = {
+    'PF10_0155' => 'conflict', #enolase
+    'PF10_0395' => 'conflict',#stevor
+    'PFE0285c' => 'exclude', #sumo
+    'PFE0360c' => 'conflict', #unnamed, from pull-down
+    }
+    if hash[coding_region.string_id]
+      return hash[coding_region.string_id]
+    end
+    return nil
   end
 end
