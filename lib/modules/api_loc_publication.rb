@@ -2386,8 +2386,9 @@ class BScript
     
     # Print titles
     puts [
+    "Localistion or Developmental Stage?",
     "Species",
-    "Full name",
+    "Full name(s)",
     "Synonym"
     ].join(sep)
     
