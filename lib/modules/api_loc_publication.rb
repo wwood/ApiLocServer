@@ -2385,4 +2385,41 @@ class BScript
       end
     end
   end
+  
+  # Create a spreadsheet with all the synonyms, so it can be attached as supplementary
+  def synonyms_spreadsheet
+    sep = "\t"
+    
+    # Print titles
+    puts [
+    "Species",
+    "Full name",
+    "Synonym"
+    ].join(sep)
+    
+    # Print all the synonyms
+    LocalisationConstants::KNOWN_LOCALISATION_SYNONYMS.each do |sp, hash|
+      if sp == Species::OTHER_SPECIES #for species not with a genome project
+#     Species::OTHER_SPECIES => {
+#      'Sarcocystis muris' => {
+#        'surface' => 'cell surface'
+#      },
+#      'Babesia gibsoni' => {
+#        'surface' => 'cell surface',
+#        'erythrocyte cytoplasm' => 'host cell cytoplasm',
+#        'pm' => 'plasma membrane',
+#        'membrane' => 'plasma membrane'
+#      },
+        hash.each do |species_name, hash2|
+          hash2.each do |synonym, actual|
+            puts [species_name, actual, synonym].join(sep)
+          end
+        end
+      else #normal species
+        hash.each do |synonym, actual|
+          puts [sp, actual, synonym].join(sep)
+        end
+      end
+    end
+  end
 end
