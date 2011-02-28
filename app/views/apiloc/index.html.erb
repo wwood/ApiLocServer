@@ -148,7 +148,7 @@
   <h2>Proteomic Experiments</h2>
   <ul>
     <% popular_proteomic_experiments.each do |pro| %>
-      <li><%= link_to proteomic_experiment_name_to_italics(pro.name), :action => :proteome, :id => pro.name %></li>
+      <li><%= link_to proteomic_experiment_name_to_italics(pro.name), :action => :proteome, :id => CGI.escape(pro.name) %></li>
     <% end %>
   </ul>
 </div>
