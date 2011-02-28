@@ -2393,8 +2393,8 @@ class BScript
     
     # Procedure for printing out each of the hits
     printer = lambda do |species_name, actual, synonym, cv_name|
-      if synonym.kind_of?(Array)
-        puts [cv_name, species_name, actual, synonym.join(",")].join(sep)
+      if actual.kind_of?(Array)
+        puts [cv_name, species_name, actual.join(","), synonym].join(sep)
       else
         puts [cv_name, species_name, actual, synonym].join(sep)
       end
