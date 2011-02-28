@@ -2391,27 +2391,47 @@ class BScript
     "Synonym"
     ].join(sep)
     
+    # Procedure for printing out each of the hits
+    printer = lambda do |species_name, actual, synonym, cv_name|
+      if synonym.kind_of?(Array)
+        puts [cv_name, species_name, actual, synonym.join(",")].join(sep)
+      else
+        puts [cv_name, species_name, actual, synonym].join(sep)
+      end
+    end
+    
     # Print all the synonyms
-    LocalisationConstants::KNOWN_LOCALISATION_SYNONYMS.each do |sp, hash|
-      if sp == Species::OTHER_SPECIES #for species not with a genome project
-#     Species::OTHER_SPECIES => {
-#      'Sarcocystis muris' => {
-#        'surface' => 'cell surface'
-#      },
-#      'Babesia gibsoni' => {
-#        'surface' => 'cell surface',
-#        'erythrocyte cytoplasm' => 'host cell cytoplasm',
-#        'pm' => 'plasma membrane',
-#        'membrane' => 'plasma membrane'
-#      },
-        hash.each do |species_name, hash2|
-          hash2.each do |synonym, actual|
-            puts [species_name, actual, synonym].join(sep)
+    [
+    LocalisationConstants::KNOWN_LOCALISATION_SYNONYMS,
+    DevelopmentalStageConstants::KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS, 
+    ].each do |cv|
+      
+      cv_name = {
+      DevelopmentalStageConstants::KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS => 'Developmental Stage',
+      LocalisationConstants::KNOWN_LOCALISATION_SYNONYMS => 'Localisation'
+      }[cv]
+      
+      cv.each do |sp, hash|
+        if sp == Species::OTHER_SPECIES #for species not with a genome project
+          #     Species::OTHER_SPECIES => {
+          #      'Sarcocystis muris' => {
+          #        'surface' => 'cell surface'
+          #      },
+          #      'Babesia gibsoni' => {
+          #        'surface' => 'cell surface',
+          #        'erythrocyte cytoplasm' => 'host cell cytoplasm',
+          #        'pm' => 'plasma membrane',
+          #        'membrane' => 'plasma membrane'
+          #      },
+          hash.each do |species_name, hash2|
+            hash2.each do |synonym, actual|
+              printer.call(species_name, actual, synonym, cv_name)
+            end
           end
-        end
-      else #normal species
-        hash.each do |synonym, actual|
-          puts [sp, actual, synonym].join(sep)
+        else #normal species
+          hash.each do |synonym, actual|
+            printer.call(sp, actual, synonym, cv_name)
+          end
         end
       end
     end
