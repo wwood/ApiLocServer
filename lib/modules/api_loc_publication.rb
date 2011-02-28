@@ -6,7 +6,7 @@ class BScript
     puts "For each species, how many genes, publications"
     total_proteins = 0
     total_publications = 0
-    Species.apicomplexan.all(:order => 'name').each do |s|
+    Species.apicomplexan.all.push(Species.find_by_name(Species::BABESIA_BOVIS_NAME)).sort{|a,b| a.name <=> b.name}.each do |s|
       protein_count = s.number_or_proteins_localised_in_apiloc
       publication_count = s.number_or_publications_in_apiloc
       
@@ -35,17 +35,11 @@ class BScript
     
     puts '<table>'
     puts '<tr><th>Species</th><th>Localised genes</th><th>Publications curated</th></tr>'
-    Species.apicomplexan.all(:order => 'name').each do |s|
+    Species.apicomplexan.all.push(Species.find_by_name(Species::BABESIA_BOVIS_NAME)).sort{|a,b| a.name <=> b.name}.each do |s|
       protein_count = s.number_or_proteins_localised_in_apiloc
       publication_count = s.number_or_publications_in_apiloc
       
-      print '<tr><td>'
-      print [
-      s.name,
-      protein_count,
-      publication_count,
-      ].join("</td><td>")
-      puts '</td></tr>'
+      puts "<tr><td><i>#{s.name}</i></td><td>#{protein_count}</td><td>#{publication_count}</td></tr>"
       
       total_proteins += protein_count
       total_publications += publication_count
