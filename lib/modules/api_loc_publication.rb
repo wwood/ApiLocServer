@@ -2408,8 +2408,8 @@ class BScript
     ].each do |cv|
       
       cv_name = {
-      DevelopmentalStageConstants::KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS => 'Developmental Stage',
-      LocalisationConstants::KNOWN_LOCALISATION_SYNONYMS => 'Localisation'
+        DevelopmentalStageConstants::KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS => 'Developmental Stage',
+        LocalisationConstants::KNOWN_LOCALISATION_SYNONYMS => 'Localisation'
       }[cv]
       
       cv.each do |sp, hash|
@@ -2435,6 +2435,27 @@ class BScript
           end
         end
       end
+    end
+  end
+  
+  def umbrella_localisations_controlled_vocabulary
+    sep = "\t"
+    
+    # Print titles
+    puts [
+    "Localistion or Developmental Stage?",
+    "Umbrella",
+    "Specific Localisation Name"
+    ].join(sep)
+    
+    ApilocLocalisationTopLevelLocalisation::APILOC_TOP_LEVEL_LOCALISATION_HASH.each do |umbrella, unders|
+      unders.each do |under|
+        puts ["Localisation", umbrella, under].join(sep)
+      end
+    end
+    
+    DevelopmentalStageTopLevelDevelopmentalStage::APILOC_DEVELOPMENTAL_STAGE_TOP_LEVEL_DEVELOPMENTAL_STAGES.each do |under, umbrella|
+      puts ["Developmental Stage", umbrella, under].join(sep)
     end
   end
 end
