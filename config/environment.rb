@@ -78,7 +78,7 @@ Rails::Initializer.run do |config|
   
   # include a cache sweeper directory that fits into the app/ scheme, as suggested by
   # http://railsenvy.com/2007/2/28/rails-caching-tutorial#sweepers
-  autoload_paths += %W( #{RAILS_ROOT}/app/sweepers )
+  config.autoload_paths += %W( #{RAILS_ROOT}/app/sweepers )
 end
 
 # Simple class defintions that don't really need their own file since they are too short
