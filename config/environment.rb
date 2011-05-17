@@ -7,7 +7,7 @@
 # Specifies gem version of Rails to use when vendor/rails is not present
 # Ben removed this because I couldn't be bothered changing manually when
 # every new version of rails is released.
-RAILS_GEM_VERSION = '2.3.8' unless defined? RAILS_GEM_VERSION
+RAILS_GEM_VERSION = '2.3.11' unless defined? RAILS_GEM_VERSION
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')
@@ -78,7 +78,7 @@ Rails::Initializer.run do |config|
   
   # include a cache sweeper directory that fits into the app/ scheme, as suggested by
   # http://railsenvy.com/2007/2/28/rails-caching-tutorial#sweepers
-  config.load_paths += %W( #{RAILS_ROOT}/app/sweepers )
+  autoload_paths += %W( #{RAILS_ROOT}/app/sweepers )
 end
 
 # Simple class defintions that don't really need their own file since they are too short

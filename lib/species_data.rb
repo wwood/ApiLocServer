@@ -111,9 +111,9 @@ class SpeciesData
   end
   
   SOURCE_VERSIONS = {
-    'PlasmoDB' => '7.0',
-    'ToxoDB' => '6.2',
-    'CryptoDB' => '4.3'
+    'PlasmoDB' => '7.2',
+    'ToxoDB' => '6.4',
+    'CryptoDB' => '4.4'
   }
   
   

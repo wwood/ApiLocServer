@@ -21,7 +21,6 @@ module DevelopmentalStageConstants
       'early schizont',
       'late schizont',
       'segmenter',
-      'segmenting schizonts',
       'rupturing schizont',
       'merozoite',
       'invading merozoite',
@@ -661,6 +660,7 @@ module DevelopmentalStageConstants
       'trophozoites' => 'trophozoite',
       'following erythrocyte invasion' => 'newly invaded merozoite',
       'late schizogony' => 'late schizont',
+      'segmenting schizonts' => 'segmenter',
     }
   }
 end
