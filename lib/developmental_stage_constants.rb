@@ -12,6 +12,7 @@ module DevelopmentalStageConstants
       'late ring',
       'trophozoite',
       'early trophozoite',
+      'mid-to-late trophozoite',
       'middle schizont',
       'late trophozoite',
       'late trophozoite or early schizont',
@@ -20,6 +21,7 @@ module DevelopmentalStageConstants
       'schizont',
       'early schizont',
       'late schizont',
+      'very late post-mitotic schizont',
       'segmenter',
       'rupturing schizont',
       'merozoite',
@@ -661,6 +663,13 @@ module DevelopmentalStageConstants
       'following erythrocyte invasion' => 'newly invaded merozoite',
       'late schizogony' => 'late schizont',
       'segmenting schizonts' => 'segmenter',
+      'early schizogony' => 'early schizont',
+      'very late post-mitotic schizonts' => 'very late post-mitotic schizont',
+      'early stage parasites' => 'early intraerythrocytic',
+      'apical cap' => 'apical',
+      'daughter merozoite formation' => 'schizont',
+      'final stage of schizogony' => 'late schizont',
+      'stage iii-iv gametocyte' => 'gametocyte stage III-IV',
     }
   }
 end

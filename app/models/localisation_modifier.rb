@@ -22,6 +22,7 @@ class LocalisationModifier < ActiveRecord::Base
       'somewhat punctate',
       'unpolarised on',
       'very low levels in',
+      'lower concentration in',
     ]).flatten
 
   def upload_known_modifiers

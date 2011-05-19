@@ -70,6 +70,8 @@ module LocalisationConstants
       'electron-dense heterochromatic region at the nuclear periphery',
       'nuclear interior',
       'nuclear matrix',
+      'euchromatin',
+      'heterochromatin',
       'trans golgi',
       'golgi apparatus',
       'golgi matrix',
@@ -99,6 +101,7 @@ module LocalisationConstants
       'dense granule',
       'apical',
       'apical parasite plasma membrane',
+      'non-invasion-related localisation',
       'posterior structure',
       'anterior structure',
       'gametocyte attached erythrocytic vesicle',
@@ -138,7 +141,8 @@ module LocalisationConstants
       'membrane structure',
       'straight side of d shaped parasite', # A P. falciparum specific localisation
       'internal membrane networks',
-      'osmiophilic body' #"Pfmdv-1 was also detected in specific secretory vesicles, termed osmiophilic bodies (OB), within gametocytes (Fig. 3 A, B, and D)."
+      'osmiophilic body', #"Pfmdv-1 was also detected in specific secretory vesicles, termed osmiophilic bodies (OB), within gametocytes (Fig. 3 A, B, and D)."
+      'non-invasion-related localisation',
     ],
     Species::TOXOPLASMA_GONDII_NAME => [
       'nascent rhoptry',
@@ -918,6 +922,11 @@ module LocalisationConstants
       'surface of the erythrocyte' => 'erythrocyte plasma membrane',
       'host erythrocyte cytosol' => 'erythrocyte cytosol',
       'extracellular' => 'exported',
+      'golgi complex' => 'golgi apparatus',
+      'cytoplasmic' => 'cytoplasm',
+      'around merozoite surface' => 'merozoite surface',
+      'expression within the nuclei' => 'nucleus',
+      'in nucleus' => 'nucleus'
     }
   }
 

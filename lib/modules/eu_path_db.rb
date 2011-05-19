@@ -278,8 +278,8 @@ class BScript
   end
   
   def upload_apiloc_from_scratch
-    go_to_database
-    download_uniprot_data
+#    go_to_database
+#    download_uniprot_data
     uniprot_to_database
     download_orthomcl
     orthomcl_to_database
