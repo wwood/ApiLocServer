@@ -33,6 +33,7 @@ because otherwise unassigned genes have the incorrect name %>
   <%= link_to 'full text', publication.fulltext_url %>
   <br/>
   <% @relevant_expression_contexts = ExpressionContext.find_all_by_publication_id_and_coding_region_id(publication.id, @code.id).uniq %>
+  <% @relevant_expression_contexts.reject!{|e|e.localisation_id.nil? and e.developmental_stage_id.nil?} #this is needed otherwise ExpressionContextGroup#english fails %>
   <b><%= ExpressionContextGroup.new(@relevant_expression_contexts).english %></b>
   <!-- for each annotation of this gene in the publication (there may be multiple) --><% @relevant_expression_contexts.reach.localisation_annotation.uniq.each do |a| %>
   <ul>

@@ -2,11 +2,11 @@
 #   gem install sqlite3-ruby (not necessary on OS X Leopard)
 development:
   adapter: postgresql
-  database: data
+  database: apiloc3
   timeout: 5000
 production:
   adapter: postgresql
-  database: data
+  database: apiloc3
   timeout: 5000
 apiloc:
   adapter: postgresql

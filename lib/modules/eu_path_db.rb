@@ -278,11 +278,11 @@ class BScript
   end
   
   def upload_apiloc_from_scratch
-    go_to_database
-    download_uniprot_data
-    uniprot_to_database
-    download_orthomcl
-    orthomcl_to_database
+#    go_to_database
+#    download_uniprot_data
+#    uniprot_to_database
+#    download_orthomcl
+#    orthomcl_to_database
     
     # Upload basic gene identifiers
     upload_apiloc_gffs
@@ -305,9 +305,7 @@ class BScript
       :accept_multiple_coding_regions => true
     )
     OrthomclGene.new.link_orthomcl_and_coding_regions(
-                                                      Species::APICOMPLEXAN_NAMES.reject{|a|
-      a == Species::BABESIA_BOVIS_NAME
-    }.collect { |a|
+                                                      Species::APICOMPLEXAN_NAMES.collect { |a|
       Species.find_by_name(a).orthomcl_three_letter
     }, {:verbose => true, :warn => true}
     )

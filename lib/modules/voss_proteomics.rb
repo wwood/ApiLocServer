@@ -55,7 +55,7 @@ class BScript
         ## Determine nucleus agreement with manual annotation
         nucleus_agreement_simple = manually_correct_some_nucleus_agreements(code)
         nucleus_agreement_simple ||= code.agreement_with_top_level_localisation_simple(
-                                                          TopLevelLocalisation.find_by_name('nucleus')
+                                                                                       TopLevelLocalisation.find_by_name('nucleus')
         )
         
         #        orth_str = nil
@@ -284,20 +284,20 @@ class BScript
     
     puts [
     "PlasmoDB ID",
-    #    'Annotation (PlasmoDB 6.4)',
-    #    'ApiLoc localisation description',
-    #    'OrthoMCL links ApiLoc description',
-    #    'Agreement with nucleus',
-    #    'Agreement with literature survey nucleus?',
-    #    'nucleus GO term',
-    #    "Number of transmembrane domains (not including Signal Peptide)",
-    #    "ER retention motifs",
-    #    'Plasmit?',
-    #    'GPI?',
-    #    'SignalP?',
-    #    'ExportPred?',
-    #    'PlasmoAP?'
-    'HP1?'
+    #        'Annotation (PlasmoDB 6.4)',
+    #        'ApiLoc localisation description',
+    #        'OrthoMCL links ApiLoc description',
+        'Agreement with nucleus',
+        'Agreement with literature survey nucleus?',
+#        'nucleus GO term',
+#        "Number of transmembrane domains (not including Signal Peptide)",
+#            "ER retention motifs",
+#        'Plasmit?',
+#        'GPI?',
+#        'SignalP?',
+#        'ExportPred?',
+#        'PlasmoAP?'
+#        'HP1?'
     ].join("\t")
     
     #    nucleus_go_term_list_plasmodbs = PlasmodbGeneList.find_by_description("PlasmoDB nucleus GO terms").coding_regions.reach.string_id.retract
@@ -307,10 +307,13 @@ class BScript
     foreach_code = lambda do |code, plasmodb_id|
       to_print = []
       to_print.push plasmodb_id
-      #      to_print.push code.agreement_with_top_level_localisation_simple(
-      #                                                                  TopLevelLocalisation.find_by_name('nucleus'),
-      #                            :by_literature => true
-      #                )
+      to_print.push code.agreement_with_top_level_localisation_simple(
+                                                                      TopLevelLocalisation.find_by_name('nucleus')
+      )
+      to_print.push code.agreement_with_top_level_localisation_simple(
+                                                                      TopLevelLocalisation.find_by_name('nucleus'),
+                                  :expression_context_evidence => :second_class_citizen_expression_contexts
+      )
       #      to_print.push nucleus_go_term_list_plasmodbs.include?(code.string_id)
       #      to_print.push code.tmhmm.transmembrane_domains.length
       #      matching_ers = ers.collect {|er|

@@ -128,7 +128,7 @@ module ApilocHelper
     
     def proteomic_experiment_name_to_html_link(name)
       html_name = proteomic_experiment_name_to_italics(name)
-      return(link_to html_name, :controller => :apiloc, :action => :proteome, :id => name)
+      return(link_to html_name, :controller => :apiloc, :action => :proteome, :id => CGI.escape(name))
     end
     
     def proteomic_experiment_name_to_italics(name)
@@ -139,12 +139,13 @@ module ApilocHelper
     
     # maybe I could do a form or something but eh.
     def apiloc_contact_email_address
-    'b.woodcroft@pgrad.unimelb.edu.au'
+    'put student.unimelb.edu.au after b.woodcroft'
     end
     
     def coding_region_localisation_html(coding_region)
-      ExpressionContextGroup.new(nil).coalesce(
-                                               coding_region.expression_contexts.collect do |ec|
+      ecs = coding_region.expression_contexts.reject{|e|
+        e.localisation_id.nil? and e.developmental_stage_id.nil?
+      }.collect do |ec|
         LocalisationsAndDevelopmentalStages.new(
                                                 ec.localisation ?
             "<a href='#{url_for :action => :specific_localisation, :id => url_encode(ec.localisation.name)}'>#{ec.localisation.name}</a>" : [],
@@ -152,6 +153,12 @@ module ApilocHelper
             "<a href='#{url_for :action => :specific_developmental_stage, :id => ec.developmental_stage.name}'>#{ec.developmental_stage.name}</a>" : []
         )
       end
+      logger.debug '!!!!!!!!!!!!!!!!!!!!!!!!!'
+      logger.debug ecs.inspect
+      logger.debug '-----------------------'
+      
+      ExpressionContextGroup.new(nil).coalesce(
+                                               ecs
       )
     end
     

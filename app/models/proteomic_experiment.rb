@@ -54,7 +54,7 @@ class ProteomicExperiment < ActiveRecord::Base
     'T. gondii Wastling Rhoptry' => 16002398,
     # new ones in ToxoDB 6.4
     'T. gondii Wastling 2-D' => 16002398,
-    'T. gondii Mass SPec data of RH secretome' => 'S. Moreno unpublished',
+    'T. gondii Mass SPec data of RH secretome' => 'http://toxodb.org/toxo/showXmlDataContent.do?name=XmlQuestions.DataSources#Moreno-1-annotated', #this needs to be a link to the a URL that is resolvable. Before "s. moreno unpublished" was giving errors to the google crawler.
   }
   
   BERGHEI_MICRONEME_2009_NAME = 'P. berghei Microneme Lal et. al. 2009'

@@ -318,6 +318,7 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
 'multi-lamellar vesicle',
 'multi-vesicular endosome',
 'near apicoplast membranes',
+'non-invasion-related localisation',
 'oocyst capsule',
 'oocyst protrusion',
 'oocyst wall',
