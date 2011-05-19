@@ -94,9 +94,24 @@ class SpeciesData
     
     'Theileria annulata' => {
       :name => 'Theileria annulata',
+      :database_download_folder => 'TparvaMuguga',
+      :sequencing_centre_abbreviation => 'GenBank',
+      :fasta_file_species_name => 'Theileria_annulata_strain_Ankara',
+      :source => 'PiroplasmaDB',
     },
     'Theileria parva' => {
-      :name => 'Theileria annulata',
+      :name => 'Theileria parva',
+      :database_download_folder => 'TannulataAnkara',  
+      :sequencing_centre_abbreviation => 'GenBank',
+      :fasta_file_species_name => 'Theileria_parva_strain_Muguga',
+      :source => 'PiroplasmaDB', 
+    },
+    'Babesia bovis' => {
+      :name => 'Babesia bovis',
+      :database_download_folder => 'BbovisT2Bo',
+      :sequencing_centre_abbreviation => 'GenBank',
+      :fasta_file_species_name => 'Babesia_bovis_T2Bo',
+      :source => 'PiroplasmaDB',
     },
   }
   # Duplicate so both the species name and genus-species name work
@@ -114,9 +129,10 @@ class SpeciesData
   SOURCE_VERSIONS = {
     'PlasmoDB' => '7.2',
     'ToxoDB' => '6.4',
-    'CryptoDB' => '4.4'
+    'CryptoDB' => '4.4',
+    'PiroplasmaDB' => '1.0',
   }
-  
+  DATABASES = SOURCE_VERSIONS.keys
   
   
   

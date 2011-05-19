@@ -444,7 +444,7 @@ class BScript
   def download(database_name=nil)
     # by default, download everything
     if database_name.nil?
-      %w(plasmodb cryptodb toxodb).each do |d|
+      SpeciesData::DATABASES.each do |d|
         download d
       end
     else
