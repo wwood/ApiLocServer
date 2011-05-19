@@ -36,7 +36,7 @@ module DevelopmentalStageConstants
       'gametocyte stage III',
       'gametocyte stage IV',
       'gametocyte stage V',
-      'gametocyte stage III-V',
+      'gametocyte stage III-IV',
       'male gametocyte stage I',
       'male gametocyte stage II',
       'male gametocyte stage III',
