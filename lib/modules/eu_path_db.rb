@@ -483,13 +483,14 @@ class BScript
     end
   end
   
-  def species_data_from_database(database_name)
-    database_name.downcase!
-    raise unless %w(plasmodb toxodb cryptodb).include?(database_name)
+  def species_data_from_database(eupathdb_database_name)
+    database_name = eupathdb_database_name.downcase
+    raise unless SpeciesData::DATABASES.reach.downcase.include?(database_name)
     species_names = {
       'plasmodb' => Species::PLASMODB_SPECIES_NAMES,
       'toxodb' => Species::TOXODB_SPECIES_NAMES,
       'cryptodb' => Species::CRYPTODB_SPECIES_NAMES,
+      'piroplasmadb' => Species::PIROPLASMADB_SPECIES_NAMES
     }[database_name]
     species_names.collect do |name|
       SpeciesData.new(name)

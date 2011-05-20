@@ -240,20 +240,7 @@ class SpeciesData
   end
   
   def database
-    databases = {
-      /Plasmodium/ => 'PlasmoDB',
-      /Toxo/ => 'ToxoDB',
-      /Neospora/ => 'ToxoDB',
-      /Cryptosporidium/ => 'CryptoDB'
-    }
-    db = nil
-    databases.each do |regex, database|
-      if @species_data[:name].match(regex)
-        db = database
-        break
-      end
-    end
-    db
+    @species_data[:source]
   end
   
   def eu_path_db_download_directory
@@ -261,6 +248,7 @@ class SpeciesData
       'PlasmoDB' => "http://plasmodb.org/common/downloads/release-#{SOURCE_VERSIONS['PlasmoDB']}",
       'ToxoDB' => "http://toxodb.org/common/downloads/release-#{SOURCE_VERSIONS['ToxoDB']}",
       'CryptoDB' => "http://cryptodb.org/common/downloads/release-#{SOURCE_VERSIONS['CryptoDB']}",
+      'PiroplasmaDB' => "http://piroplasmadb.org/common/downloads/release-#{SOURCE_VERSIONS['PiroplasmaDB']}",
     }
     return "#{directories[database]}/#{one_word_name}"
   end
