@@ -314,18 +314,18 @@ class BScript
   end
   
   def upload_apiloc_gffs
-    falciparum_to_database
-    berghei_to_database
-    yoelii_to_database
-    vivax_to_database
-    chabaudi_to_database
-    knowlesi_to_database
-    gondii_to_database
-    neospora_caninum_to_database
-    cryptosporidium_parvum_to_database
-    theileria_parva_gene_aliases
-    upload_theileria_fasta
-    babesia_to_database
+#    falciparum_to_database
+#    berghei_to_database
+#    yoelii_to_database
+#    vivax_to_database
+#    chabaudi_to_database
+#    knowlesi_to_database
+#    gondii_to_database
+#    neospora_caninum_to_database
+#    cryptosporidium_parvum_to_database
+    theileria_parva_to_database
+    theileria_annulata_to_database
+    babesi_bovis_to_database
     # extras required for proper orthomcl linking
     upload_gondii_gene_table_to_database
   end
@@ -340,10 +340,9 @@ class BScript
     gondii_fasta_to_database
     neospora_caninum_fasta_to_database
     cryptosporidium_parvum_fasta_to_database
-    # already uploaded as part of auploc_apiloc_gffs
-    # theileria_parva_fasta_gene_aliases
-    # upload_theileria_fasta
-    #    babesia_fasta_to_database
+    theileria_parva_fasta_to_database
+    theileria_annulata_fasta_to_database
+    babesi_bovis_fasta_to_database
   end
   
   def upload_proteomic_data
