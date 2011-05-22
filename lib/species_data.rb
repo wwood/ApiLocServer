@@ -94,14 +94,14 @@ class SpeciesData
     
     'Theileria annulata' => {
       :name => 'Theileria annulata',
-      :database_download_folder => 'TparvaMuguga',
+      :database_download_folder => 'TannulataAnkara',
       :sequencing_centre_abbreviation => 'GenBank',
       :fasta_file_species_name => 'Theileria_annulata_strain_Ankara',
       :source => 'PiroplasmaDB',
     },
     'Theileria parva' => {
       :name => 'Theileria parva',
-      :database_download_folder => 'TannulataAnkara',  
+      :database_download_folder => 'TparvaMuguga',  
       :sequencing_centre_abbreviation => 'GenBank',
       :fasta_file_species_name => 'Theileria_parva_strain_Muguga',
       :source => 'PiroplasmaDB', 
