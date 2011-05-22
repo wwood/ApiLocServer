@@ -279,12 +279,16 @@ module LocalisationConstants
       'apical',
       'released into extracellular mileiu',
       'cytoplasm',
+      'intracellular',
+      'middle-rear',
       'spherical body organelle',
       'host erythrocyte membrane',
       'plasma membrane', #ie. surface of parasite
       'cytoplasmic accumulation',
       'parasitophorous vacuole membrane',
       'nucleus',
+      'erythrocyte membrane',
+      'erythrocyte cytoplasm',
       'cytoplasmic face of host erythrocyte membrane'
     ],
     Species::NEOSPORA_CANINUM_NAME => [
@@ -300,6 +304,7 @@ module LocalisationConstants
       'cytoplasm',
       'posterior cytoplasm',
       'anterior cytoplasm',
+      'nucleus',
       'cyst wall',
       'cyst matrix',
       'moving junction'
@@ -350,6 +355,9 @@ module LocalisationConstants
         'host cell cytoplasm'
       ],
       'Babesia bigemina' => [
+        'cytoplasm'
+      ],
+      'Babesia microti' => [
         'cytoplasm'
       ],
       'Theileria lestoquardi' => [
@@ -441,6 +449,7 @@ module LocalisationConstants
     Species::THEILERIA_PARVA_NAME => [
       'apical',
       'plasma membrane',
+      'nucleus',
     ],
     Species::PLASMODIUM_BERGHEI_NAME => [
       'apical',
@@ -493,14 +502,19 @@ module LocalisationConstants
       'internal structures',
       'vesicles',
       'p-body',
+      'stress granule',
+      'cytoplasmic axonemes',
     ],
     Species::VIVAX_NAME => [
       'surface',
+      'merozoite surface'
       'ookinete surface',
       'intracellular',
       'apical',
       'microneme',
       'rhoptry',
+      'rhoptry neck',
+      'rhoptry bulb',
       'cytoplasm',
       'cytosol',
       'host cell cytoplasm',
@@ -511,6 +525,7 @@ module LocalisationConstants
       'apical',
       'microneme',
       'rhoptry',
+      'rhoptry neck',
       'basal',
       'plasma membrane',
       'underneath plasma membrane',
@@ -578,6 +593,7 @@ module LocalisationConstants
       'nuclear' => 'nucleus',
       'lysosome' => 'food vacuole',
       'rhoptries' => 'rhoptry',
+      'micronemes' => 'microneme',
     },
     Species::PLASMODIUM_BERGHEI_NAME => {
       'lysosome' => 'food vacuole',
@@ -602,6 +618,7 @@ module LocalisationConstants
       'parasite cytosol' => 'cytosol',
       'erythrocyte cytosol' => 'host cell cytosol',
       'erythrocyte' => 'host cell cytosol',
+      'axonemal' => 'cytoplasmic axonemes',
     },
     Species::THEILERIA_ANNULATA_NAME => {
       'mitochondria' => 'mitochondrion',
@@ -634,6 +651,7 @@ module LocalisationConstants
         'erythrocyte cytoplasm' => 'host cell cytoplasm',
         'pm' => 'plasma membrane',
         'membrane' => 'plasma membrane'
+        'parasite surface' => 'cell surface',
       },
       'Babesia equi' => {
         'surface' => 'cell surface'
@@ -663,13 +681,18 @@ module LocalisationConstants
       'intraparasitic space' => 'cytoplasm',
       'pv' => 'parasitophorous vacuole',
       'pv lumen' => 'parasitophorous vacuole lumen',
+      'apical complex' => 'apical',
     },
     Species::BABESIA_BOVIS_NAME => {
       'cytoplasmic accumulations' => 'cytoplasmic accumulation',
+      'spherical body' => 'spherical body organelle',
       'spherical body organelles' => 'spherical body organelle',
       'surface' => 'plasma membrane',
       'host cell surface' => 'host erythrocyte membrane',
-      'inner surface of host cell cytoplasm' => 'parasitophorous vacuole membrane'
+      'inner surface of host cell cytoplasm' => 'parasitophorous vacuole membrane',
+      'rbc' => 'erythrocyte cytoplasm',
+      'infected rbc' => 'erythrocyte cytoplasm',
+      'infected rbc membrane' => 'erythrocyte membrane',
     },
     Species::TOXOPLASMA_GONDII_NAME => {
       'golgi' => 'golgi apparatus',
@@ -926,7 +949,8 @@ module LocalisationConstants
       'cytoplasmic' => 'cytoplasm',
       'around merozoite surface' => 'merozoite surface',
       'expression within the nuclei' => 'nucleus',
-      'in nucleus' => 'nucleus'
+      'in nucleus' => 'nucleus',
+      'apical cap' => 'apical',
     }
   }
 

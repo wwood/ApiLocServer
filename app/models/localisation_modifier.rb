@@ -8,7 +8,8 @@ class LocalisationModifier < ActiveRecord::Base
       'sometimes', #sometimes has be after some -> higher ids are implemented first
       'strongly', #has to be after strong
       'strongest',
-      'strongest near'
+      'strongest near',
+      'concentrated in',
     ]).push([
       'spot in',
       'discrete compartments at',

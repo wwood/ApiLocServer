@@ -36,7 +36,7 @@ module DevelopmentalStageConstants
       'gametocyte stage III',
       'gametocyte stage IV',
       'gametocyte stage V',
-      'gametocyte stage III-V',
+      'gametocyte stage III-IV',
       'male gametocyte stage I',
       'male gametocyte stage II',
       'male gametocyte stage III',
@@ -184,9 +184,15 @@ module DevelopmentalStageConstants
       'trophozoite',
     ],
     Species::BABESIA_BOVIS_NAME => [
+      'shortly after merozoite invasion',
+      'trophozoite',
+      'early cell division',
       'merozoite',
       'merozoite invasion',
       'intracellular merozoite',
+      'rupturing form',
+      'extracellular merozoite',
+      'early extracellular merozoite',
       'sporozoite',
       'intraerythrocytic',
     ],
@@ -235,6 +241,11 @@ module DevelopmentalStageConstants
       ],
       'Babesia bigemina' => [
         'merozoite'
+      ],
+      'Babesia microti' => [
+        'trophozoite',
+        'intracellular merozoite',
+        'extracellular merozoite',
       ],
       'Theileria lestoquardi' => [
         'macroschizont',
@@ -338,6 +349,9 @@ module DevelopmentalStageConstants
       'macrogametocyte',
       'microgametocyte',
       'activated microgametocyte',
+      '5 minutes after gamete activation',
+      '10 minutes after gamete activation',
+      'after gamete emergence',
       'macrogamete',
       'microgamete',
       'microgamete mitosis',
@@ -347,11 +361,15 @@ module DevelopmentalStageConstants
       'early retort',
       'ookinete protrusion',
       'ookinete',
+      'ookinete 4 hours after activation',
+      'ookinete 24 hours after activation',
       'ookinete 20 hours after fertilization',
       'ookinete 24 hours after fertilization',
       'ookinete 11 days after infection',
       'ookinete 21 days after infection',
       'sporozoite 21 days after infection',
+      'sporozoite 24 days after infection',
+      'sporozoite 48 days after infection',
       'mature ookinete',
       'oocyst protrusion',
       'oocyst',
@@ -390,9 +408,11 @@ module DevelopmentalStageConstants
       'hepatocyte merozoite',
     ],
     Species::VIVAX_NAME => [
+      'erythrocytic',
       'ring',
       'trophozoite',
       'schizont',
+      'late schizont',
       'mature schizont',
       'merozoite',
       'extracellular merozoite',
@@ -490,6 +510,10 @@ module DevelopmentalStageConstants
       'late oocysts' => 'late oocyst',
       'sporozoites' => 'sporozoite',
       '5 day oocyst' => 'day 5 oocyst',
+      'female gametes' => 'macrogamete',
+      '24 hrs after sporozoite infection' => 'sporozoite 24 days after infection',
+      '48 hrs after sporozoite infection' => 'sporozoite 48 days after infection',
+      '24 hrs after sporozoite invasion' => 'sporozoite 24 days after infection',
     },
     Species::THEILERIA_ANNULATA_NAME => {},
     Species::THEILERIA_PARVA_NAME => {},
@@ -505,6 +529,11 @@ module DevelopmentalStageConstants
         'ring stage of trophozoites' => 'ring stage of trophozoite',
         'ring stage intracellular merozoite' => 'ring intracellular merozoite'
       },
+      'Babesia microti' => {
+        'ring form' => 'trophozoite',
+        'dividing form' => 'intracellular merozoite',
+        'extracellular' => 'extracellular merozoite',
+      },
       'Sarcocystis neurona' => {
         'merozoites' => 'merozoite'
       },
@@ -519,6 +548,15 @@ module DevelopmentalStageConstants
     Species::BABESIA_BOVIS_NAME => {
       'invading merozoites' => 'merozoite invasion',
       'infected erythrocytes' => 'intraerythrocytic',
+      'erythrocyte' => 'intraerythrocytic',
+      'merozoites' => 'merozoite',
+      'early phase of single merozoite' => 'early extracellular merozoite',
+      'ring' => 'trophozoite',
+      'late stages' => 'intracellular merozoite',
+      'free merozoites' => 'extracellular merozoite',
+      'after merozoite invasion' => 'shortly after merozoite invasion',
+      'ring stage' => 'trophozoite',
+      'sequentially dividing forms' => 'intraerythrocytic',
     },
     Species::TOXOPLASMA_GONDII_NAME => {
       'beginning of cell division' => 'early tachyzoite cell division',
@@ -666,10 +704,10 @@ module DevelopmentalStageConstants
       'early schizogony' => 'early schizont',
       'very late post-mitotic schizonts' => 'very late post-mitotic schizont',
       'early stage parasites' => 'early intraerythrocytic',
-      'apical cap' => 'apical',
       'daughter merozoite formation' => 'schizont',
       'final stage of schizogony' => 'late schizont',
       'stage iii-iv gametocyte' => 'gametocyte stage III-IV',
+      'gametocytes' => 'gametocyte',
     }
   }
 end

@@ -1,0 +1,10 @@
+CodingRegion.find_by_string_id('PY04499').expression_contexts.reject{|e|
+        e.localisation_id.nil? and e.developmental_stage_id.nil?
+      }.collect do |ec|
+        LocalisationsAndDevelopmentalStages.new(
+                                                ec.localisation ?
+            "<a href='#{url_for :action => :specific_localisation, :id => url_encode(ec.localisation.name)}'>#{ec.localisation.name}</a>" : [],
+        ec.developmental_stage ?
+            "<a href='#{url_for :action => :specific_developmental_stage, :id => ec.developmental_stage.name}'>#{ec.developmental_stage.name}</a>" : []
+        )
+      end
