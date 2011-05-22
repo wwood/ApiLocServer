@@ -94,9 +94,24 @@ class SpeciesData
     
     'Theileria annulata' => {
       :name => 'Theileria annulata',
+      :database_download_folder => 'TannulataAnkara',
+      :sequencing_centre_abbreviation => 'GenBank',
+      :fasta_file_species_name => 'Theileria_annulata_strain_Ankara',
+      :source => 'PiroplasmaDB',
     },
     'Theileria parva' => {
-      :name => 'Theileria annulata',
+      :name => 'Theileria parva',
+      :database_download_folder => 'TparvaMuguga',  
+      :sequencing_centre_abbreviation => 'GenBank',
+      :fasta_file_species_name => 'Theileria_parva_strain_Muguga',
+      :source => 'PiroplasmaDB', 
+    },
+    'Babesia bovis' => {
+      :name => 'Babesia bovis',
+      :database_download_folder => 'BbovisT2Bo',
+      :sequencing_centre_abbreviation => 'GenBank',
+      :fasta_file_species_name => 'Babesia_bovis_T2Bo',
+      :source => 'PiroplasmaDB',
     },
   }
   # Duplicate so both the species name and genus-species name work
@@ -114,9 +129,10 @@ class SpeciesData
   SOURCE_VERSIONS = {
     'PlasmoDB' => '7.2',
     'ToxoDB' => '6.4',
-    'CryptoDB' => '4.4'
+    'CryptoDB' => '4.4',
+    'PiroplasmaDB' => '1.0',
   }
-  
+  DATABASES = SOURCE_VERSIONS.keys
   
   
   
@@ -224,20 +240,7 @@ class SpeciesData
   end
   
   def database
-    databases = {
-      /Plasmodium/ => 'PlasmoDB',
-      /Toxo/ => 'ToxoDB',
-      /Neospora/ => 'ToxoDB',
-      /Cryptosporidium/ => 'CryptoDB'
-    }
-    db = nil
-    databases.each do |regex, database|
-      if @species_data[:name].match(regex)
-        db = database
-        break
-      end
-    end
-    db
+    @species_data[:source]
   end
   
   def eu_path_db_download_directory
@@ -245,6 +248,7 @@ class SpeciesData
       'PlasmoDB' => "http://plasmodb.org/common/downloads/release-#{SOURCE_VERSIONS['PlasmoDB']}",
       'ToxoDB' => "http://toxodb.org/common/downloads/release-#{SOURCE_VERSIONS['ToxoDB']}",
       'CryptoDB' => "http://cryptodb.org/common/downloads/release-#{SOURCE_VERSIONS['CryptoDB']}",
+      'PiroplasmaDB' => "http://piroplasmadb.org/common/downloads/release-#{SOURCE_VERSIONS['PiroplasmaDB']}",
     }
     return "#{directories[database]}/#{one_word_name}"
   end

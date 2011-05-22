@@ -6,7 +6,6 @@ require 'yeast_genome_genes'
 require 'signalp'
 require 'api_db_fasta'
 require 'gff3_genes'
-require 'tm_hmm_wrapper'
 require 'rubygems'
 require 'csv'
 require 'bio'
@@ -1155,38 +1154,8 @@ class BScript
       puts
     end
   end
-  
-  
 
-  
-  
-  def theileria_parva_gene_aliases
-    sp = Species.find_or_create_by_name(Species.theileria_parva_name)
-    scaff = Scaffold.find_or_create_by_species_id_and_name(sp.id, "Theiliera dummy")
-    
-    CodingRegionAlternateStringId.find(:all,
-      :include => {:coding_region => {:gene => {:scaffold => :species}}},
-      :conditions => "species.name='#{Species.theileria_parva_name}'"
-    ).each do |s| 
-      s.destroy
-    end
-    
-    # Upload all the gene aliases to the database
-    CSV.open("#{DATA_DIR}/Theileria parva/Theileria parva genes.csv", 'r', "\t") do |row|
-      # First col is the TIGR type ID, second and third are the normal Ids. I'll use 2nd
-      g = Gene.find_or_create_by_name_and_scaffold_id(row[1], scaff.id)
-      code = CodingRegion.find_or_create_by_string_id_and_orientation_and_gene_id(
-        row[1], 
-        CodingRegion.unknown_orientation_char, 
-        g.id
-      )
-      name = row[0].gsub('>','').strip
-      CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name(
-        code.id,
-        name
-      )
-    end
-  end
+
   
   def seven_species_orthomcl_upload
     Babesia.new.seven_species_orthomcl_upload
@@ -1824,57 +1793,6 @@ class BScript
     end
   end
   
-  # upload babesia fasta files to the database
-  def babesia_to_database
-    sp = Species.find_or_create_by_name(Species::BABESIA_BOVIS_NAME)
-    
-    # Assume there is only 1
-    bab_scaff = Scaffold.find_or_create_by_species_id(sp.id)
-    
-    Bio::FlatFile.foreach("#{DATA_DIR}/bovis/genome/NCBI/BabesiaWGS.fasta_with_names") { |e| 
-      codeHits = CodingRegion.find_all_by_string_id(e.entry_id)
-      code = nil
-      
-      
-      # Find or upload the correct coding region
-      if codeHits.length > 1
-        raise Exception, "Couldn't find gene: #{e.entry_id}: #{code}"
-      elsif codeHits.length == 0
-        g = Gene.find_or_create_by_name_and_scaffold_id(
-          e.entry_id,
-          bab_scaff.id
-        )
-        code = CodingRegion.find_or_create_by_string_id_and_gene_id_and_orientation(
-          e.entry_id,
-          g.id,
-          CodingRegion.unknown_orientation_char
-        )
-      else
-        code = codeHits[0]
-      end
-      
-      AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
-        code.id,
-        e.seq
-      )
-      
-      # Upload annotation if not done already
-      defi = e.definition
-      matches = defi.match('^(.+?)\|(.+)$')
-      if !matches or !matches[2]
-        raise Exception, "Unexpected definition line: #{defi}"
-      else
-        Annotation.find_or_create_by_coding_region_id_and_annotation(
-          code.id,
-          matches[2].strip
-        )
-      end
-    }
-    
-  end
-  
-
-  
   # Print out all the babesia genes with signal sequences
   def signalps_from_gene_list(list_name)
     headers = ['Name','Signal Predicted']
@@ -1945,26 +1863,6 @@ class BScript
       
       
     end
-  end
-  
-  
-  def upload_theileria_fasta
-    # create species if they don't already exist
-    sp = Species.find_or_create_by_name(Species::THEILERIA_ANNULATA_NAME)
-    t = TigrFasta.new
-    fa = t.load("#{DATA_DIR}/Theileria annulata/TANN.GeneDB.pep")
-    scaff = Scaffold.find_or_create_by_name_and_species_id(
-      'Theiliera annulata dummy', sp.id
-    )
-    upload_fasta_simplistic(fa, scaff)
-
-    t = TigrFasta.new
-    sp = Species.find_or_create_by_name(Species::THEILERIA_PARVA_NAME)
-    fa = t.load("#{DATA_DIR}/Theileria parva/TPA1.pep")
-    scaff = Scaffold.find_or_create_by_name_and_species_id(
-      'Theiliera parva dummy', sp.id
-    )
-    upload_fasta_simplistic(fa, scaff)
   end
   
   # Upload a fasta file in the simplistic manner

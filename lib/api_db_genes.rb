@@ -18,7 +18,8 @@ class ApiDbGenes < JgiGenesGff
       'rRNA',
       'tRNA',
       'snRNA',
-      'transcript'
+      'transcript',
+      'ncRNA'
     ]
   end
   

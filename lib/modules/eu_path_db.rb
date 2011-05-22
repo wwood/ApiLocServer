@@ -280,9 +280,9 @@ class BScript
   def upload_apiloc_from_scratch
 #    go_to_database
 #    download_uniprot_data
-    uniprot_to_database
-    download_orthomcl
-    orthomcl_to_database
+#    uniprot_to_database
+#    download_orthomcl
+#    orthomcl_to_database
     
     # Upload basic gene identifiers
     upload_apiloc_gffs
@@ -314,18 +314,18 @@ class BScript
   end
   
   def upload_apiloc_gffs
-    falciparum_to_database
-    berghei_to_database
-    yoelii_to_database
-    vivax_to_database
-    chabaudi_to_database
-    knowlesi_to_database
-    gondii_to_database
-    neospora_caninum_to_database
-    cryptosporidium_parvum_to_database
-    theileria_parva_gene_aliases
-    upload_theileria_fasta
-    babesia_to_database
+#    falciparum_to_database
+#    berghei_to_database
+#    yoelii_to_database
+#    vivax_to_database
+#    chabaudi_to_database
+#    knowlesi_to_database
+#    gondii_to_database
+#    neospora_caninum_to_database
+#    cryptosporidium_parvum_to_database
+    theileria_parva_to_database
+    theileria_annulata_to_database
+    babesi_bovis_to_database
     # extras required for proper orthomcl linking
     upload_gondii_gene_table_to_database
   end
@@ -340,10 +340,9 @@ class BScript
     gondii_fasta_to_database
     neospora_caninum_fasta_to_database
     cryptosporidium_parvum_fasta_to_database
-    # already uploaded as part of auploc_apiloc_gffs
-    # theileria_parva_fasta_gene_aliases
-    # upload_theileria_fasta
-    #    babesia_fasta_to_database
+    theileria_parva_fasta_to_database
+    theileria_annulata_fasta_to_database
+    babesi_bovis_fasta_to_database
   end
   
   def upload_proteomic_data
@@ -444,7 +443,7 @@ class BScript
   def download(database_name=nil)
     # by default, download everything
     if database_name.nil?
-      %w(plasmodb cryptodb toxodb).each do |d|
+      SpeciesData::DATABASES.each do |d|
         download d
       end
     else
@@ -483,13 +482,14 @@ class BScript
     end
   end
   
-  def species_data_from_database(database_name)
-    database_name.downcase!
-    raise unless %w(plasmodb toxodb cryptodb).include?(database_name)
+  def species_data_from_database(eupathdb_database_name)
+    database_name = eupathdb_database_name.downcase
+    raise unless SpeciesData::DATABASES.reach.downcase.include?(database_name)
     species_names = {
       'plasmodb' => Species::PLASMODB_SPECIES_NAMES,
       'toxodb' => Species::TOXODB_SPECIES_NAMES,
       'cryptodb' => Species::CRYPTODB_SPECIES_NAMES,
+      'piroplasmadb' => Species::PIROPLASMADB_SPECIES_NAMES
     }[database_name]
     species_names.collect do |name|
       SpeciesData.new(name)

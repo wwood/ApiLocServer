@@ -52,6 +52,7 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
       'rhoptry body',
       'rhoptry bulb',
       'rhoptry neck',
+      'spherical body organelle',
       'sub-apical',
       'sub-pellicular region at the anterior',
     
@@ -342,7 +343,6 @@ class ApilocLocalisationTopLevelLocalisation < LocalisationTopLevelLocalisation
 'residual body membrane',
 'reticular staining outside apicoplast',
 'secretory organelle',
-'spherical body organelle',
 'spindle pole',
 'spread around parasite',
 'subcapsular areas',
