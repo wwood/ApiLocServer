@@ -12,7 +12,9 @@ class LocalisationModifier < ActiveRecord::Base
       'concentrated in',
     ]).push([
       'spot in',
+      'single spot in',
       'discrete compartments at',
+      'punctate spots within the',
       'strong diffuse',
       'foci in',
       'foci at',
@@ -24,6 +26,7 @@ class LocalisationModifier < ActiveRecord::Base
       'unpolarised on',
       'very low levels in',
       'lower concentration in',
+      'diffused but granular'
     ]).flatten
 
   def upload_known_modifiers
