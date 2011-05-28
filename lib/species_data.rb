@@ -9,7 +9,7 @@ class SpeciesData
     'Plasmodium yoelii' => {
       :directory => 'yoelii',
       :name => 'Plasmodium yoelii',
-      :sequencing_centre_abbreviation => 'tgr',
+      :sequencing_centre_abbreviation => 'TIGR',
       :fasta_file_species_name => 'Plasmodium_yoelii_yoelii_str._17XNL',
       :proteins_fasta_filename => lambda {|version| "PyoeliiAnnotatedProteins_PlasmoDB-#{version}.fasta"},
       #:transcripts_fasta_filename => lambda {|version| "PyoeliiAllTranscripts_PlasmoDB-#{version}.fasta"},
@@ -94,22 +94,22 @@ class SpeciesData
     
     'Theileria annulata' => {
       :name => 'Theileria annulata',
-      :database_download_folder => 'TparvaMuguga',
-      :sequencing_centre_abbreviation => 'GenBank',
+      :database_download_folder => 'TannulataAnkara',
+      :sequencing_centre_abbreviation => 'Genbank',
       :fasta_file_species_name => 'Theileria_annulata_strain_Ankara',
       :source => 'PiroplasmaDB',
     },
     'Theileria parva' => {
       :name => 'Theileria parva',
-      :database_download_folder => 'TannulataAnkara',  
-      :sequencing_centre_abbreviation => 'GenBank',
+      :database_download_folder => 'TparvaMuguga',  
+      :sequencing_centre_abbreviation => 'Genbank',
       :fasta_file_species_name => 'Theileria_parva_strain_Muguga',
       :source => 'PiroplasmaDB', 
     },
     'Babesia bovis' => {
       :name => 'Babesia bovis',
       :database_download_folder => 'BbovisT2Bo',
-      :sequencing_centre_abbreviation => 'GenBank',
+      :sequencing_centre_abbreviation => 'Genbank',
       :fasta_file_species_name => 'Babesia_bovis_T2Bo',
       :source => 'PiroplasmaDB',
     },

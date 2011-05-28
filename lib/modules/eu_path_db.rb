@@ -140,10 +140,14 @@ class BScript
       proteomic_name_to_pubmed = ProteomicExperiment::TOXOPLASMA_NAME_TO_PUBLICATION_HASH
       mass_spec_table = info.get_table('Mass Spec.-based Expression Evidence')
       mass_spec_table.each do |row|
-        experiment = row['Experiment Name']
+        experiment = row['Experiment']
         # temporary typo fix
         experiment = 'MS Tachyzoite Membrane Protein with Biotinlyation Purification 05-22-2007' if experiment == 'MS Tachyzoite Membrane Protein with  Biotinlyation Purification 05-22-2007'
         experiment = 'MS Carruthers 2 distinct peptides' if experiment == 'MS Carruthers 2destinct peptides'
+        
+        if experiment.nil?
+          raise Exception, "Failed to parse proteomics experiment table (programming error?): #{mass_spec_table.inspect} from #{code.string_id}"
+        end
         
         # Add T.gondii to the front because that is convention
         experiment = "T. gondii #{experiment}"
@@ -323,26 +327,26 @@ class BScript
 #    gondii_to_database
 #    neospora_caninum_to_database
 #    cryptosporidium_parvum_to_database
-    theileria_parva_to_database
-    theileria_annulata_to_database
-    babesi_bovis_to_database
+#    theileria_parva_to_database
+#    theileria_annulata_to_database
+#    babesia_bovis_to_database
     # extras required for proper orthomcl linking
     upload_gondii_gene_table_to_database
   end
   
   def upload_apiloc_fasta_files
-    falciparum_fasta_to_database
-    berghei_fasta_to_database
-    yoelii_fasta_to_database
-    vivax_fasta_to_database
-    chabaudi_fasta_to_database
-    knowlesi_fasta_to_database
-    gondii_fasta_to_database
-    neospora_caninum_fasta_to_database
-    cryptosporidium_parvum_fasta_to_database
-    theileria_parva_fasta_to_database
-    theileria_annulata_fasta_to_database
-    babesi_bovis_fasta_to_database
+#    falciparum_fasta_to_database
+#    berghei_fasta_to_database
+#    yoelii_fasta_to_database
+#    vivax_fasta_to_database
+#    chabaudi_fasta_to_database
+#    knowlesi_fasta_to_database
+#    gondii_fasta_to_database
+#    neospora_caninum_fasta_to_database
+#    cryptosporidium_parvum_fasta_to_database
+#    theileria_parva_fasta_to_database
+#    theileria_annulata_fasta_to_database
+    babesia_bovis_fasta_to_database
   end
   
   def upload_proteomic_data

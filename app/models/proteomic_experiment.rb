@@ -3,7 +3,7 @@ class ProteomicExperiment < ActiveRecord::Base
   has_many :coding_regions, :through => :proteomic_experiment_results
   has_many :proteomic_experiment_peptides, :dependent => :destroy
   belongs_to :publication
-
+  
   FALCIPARUM_FOOD_VACUOLE_2008_NAME = 'P. falciparum Food Vacuole Lamarque et al 2008'
   FALCIPARUM_FOOD_VACUOLE_2008_PUBLICATION_DETAILS = { #not in pubmed (any more?)
     :url => 'http://www3.interscience.wiley.com/journal/120840762/abstract',
@@ -18,10 +18,10 @@ class ProteomicExperiment < ActiveRecord::Base
   FALCIPARUM_WHOLE_CELL_2002_TROPHOZOITE_NAME = 'P. falciparum Whole Cell Florens et al 2008 during Trophozoite'
   FALCIPARUM_WHOLE_CELL_2002_GAMETOCYTE_NAME = 'P. falciparum Whole Cell Florens et al 2008 during Gametocyte'
   FALCIPARUM_WHOLE_CELL_2002_PUBMED_ID = 12368866
-
+  
   FALCIPARUM_MAURERS_CLEFT_2005_NAME = 'P. falciparum Maurer\'s Cleft Vincensini et al 2005' 
   FALCIPARUM_MAURERS_CLEFT_2005_PUBMED_ID = 15671043
-
+  
   FALCIPARUM_SUMOYLATION_2008_NAME = 'P. falciparum Sumoylated Isaar et al 2008'
   FALCIPARUM_SUMOYLATION_2008_PUBMED_ID = 18547337
   
@@ -29,32 +29,28 @@ class ProteomicExperiment < ActiveRecord::Base
   FALCIPARUM_GAMETOCYTOGENESIS_2010_TROPHOZOITE_NAME = 'P. falciparum Trophozoite Silvestrini et al 2010'
   FALCIPARUM_GAMETOCYTOGENESIS_2010_GAMETOCYTE_STAGE_I_AND_II_NAME = 'P. falciparum Gametocyte Stage I and II Silvestrini et al 2010'
   FALCIPARUM_GAMETOCYTOGENESIS_2010_GAMETOCYTE_STAGE_V_NAME = 'P. falciparum Gametocyte Stage V Silvestrini et al 2010'
-
+  
   TOXOPLASMA_NAME_TO_PUBLICATION_HASH = {
     'T. gondii 1D Gel Tachyzoite Membrane fraction 10-2006' => 11796121,
     'T. gondii 1D Gel Tachyzoite Membrane fraction 12-2006' => 11796121,
+    'T. gondii 1-D SDS PAGE' => 11796121,
+    'T. gondii 1-D SDS PAGE Insoluble Fraction' => 11796121,
+    'T. gondii 1-D SDS PAGE Soluble Fraction' => 11796121,
     'T. gondii 2DLC MS/MS Tachyzoite Membrane fraction' => 11796121,
-    'T. gondii Moreno DTASelect filter sample A' => 'http://toxodb.org/toxo/showXmlDataContent.do?name=XmlQuestions.DataSources&datasets=Moreno-1-annotated',
-    'T. gondii Moreno DTASelect filter sample G' => 'http://toxodb.org/toxo/showXmlDataContent.do?name=XmlQuestions.DataSources&datasets=Moreno-1-annotated',
-    'T. gondii MS Carruthers 2 distinct peptides' => 16002397,
-    'T. gondii MS Carruthers MudPIT Twinscan hits' => 16002397,
-    'T. gondii MS Tachyzoite Cytosolic Protein Fractions 05-2007' => 11796121,
+    'T. gondii Conoid-depleted Fraction' => 16518471,
+    'T. gondii Conoid-enriched Fraction' => 16518471,
+    'T. gondii MS RH Secretome fraction MudPIT Twinscan hits' => 16002397,
+    'T. gondii MS Tachyzoite Cytosolic fraction 05-2007' => 11796121,
     'T. gondii MS Tachyzoite Membrane fraction 02-03-2006' => 11796121,
     'T. gondii MS Tachyzoite Membrane fraction 05-02-2006' => 11796121,
     'T. gondii MS Tachyzoite Membrane fraction 05-10-2006' => 11796121,
     'T. gondii MS Tachyzoite Membrane fraction 06-2006' => 11796121,
     'T. gondii MS Tachyzoite Membrane Protein with Biotinlyation Purification 05-22-2007' => 11796121,
-    'T. gondii Murray Conoid-depleted Fraction' => 16518471,
-    'T. gondii Murray Conoid-enriched Fraction' => 16518471,
-    'T. gondii Wastling 1-D SDS PAGE' => 11796121,
-    'T. gondii Wastling 1-D SDS PAGE Insoluble' => 11796121,
-    'T. gondii Wastling 1-D SDS PAGE Soluble' => 11796121,
-    'T. gondii Wastling MudPIT Insoluble' => 11796121,
-    'T. gondii Wastling MudPIT Soluble' => 11796121,
-    'T. gondii Wastling Rhoptry' => 16002398,
-    # new ones in ToxoDB 6.4
-    'T. gondii Wastling 2-D' => 16002398,
-    'T. gondii Mass SPec data of RH secretome' => 'http://toxodb.org/toxo/showXmlDataContent.do?name=XmlQuestions.DataSources#Moreno-1-annotated', #this needs to be a link to the a URL that is resolvable. Before "s. moreno unpublished" was giving errors to the google crawler.
+    'T. gondii MudPIT Insoluble Fraction' => 11796121,
+    'T. gondii MudPIT Soluble Fraction' => 11796121,
+    'T. gondii RH Mass Spec Data (sample A)' => 'http://toxodb.org/toxo/showXmlDataContent.do?name=XmlQuestions.DataSources&datasets=Moreno-1-annotated',
+    'T. gondii RH Mass Spec Data (sample G)' => 'http://toxodb.org/toxo/showXmlDataContent.do?name=XmlQuestions.DataSources&datasets=Moreno-1-annotated',
+    'T. gondii Rhoptry Fraction' => 16002398,
   }
   
   BERGHEI_MICRONEME_2009_NAME = 'P. berghei Microneme Lal et. al. 2009'
