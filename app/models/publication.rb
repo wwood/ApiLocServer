@@ -34,6 +34,15 @@ class Publication < ActiveRecord::Base
       return pubmed_id
     end
   end
+
+  # return the PubMed ID, or if that is nil, the database ID
+  def pmid_or_id
+    if pubmed_id.nil?
+      return id
+    else
+      return pubmed_id
+    end
+  end
   
   def linkout_url
     if pubmed_id.nil?

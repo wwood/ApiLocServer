@@ -128,7 +128,7 @@ module ApilocHelper
     
     def proteomic_experiment_name_to_html_link(name)
       html_name = proteomic_experiment_name_to_italics(name)
-      return(link_to html_name, :controller => :apiloc, :action => :proteome, :id => name)
+      return(link_to html_name, :controller => :apiloc, :action => :proteome, :id => CGI.escape(name))
     end
     
     def proteomic_experiment_name_to_italics(name)
@@ -144,7 +144,9 @@ module ApilocHelper
     
     def coding_region_localisation_html(coding_region)
       ExpressionContextGroup.new(nil).coalesce(
-                                               coding_region.expression_contexts.collect do |ec|
+                                               coding_region.expression_contexts.reject{|e|
+        e.localisation_id.nil? and e.developmental_stage_id.nil?
+      }.collect do |ec|
         LocalisationsAndDevelopmentalStages.new(
                                                 ec.localisation ?
             "<a href='#{url_for :action => :specific_localisation, :id => url_encode(ec.localisation.name)}'>#{ec.localisation.name}</a>" : [],

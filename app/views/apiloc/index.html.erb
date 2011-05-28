@@ -40,6 +40,9 @@
           <input type="text" id="text_search_textbox" value="membrane" size="12"/><input type="submit" value="Google">
         </form>
       </td>
+      <td>
+	<%= link_to 'download', 'apiloc20100923.xls' %>
+      </td>
     </tr>
   </table>
 </div>
@@ -74,7 +77,7 @@
     <area shape="rect" coords="279,0,352,19" alt="conoid" href="<%="#{url_for :action => :specific_localisation, :id => 'conoid'}" %>"/>
     <area shape="rect" coords="290,20,356,38" alt="apical" href="<%="#{url_for :action => :specific_localisation, :id => 'apical'}" %>"/>
     <area shape="rect" coords="297,41,416,62" alt="microneme" href="<%="#{url_for :action => :specific_localisation, :id => 'microneme'}" %>"/>
-    <area shape="rect" coords="302,62,524,84" alt="microtubular network" href="<%="#{url_for :action => :specific_localisation, :id => '/microtubular network'}" %>"/>
+    <area shape="rect" coords="302,62,524,84" alt="microtubular network" href="<%="#{url_for :action => :specific_localisation, :id => 'microtubular network'}" %>"/>
     <area shape="rect" coords="306,86,566,109" alt="inner membrane complex" href="<%="#{url_for :action => :specific_localisation, :id => 'inner membrane complex'}" %>"/>
     <area shape="rect" coords="311,114,396,136" alt="rhoptry" href="<%="#{url_for :action => :specific_localisation, :id => 'rhoptry'}" %>"/>
     <area shape="rect" coords="318,146,470,166" alt="dense granule" href="<%="#{url_for :action => :specific_localisation, :id => 'dense granule'}" %>"/>
@@ -148,7 +151,7 @@
   <h2>Proteomic Experiments</h2>
   <ul>
     <% popular_proteomic_experiments.each do |pro| %>
-      <li><%= link_to proteomic_experiment_name_to_italics(pro.name), :action => :proteome, :id => pro.name %></li>
+      <li><%= link_to proteomic_experiment_name_to_italics(pro.name), :action => :proteome, :id => CGI.escape(pro.name) %></li>
     <% end %>
   </ul>
 </div>
