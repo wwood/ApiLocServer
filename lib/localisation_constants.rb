@@ -123,6 +123,7 @@ module LocalisationConstants
       'perinuclear',
       'far nuclear periphery',
       'perhiphery of nucleus',
+      'electron dense nuclear periphery',
       'interior of nucleus',
       'histones',
       'internal organelle',
@@ -174,22 +175,25 @@ module LocalisationConstants
       'posterior to nucleus',
       'nowhere except nucleus',
       'replication foci',
+      'perinuclear area of endoplasmic reticulum',
       'apical',
       'sub-apical',
       'apical annuli',
       'nowhere except apical',
+      'apical cap',
+      'novel localisation at apical cap',
       'posterior',
+      'exclusively basal complex',
       'ring at basal end',
       'parasite plasma membrane',
       'cytoplasm',
-      'ring structure at apical inner membrane complex',
-      'ring structure at posterior inner membrane complex',
       'endoplasmic reticulum',
       'apical end of endoplasmic reticulum',
       'cortical endoplasmic reticulum',
       'perinuclear endoplasmic reticulum',
       'between endoplasmic reticulum and golgi',
       'golgi apparatus',
+      'perinuclear area of golgi',
       'cytoplasmic region close to the golgi',
       'cisternal rims of the late golgi',
       'post golgi compartment',
@@ -202,6 +206,11 @@ module LocalisationConstants
       'cytoplasmic face of inner membrane complex',
       'nowhere except cytoplasmic face of inner membrane complex',
       'inner membrane complex microtubules',
+      'mature cortical inner membrane complex',
+      'ring structure at apical inner membrane complex',
+      'ring structure at posterior inner membrane complex',
+      'apical cap of inner membrane complex',
+      'exclusively apical plasma membrane',
       'centrocone',
       'apical end of the nuclear envelope',
       'parasitophorous vacuole membrane',
@@ -215,9 +224,13 @@ module LocalisationConstants
       'evacuole',
       'intravacuolar network',
       'cytoskeleton',
+      'mother cytoskeleton',
+      'daughter cytoskeleton',
+      'lower basal levels of cytoskeleton',
       'vesicle',
       'endosome-related compartment',
       'early endosome',
+      'late endosome',
       'peripheral',
       'endosomal membrane',
       'endosomal vacuole',
@@ -272,19 +285,26 @@ module LocalisationConstants
       'nascent conoid',
       'vesicle-like structure just under the parasite membrane',
       'apical conoid',
+      'preconoidal rings',
       'basal complex',
-      'vac' #VAC from "Cathepsin L occupies a vacuolar compartment and is a protein maturase within the endo/exocytic system of Toxoplasma gondii"
+      'series of annuli further down the cell periphery in the apical end of parasite',
+      'plant-like vacuole',
+      'adjacent to the plant-link vacuole'
     ],
     Species::BABESIA_BOVIS_NAME => [
       'apical',
       'released into extracellular mileiu',
       'cytoplasm',
+      'intracellular',
+      'middle-rear',
       'spherical body organelle',
       'host erythrocyte membrane',
       'plasma membrane', #ie. surface of parasite
       'cytoplasmic accumulation',
       'parasitophorous vacuole membrane',
       'nucleus',
+      'erythrocyte membrane',
+      'erythrocyte cytoplasm',
       'cytoplasmic face of host erythrocyte membrane'
     ],
     Species::NEOSPORA_CANINUM_NAME => [
@@ -300,6 +320,7 @@ module LocalisationConstants
       'cytoplasm',
       'posterior cytoplasm',
       'anterior cytoplasm',
+      'nucleus',
       'cyst wall',
       'cyst matrix',
       'moving junction'
@@ -350,6 +371,9 @@ module LocalisationConstants
         'host cell cytoplasm'
       ],
       'Babesia bigemina' => [
+        'cytoplasm'
+      ],
+      'Babesia microti' => [
         'cytoplasm'
       ],
       'Theileria lestoquardi' => [
@@ -411,9 +435,15 @@ module LocalisationConstants
       'dense band',
       'posterior vacuole',
       'intracellular',
+      'vesicles',
+      'large electron-translucent vesicles',
       'feeder organelle',
       'parasitophorous vacuole',
       'oocyst wall',
+      'inner surface of the oocyst wall',
+      'outer wall',
+      'outer veil on exterior of oocyst wall',
+      'tethers on inner surface of the oocyst wall',
       'wall forming body',
       'cytoplasmic inclusion',
       'periphery of amylopectin-like granules',
@@ -426,6 +456,7 @@ module LocalisationConstants
       'residual body',
       'anterior vacuole',
       'surrounding',
+      'exterior',
     ],
     Species::THEILERIA_ANNULATA_NAME => [
       'mitochondrion',
@@ -441,6 +472,7 @@ module LocalisationConstants
     Species::THEILERIA_PARVA_NAME => [
       'apical',
       'plasma membrane',
+      'nucleus',
     ],
     Species::PLASMODIUM_BERGHEI_NAME => [
       'apical',
@@ -493,14 +525,19 @@ module LocalisationConstants
       'internal structures',
       'vesicles',
       'p-body',
+      'stress granule',
+      'cytoplasmic axonemes',
     ],
     Species::VIVAX_NAME => [
       'surface',
+      'merozoite surface',
       'ookinete surface',
       'intracellular',
       'apical',
       'microneme',
       'rhoptry',
+      'rhoptry neck',
+      'rhoptry bulb',
       'cytoplasm',
       'cytosol',
       'host cell cytoplasm',
@@ -511,6 +548,8 @@ module LocalisationConstants
       'apical',
       'microneme',
       'rhoptry',
+      'rhoptry neck',
+      'dense granule',
       'basal',
       'plasma membrane',
       'underneath plasma membrane',
@@ -578,6 +617,7 @@ module LocalisationConstants
       'nuclear' => 'nucleus',
       'lysosome' => 'food vacuole',
       'rhoptries' => 'rhoptry',
+      'micronemes' => 'microneme',
     },
     Species::PLASMODIUM_BERGHEI_NAME => {
       'lysosome' => 'food vacuole',
@@ -602,6 +642,8 @@ module LocalisationConstants
       'parasite cytosol' => 'cytosol',
       'erythrocyte cytosol' => 'host cell cytosol',
       'erythrocyte' => 'host cell cytosol',
+      'axonemal' => 'cytoplasmic axonemes',
+      'cytoplasmic' => 'cytoplasm',
     },
     Species::THEILERIA_ANNULATA_NAME => {
       'mitochondria' => 'mitochondrion',
@@ -624,6 +666,10 @@ module LocalisationConstants
       'pvm' => 'parasitophorous vacuole membrane',
       'membrane' => 'plasma membrane',
       'wall forming bodies' => 'wall forming body',
+      'inner surface of oocyst walls' => 'inner surface of the oocyst wall',
+      'outer veil' => 'outer veil on exterior of oocyst wall',
+      'inner surface of the oocyst walls' => 'inner surface of the oocyst wall',
+      'outer surface' => 'surface',
     },
     Species::OTHER_SPECIES => {
       'Sarcocystis muris' => {
@@ -633,7 +679,8 @@ module LocalisationConstants
         'surface' => 'cell surface',
         'erythrocyte cytoplasm' => 'host cell cytoplasm',
         'pm' => 'plasma membrane',
-        'membrane' => 'plasma membrane'
+        'membrane' => 'plasma membrane',
+        'parasite surface' => 'cell surface',
       },
       'Babesia equi' => {
         'surface' => 'cell surface'
@@ -663,13 +710,18 @@ module LocalisationConstants
       'intraparasitic space' => 'cytoplasm',
       'pv' => 'parasitophorous vacuole',
       'pv lumen' => 'parasitophorous vacuole lumen',
+      'apical complex' => 'apical',
     },
     Species::BABESIA_BOVIS_NAME => {
       'cytoplasmic accumulations' => 'cytoplasmic accumulation',
+      'spherical body' => 'spherical body organelle',
       'spherical body organelles' => 'spherical body organelle',
       'surface' => 'plasma membrane',
       'host cell surface' => 'host erythrocyte membrane',
-      'inner surface of host cell cytoplasm' => 'parasitophorous vacuole membrane'
+      'inner surface of host cell cytoplasm' => 'parasitophorous vacuole membrane',
+      'rbc' => 'erythrocyte cytoplasm',
+      'infected rbc' => 'erythrocyte cytoplasm',
+      'infected rbc membrane' => 'erythrocyte membrane',
     },
     Species::TOXOPLASMA_GONDII_NAME => {
       'golgi' => 'golgi apparatus',
@@ -750,6 +802,18 @@ module LocalisationConstants
       'cytoplasmic aggregate' => 'cytoplasmic foci',
       'internal vesicles' => 'cytoplasmic vesicle',
       'cell periphery' => 'peripheral',
+      'budding daughter cytoskeleton' => 'daughter cytoskeleton',
+      'mature cortical imc' => 'mature cortical inner membrane complex',
+      'nucleolar' => 'nucleolus',
+      'nuclei' => 'nucleus',
+      'ring-like structure at the apical end of the inner membrane complex' => 'ring structure at apical inner membrane complex',
+      'plv/vac' => 'plant-like vacuole',
+      'vac' => 'plant-like vacuole',
+      'focus at apex' => 'apical',
+      'adjacent to the vac' => 'adjacent to the plant-link vacuole',
+      'apical cap of imc' => 'apical cap of inner membrane complex',
+      'cortex' => 'periphery of parasite',
+      'selectively apical pm' => 'exclusively apical plasma membrane'
     },
     Species::FALCIPARUM_NAME => {
       'host cell' => 'erythrocyte',
@@ -926,7 +990,8 @@ module LocalisationConstants
       'cytoplasmic' => 'cytoplasm',
       'around merozoite surface' => 'merozoite surface',
       'expression within the nuclei' => 'nucleus',
-      'in nucleus' => 'nucleus'
+      'in nucleus' => 'nucleus',
+      'apical cap' => 'apical',
     }
   }
 

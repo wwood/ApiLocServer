@@ -240,7 +240,7 @@ class LocalisationSpreadsheet
       next unless info.normal_localisation_line?
       
       if info.localisation_and_timing.nil?
-        $stderr.puts "No localisation data found. I expected some. Ignoring this line"
+        $stderr.puts "No localisation data found. I expected some. Ignoring this line: #{info.original_array.inspect}"
         next
       end
       
@@ -252,7 +252,7 @@ class LocalisationSpreadsheet
     end
   end
   
-  # Localise the the
+  # Localise the 
   def regular_localisation_spreadsheet_upload_list_localisations(overall_species, filename)
     loc = Localisation.new
     upload_list_localisations(overall_species, filename) do |sp, code, info|
@@ -314,6 +314,7 @@ class LocalisationSpreadsheetRow
     :localisation_and_timing, :mapping_comments,
     :microscopy_types, :microscopy_types_raw,
     :localisation_method, :quote, :strains_raw, :comments
+  attr_accessor :original_array
   
   NO_LOC_JUST_GENE_MODEL = 'no localisation done, just a confirmation of gene model'
   THIS_ENTRY_IS_A_COMMON_NAME_MATCHING_THING = 'these common names refer to the same gene'
@@ -322,6 +323,8 @@ class LocalisationSpreadsheetRow
   NO_LOC_METHOD = "localisation method not found"
   
   def create_from_array(species_name, array, whiny=true)
+    @original_array = array
+    
     start_column = 0
     unless species_name #if there's no species name, it'll just be in the firt column
       @species_name = array[start_column]; start_column += 1
