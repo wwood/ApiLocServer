@@ -87,4 +87,10 @@ class SpeciesDataTest < Test::Unit::TestCase
     assert_equal "PfalciparumGenomic_PlasmoDB-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}.fasta",
     spd.genomic_fasta_filename
   end
+  
+  def test_transcripts_name_without_block
+    spd = SpeciesData.new('Babesia bovis')
+    assert_equal "BbovisT2BoAnnotatedTranscripts_PiroplasmaDB-#{SpeciesData::SOURCE_VERSIONS['PiroplasmaDB']}.fasta",
+    spd.transcript_fasta_filename
+  end
 end

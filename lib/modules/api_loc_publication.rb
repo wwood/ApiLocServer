@@ -6,7 +6,7 @@ class BScript
     puts "For each species, how many genes, publications"
     total_proteins = 0
     total_publications = 0
-    Species.apicomplexan.all(:order => 'name').each do |s|
+    Species.apicomplexan.all.push(Species.find_by_name(Species::BABESIA_BOVIS_NAME)).sort{|a,b| a.name <=> b.name}.each do |s|
       protein_count = s.number_or_proteins_localised_in_apiloc
       publication_count = s.number_or_publications_in_apiloc
       
@@ -25,6 +25,33 @@ class BScript
     total_proteins,
     total_publications
     ].join("\t")
+  end
+  
+  # Like HTML stats, but used for the version information part
+  # of the ApiLoc website
+  def apiloc_html_stats
+    total_proteins = 0
+    total_publications = 0
+    
+    puts '<table>'
+    puts '<tr><th>Species</th><th>Localised genes</th><th>Publications curated</th></tr>'
+    Species.apicomplexan.all.push(Species.find_by_name(Species::BABESIA_BOVIS_NAME)).sort{|a,b| a.name <=> b.name}.each do |s|
+      protein_count = s.number_or_proteins_localised_in_apiloc
+      publication_count = s.number_or_publications_in_apiloc
+      
+      puts "<tr><td><i>#{s.name}</i></td><td>#{protein_count}</td><td>#{publication_count}</td></tr>"
+      
+      total_proteins += protein_count
+      total_publications += publication_count
+    end
+    
+    print [
+    '<tr><td><b>Total</b>',
+    total_proteins,
+    total_publications
+    ].join("</b></td><td><b>")
+    puts '</b></td></tr>'
+    puts '</table>'
   end
   
   def species_localisation_breakdown
@@ -841,18 +868,18 @@ class BScript
   UNIPROT_SPECIES_ID_NAME_HASH = {
     9606 => Species::HUMAN_NAME,
     4932 => Species::YEAST_NAME,
-    312017 => Species::TETRAHYMENA_NAME,
-    7227 => Species::DROSOPHILA_NAME,
-    3702 => Species::ARABIDOPSIS_NAME,
-    6239 => Species::ELEGANS_NAME,
-    10090 => Species::MOUSE_NAME,
-    3055 => Species::CHLAMYDOMONAS_NAME,
-    7955 => Species::DANIO_RERIO_NAME,
+#    312017 => Species::TETRAHYMENA_NAME,
+#    7227 => Species::DROSOPHILA_NAME,
+#    3702 => Species::ARABIDOPSIS_NAME,
+#    6239 => Species::ELEGANS_NAME,
+#    10090 => Species::MOUSE_NAME,
+#    3055 => Species::CHLAMYDOMONAS_NAME,
+#    7955 => Species::DANIO_RERIO_NAME,
     4530 => Species::RICE_NAME,
     
     # Species below added on the second attempt
-    4896 => Species::POMBE_NAME,
-    10116 => Species::RAT_NAME,
+#    4896 => Species::POMBE_NAME,
+#    10116 => Species::RAT_NAME,
     
     # species below have no non-IEA gene ontology terms so are a waste of time
     #    4087 => Species::TOBACCO_NAME, 
@@ -1199,7 +1226,12 @@ class BScript
       'Quotes'
     ].flatten.join("\t")
     
-    CodingRegion.all(:joins => :expressed_localisations).uniq.each do |code|
+    codes = CodingRegion.all(:joins => :expressed_localisations).uniq
+    progress = ProgressBar.new('apiloc_spreadsheet', codes.length)
+    
+    codes.each do |code|
+      $stderr.puts code.string_id
+      progress.inc
       to_print = []
       organellar_locs = []
       
@@ -1328,6 +1360,7 @@ class BScript
         end
       end
     end
+    progress.finish
   end
   
   # The big GOA file has not been 'redundancy reduced', a process which is buggy,
@@ -2344,6 +2377,85 @@ class BScript
       else
         puts "Found in ApiLoc: #{splits[1]}"
       end
+    end
+  end
+  
+  # Create a spreadsheet with all the synonyms, so it can be attached as supplementary
+  def synonyms_spreadsheet
+    sep = "\t"
+    
+    # Print titles
+    puts [
+    "Localistion or Developmental Stage?",
+    "Species",
+    "Full name(s)",
+    "Synonym"
+    ].join(sep)
+    
+    # Procedure for printing out each of the hits
+    printer = lambda do |species_name, actual, synonym, cv_name|
+      if actual.kind_of?(Array)
+        puts [cv_name, species_name, actual.join(","), synonym].join(sep)
+      else
+        puts [cv_name, species_name, actual, synonym].join(sep)
+      end
+    end
+    
+    # Print all the synonyms
+    [
+    LocalisationConstants::KNOWN_LOCALISATION_SYNONYMS,
+    DevelopmentalStageConstants::KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS, 
+    ].each do |cv|
+      
+      cv_name = {
+        DevelopmentalStageConstants::KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS => 'Developmental Stage',
+        LocalisationConstants::KNOWN_LOCALISATION_SYNONYMS => 'Localisation'
+      }[cv]
+      
+      cv.each do |sp, hash|
+        if sp == Species::OTHER_SPECIES #for species not with a genome project
+          #     Species::OTHER_SPECIES => {
+          #      'Sarcocystis muris' => {
+          #        'surface' => 'cell surface'
+          #      },
+          #      'Babesia gibsoni' => {
+          #        'surface' => 'cell surface',
+          #        'erythrocyte cytoplasm' => 'host cell cytoplasm',
+          #        'pm' => 'plasma membrane',
+          #        'membrane' => 'plasma membrane'
+          #      },
+          hash.each do |species_name, hash2|
+            hash2.each do |synonym, actual|
+              printer.call(species_name, actual, synonym, cv_name)
+            end
+          end
+        else #normal species
+          hash.each do |synonym, actual|
+            printer.call(sp, actual, synonym, cv_name)
+          end
+        end
+      end
+    end
+  end
+  
+  def umbrella_localisations_controlled_vocabulary
+    sep = "\t"
+    
+    # Print titles
+    puts [
+    "Localistion or Developmental Stage?",
+    "Umbrella",
+    "Specific Localisation Name"
+    ].join(sep)
+    
+    ApilocLocalisationTopLevelLocalisation::APILOC_TOP_LEVEL_LOCALISATION_HASH.each do |umbrella, unders|
+      unders.each do |under|
+        puts ["Localisation", umbrella, under].join(sep)
+      end
+    end
+    
+    DevelopmentalStageTopLevelDevelopmentalStage::APILOC_DEVELOPMENTAL_STAGE_TOP_LEVEL_DEVELOPMENTAL_STAGES.each do |under, umbrella|
+      puts ["Developmental Stage", umbrella, under].join(sep)
     end
   end
 end

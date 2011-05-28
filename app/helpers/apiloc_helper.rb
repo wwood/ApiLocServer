@@ -139,11 +139,11 @@ module ApilocHelper
     
     # maybe I could do a form or something but eh.
     def apiloc_contact_email_address
-    'b.woodcroft@pgrad.unimelb.edu.au'
+    'put student.unimelb.edu.au after b.woodcroft'
     end
     
     def coding_region_localisation_html(coding_region)
-      ExpressionContextGroup.new(nil).coalesce(
+      ecs = ExpressionContextGroup.new(nil).coalesce(
                                                coding_region.expression_contexts.reject{|e|
         e.localisation_id.nil? and e.developmental_stage_id.nil?
       }.collect do |ec|
@@ -154,6 +154,12 @@ module ApilocHelper
             "<a href='#{url_for :action => :specific_developmental_stage, :id => ec.developmental_stage.name}'>#{ec.developmental_stage.name}</a>" : []
         )
       end
+      logger.debug '!!!!!!!!!!!!!!!!!!!!!!!!!'
+      logger.debug ecs.inspect
+      logger.debug '-----------------------'
+      
+      ExpressionContextGroup.new(nil).coalesce(
+                                               ecs
       )
     end
     

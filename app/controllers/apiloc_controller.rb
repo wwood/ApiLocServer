@@ -26,13 +26,17 @@ class ApilocController < ApplicationController
     end
 
     gene_id = params[:id]
+    # Some gene IDs have dots in them, and rails splits these up. Fix that.
     gene_id += ".#{params[:id2]}" unless params[:id2].nil?
     gene_id += ".#{params[:id3]}" unless params[:id3].nil?
     
+    # If a gene ID but not species is given, make it so.
     if params[:species] and gene_id.nil?
       gene_id = params[:species]
       params[:species] = nil
     end
+    #whitespace is pernicious, and isn't trailing or initialising gene ids I know of
+    gene_id.strip!
     
     codes = []
     if !gene_id or gene_id == ''
@@ -44,15 +48,26 @@ class ApilocController < ApplicationController
       
       # we have a given gene_id
       if params[:species]
-        # if agreeable then you might need to remove the species 2 letter,
-        # otherwise trust the specifically given species id
-        if Species.agreeable_name_and_two_letter_prefix?(params[:species], gene_id)
-          codes = CodingRegion.find_all_by_partial_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
+        # If given a proper string id, then just match that, and don't try for anything else
+        code1 = CodingRegion.species(params[:species]).find_by_string_id(gene_id)
+        if code1
+          codes = [code1]
         else
-          codes = CodingRegion.find_all_by_partial_name_or_alternate_and_species(gene_id, params[:species])
+          # if agreeable then you might need to remove the species 2 letter,
+          # otherwise trust the specifically given species id
+          if Species.agreeable_name_and_two_letter_prefix?(params[:species], gene_id)
+            codes = CodingRegion.find_all_by_partial_name_or_alternate_and_species_maybe_with_species_prefix(gene_id, params[:species])
+          else
+            codes = CodingRegion.find_all_by_partial_name_or_alternate_and_species(gene_id, params[:species])
+          end
         end
       else
-        codes = CodingRegion.find_all_by_partial_name_or_alternate_maybe_with_species_prefix(gene_id)
+        code1 = CodingRegion.find_by_string_id(gene_id)
+        if code1
+          codes = [code1]
+        else
+          codes = CodingRegion.find_all_by_partial_name_or_alternate_maybe_with_species_prefix(gene_id)
+        end
       end
     end
     

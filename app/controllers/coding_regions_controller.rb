@@ -158,6 +158,32 @@ class CodingRegionsController < ApplicationController
     end
   end
   
+    # The action associated with annotating multiple genes at once.
+  # The displayed page is a table of results.
+  def annotate
+    @coding_regions = []
+    @coding_regions_not_found = []
+    species_name = params[:species]
+    string.split(/[\s\,]+/).each do |string_id|
+      code = nil
+      
+      # Find the best coding region. Note that only 1 gene is found,
+      # even when the gene ID matches 2 genes
+      if species_name == 'whateva'
+        code = CodingRegion.f(string_id)
+      else
+        code = CodingRegion.fs(string_id, species_name)
+      end
+      
+      # Add the coding region to an array available to the view
+      if code
+        @coding_regions.push code
+      else
+        @coding_regions_not_found.push string_id
+      end
+    end
+  end
+  
   private
   
   # to remove duplication in export and annotate

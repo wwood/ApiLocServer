@@ -18,6 +18,7 @@ class Publication < ActiveRecord::Base
       # make sure the parsing problem is a-ok
       if !publications_string.match('^http') and !publications_string.match('unpublished')
         $stderr.puts "Couldn't parse '#{pub}' as a publication"
+        return []
       end
       pub = Publication.find_or_create_by_url publications_string
     end
@@ -49,6 +50,15 @@ class Publication < ActiveRecord::Base
       return url
     else
       to_return = "http://www.ncbi.nlm.nih.gov/sites/entrez?db=pubmed&term=#{pubmed_id}"
+      return to_return
+    end
+  end
+  
+  def fulltext_url
+    if pubmed_id.nil?
+      return url
+    else
+      to_return = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&id=#{pubmed_id}&retmode=ref&cmd=prlinks"
       return to_return
     end
   end

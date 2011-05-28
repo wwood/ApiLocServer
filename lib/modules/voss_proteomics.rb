@@ -14,21 +14,23 @@ class BScript
     puts [
       'PlasmoDB',
     #          'Annotation',
-              'Common names',
-              'ApiLoc Localisation(s)',
-              'ApiLoc Localisation(s) in Apicomplexan Orthologues',
+    #              'Common names',
+    #              'ApiLoc Localisation(s)',
+    #              'ApiLoc Localisation(s) in Apicomplexan Orthologues',
     #      'PlasmoAP?',
     #        'Plasmit?',
     #      'SignalP?',
     #      #      'Transmembrane domain # (TMHMM)',
     #      'ExportPred score > 0?',
-          'Agreement with nuclear simple',
-          'Agreement with ER simple',
-    'Literature survey localisations',
-          'Literature survey localisation description',
-          'Literature survey nuclear agreement',
-      'Literature survey ER agreement',
-      'Localisation description of Orthologue(s)',
+              'Agreement with nuclear simple manually inspected',
+    #          'Agreement with ER simple',
+    #    'Literature survey localisations',
+    #          'Literature survey localisation description',
+    #          'Literature survey nuclear agreement',
+    #      'Literature survey ER agreement',
+    #      'Localisation description of Orthologue(s)',
+    #      'Metabolic Maps nuclear agreement simple',
+    #      'Metabolic Maps ER agreement simple',
     #  'Included in Maurer\'s Cleft proteome?',
     #  'Included in Food Vacuole proteome?',
     #      top_names.collect{|n| "'#{n}' Agreement"},
@@ -49,35 +51,40 @@ class BScript
       if code.nil?
         puts "Couldn't find this gene ID"
       else
-
-        orth_str = nil
-        begin
-          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
-          if localised_orths.nil?
-            orth_str = 'no entry in OrthoMCL v3'
-          else
-            orth_str = localised_orths.reject{
-              |c| c.id == code.id
-            }.reach.localisation_english.join(' | ')
-          end
-        rescue OrthomclGene::UnexpectedCodingRegionCount
-          orth_str = 'multiple OrthoMCL orthologues found'
-        end
         
-        # second class the same thing
-        lit_orth_str = nil
-        begin
-          localised_orths = code.localised_apicomplexan_orthomcl_orthologues(:by_literature => true)
-          if localised_orths.nil?
-            lit_orth_str = 'no entry in OrthoMCL v3'
-          else
-            lit_orth_str = localised_orths.reject{
-              |c| c.id == code.id
-            }.reach.localisation_english(:by_literature => true).join(' | ')
-          end
-        rescue OrthomclGene::UnexpectedCodingRegionCount
-          lit_orth_str = 'multiple OrthoMCL orthologues found'
-        end
+        ## Determine nucleus agreement with manual annotation
+        nucleus_agreement_simple = manually_correct_some_nucleus_agreements(code)
+        nucleus_agreement_simple ||= code.agreement_with_top_level_localisation_simple(
+                                                                                       TopLevelLocalisation.find_by_name('nucleus')
+        )
+        
+        #        orth_str = nil
+        #        begin
+        #          localised_orths = code.localised_apicomplexan_orthomcl_orthologues
+        #          if localised_orths.nil?
+        #            orth_str = 'no entry in OrthoMCL v3'
+        #          else
+        #            orth_str = localised_orths.reject{
+        #              |c| c.id == code.id
+        #            }.reach.localisation_english.join(' | ')
+        #          end
+        #        rescue OrthomclGene::UnexpectedCodingRegionCount
+        #          orth_str = 'multiple OrthoMCL orthologues found'
+        #        end
+        #        
+        #        # second class the same thing
+        #        lit_orth_str = nil
+        #        begin
+        #          localised_orths = code.localised_apicomplexan_orthomcl_orthologues(:by_literature => true)
+        #          if localised_orths.nil?
+        #            lit_orth_str = 'no entry in OrthoMCL v3'
+        #          else
+        #            lit_orth_str = localised_orths.reject{
+        #              |c| c.id == code.id
+        #            }.reach.localisation_english(:by_literature => true).join(' | ')
+        #          end        rescue OrthomclGene::UnexpectedCodingRegionCount
+        #          lit_orth_str = 'multiple OrthoMCL orthologues found'
+        #        end
         
         #        maurers_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_MAURERS_CLEFT_2005_NAME)
         #        fv_proteome = ProteomicExperiment.find_by_name(ProteomicExperiment::FALCIPARUM_FOOD_VACUOLE_2008_NAME)
@@ -111,33 +118,39 @@ class BScript
         
         puts [
         #        code.annotation.annotation,
-                code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.uniq.join(', '),
-                code.localisation_english,
-                orth_str,
+        #                code.case_sensitive_literature_defined_coding_region_alternate_string_ids.reach.name.uniq.join(', '),
+        #                code.localisation_english,
+        #                orth_str,
         #          code.plasmo_a_p.signal?,
         #                code.plasmit?,
         #          code.signalp_however.signal?,
         #          code.tmhmm.transmembrane_domains.length,
         #          code.amino_acid_sequence.exportpred.predicted?,
-                code.names.reject{|n| n==code.string_id}.join(', '),
-                code.agreement_with_top_level_localisation_simple(
-                                                                  TopLevelLocalisation.find_by_name('nucleus')
-                ),
-                code.agreement_with_top_level_localisation_simple(
-                                                                  TopLevelLocalisation.find_by_name('endoplasmic reticulum')
-                ),
-        code.literature_based_top_level_localisations.reach.name.uniq.join(', '),
-                code.localisation_english(:by_literature => true),
-                code.agreement_with_top_level_localisation_simple(
-                                                                  TopLevelLocalisation.find_by_name('nucleus'),
-                            :by_literature => true
-                ),
-        code.agreement_with_top_level_localisation_simple(
-                                                          TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
-                    :by_literature => true
-        ),
-                lit_orth_str,
-
+        #                code.names.reject{|n| n==code.string_id}.join(', '),
+        nucleus_agreement_simple
+        #                code.agreement_with_top_level_localisation_simple(
+        #                                                                  TopLevelLocalisation.find_by_name('endoplasmic reticulum')
+        #                ),
+        #        code.literature_based_top_level_localisations.reach.name.uniq.join(', '),
+        #                code.localisation_english(:by_literature => true),
+        #                code.agreement_with_top_level_localisation_simple(
+        #                                                                  TopLevelLocalisation.find_by_name('nucleus'),
+        #                            :by_literature => true
+        #                ),
+        #        code.agreement_with_top_level_localisation_simple(
+        #                                                          TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
+        #                    :by_literature => true
+        #        ),
+        #        lit_orth_str,
+        #        code.agreement_with_top_level_localisation_simple(
+        #                                                          TopLevelLocalisation.find_by_name('nucleus'),
+        #                            :expression_context_evidence_class => :metabolic_maps_expression_contexts
+        #        ),
+        #        code.agreement_with_top_level_localisation_simple(
+        #                                                          TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
+        #                    :expression_context_evidence_class => :metabolic_maps_expression_contexts
+        #        ),
+        
         #        maurers_proteome.coding_regions.include?(code),
         #        fv_proteome.coding_regions.include?(code),
         #        top_names.collect{|top_name|
@@ -154,7 +167,7 @@ class BScript
         #          code.proteomics(nil, 1).length > 0,
         #          code.proteomics.length > 0
         #        measure,
-
+        
         #        measure_ring,
         #        measure_troph,
         #        measure_schizont,
@@ -271,39 +284,55 @@ class BScript
     
     puts [
     "PlasmoDB ID",
-    'Annotation (PlasmoDB 6.4)',
-    'ApiLoc localisation description',
-    'OrthoMCL links ApiLoc description',
-    'Agreement with nucleus',
-    "Number of transmembrane domains (not including Signal Peptide)",
-    "ER retention motifs",
-    'Plasmit?',
-    'GPI?',
-    'SignalP?',
-    'ExportPred?',
-    'PlasmoAP?'
+    #        'Annotation (PlasmoDB 6.4)',
+    #        'ApiLoc localisation description',
+    #        'OrthoMCL links ApiLoc description',
+        'Agreement with nucleus',
+        'Agreement with literature survey nucleus?',
+#        'nucleus GO term',
+#        "Number of transmembrane domains (not including Signal Peptide)",
+#            "ER retention motifs",
+#        'Plasmit?',
+#        'GPI?',
+#        'SignalP?',
+#        'ExportPred?',
+#        'PlasmoAP?'
+#        'HP1?'
     ].join("\t")
+    
+    #    nucleus_go_term_list_plasmodbs = PlasmodbGeneList.find_by_description("PlasmoDB nucleus GO terms").coding_regions.reach.string_id.retract
+    hp1_list_plasmodbs = PlasmodbGeneList.find_by_description(PlasmodbGeneList::VOSS_HP1_LIST_NAME).coding_regions.reach.string_id.retract
+    raise Exception, "bad hp1 list!" unless hp1_list_plasmodbs.length == 537
     
     foreach_code = lambda do |code, plasmodb_id|
       to_print = []
       to_print.push plasmodb_id
-      to_print.push code.tmhmm.transmembrane_domains.length
-      matching_ers = ers.collect {|er|
-        if matches = er.regex.match(code.aaseq)
-          er.signal
-        else
-          nil
-        end
-      }.no_nils
-      to_print.push matching_ers.empty? ? 'none' : matching_ers.join(',')
-      
-      to_print.push code.plasmit?
-      
-      to_print.push gpi_list_codes.include?(code.string_id)
-      
-      to_print.push code.signalp_however.signal?
-      to_print.push code.export_pred_however.signal?
-      to_print.push code.plasmo_a_p.signal?
+      to_print.push code.agreement_with_top_level_localisation_simple(
+                                                                      TopLevelLocalisation.find_by_name('nucleus')
+      )
+      to_print.push code.agreement_with_top_level_localisation_simple(
+                                                                      TopLevelLocalisation.find_by_name('nucleus'),
+                                  :expression_context_evidence => :second_class_citizen_expression_contexts
+      )
+      #      to_print.push nucleus_go_term_list_plasmodbs.include?(code.string_id)
+      #      to_print.push code.tmhmm.transmembrane_domains.length
+      #      matching_ers = ers.collect {|er|
+      #        if matches = er.regex.match(code.aaseq)
+      #          er.signal
+      #        else
+      #          nil
+      #        end
+      #      }.no_nils
+      #      to_print.push matching_ers.empty? ? 'none' : matching_ers.join(',')
+      #      
+      #      to_print.push code.plasmit?
+      #      
+      #      to_print.push gpi_list_codes.include?(code.string_id)
+      #      
+      #      to_print.push code.signalp_however.signal?
+      #      to_print.push code.export_pred_however.signal?
+      #      to_print.push code.plasmo_a_p.signal?
+      to_print.push hp1_list_plasmodbs.include?(code.string_id)
       
       
       puts to_print.join("\t")
@@ -338,7 +367,7 @@ class BScript
           next
         end
         
-        foreach_plasmodb_id.call(code, plasmodb_id)
+        foreach_code.call(code, plasmodb_id)
       end
     end
   end
@@ -492,5 +521,119 @@ class BScript
       stage_v_coding_regions.include?(code)
       ].join("\t")
     end
+  end
+  
+  # Print out a list of the second class citizens in P. falciparum
+  # and their compiled localisation
+  def second_class_citizens_list
+    CodingRegion.falciparum.all(:joins => :second_class_citizen_expression_contexts, :select => 'distinct(coding_regions.*)').each do |code|
+      puts [
+      code.string_id,
+      code.annotation.annotation,
+      code.literature_based_top_level_localisations.reach.name.uniq.sort.join((', ')),
+      code.second_class_citizen_expression_contexts.collect{|e| e.publication.definition}.sort.uniq.join(', ')
+      ].join("\t")
+    end
+  end
+  
+  def nucleus_go_annotation
+    go_decisions = {}
+    
+    # Read in the data
+    FasterCSV.foreach("#{PHD_DIR}/voss_proteome/June2010/go_term_annotation/PfalciparumGene_PlasmoDB-7.0.txt.nucleus_agreement.txt",:col_sep => "\t") do |row|
+      go_decisions[row[0]] = row[1]
+    end
+    
+    failed_count = 0
+    $stdin.each do |code|
+      code.strip!
+      decision = go_decisions[code]
+      print "#{code}\t"
+      if decision == 'positive'
+        puts 'positive'
+      elsif decision == 'negative'
+        puts 'negative'
+      elsif decision == 'both'
+        puts 'positive'
+      elsif decision
+        puts 'unknown'
+      else
+        failed_count += 1
+        puts 'unknown'
+      end
+    end
+    $stderr.puts "Failed #{failed_count}."
+  end
+  
+  def voss_annotated_proteins_counting
+    {
+      ExpressionContext => :expression_contexts,
+      SecondClassCitizenExpressionContext => :second_class_citizen_expression_contexts,
+      MetabolicMapsExpressionContext => :metabolic_maps_expression_contexts,
+    }.each do |clazz, s|
+      nucs = []
+      sorta_nucs = []
+      not_nucs = []
+      nils = []
+      ers = []
+      
+      nuc_top = TopLevelLocalisation.find_by_name('nucleus')
+      CodingRegion.falciparum.all(:joins => s).uniq.each do |code|
+        endo_agree = code.agreement_with_top_level_localisation_simple(
+                                                                       TopLevelLocalisation.find_by_name('endoplasmic reticulum'),
+                            :expression_context_evidence_class => s
+        )
+        if endo_agree == 'agree'
+          ers.push code
+          next
+        end
+        agree = code.agreement_with_top_level_localisation_simple(
+                                                                  TopLevelLocalisation.find_by_name('nucleus'),
+                            :expression_context_evidence_class => s
+        )
+        if agree == 'agree'
+          if code.tops_by_evidence(s).reject{|top| %w(nucleus cytoplasm).push('not cytoplasm').include?(top.name)}.length > 0
+            sorta_nucs.push code
+          end
+          nucs.push code
+        elsif agree == 'disagree'
+          not_nucs.push code
+        elsif agree.nil? or agree == 'conflict'
+          nils.push code
+        else
+          raise Exception, "programming error - agree was #{agree}"
+        end
+      end
+      
+      puts [
+      s.to_s,
+      nucs.length,
+      not_nucs.length + nucs.length,
+      nils.length,
+      ers.length
+      ].join("\t")
+      
+      sorta_nucs.each do |code|
+        puts [
+        code.names.join(', '),
+        code.tops_by_evidence(s).sort{|a,b| a.name<=>b.name}.uniq.reach.name.join(', '),
+        code.localisation_english,
+        ].join("\t")
+      end
+    end
+  end
+  
+  def manually_correct_some_nucleus_agreements(coding_region)
+    # by default, anything that is nuclear is in agreement. However, some are manually changed due to literature disagreements
+    hash = {
+    'PF10_0155' => 'conflict', #enolase
+    'PF10_0395' => 'conflict',#stevor
+    'PFE0285c' => 'exclude', #sumo
+    'PFE0360c' => 'conflict', #unnamed, from pull-down
+    }
+    if hash[coding_region.string_id]
+      return hash[coding_region.string_id]
+    end
+    return nil
   end
 end

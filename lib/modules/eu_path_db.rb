@@ -1,6 +1,6 @@
 # Methods associated mainly with uploading data from PlasmoDB and ToxoDB etc.
 
-require 'eu_path_d_b_gene_information_table'
+require 'eupathdb_gene_information_table'
 require 'zlib'
 require 'species_data'
 
@@ -278,11 +278,11 @@ class BScript
   end
   
   def upload_apiloc_from_scratch
-    go_to_database
-    download_uniprot_data
-    uniprot_to_database
-    download_orthomcl
-    orthomcl_to_database
+#    go_to_database
+#    download_uniprot_data
+#    uniprot_to_database
+#    download_orthomcl
+#    orthomcl_to_database
     
     # Upload basic gene identifiers
     upload_apiloc_gffs
@@ -305,9 +305,7 @@ class BScript
       :accept_multiple_coding_regions => true
     )
     OrthomclGene.new.link_orthomcl_and_coding_regions(
-                                                      Species::APICOMPLEXAN_NAMES.reject{|a|
-      a == Species::BABESIA_BOVIS_NAME
-    }.collect { |a|
+                                                      Species::APICOMPLEXAN_NAMES.collect { |a|
       Species.find_by_name(a).orthomcl_three_letter
     }, {:verbose => true, :warn => true}
     )
@@ -316,18 +314,18 @@ class BScript
   end
   
   def upload_apiloc_gffs
-    falciparum_to_database
-    berghei_to_database
-    yoelii_to_database
-    vivax_to_database
-    chabaudi_to_database
-    knowlesi_to_database
-    gondii_to_database
-    neospora_caninum_to_database
-    cryptosporidium_parvum_to_database
-    theileria_parva_gene_aliases
-    upload_theileria_fasta
-    babesia_to_database
+#    falciparum_to_database
+#    berghei_to_database
+#    yoelii_to_database
+#    vivax_to_database
+#    chabaudi_to_database
+#    knowlesi_to_database
+#    gondii_to_database
+#    neospora_caninum_to_database
+#    cryptosporidium_parvum_to_database
+    theileria_parva_to_database
+    theileria_annulata_to_database
+    babesi_bovis_to_database
     # extras required for proper orthomcl linking
     upload_gondii_gene_table_to_database
   end
@@ -342,10 +340,9 @@ class BScript
     gondii_fasta_to_database
     neospora_caninum_fasta_to_database
     cryptosporidium_parvum_fasta_to_database
-    # already uploaded as part of auploc_apiloc_gffs
-    # theileria_parva_fasta_gene_aliases
-    # upload_theileria_fasta
-    #    babesia_fasta_to_database
+    theileria_parva_fasta_to_database
+    theileria_annulata_fasta_to_database
+    babesi_bovis_fasta_to_database
   end
   
   def upload_proteomic_data
@@ -446,7 +443,7 @@ class BScript
   def download(database_name=nil)
     # by default, download everything
     if database_name.nil?
-      %w(plasmodb cryptodb toxodb).each do |d|
+      SpeciesData::DATABASES.each do |d|
         download d
       end
     else
@@ -462,36 +459,37 @@ class BScript
           #          $stderr.puts "chdir: #{Dir.pwd}"
           # protein
           unless File.exists?(spd.protein_fasta_filename)
-            `wget #{spd.eu_path_db_download_directory}/#{spd.protein_fasta_filename}`
+            `wget #{spd.eu_path_db_fasta_download_directory}/#{spd.protein_fasta_filename}`
           end
           # gff
           unless File.exists?(spd.gff_filename)
-            `wget #{spd.eu_path_db_download_directory}/#{spd.gff_filename}`
+            `wget #{spd.eu_path_db_gff_download_directory}/#{spd.gff_filename}`
           end
           # transcripts
           unless File.exists?(spd.transcript_fasta_filename)
-            `wget #{spd.eu_path_db_download_directory}/#{spd.transcript_fasta_filename}`
+            `wget #{spd.eu_path_db_fasta_download_directory}/#{spd.transcript_fasta_filename}`
           end
           # gene information table
           unless File.exists?(spd.gene_information_filename)
-            `wget '#{spd.eu_path_db_download_directory}/#{spd.gene_information_filename}'`
+            `wget '#{spd.eu_path_db_txt_download_directory}/#{spd.gene_information_filename}'`
           end
           # genomic
           unless File.exists?(spd.genomic_fasta_filename)
-            `wget '#{spd.eu_path_db_download_directory}/#{spd.genomic_fasta_filename}'`
+            `wget '#{spd.eu_path_db_fasta_download_directory}/#{spd.genomic_fasta_filename}'`
           end          
         end
       end
     end
   end
   
-  def species_data_from_database(database_name)
-    database_name.downcase!
-    raise unless %w(plasmodb toxodb cryptodb).include?(database_name)
+  def species_data_from_database(eupathdb_database_name)
+    database_name = eupathdb_database_name.downcase
+    raise unless SpeciesData::DATABASES.reach.downcase.include?(database_name)
     species_names = {
       'plasmodb' => Species::PLASMODB_SPECIES_NAMES,
       'toxodb' => Species::TOXODB_SPECIES_NAMES,
       'cryptodb' => Species::CRYPTODB_SPECIES_NAMES,
+      'piroplasmadb' => Species::PIROPLASMADB_SPECIES_NAMES
     }[database_name]
     species_names.collect do |name|
       SpeciesData.new(name)

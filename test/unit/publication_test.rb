@@ -35,9 +35,7 @@ class PublicationTest < ActiveSupport::TestCase
   
   def test_half_number
     id = '123a'
-    assert_raise ParseException do
-      Publication.find_create_from_ids_or_urls(id)
-    end    
+    assert_equal [], Publication.find_create_from_ids_or_urls(id)
   end
   
   def test_upload_again
@@ -54,5 +52,12 @@ class PublicationTest < ActiveSupport::TestCase
     assert_equal 1997, Publication.new(:date => '1997').year
     assert_equal nil, Publication.new(:date => 'ages ago').year
     assert_equal 2003, Publication.new(:date => 'May, 2003').year
+  end
+  
+  def test_fulltext_url
+    p = Publication.new(:url => 'http://abc.net')
+    assert_equal 'http://abc.net', p.fulltext_url
+    p.pubmed_id = 3
+    assert_equal 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&id=3&retmode=ref&cmd=prlinks', p.fulltext_url
   end
 end

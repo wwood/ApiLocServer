@@ -7,7 +7,7 @@
 # Specifies gem version of Rails to use when vendor/rails is not present
 # Ben removed this because I couldn't be bothered changing manually when
 # every new version of rails is released.
-RAILS_GEM_VERSION = '2.3.8' unless defined? RAILS_GEM_VERSION
+RAILS_GEM_VERSION = '2.3.11' unless defined? RAILS_GEM_VERSION
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')
@@ -70,14 +70,15 @@ Rails::Initializer.run do |config|
   config.gem 'rio'
   config.gem 'narray' # only required as a dependency to romanbsd-gsl, and because the :sources flag doesn't work properly IMO. See https://rails.lighthouseapp.com/projects/8994/tickets/1891-configgem-with-multiple-sources
   config.gem 'romanbsd-gsl', :lib => 'gsl', :source => 'http://gems.github.com' # the original author doesn't offer a gem - I don't really need the other changes in romanbsd's github
-  config.gem "matthuhiggins-foreigner", :lib => "foreigner", :source => 'http://gemcutter.org'
+  config.gem "foreigner", :lib => "foreigner", :source => 'http://gemcutter.org'
   config.gem 'array_pair', :source => 'http://gemcutter.org'
   config.gem 'goruby', :lib => 'go', :source => 'http://gemcutter.org'
   config.gem 'progressbar'
+  config.gem 'reubypathdb', :lib => 'eupathdb_gene_information_table'
   
   # include a cache sweeper directory that fits into the app/ scheme, as suggested by
   # http://railsenvy.com/2007/2/28/rails-caching-tutorial#sweepers
-  config.load_paths += %W( #{RAILS_ROOT}/app/sweepers )
+  config.autoload_paths += %W( #{RAILS_ROOT}/app/sweepers )
 end
 
 # Simple class defintions that don't really need their own file since they are too short

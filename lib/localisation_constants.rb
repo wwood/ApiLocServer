@@ -19,6 +19,7 @@ module LocalisationConstants
       'erythrocyte cytoplasmic structure',
       'dot like structures in host cell',
       'erythrocyte cytoplasmic structure near parasitophorous vacuole',
+      'erythrocyte cytoplasm adjacent to the parasitophorous vacuole',
       'erythrocyte',
       'single small vesicle in erythrocyte',
       'exported',
@@ -69,6 +70,8 @@ module LocalisationConstants
       'electron-dense heterochromatic region at the nuclear periphery',
       'nuclear interior',
       'nuclear matrix',
+      'euchromatin',
+      'heterochromatin',
       'trans golgi',
       'golgi apparatus',
       'golgi matrix',
@@ -92,11 +95,13 @@ module LocalisationConstants
       'rhoptry neck',
       'rhoptry bulb',
       'nowhere except rhoptry',
+      'membranous whorls discharged from rhoptry matrix',
       'microneme',
       'mononeme',
       'dense granule',
       'apical',
       'apical parasite plasma membrane',
+      'non-invasion-related localisation',
       'posterior structure',
       'anterior structure',
       'gametocyte attached erythrocytic vesicle',
@@ -136,7 +141,8 @@ module LocalisationConstants
       'membrane structure',
       'straight side of d shaped parasite', # A P. falciparum specific localisation
       'internal membrane networks',
-      'osmiophilic body' #"Pfmdv-1 was also detected in specific secretory vesicles, termed osmiophilic bodies (OB), within gametocytes (Fig. 3 A, B, and D)."
+      'osmiophilic body', #"Pfmdv-1 was also detected in specific secretory vesicles, termed osmiophilic bodies (OB), within gametocytes (Fig. 3 A, B, and D)."
+      'non-invasion-related localisation',
     ],
     Species::TOXOPLASMA_GONDII_NAME => [
       'nascent rhoptry',
@@ -913,6 +919,14 @@ module LocalisationConstants
       'ims side of mitochondrial inner membrane' => 'inner membrane space side of inner membrane of mitochondria',
       'cytoskeleton microtubules' => 'microtubule',
       'parasitophorous vacuolar membrane' => 'parasitophorous vacuole membrane',
+      'surface of the erythrocyte' => 'erythrocyte plasma membrane',
+      'host erythrocyte cytosol' => 'erythrocyte cytosol',
+      'extracellular' => 'exported',
+      'golgi complex' => 'golgi apparatus',
+      'cytoplasmic' => 'cytoplasm',
+      'around merozoite surface' => 'merozoite surface',
+      'expression within the nuclei' => 'nucleus',
+      'in nucleus' => 'nucleus'
     }
   }
 

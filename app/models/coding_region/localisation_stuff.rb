@@ -1,15 +1,17 @@
 class CodingRegion < ActiveRecord::Base
   
   def agreement_with_top_level_localisation(top_level_localisation, parameter_options={})
+    raise if parameter_options[:by_literature] #deprecated, use expression_context_evidence => :second_class_citizen_expression_contexts instead
+    
     options = {
-    :by_literature => false,
+    :expression_context_evidence_class => nil,
     }.merge(parameter_options)
     
     known_tops = nil
     expressed_locs = nil
-    if options[:by_literature]
-      known_tops = literature_based_top_level_localisations
-      expressed_locs = expressed_second_class_citizen_localisations
+    if options[:expression_context_evidence_class]
+      known_tops = tops_by_evidence(options[:expression_context_evidence_class])
+      expressed_locs = expressed_localisations_by_evidence(options[:expression_context_evidence_class])
     else
       known_tops = topsa
       expressed_locs = expressed_localisations
@@ -57,14 +59,15 @@ class CodingRegion < ActiveRecord::Base
   # like CodingRegion#agreement_with_top_level_localisation, except only return
   # these strings: agree, disagree, conflict, "" (for not localised)
   def agreement_with_top_level_localisation_simple(top_level_localisation, parameter_options={})
+    raise if parameter_options[:by_literature] #deprecated, use expression_context_evidence => :second_class_citizen_expression_contexts instead
     options = {
-    :by_literature => false,
+    :expression_context_evidence_class => nil,
     }.merge(parameter_options)
     
     # Get the overall agreement
     agreement = nil
-    if options[:by_literature]
-      agreement = agreement_with_top_level_localisation(top_level_localisation, :by_literature => true)
+    if options[:expression_context_evidence_class]
+      agreement = agreement_with_top_level_localisation(top_level_localisation, :expression_context_evidence_class => options[:expression_context_evidence_class])
     else
       agreement = agreement_with_top_level_localisation(top_level_localisation)
     end

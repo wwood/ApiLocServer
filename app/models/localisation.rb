@@ -9,6 +9,7 @@ class Localisation < ActiveRecord::Base
   has_many :coding_region_localisations, :dependent => :destroy
   has_many :expression_contexts, :dependent => :destroy
   has_many :second_class_citizen_expression_contexts, :dependent => :destroy
+  has_many :metabolic_maps_expression_contexts, :dependent => :destroy
   has_many :expressed_coding_regions, :through => :expression_contexts, :source => :coding_region
   
   has_one :malaria_localisation_top_level_localisation
@@ -144,6 +145,7 @@ class Localisation < ActiveRecord::Base
   end
   
   # Parse a line from the dirty localisation files. Return an array of (unsaved) ExpressionContext objects
+  # also needs a species object (not a species name)
   def parse_name(dirt, species)
     contexts = []
     # split on commas

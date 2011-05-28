@@ -1,7 +1,11 @@
 <h2><%= @localisations[0].name.capitalize %></h2>
 <p>Proteins in this localisation are known in <%= @localisations.reach.species.collect{|s| link_to(s.name, :action => :species, :id => s.name)}.join(', ') %>.</p>
 <p>This specific localisation comes under the <%= n = @localisations[0].apiloc_top_level_localisation.name; link_to n, :action => :localisation, :id => n %> umbrella.</p>
+<% if @localisations[0].negative? %>
+<p>There may also be proteins not excluded from this localisation, i.e. <%= link_to @localisations[0].negation.name, :action => :specific_localisation, :id => @localisations[0].negation.name %></p>
+<% else %>
 <p>There may also be proteins excluded from this location, i.e. <%= link_to @localisations[0].negation.name, :action => :specific_localisation, :id => @localisations[0].negation.name %></p>
+<% end %>
 <% category_counter=0 %>
 <% @localisations.each do |loc| %>
   <div class="category<%= category_counter+=1; category_counter.odd? ? 'true' : 'false' %>">
