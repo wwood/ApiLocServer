@@ -7,10 +7,12 @@ because otherwise unassigned genes have the incorrect name %>
 </p>
 <% end %>
 <p>
-  <% if @code.annotation.nil? %>
-  A <% else %>
-  <i><%= @code.annotation.annotation %></i>, a<% end %>
-  gene from <%= link_to @code.species.name, :action => :species, :id => @code.species.name %>
+	<% if @code.annotation.nil? %>
+	A 
+	<% else %>
+  <i><%= @code.annotation.annotation %></i>, a
+  <% end %>
+  gene from <i><%= link_to @code.species.name, :action => :species, :id => @code.species.name %></i>
 </p>
 <p>
   <b>Compiled localisation:</b>
@@ -170,21 +172,27 @@ because otherwise unassigned genes have the incorrect name %>
   <% else %>
   This gene does not have an OrthoMCL group.<% end %>
   <% end %>
-  <!--
-  <h4>BLAST hits to localised proteins</h4>
-  <%# @code.apiloc_blast_hits.each do |blast_code| %>
-  <%#= link_to blast_code.string_id %>
-  <%# end %>-->
 </div>
+
+<!--  <h4>BLAST hits to localised proteins</h4>
+<%# @code.apiloc_blast_hits.each do |blast_code| %>
+<%#= link_to blast_code.string_id %>
+<%# end %>
+</div>
+-->
+
+
+
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
   <h3>Amino Acid Sequence</h3>
   <% if @code.amino_acid_sequence.nil? %>
   amino acid sequence not recorded<% else %>
-  ><%= @code.string_id %><%= @code.annotation.annotation %>
+  ><%= @code.string_id %> <%= @code.annotation.annotation %>
   <br/>
-  <%= @code.amino_acid_sequence.sequence.wrap.gsub(/\n/,'<br >') %>
+  <font face=courier><%= @code.amino_acid_sequence.sequence.wrap.gsub(/\n/,'<br />') %></font>
   <% end %>
 </div>
+
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
   <h3>Proteomics</h3>
   <% @proteomics_partitions = popular_proteomic_experiments(@code.species.name).partition {
@@ -233,6 +241,10 @@ because otherwise unassigned genes have the incorrect name %>
 <% elsif @code.species.cryptodb? %>
 <li>
   <%= link_to 'CryptoDB gene page', "http://cryptodb.org/gene/#{@code.string_id}" %>
+</li>
+<% elsif @code.species.piroplasmadb? %>
+<li>
+  <%= link_to 'PiroplasmaDB gene page', "http://piroplasmadb.org/gene/#{@code.string_id}" %>
 </li>
 <% else %>
 <li>

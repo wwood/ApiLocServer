@@ -20,6 +20,11 @@ class ApilocController < ApplicationController
   end
   
   def gene
+    if params[:id].nil? and params[:species].nil?
+      redirect_to :action => :index
+      return
+    end
+
     gene_id = params[:id]
     # Some gene IDs have dots in them, and rails splits these up. Fix that.
     gene_id += ".#{params[:id2]}" unless params[:id2].nil?
@@ -75,7 +80,7 @@ class ApilocController < ApplicationController
       # redirect non-species specific requests to species-specific ones, because
       # then the caching will be better
       unless params[:species]
-        redirect_to :controller => :apiloc, :action => :gene, :species => @code.species.name, :id => gene_id
+        redirect_to :controller => :apiloc, :action => :gene, :species => @code.species.name, :id => @code.string_id
       end
     else
       @gene_id = gene_id
@@ -87,8 +92,8 @@ class ApilocController < ApplicationController
   
   def publication
     myed = params[:id]
-    @publication = Publication.find_by_pubmed_id(myed.to_i)
-    @publication ||= Publication.find_by_url(myed)
+    @publication = Publication.find_by_pubmed_id(myed.to_i) #first try PMID, which covers most papers
+    @publication ||= Publication.find(myed) #failing that, go with the database ID. Using a URL here is hard for rails routes to work out
     if @publication.nil?
       @publication_id = myed
     end
@@ -197,6 +202,8 @@ class ApilocController < ApplicationController
   def proteome
     name = params[:id]
     name += ".#{params[:id2]}" unless params[:id2].nil?
+    $stderr.puts "`#{name}'"
+    name = CGI.unescape name
     if name.nil?
       render :action => :index
     end

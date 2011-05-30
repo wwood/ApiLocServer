@@ -24,7 +24,6 @@ require 'bl2seq_report_shuffling'
 require 'rarff'
 require 'stdlib'
 require 'babesia'
-require 'spoctopus_wrapper'
 require 'uni_prot_iterator'
 
 # Modules to split up this massive file. Each one is included

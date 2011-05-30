@@ -6,9 +6,9 @@ class BScript
     puts "For each species, how many genes, publications"
     total_proteins = 0
     total_publications = 0
-    Species.apicomplexan.all.push(Species.find_by_name(Species::BABESIA_BOVIS_NAME)).sort{|a,b| a.name <=> b.name}.each do |s|
-      protein_count = s.number_or_proteins_localised_in_apiloc
-      publication_count = s.number_or_publications_in_apiloc
+    Species.apicomplexan.all.sort{|a,b| a.name <=> b.name}.each do |s|
+      protein_count = s.number_of_proteins_localised_in_apiloc
+      publication_count = s.number_of_publications_in_apiloc
       
       puts [
       s.name,
@@ -29,15 +29,16 @@ class BScript
   
   # Like HTML stats, but used for the version information part
   # of the ApiLoc website
+  
   def apiloc_html_stats
     total_proteins = 0
     total_publications = 0
     
     puts '<table>'
     puts '<tr><th>Species</th><th>Localised genes</th><th>Publications curated</th></tr>'
-    Species.apicomplexan.all.push(Species.find_by_name(Species::BABESIA_BOVIS_NAME)).sort{|a,b| a.name <=> b.name}.each do |s|
-      protein_count = s.number_or_proteins_localised_in_apiloc
-      publication_count = s.number_or_publications_in_apiloc
+    Species.apicomplexan.all.push.sort{|a,b| a.name <=> b.name}.each do |s|
+      protein_count = s.number_of_proteins_localised_in_apiloc
+      publication_count = s.number_of_publications_in_apiloc
       
       puts "<tr><td><i>#{s.name}</i></td><td>#{protein_count}</td><td>#{publication_count}</td></tr>"
       
@@ -868,18 +869,16 @@ class BScript
   UNIPROT_SPECIES_ID_NAME_HASH = {
     9606 => Species::HUMAN_NAME,
     4932 => Species::YEAST_NAME,
-#    312017 => Species::TETRAHYMENA_NAME,
-#    7227 => Species::DROSOPHILA_NAME,
-#    3702 => Species::ARABIDOPSIS_NAME,
-#    6239 => Species::ELEGANS_NAME,
-#    10090 => Species::MOUSE_NAME,
-#    3055 => Species::CHLAMYDOMONAS_NAME,
-#    7955 => Species::DANIO_RERIO_NAME,
+    312017 => Species::TETRAHYMENA_NAME,
+    7227 => Species::DROSOPHILA_NAME,
+    3702 => Species::ARABIDOPSIS_NAME,
+    6239 => Species::ELEGANS_NAME,
+    10090 => Species::MOUSE_NAME,
+    3055 => Species::CHLAMYDOMONAS_NAME,
+    7955 => Species::DANIO_RERIO_NAME,
     4530 => Species::RICE_NAME,
-    
-    # Species below added on the second attempt
-#    4896 => Species::POMBE_NAME,
-#    10116 => Species::RAT_NAME,
+    4896 => Species::POMBE_NAME,
+    10116 => Species::RAT_NAME,
     
     # species below have no non-IEA gene ontology terms so are a waste of time
     #    4087 => Species::TOBACCO_NAME, 

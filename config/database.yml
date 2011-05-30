@@ -14,7 +14,7 @@ apiloc:
   timeout: 5000
 apiloc_production:
   adapter: postgresql
-  database: apiloc
+  database: apiloc20100923
   timeout: 5000
 apiloc_build:
   adapter: postgresql

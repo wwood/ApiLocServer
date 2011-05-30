@@ -1,4 +1,5 @@
-require 'transmembrane'
+require 'bio'
+require 'bio-tm_hmm'
 require "rexml/document"
 
 
@@ -19,7 +20,7 @@ module Bio
         
         @xml.elements.each('TOPDB/Topology/Regions/Region') do |region|
           if region.attributes['Loc'] == 'Membrane'
-            t = Transmembrane::ConfidencedTransmembraneDomain.new
+            t = Bio::Transmembrane::ConfidencedTransmembraneDomain.new
             t.start = region.attributes['Begin'].to_i
             t.stop = region.attributes['End'].to_i
             t.confidence = confidence

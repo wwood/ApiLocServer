@@ -143,7 +143,8 @@ module ApilocHelper
     end
     
     def coding_region_localisation_html(coding_region)
-      ecs = coding_region.expression_contexts.reject{|e|
+      ecs = ExpressionContextGroup.new(nil).coalesce(
+                                               coding_region.expression_contexts.reject{|e|
         e.localisation_id.nil? and e.developmental_stage_id.nil?
       }.collect do |ec|
         LocalisationsAndDevelopmentalStages.new(
@@ -152,7 +153,7 @@ module ApilocHelper
         ec.developmental_stage ?
             "<a href='#{url_for :action => :specific_developmental_stage, :id => ec.developmental_stage.name}'>#{ec.developmental_stage.name}</a>" : []
         )
-      end
+      end)
       logger.debug '!!!!!!!!!!!!!!!!!!!!!!!!!'
       logger.debug ecs.inspect
       logger.debug '-----------------------'

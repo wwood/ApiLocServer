@@ -43,6 +43,8 @@ class Species < ActiveRecord::Base
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'
   
+  # Technically, this is Apicomplexans that don't exist in any EuPathDB
+  # database
   UNSEQUENCED_APICOMPLEXANS = [
     'Plasmodium gallinaceum',
     'Plasmodium cynomolgi',
@@ -59,28 +61,9 @@ class Species < ActiveRecord::Base
     'Eimeria tenella',
   ]
   
-  APICOMPLEXAN_NAMES = [
-  TOXOPLASMA_GONDII,
-  NEOSPORA_CANINUM_NAME,
-  FALCIPARUM,
-  VIVAX,
-  BERGHEI_NAME,
-  YOELII_NAME,
-  CHABAUDI_NAME,
-  #    BABESIA_BOVIS_NAME,
-  CRYPTOSPORIDIUM_HOMINIS_NAME,
-  CRYPTOSPORIDIUM_PARVUM_NAME,
-  THEILERIA_PARVA_NAME,
-  THEILERIA_ANNULATA_NAME,
-  ]
-  
   has_many :scaffolds, :dependent => :destroy
   has_many :localisations, :dependent => :destroy
   has_many :developmental_stages, :dependent => :destroy
-  
-  named_scope :apicomplexan, {
-    :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES, UNSEQUENCED_APICOMPLEXANS].flatten.to_sql_in_string}"
-  }
   
   ORTHOMCL_THREE_LETTERS = {
     FALCIPARUM => 'pfa',
@@ -150,6 +133,17 @@ class Species < ActiveRecord::Base
   THEILERIA_ANNULATA_NAME,
   THEILERIA_PARVA_NAME,
   ]
+  
+  APICOMPLEXAN_NAMES = [
+  PLASMODB_SPECIES_NAMES,
+  TOXODB_SPECIES_NAMES,
+  CRYPTODB_SPECIES_NAMES,
+  PIROPLASMADB_SPECIES_NAMES,
+  ].flatten
+  
+  named_scope :apicomplexan, {
+    :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES, UNSEQUENCED_APICOMPLEXANS].flatten.to_sql_in_string}"
+  }
   
   PLANTAE_NAME = 'Plantae'
   UNIKONT_NAME = 'Unikont'
@@ -277,6 +271,10 @@ class Species < ActiveRecord::Base
     CRYPTODB_SPECIES_NAMES.include?(name)
   end
   
+  def piroplasmadb?
+    PIROPLASMADB_SPECIES_NAMES.include?(name)
+  end
+  
   # Find the species from the gene name, assuming it has a
   # prefix like PfGyrA -> falciparum gene
   #
@@ -296,14 +294,14 @@ class Species < ActiveRecord::Base
     gene_name.match(/^#{SPECIES_PREFIXES[name]}(.*)/)[1]
   end
   
-  def number_or_proteins_localised_in_apiloc
+  def number_of_proteins_localised_in_apiloc
     CodingRegion.s(name).count(
       :select => 'distinct(coding_regions.id)',
       :joins => {:expression_contexts => :localisation}
     )
   end
   
-  def number_or_publications_in_apiloc
+  def number_of_publications_in_apiloc
     Publication.count(
       :select => 'distinct(publications.id)',
       :joins => {:expression_contexts => :localisation},

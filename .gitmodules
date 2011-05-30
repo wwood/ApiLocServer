@@ -7,3 +7,4 @@
 [submodule "vendor/plugins/ben_bioinformatics"]
 	path = vendor/plugins/ben_bioinformatics
 	url = ben@ben.bio21.unimelb.edu.au:/media/endless/git/ben_bioinformatics
+

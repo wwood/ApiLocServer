@@ -40,6 +40,9 @@
           <input type="text" id="text_search_textbox" value="membrane" size="12"/><input type="submit" value="Google">
         </form>
       </td>
+      <td>
+	<%= link_to 'download', 'apiloc20110528.xls' %>
+      </td>
     </tr>
   </table>
 </div>
@@ -74,7 +77,7 @@
     <area shape="rect" coords="279,0,352,19" alt="conoid" href="<%="#{url_for :action => :specific_localisation, :id => 'conoid'}" %>"/>
     <area shape="rect" coords="290,20,356,38" alt="apical" href="<%="#{url_for :action => :specific_localisation, :id => 'apical'}" %>"/>
     <area shape="rect" coords="297,41,416,62" alt="microneme" href="<%="#{url_for :action => :specific_localisation, :id => 'microneme'}" %>"/>
-    <area shape="rect" coords="302,62,524,84" alt="microtubular network" href="<%="#{url_for :action => :specific_localisation, :id => '/microtubular network'}" %>"/>
+    <area shape="rect" coords="302,62,524,84" alt="microtubular network" href="<%="#{url_for :action => :specific_localisation, :id => 'microtubular network'}" %>"/>
     <area shape="rect" coords="306,86,566,109" alt="inner membrane complex" href="<%="#{url_for :action => :specific_localisation, :id => 'inner membrane complex'}" %>"/>
     <area shape="rect" coords="311,114,396,136" alt="rhoptry" href="<%="#{url_for :action => :specific_localisation, :id => 'rhoptry'}" %>"/>
     <area shape="rect" coords="318,146,470,166" alt="dense granule" href="<%="#{url_for :action => :specific_localisation, :id => 'dense granule'}" %>"/>
@@ -98,7 +101,7 @@
   <h2>Species</h2>
   <ul>
     <% popular_species.each do |species_name| %>
-      <li><i><%= link_to species_name, :action => :species, :controller => :apiloc, :id => species_name %></i> (<%= Species.find_by_name(species_name).number_or_proteins_localised_in_apiloc %>)</li>
+      <li><i><%= link_to species_name, :action => :species, :controller => :apiloc, :id => species_name %></i> (<%= Species.find_by_name(species_name).number_of_proteins_localised_in_apiloc %>)</li>
     <% end %>
 	<li><%= image_tag("sqr_bullet_plus.gif", :id=>"expandable_unpopular_species_image", :alt=>"expand", :onclick=>"toggle('expandable_unpopular_species','expandable_unpopular_species_image')")%>&nbsp;&nbsp;
       other</li>
@@ -108,7 +111,7 @@
           :select => 'distinct(species.*) ',
           :order => 'name',
           :conditions => "name not in #{popular_species.to_sql_in_string}").each do |sp| %>
-		  <li><%= link_to sp.name, :action => :species, :id => sp.name %> (<%=sp.number_or_proteins_localised_in_apiloc %>)</li>
+		  <li><%= link_to "<i>#{sp.name}</i>", :action => :species, :id => sp.name %> (<%=sp.number_of_proteins_localised_in_apiloc %>)</li>
         <% end %>
       </ul>
     </li>
@@ -137,8 +140,8 @@
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <h2>Microscopy</h2>
   <ul>
-    <% popular_microscopy_types.each do |species_name| %>
-      <li><%= link_to species_name, :action => :microscopy, :id => species_name %></li>
+    <% popular_microscopy_types.each do |microscopy_type| %>
+      <li><%= link_to microscopy_type, :action => :microscopy, :id => microscopy_type %></li>
     <% end %>
   </ul>
 </div>
