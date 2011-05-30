@@ -14,7 +14,7 @@
     <% unless loc.localisation_synonyms.length == 0 %>
       Also known as <%= loc.localisation_synonyms.reach.name.sort.join(', ') %>.
     <% end %>
-      View <%= link_to 'all', :action => :species, :id => loc.species.name %> proteins localised in <%= loc.species.name %>.</p>
+      View <%= link_to 'all', :action => :species, :id => loc.species.name %> proteins localised in <i><%= loc.species.name %></i>.</p>
     <ul>
       <% loc.expression_contexts.reach.coding_region.uniq.each do |code| %>
         <li><%= code_name_annotation(code) %></li>

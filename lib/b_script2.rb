@@ -1,32 +1,3 @@
-require 'jgi_genes'
-require 'simple_go'
-require 'rio'
-require 'api_db_genes'
-require 'yeast_genome_genes'
-require 'signalp'
-require 'api_db_fasta'
-require 'gff3_genes'
-require 'rubygems'
-require 'csv'
-require 'bio'
-require 'peach'
-
-#require 'mscript'
-require 'reach'
-require 'plasmo_a_p'
-require 'top_db_xml'
-require 'pdb_tm'
-#require 'go'
-require 'wormbase_go_file'
-require 'libsvm_array'
-require 'bl2seq_report_shuffling'
-require 'rarff'
-require 'stdlib'
-require 'babesia'
-require 'spoctopus_wrapper'
-#require 'b_script'
-require 'zlib'
-
 class BScript
   def printtandem(roll)
     raise if roll.empty?

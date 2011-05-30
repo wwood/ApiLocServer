@@ -41,7 +41,7 @@
         </form>
       </td>
       <td>
-	<%= link_to 'download', 'apiloc20100923.xls' %>
+	<%= link_to 'download', 'apiloc20110528.xls' %>
       </td>
     </tr>
   </table>
@@ -101,7 +101,7 @@
   <h2>Species</h2>
   <ul>
     <% popular_species.each do |species_name| %>
-      <li><i><%= link_to species_name, :action => :species, :controller => :apiloc, :id => species_name %></i> (<%= Species.find_by_name(species_name).number_or_proteins_localised_in_apiloc %>)</li>
+      <li><i><%= link_to species_name, :action => :species, :controller => :apiloc, :id => species_name %></i> (<%= Species.find_by_name(species_name).number_of_proteins_localised_in_apiloc %>)</li>
     <% end %>
 	<li><%= image_tag("sqr_bullet_plus.gif", :id=>"expandable_unpopular_species_image", :alt=>"expand", :onclick=>"toggle('expandable_unpopular_species','expandable_unpopular_species_image')")%>&nbsp;&nbsp;
       other</li>
@@ -111,7 +111,7 @@
           :select => 'distinct(species.*) ',
           :order => 'name',
           :conditions => "name not in #{popular_species.to_sql_in_string}").each do |sp| %>
-		  <li><%= link_to sp.name, :action => :species, :id => sp.name %> (<%=sp.number_or_proteins_localised_in_apiloc %>)</li>
+		  <li><%= link_to "<i>#{sp.name}</i>", :action => :species, :id => sp.name %> (<%=sp.number_of_proteins_localised_in_apiloc %>)</li>
         <% end %>
       </ul>
     </li>
@@ -140,8 +140,8 @@
 <div class="category<%= category_counter+=1; category_counter.odd? %>">
   <h2>Microscopy</h2>
   <ul>
-    <% popular_microscopy_types.each do |species_name| %>
-      <li><%= link_to species_name, :action => :microscopy, :id => species_name %></li>
+    <% popular_microscopy_types.each do |microscopy_type| %>
+      <li><%= link_to microscopy_type, :action => :microscopy, :id => microscopy_type %></li>
     <% end %>
   </ul>
 </div>

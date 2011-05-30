@@ -75,6 +75,7 @@ Rails::Initializer.run do |config|
   config.gem 'goruby', :lib => 'go', :source => 'http://gemcutter.org'
   config.gem 'progressbar'
   config.gem 'reubypathdb', :lib => 'eupathdb_gene_information_table'
+  config.gem 'bio-tm_hmm'
   
   # include a cache sweeper directory that fits into the app/ scheme, as suggested by
   # http://railsenvy.com/2007/2/28/rails-caching-tutorial#sweepers

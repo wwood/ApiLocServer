@@ -153,7 +153,7 @@ module ApilocHelper
         ec.developmental_stage ?
             "<a href='#{url_for :action => :specific_developmental_stage, :id => ec.developmental_stage.name}'>#{ec.developmental_stage.name}</a>" : []
         )
-      end
+      end)
       logger.debug '!!!!!!!!!!!!!!!!!!!!!!!!!'
       logger.debug ecs.inspect
       logger.debug '-----------------------'
