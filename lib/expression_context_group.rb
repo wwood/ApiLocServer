@@ -7,7 +7,7 @@ class ExpressionContextGroup
   end
 
   def html
-    raise Exception, "Deprecated method - use apiloc helper instead"
+    
   end
 
   # Try to make this as concise as possible (ie least commas)
@@ -24,8 +24,12 @@ class ExpressionContextGroup
 
     return coalesce(locs_and_devs)
   end
-
-  def coalesce(locs_and_devs)
+  
+  # If the english representation of this expression context is
+  # nucleus and cytosol during ring, cytosol during trophozoite,
+  # then "nucleus and cytosol during ring" and "cytosol during trophozoite"
+  # are the two stanzas (though they are not strings)
+  def stanzas
     # First, merge contexts where the loc is the same for each different
     # developmental stage
     locs_and_devs2 = []
@@ -68,7 +72,11 @@ class ExpressionContextGroup
       end
     end
 
-    locs_and_devs3.collect{|l|l.to_s}.join(', ')
+    locs_and_devs3
+  end
+
+  def coalesce(locs_and_devs)
+    stanzas.collect{|l|l.to_s}.join(', ')
   end
 
   alias_method :to_s, :english

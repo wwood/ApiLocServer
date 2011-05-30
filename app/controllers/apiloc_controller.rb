@@ -80,7 +80,7 @@ class ApilocController < ApplicationController
       # redirect non-species specific requests to species-specific ones, because
       # then the caching will be better
       unless params[:species]
-        redirect_to :controller => :apiloc, :action => :gene, :species => @code.species.name, :id => gene_id
+        redirect_to :controller => :apiloc, :action => :gene, :species => @code.species.name, :id => @code.string_id
       end
     else
       @gene_id = gene_id
