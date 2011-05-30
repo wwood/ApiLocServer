@@ -6,35 +6,38 @@ class ExpressionContextGroup
     @expression_contexts = expression_contexts
   end
 
-  def html
-    
+  # From @expression_contexts, return a list of
+  # LocalisationsAndDevelopmentalStages objects
+  # in a one-to-one relationship. Use stanzas
+  # with the result of this method
+  # take this list and condense it into something more concise.
+  def to_localisations_and_developmental_stages
+    @expression_contexts.collect do |ec|
+      LocalisationsAndDevelopmentalStages.new(
+      ec.localisation ?
+      ec.localisation.name : [],
+      ec.developmental_stage ?
+      ec.developmental_stage.name : []
+      )
+    end
   end
 
   # Try to make this as concise as possible (ie least commas)
   # without losing or distorting the truth.
   def english
-    locs_and_devs = @expression_contexts.collect do |ec|
-      LocalisationsAndDevelopmentalStages.new(
-        ec.localisation ?
-          ec.localisation.name : [],
-        ec.developmental_stage ?
-          ec.developmental_stage.name : []
-      )
-    end
-
-    return coalesce(locs_and_devs)
+    return coalesce(to_localisations_and_developmental_stages)
   end
-  
+
   # If the english representation of this expression context is
   # nucleus and cytosol during ring, cytosol during trophozoite,
   # then "nucleus and cytosol during ring" and "cytosol during trophozoite"
   # are the two stanzas (though they are not strings)
-  def stanzas
+  def stanzas(locs_and_devs)
     # First, merge contexts where the loc is the same for each different
     # developmental stage
     locs_and_devs2 = []
     locs_and_devs.each do |landd|
-      # are there any cousins?
+    # are there any cousins?
       hits = locs_and_devs2.select do |l3|
         l3.localisation_ids == landd.localisation_ids
       end
@@ -49,14 +52,14 @@ class ExpressionContextGroup
         # algorithmic error if there is more than one cousin
         raise Exception, "Unexpected to find more than one cousin with the same localisation!"
       else
-        locs_and_devs2.push landd
+      locs_and_devs2.push landd
       end
     end
 
     # Second, merge localisations where the developmental stages are different
     locs_and_devs3 = []
     locs_and_devs2.each do |landd|
-      # are there any cousins?
+    # are there any cousins?
       hits = locs_and_devs3.select do |l3|
         l3.developmental_stage_ids == landd.developmental_stage_ids
       end
@@ -68,7 +71,7 @@ class ExpressionContextGroup
         # algorithmic error if there is more than one cousin
         raise Exception, "Unexpected to find more than one cousin with the same dev_stages!"
       else
-        locs_and_devs3.push landd
+      locs_and_devs3.push landd
       end
     end
 
@@ -76,50 +79,59 @@ class ExpressionContextGroup
   end
 
   def coalesce(locs_and_devs)
-    stanzas.collect{|l|l.to_s}.join(', ')
+    stanzas(locs_and_devs).collect{|l|l.to_s}.join(', ')
   end
 
   alias_method :to_s, :english
 end
 
 # A generalised version of ExpressionContext for holding more
+
 # than one context
 class LocalisationsAndDevelopmentalStages
   attr_accessor :developmental_stage_ids, :localisation_ids
-
   def initialize(loc, dev)
     @developmental_stage_ids = [dev].flatten
     @localisation_ids = [loc].flatten
   end
 
-  def to_s
-    # sort so that positive locs are at the top
+  # sort so that positive locs are at the top
+  def sort_by_positivity!
     @localisation_ids.sort!{ |a,b|
       if a.match(/^not /) and b.match(/^not /).nil?
-        1
+      1
       elsif b.match(/^not /) and a.match(/^not /).nil?
-        -1
+      -1
       else
-        a <=> b
+      a <=> b
       end
     }
     @developmental_stage_ids.sort!{ |a,b|
       if a.match(/^not /) and b.match(/^not /).nil?
-        1
+      1
       elsif b.match(/^not /) and a.match(/^not /).nil?
-        -1
+      -1
       else
-        a <=> b
+      a <=> b
       end
     }
+  end
 
-    #don't want ring and ring and ring
+  #don't want ring and ring and ring
+  def uniq!
     @localisation_ids.uniq!
     @developmental_stage_ids.uniq!
+  end
+
+  def to_s
+    # prepare
+    sort_by_positivity!
+    uniq!
 
     if @localisation_ids.empty?
       if @developmental_stage_ids.empty?
-        raise Exception, "No developmental stage or localisation found, so cannot give back a name." #shouldn't ever happen, because otherwise there is no information
+        raise Exception, "No developmental stage or localisation found, so cannot give back a name."
+      # #shouldn't ever happen, because otherwise there is no information
       else
         "during #{@developmental_stage_ids.join(' and ')}"
       end

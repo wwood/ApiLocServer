@@ -108,7 +108,9 @@ module ApilocHelper
       ProteomicExperiment::FALCIPARUM_GAMETOCYTOGENESIS_2010_GAMETOCYTE_STAGE_V_NAME
       ],
       Species::TOXOPLASMA_GONDII_NAME =>
-      ProteomicExperiment::TOXOPLASMA_NAME_TO_PUBLICATION_HASH.keys.sort
+      ProteomicExperiment::TOXOPLASMA_NAME_TO_PUBLICATION_HASH.keys.sort,
+      Species::PLASMODIUM_BERGHEI_NAME =>
+      [ProteomicExperiment::BERGHEI_MICRONEME_2009_NAME],
     }
     
     pros = nil
@@ -149,18 +151,31 @@ module ApilocHelper
       }.collect do |ec|
         LocalisationsAndDevelopmentalStages.new(
                                                 ec.localisation ?
-            "<a href='#{url_for :action => :specific_localisation, :id => url_encode(ec.localisation.name)}'>#{ec.localisation.name}</a>" : [],
+            "<a href='#{url_for :action => :specific_localisation, :id => ec.localisation.name}'>#{ec.localisation.name}</a>" : [],
         ec.developmental_stage ?
             "<a href='#{url_for :action => :specific_developmental_stage, :id => ec.developmental_stage.name}'>#{ec.developmental_stage.name}</a>" : []
         )
       end)
-      logger.debug '!!!!!!!!!!!!!!!!!!!!!!!!!'
-      logger.debug ecs.inspect
-      logger.debug '-----------------------'
       
-      ExpressionContextGroup.new(nil).coalesce(
-                                               ecs
-      )
+      ExpressionContextGroup.new(nil).coalesce(ecs)
+    end
+    
+    def coding_region_localisation_list_html(coding_region)
+      ecs = ExpressionContextGroup.new(nil).stanzas(
+                                               coding_region.expression_contexts.reject{|e|
+        e.localisation_id.nil? and e.developmental_stage_id.nil?
+      }.collect do |ec|
+        LocalisationsAndDevelopmentalStages.new(
+                                                ec.localisation ?
+            "<a href='#{url_for :action => :specific_localisation, :id => ec.localisation.name}'>#{ec.localisation.name}</a>" : [],
+        ec.developmental_stage ?
+            "<a href='#{url_for :action => :specific_developmental_stage, :id => ec.developmental_stage.name}'>#{ec.developmental_stage.name}</a>" : []
+        )
+      end)
+      
+      ecs.collect do |bit|
+        "#{bit}<br />\n"     
+      end
     end
     
     # Explaining how a protein can be both negative and positive umbrella localisation simultaneously.

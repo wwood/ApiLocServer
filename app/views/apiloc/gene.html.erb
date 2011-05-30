@@ -15,8 +15,8 @@ because otherwise unassigned genes have the incorrect name %>
   gene from <i><%= link_to @code.species.name, :action => :species, :id => @code.species.name %></i>
 </p>
 <p>
-  <b>Compiled localisation:</b>
-  <%= coding_region_localisation_html(@code) %>
+  <b>Compiled localisation</b><br />
+  <%= coding_region_localisation_list_html(@code) %>
 </p>
 <div class="categorybig">
   <h2>Associated publications</h2>
