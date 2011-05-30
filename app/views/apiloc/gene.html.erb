@@ -300,20 +300,6 @@ password protected behind apache (for now). -->
   <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
 </div>
 <script type="text/javascript">
-<<<<<<< HEAD
-//<![CDATA[
-(function() {
-	var links = document.getElementsByTagName('a');
-	var query = '?';
-	for(var i = 0; i < links.length; i++) {
-	if(links[i].href.indexOf('#disqus_thread') >= 0) {
-		query += 'url' + i + '=' + encodeURIComponent(links[i].href) + '&';
-	}
-	}
-	document.write('<script charset="utf-8" type="text/javascript" src="http://disqus.com/forums/apiloc/get_num_replies.js' + query + '"></' + 'script>');
-})();
-//]]>
-=======
   //<![CDATA[
   (function(){
       var links = document.getElementsByTagName('a');
@@ -326,5 +312,4 @@ password protected behind apache (for now). -->
       document.write('<script charset="utf-8" type="text/javascript" src="http://disqus.com/forums/apiloc/get_num_replies.js' + query + '"></' + 'script>');
   })();
   //]]>
->>>>>>> cb17671ff62c88c4dc48d0b42fc8585dc186d436
 </script>
