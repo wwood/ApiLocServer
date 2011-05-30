@@ -8,10 +8,13 @@ class LocalisationModifier < ActiveRecord::Base
       'sometimes', #sometimes has be after some -> higher ids are implemented first
       'strongly', #has to be after strong
       'strongest',
-      'strongest near'
+      'strongest near',
+      'concentrated in',
     ]).push([
       'spot in',
+      'single spot in',
       'discrete compartments at',
+      'punctate spots within the',
       'strong diffuse',
       'foci in',
       'foci at',
@@ -23,6 +26,7 @@ class LocalisationModifier < ActiveRecord::Base
       'unpolarised on',
       'very low levels in',
       'lower concentration in',
+      'diffused but granular'
     ]).flatten
 
   def upload_known_modifiers

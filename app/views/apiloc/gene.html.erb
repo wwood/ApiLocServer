@@ -242,6 +242,10 @@ because otherwise unassigned genes have the incorrect name %>
 <li>
   <%= link_to 'CryptoDB gene page', "http://cryptodb.org/gene/#{@code.string_id}" %>
 </li>
+<% elsif @code.species.piroplasmadb? %>
+<li>
+  <%= link_to 'PiroplasmaDB gene page', "http://piroplasmadb.org/gene/#{@code.string_id}" %>
+</li>
 <% else %>
 <li>
   <%= link_to 'GenBank', "http://www.ncbi.nlm.nih.gov/sites/entrez?db=nuccore&term=#{@code.string_id}" %>

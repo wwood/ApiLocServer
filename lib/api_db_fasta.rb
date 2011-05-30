@@ -153,10 +153,11 @@ class EuPathDb2009 < FastaParser
   def parse_name(definition)
     s = FastaAnnotation.new
 
-    matches = definition.match(/^#{@sequencing_centre}\|(.*?) \| organism=#{@species_name} \| product=(.*?) \| location=(.*) \| length=\d+$/)
-    p
+    regex = /^#{@sequencing_centre}\|(.*?) \| organism=#{@species_name} \| product=(.*?) \| location=(.*) \| length=\d+$/
+    matches = definition.match(regex)
+    
     if !matches
-      raise ParseException, "Definition line has unexpected format: #{definition}"
+      raise ParseException, "Definition line has unexpected format: #{definition}. Trying to match this line to the regular expression `#{regex}'"
     end
 
     matches2 = matches[3].match(/^(.+?)\:/)
