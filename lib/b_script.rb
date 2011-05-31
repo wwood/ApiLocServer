@@ -1929,7 +1929,7 @@ class BScript
   # already exist in the database, and throw an exception if that isn't the case.
   # Accepts a block that takes the name from the fasta line and turns it into something more useful - untested!
   def upload_fasta_general!(fa, species)
-    puts "Uploading fasta file for `#{species}'"
+    puts "Uploading fasta file for `#{species.name}'"
     count = 0
     while f = fa.next_entry
       name = f.name
