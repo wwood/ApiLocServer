@@ -8,8 +8,6 @@ class OrthomclGene < ActiveRecord::Base
   has_many :orthomcl_gene_coding_regions, :dependent => :destroy
   has_many :coding_regions, :through => :orthomcl_gene_coding_regions
   has_one :orthomcl_gene_official_data, :dependent => :destroy
-  
-  MAMMALIAN_THREE_LETTER_CODES = ['hsa', 'mmu', 'rno']
 
   OFFICIAL_ORTHOMCL_APICOMPLEXAN_CODES = [
     'pfal',

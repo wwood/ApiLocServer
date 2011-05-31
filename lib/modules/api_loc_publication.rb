@@ -120,10 +120,10 @@ class BScript
   end
   
   def how_many_falciparum_genes_have_toxo_orthologs
-    puts ".. all according to orthomcl v2"
+    puts ".. all according to orthomcl #{OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME}"
     
     
-    all_orthomcl_groups_with_falciparum = OrthomclRun.official_run_v2.orthomcl_groups.select {|group|
+    all_orthomcl_groups_with_falciparum = OrthomclRun.find_by_name(OrthomclRun::ORTHOMCL_OFFICIAL_NEWEST_NAME).orthomcl_groups.select {|group|
       group.orthomcl_genes.code('pfa').count > 0
     }
     puts "How many P. falciparum orthomcl groups?"

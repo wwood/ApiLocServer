@@ -113,7 +113,7 @@ class BScript
         progress.inc
         
         parsed = OrthomclDeflineParser.parse(line)
-
+        
         orthomcl_id = parsed.gene_id
         orthomcl_group_name = parsed.group_id
         annot = parsed.annotation
@@ -225,5 +225,28 @@ class BScript
         puts group.orthomcl_name
       end
     end
+  end
+  
+  def how_many_orthomcl_genes_are_linked_to_coding_regions
+    to_return = []
+    Species.all.each do |sp|
+      if sp.orthomcl_three_letter.nil?
+        $stderr.puts "Unable to find species code for #{sp.name}"
+        next
+      end
+      total_orthomcl = OrthomclGene.code(sp.orthomcl_three_letter).count(:select => 'distinct(orthomcl_genes.id)')
+      total_joined = OrthomclGene.code(sp.orthomcl_three_letter).count(:select => 'distinct(orthomcl_genes.id)', :joins => :coding_regions)
+      total_coding_regions = CodingRegion.species(sp.name).count(:select => 'distinct(coding_regions.id)')
+      answer = [
+      sp.name,
+      total_joined,
+      total_orthomcl,
+      total_coding_regions,
+      (total_joined.to_f/total_orthomcl.to_f*100).round
+      ].join("\t")
+      puts answer
+      to_return.push answer
+    end
+    return to_return
   end
 end
