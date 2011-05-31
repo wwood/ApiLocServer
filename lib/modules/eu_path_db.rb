@@ -282,11 +282,11 @@ class BScript
   end
   
   def upload_apiloc_from_scratch
-#    go_to_database
-#    download_uniprot_data
-#    uniprot_to_database
-#    download_orthomcl
-#    orthomcl_to_database
+    go_to_database
+    download_uniprot_data
+    uniprot_to_database
+    download_orthomcl
+    orthomcl_to_database
     
     # Upload basic gene identifiers
     upload_apiloc_gffs
@@ -318,34 +318,32 @@ class BScript
   end
   
   def upload_apiloc_gffs
-#    falciparum_to_database
-#    berghei_to_database
-#    yoelii_to_database
-#    vivax_to_database
-#    chabaudi_to_database
-#    knowlesi_to_database
-#    gondii_to_database
-#    neospora_caninum_to_database
-#    cryptosporidium_parvum_to_database
-#    theileria_parva_to_database
-#    theileria_annulata_to_database
-#    babesia_bovis_to_database
-    # extras required for proper orthomcl linking
-    upload_gondii_gene_table_to_database
+    falciparum_to_database
+    berghei_to_database
+    yoelii_to_database
+    vivax_to_database
+    chabaudi_to_database
+    knowlesi_to_database
+    gondii_to_database
+    neospora_caninum_to_database
+    cryptosporidium_parvum_to_database
+    theileria_parva_to_database
+    theileria_annulata_to_database
+    babesia_bovis_to_database
   end
   
   def upload_apiloc_fasta_files
-#    falciparum_fasta_to_database
-#    berghei_fasta_to_database
-#    yoelii_fasta_to_database
-#    vivax_fasta_to_database
-#    chabaudi_fasta_to_database
-#    knowlesi_fasta_to_database
-#    gondii_fasta_to_database
-#    neospora_caninum_fasta_to_database
-#    cryptosporidium_parvum_fasta_to_database
-#    theileria_parva_fasta_to_database
-#    theileria_annulata_fasta_to_database
+    falciparum_fasta_to_database
+    berghei_fasta_to_database
+    yoelii_fasta_to_database
+    vivax_fasta_to_database
+    chabaudi_fasta_to_database
+    knowlesi_fasta_to_database
+    gondii_fasta_to_database
+    neospora_caninum_fasta_to_database
+    cryptosporidium_parvum_fasta_to_database
+    theileria_parva_fasta_to_database
+    theileria_annulata_fasta_to_database
     babesia_bovis_fasta_to_database
   end
   

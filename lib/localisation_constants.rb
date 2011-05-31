@@ -210,6 +210,8 @@ module LocalisationConstants
       'ring structure at apical inner membrane complex',
       'ring structure at posterior inner membrane complex',
       'apical cap of inner membrane complex',
+      'central region of inner membrane complex',
+      'basal region of inner membrane complex',
       'exclusively apical plasma membrane',
       'centrocone',
       'apical end of the nuclear envelope',
@@ -267,7 +269,7 @@ module LocalisationConstants
       'cap at basal end of daughter',
       'basal',
       'acidocalcisome',
-      'cyst wall',
+      'oocyst wall',
       'outer membrane of cyst wall',
       'cytoplasmic structure',
       'nuclear pole',
@@ -813,7 +815,13 @@ module LocalisationConstants
       'adjacent to the vac' => 'adjacent to the plant-link vacuole',
       'apical cap of imc' => 'apical cap of inner membrane complex',
       'cortex' => 'periphery of parasite',
-      'selectively apical pm' => 'exclusively apical plasma membrane'
+      'selectively apical pm' => 'exclusively apical plasma membrane',
+      'apical membrane cap' => 'apical cap of inner membrane complex',
+      'cyst wall' => 'oocyst wall',
+      'central region of imc' => 'central region of inner membrane complex',
+      'basal region of imc' => 'basal region of inner membrane complex',
+      'tip/conoid' => 'conoid',
+      'apical ring' => 'ring structure at apical inner membrane complex',
     },
     Species::FALCIPARUM_NAME => {
       'host cell' => 'erythrocyte',
@@ -992,6 +1000,7 @@ module LocalisationConstants
       'expression within the nuclei' => 'nucleus',
       'in nucleus' => 'nucleus',
       'apical cap' => 'apical',
+      'in parasite' => 'intracellular',
     }
   }
 

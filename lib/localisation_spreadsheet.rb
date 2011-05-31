@@ -105,7 +105,7 @@ class LocalisationSpreadsheet
       end
       
       # Try to find the coding region if possible just from the gene_id column
-      code = CodingRegion.find_by_name_or_alternate_and_organism(info.gene_id, species_name)
+      code = locate_coding_region(info, species_name)
       # If there is no matching gene id, then find or create a dummy coding
       # region that holds all of that information
       if info.no_matching_gene_model?
@@ -197,7 +197,7 @@ class LocalisationSpreadsheet
     # is one, use it, and don't bother trying to find it by the common name
     # method. Otherwise it'll complain when it finds multiple gene models.
     unless localisation_spreadsheet_row.gene_id.nil?
-      collected_coding_regions << CodingRegion.find_all_by_name_or_alternate_and_species(
+      collected_coding_regions << CodingRegion.find_all_by_name_or_alternate_or_strain_orthologue_and_species(
                                                                                          localisation_spreadsheet_row.gene_id, species_name)
     else
       localisation_spreadsheet_row.common_names.each do |common|
