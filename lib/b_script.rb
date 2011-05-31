@@ -1929,6 +1929,8 @@ class BScript
   # already exist in the database, and throw an exception if that isn't the case.
   # Accepts a block that takes the name from the fasta line and turns it into something more useful - untested!
   def upload_fasta_general!(fa, species)
+    puts "Uploading fasta file for `#{species}'"
+    count = 0
     while f = fa.next_entry
       name = f.name
       if block_given?
@@ -1939,6 +1941,7 @@ class BScript
         $stderr.puts "No coding region found to attach a sequence/annotation to: #{f.name}"
         next
       end
+      count += 1
       AminoAcidSequence.find_or_create_by_coding_region_id_and_sequence(
         code.id,
         f.sequence
@@ -1948,6 +1951,7 @@ class BScript
         f.annotation
       ) or raise
     end
+    puts "Uploaded #{count} sequences for `#{species}'"
   end
   
   
@@ -6878,7 +6882,7 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
     # recreate iter if it does not already exist
     iter ||= ApiDbGenes.new(gff_file_path)
 
-    puts "Inserting..."
+    puts "Inserting genes from species `#{species_name}' from GFF file `#{gff_file_path}' ..."
 
     gene = iter.next_gene
 
@@ -6944,7 +6948,6 @@ $stderr.puts "#{goods_count} good, #{bads.length} not good"
       #          end
       #        end
       #      end
-
 
       if gene.alternate_ids
         gene.alternate_ids.each do |alt|
