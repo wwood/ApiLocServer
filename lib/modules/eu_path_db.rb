@@ -305,7 +305,7 @@ class BScript
     
     Species.new.update_known_four_letters
     OrthomclGene.new.link_orthomcl_and_coding_regions(
-      "hsap mmus scer drer osat crei atha dmel cele",
+      "hsap mmus scer drer osat crei atha dmel cele rnor spom tthe",
       :accept_multiple_coding_regions => true
     )
     OrthomclGene.new.link_orthomcl_and_coding_regions(
@@ -327,6 +327,8 @@ class BScript
     gondii_to_database
     neospora_caninum_to_database
     cryptosporidium_parvum_to_database
+    cryptosporidium_hominis_to_database
+    cryptosporidium_muris_to_database
     theileria_parva_to_database
     theileria_annulata_to_database
     babesia_bovis_to_database
@@ -342,9 +344,27 @@ class BScript
     gondii_fasta_to_database
     neospora_caninum_fasta_to_database
     cryptosporidium_parvum_fasta_to_database
+    cryptosporidium_hominis_fasta_to_database
+    cryptosporidium_muris_fasta_to_database
     theileria_parva_fasta_to_database
     theileria_annulata_fasta_to_database
     babesia_bovis_fasta_to_database
+  end
+  
+  def temporary_fix_for_apiloc3
+    cryptosporidium_hominis_to_database
+    cryptosporidium_muris_to_database
+    cryptosporidium_hominis_fasta_to_database
+    cryptosporidium_muris_fasta_to_database
+    
+    OrthomclGene.new.link_orthomcl_and_coding_regions(
+      "rnor spom tthe",
+      :accept_multiple_coding_regions => true
+    )
+    OrthomclGene.new.link_orthomcl_and_coding_regions(
+      "cmur chom bbov pkno",
+      :warn => true
+    )
   end
   
   def upload_proteomic_data
