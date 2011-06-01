@@ -352,18 +352,12 @@ class BScript
   end
   
   def temporary_fix_for_apiloc3
-    cryptosporidium_hominis_to_database
-    cryptosporidium_muris_to_database
-    cryptosporidium_hominis_fasta_to_database
-    cryptosporidium_muris_fasta_to_database
+    uniprot_ensembl_databases
+    uniprot_refseq_databases
     
     OrthomclGene.new.link_orthomcl_and_coding_regions(
-      "rnor spom tthe",
+      "rnor spom",
       :accept_multiple_coding_regions => true
-    )
-    OrthomclGene.new.link_orthomcl_and_coding_regions(
-      "cmur chom bbov pkno",
-      :warn => true
     )
   end
   

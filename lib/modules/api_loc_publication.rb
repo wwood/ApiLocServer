@@ -1114,10 +1114,11 @@ class BScript
   
   def uniprot_ensembl_databases
     [
-    Species::MOUSE_NAME,
-    Species::HUMAN_NAME,
-    Species::DANIO_RERIO_NAME,
-    Species::DROSOPHILA_NAME
+#    Species::MOUSE_NAME,
+#    Species::HUMAN_NAME,
+#    Species::DANIO_RERIO_NAME,
+#    Species::DROSOPHILA_NAME,
+Species::RAT_NAME,
     ].each do |species_name|
       Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'DR   Ensembl') do |u|
         code = CodingRegion.fs(u.ac[0], species_name) or raise
@@ -1136,8 +1137,9 @@ class BScript
   
   def uniprot_refseq_databases
     [
-    Species::ARABIDOPSIS_NAME,
-    Species::RICE_NAME
+#    Species::ARABIDOPSIS_NAME,
+#    Species::RICE_NAME,
+Species::POMBE_NAME
     ].each do |species_name|
       Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'DR   RefSeq') do |u|
         code = CodingRegion.fs(u.ac[0], species_name) or raise
