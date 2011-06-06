@@ -1540,15 +1540,19 @@ class BScript
     progress.finish
     
     # Cache all non-apicomplexan compartments
-    codes = CodingRegion.go_cc_usefully_termed.all
+    codes = CodingRegion.go_cc_usefully_termed.all(:select => 'distinct(coding_regions.*)')
     progress = ProgressBar.new('eukaryotes', codes.length)
     codes.each do |code|
+      p code
       progress.inc
       comps = code.compartments
       comps.each do |comp|
-        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
-                                                                                        code.id, comp
+        p comp
+        g = CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                            code.id, comp
         )
+        g.save!
+        p g
       end
     end   
     progress.finish
@@ -2015,22 +2019,8 @@ class BScript
     pp answer
   end
   
-  # Like falciparum_predicted_by_yeast_mouse, except only consider those groups
-  # where there is a single falciparum and single yeast and single mouse protein
-  # is that most? 
-  def falciparum_predicted_by_yeast_mouse_one_to_one
-    
-  end
-  
   def how_many_genes_are_localised_in_each_species
-    interests = [
-    Species::FALCIPARUM_NAME,
-    Species::TOXOPLASMA_GONDII,
-    Species::MOUSE_NAME,
-    Species::HUMAN_NAME,
-    Species::YEAST_NAME,
-    Species::ARABIDOPSIS_NAME
-    ]
+    interests = Species.all.reach.name.retract
     
     # How many genes?
     interests.each do |interest|
@@ -2039,7 +2029,11 @@ class BScript
       :select => 'distinct(orthomcl_genes.id)',
       :conditions => {:species => {:name => interest}}
       )
-      puts "Found #{count} genes with localisation from #{interest}"
+      puts [
+      'OrthoMCL genes',
+      interest,
+      count
+      ].join("\t")
     end
     
     # how many orthomcl groups?
@@ -2049,7 +2043,11 @@ class BScript
       :conditions => ['orthomcl_genes.orthomcl_name like ? and species.name = ?', "#{Species::ORTHOMCL_CURRENT_LETTERS[interest]}|%", interest],
       :select => 'distinct(orthomcl_groups.id)'
       )
-      puts "Found #{count} OrthoMCL groups with localisation from #{interest}"
+      puts [
+      'OrthoMCL groups',
+      interest,
+      count
+      ].join("\t")
     end
   end
   
@@ -2457,6 +2455,37 @@ class BScript
     
     DevelopmentalStageTopLevelDevelopmentalStage::APILOC_DEVELOPMENTAL_STAGE_TOP_LEVEL_DEVELOPMENTAL_STAGES.each do |under, umbrella|
       puts ["Developmental Stage", umbrella, under].join(sep)
+    end
+  end
+  
+  def how_many_apicomplexan_genes_have_localised_orthologues
+    $stderr.puts "starting group search"
+    groups = OrthomclGroup.official.all(
+      :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+      :select => 'distinct(orthomcl_groups.id)'
+    )
+    $stderr.puts "finished group search, found #{groups.length} groups"
+    group_ids = groups.collect{|g| g.id}
+    $stderr.puts "finished group id transform"
+    
+    
+    Species.sequenced_apicomplexan.all.each do |sp|
+      num_orthomcl_genes = OrthomclGene.code(sp.orthomcl_three_letter).count(
+      :select => 'distinct(orthomcl_genes.id)'
+      )
+      
+      # go through the groups and work out how many coding regions there are in those groups from this species
+      num_with_a_localised_orthologue = OrthomclGene.code(sp.orthomcl_three_letter).count(
+      :select => 'distinct(orthomcl_genes.id)',
+      :joins => :orthomcl_groups,
+      :conditions => "orthomcl_gene_orthomcl_group_orthomcl_runs.orthomcl_group_id in #{group_ids.to_sql_in_string}"
+      )
+      
+      puts [
+      sp.name,
+      num_orthomcl_genes,
+      num_with_a_localised_orthologue
+      ].join("\t")
     end
   end
 end

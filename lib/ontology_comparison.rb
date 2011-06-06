@@ -37,7 +37,7 @@ class OntologyComparison
   'cell wall',
   'lysosome',
   'peroxisome',
-  'parasitophorous vacuole'
+  'symbiont-containing vacuole'
   ]
   
   attr_accessor :common_ontologies, :disagreeing_ontologies

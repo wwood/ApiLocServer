@@ -24,7 +24,7 @@ class OrthomclGene < ActiveRecord::Base
   ]
   
   named_scope :code, lambda { |three_letter_species_code| {
-      :conditions => ['orthomcl_name like ?', "#{three_letter_species_code}%"]
+      :conditions => ['orthomcl_genes.orthomcl_name like ?', "#{three_letter_species_code}%"]
     }}
   #  alias_method(:three_letter_code, :code)
   named_scope :codes, lambda { |three_letter_species_codes| 

@@ -99,7 +99,8 @@ class CodingRegion < ActiveRecord::Base
     'apicoplast' => 'plastid',
     'golgi apparatus' => 'Golgi apparatus',
     'food vacuole' => 'lysosome',
-    'parasite plasma membrane' => 'plasma membrane'
+    'parasite plasma membrane' => 'plasma membrane',
+    'parasitophorous vacuole' => 'symbiont-containing vacuole', #this is a synonym, though I'm not totally sure I agree with it.
     }
     
     highs = TopLevelLocalisation.positive.all(
