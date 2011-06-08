@@ -1716,11 +1716,11 @@ class BScript
     # Cache all of the kingdom information as orthomcl_split to kingdom
     orthomcl_abbreviation_to_kingdom = {}
     Species.all(:conditions => 'orthomcl_three_letter is not null').each do |sp|
-      orthomcl_abbreviation_to_kingdom[sp.orthomcl_three_letter] = Species::NAME_TO_KINGDOM[sp.name]
+      orthomcl_abbreviation_to_kingdom[sp.orthomcl_three_letter] = Species::FOUR_WAY_NAME_TO_KINGDOM[sp.name]
     end
     
     
-    # Copy the data out of the database to a csv file. Beware that there is duplicates in this file
+    # Copy the data out of the database to a csv file. There shouldn't be any duplicates
     tempfile = File.open('/tmp/eukaryotic_conservation','w')
     #    Tempfile.open('eukaryotic_conservation') do |tempfile|
     `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
@@ -1753,7 +1753,6 @@ class BScript
       data[group]['orthomcl_locs'][gene].push compartment
       data[group]['orthomcl_locs'][gene].uniq!
     end
-    #    end
     
     # Classify each of the groups into the different categories where possible
     groups_to_counts = {}
@@ -1764,7 +1763,21 @@ class BScript
       groups_to_counts
       )
     end
-    pp groups_to_counts
+
+    groups_to_counts.to_a.sort{|a,b| a[0].length<=>b[0].length}.each do |king_array, agrees|
+      yes = agrees[OntologyComparison::COMPLETE_AGREEMENT]
+      no = agrees[OntologyComparison::DISAGREEMENT]
+      maybe = agrees[OntologyComparison::INCOMPLETE_AGREEMENT]
+      total = (yes+no+maybe).to_f
+      puts [
+      king_array.join(','),
+      yes, no, maybe,
+      agrees[OntologyComparison::UNKNOWN_AGREEMENT],
+      ((yes.to_f/total)*100).round,
+      ((no.to_f/total)*100).round,
+      ((maybe.to_f/total)*100).round,
+      ].join("\t")
+    end
   end
   
   # This is a modularisation of conservation_of_eukaryotic_sub_cellular_localisation,
@@ -1833,6 +1846,36 @@ class BScript
       orthomcl_array3 = a3[1]
       kingdoms = [kingdom1, kingdom2, kingdom3]
       orthomcl_arrays = [orthomcl_array1, orthomcl_array2, orthomcl_array3]
+      
+      # don't include unless there is an orthomcl in each kingdom
+      zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+      if zero_entriers.length > 0
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping" if debug
+        next         
+      end
+      
+      locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
+      agreement = OntologyComparison.new.agreement_of_group locs_for_all
+      
+      index = kingdoms.sort
+      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+      groups_to_counts[index] ||= {}
+      groups_to_counts[index][agreement] ||= 0
+      groups_to_counts[index][agreement] += 1
+    end
+    
+    #within 4 kingdoms, do they agree?
+    kingdom_orthomcls.to_a.each_lower_triangular_4d_matrix do |a1, a2, a3, a4|
+      kingdom1 = a1[0]
+      kingdom2 = a2[0]
+      kingdom3 = a3[0]
+      kingdom4 = a4[0]
+      orthomcl_array1 = a1[1]
+      orthomcl_array2 = a2[1]
+      orthomcl_array3 = a3[1]
+      orthomcl_array4 = a4[1]
+      kingdoms = [kingdom1, kingdom2, kingdom3, kingdom4]
+      orthomcl_arrays = [orthomcl_array1, orthomcl_array2, orthomcl_array3, orthomcl_array4]
       
       # don't include unless there is an orthomcl in each kingdom
       zero_entriers = orthomcl_arrays.select{|o| o.length==0}

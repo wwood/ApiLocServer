@@ -154,6 +154,8 @@ class Species < ActiveRecord::Base
   PLANTAE_NAME = 'Plantae'
   UNIKONT_NAME = 'Unikont'
   APICOMPLEXA_NAME = 'Apicomplexa'
+  METAZOA_NAME = 'Metazoa'
+  FUNGI_NAME = 'Fungi'
   
   # Categorise species of interest into broad taxanomic
   # classes
@@ -167,7 +169,9 @@ class Species < ActiveRecord::Base
     DANIO_RERIO_NAME,
     ELEGANS_NAME,
     YEAST_NAME,
+    POMBE_NAME,
     MOUSE_NAME,
+    RAT_NAME,
     DROSOPHILA_NAME,
     HUMAN_NAME,
     ],
@@ -177,6 +181,35 @@ class Species < ActiveRecord::Base
   THREE_WAY_TAXONOMY_DEFINITIONS.each do |kingdom, names|
     names.each do |species_name|
       NAME_TO_KINGDOM[species_name] = kingdom
+    end
+  end
+  
+  # The same as THREE_WAY_TAXONOMY_DEFINITIONS except separate
+  # Unikont into fungi and metazoa.
+  FOUR_WAY_TAXONOMY_DEFINITIONS = {
+    PLANTAE_NAME => [
+    RICE_NAME,
+    CHLAMYDOMONAS_NAME,
+    ARABIDOPSIS_NAME,
+    ],
+    METAZOA_NAME => [
+    DANIO_RERIO_NAME,
+    ELEGANS_NAME,
+    MOUSE_NAME,
+    RAT_NAME,
+    DROSOPHILA_NAME,
+    HUMAN_NAME,
+    ],
+    FUNGI_NAME => [
+    YEAST_NAME,
+    POMBE_NAME,
+    ],
+    APICOMPLEXA_NAME => APICOMPLEXAN_NAMES 
+  }
+  FOUR_WAY_NAME_TO_KINGDOM = {}
+  FOUR_WAY_TAXONOMY_DEFINITIONS.each do |kingdom, names|
+    names.each do |species_name|
+      FOUR_WAY_NAME_TO_KINGDOM[species_name] = kingdom
     end
   end
   
