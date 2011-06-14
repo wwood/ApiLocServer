@@ -31,13 +31,18 @@ class OntologyComparison
   'Golgi apparatus',
   CYTOSOL_NAME,
   'plasma membrane',
-  'host cell', #apicomplexan - specific
+  'host cell', #parasite - specific
   'apical complex',
   'inner membrane complex',
   'cell wall',
   'lysosome',
   'peroxisome',
-  'symbiont-containing vacuole'
+  'symbiont-containing vacuole',
+  'flagellum',
+  'cytoskeleton',
+  'extracellular region part',
+  'centrosome',
+  'endocytic vesicle',
   ]
   
   attr_accessor :common_ontologies, :disagreeing_ontologies
