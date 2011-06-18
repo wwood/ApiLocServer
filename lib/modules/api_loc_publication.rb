@@ -879,6 +879,8 @@ class BScript
     4530 => Species::RICE_NAME,
     4896 => Species::POMBE_NAME,
     10116 => Species::RAT_NAME,
+    185431 => Species::TBRUCEI_NAME,
+    44689 => Species::DICTYOSTELIUM_NAME,
     
     # species below have no non-IEA gene ontology terms so are a waste of time
     #    4087 => Species::TOBACCO_NAME, 
@@ -2530,5 +2532,12 @@ class BScript
       num_with_a_localised_orthologue
       ].join("\t")
     end
+  end
+  
+  # the idea is to find how many genes have annotations that fall into these 2 categories:
+  # * Fall under the current definition of what is an organelle
+  # * Don't fall under any organelle, and aren't (exclusively) annotated by GO terms that are ancestors of the organelle terms.
+  def how_many_non_organelle_cc_annotations
+    #Species.
   end
 end
