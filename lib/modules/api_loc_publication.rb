@@ -2538,6 +2538,80 @@ class BScript
   # * Fall under the current definition of what is an organelle
   # * Don't fall under any organelle, and aren't (exclusively) annotated by GO terms that are ancestors of the organelle terms.
   def how_many_non_organelle_cc_annotations
-    #Species.
+    # Create a list of all the GO terms that are included in the various compartments
+    # this is a list of subsumers
+    compartment_go_terms = CodingRegion.new.create_organelle_go_term_mappers
+    
+    # Create a list of ancestors of compartment GO terms.
+    ancestors = OntologyComparison::RECOGNIZED_LOCATIONS.collect {|loc|
+      go_entry = GoTerm.find_by_term(loc)
+      raise Exception, "Unable to find GO term in database: #{loc}" unless go_entry
+      anc = Bio::Go.new.ancestors_cc(go_entry.go_identifier)
+      $stderr.puts "Found #{anc.length} ancestors for #{go_entry.go_identifier} #{go_entry.term}"
+      anc
+    }.flatten.sort.uniq
+    
+    # For each non-apicomplexan species with a orthomcl code
+    Species.not_apicomplexan.all.each do |sp|
+      $stderr.puts sp.name
+      # get all the different GO terms for each of the different genes in the species
+      count_subsumed = 0
+      count_ancestral = 0
+      count_wayward = 0
+      wayward_ids = {}
+      codes = CodingRegion.s(sp.name).all(:joins => [:orthomcl_genes, :go_terms], :include => :go_terms).uniq
+      progress = ProgressBar.new(sp.name,codes.length)
+      codes.each do |code|
+        progress.inc
+        local_wayward_ids = {}
+        subsumed = false
+        ancestral = false
+        wayward = false
+        code.go_terms.each do |g|
+          next unless g.aspect == GoTerm::CELLULAR_COMPONENT
+          anc = false
+          sub = false
+          
+          #ancestral?
+          if ancestors.include?(g.go_identifier)
+            anc = true
+            ancestral = true
+          end
+          #subsumed?
+          compartment_go_terms.each do |subsumer|
+            if subsumer.subsume?(g.go_identifier, false)
+              sub = true
+              subsumed = true
+            end
+          end
+          # else wayward
+          if !anc and !sub
+            local_wayward_ids[g.term] = 0 if local_wayward_ids[g.term].nil?
+            local_wayward_ids[g.term] += 1
+            wayward_ids[g.term] = 0 if wayward_ids[g.term].nil?
+            wayward_ids[g.term] += 1
+            wayward = true
+          end
+        end
+#        $stderr.puts "#{code.string_id}: ancestral: #{ancestral}, subsumed: #{subsumed}, wayward: #{wayward}: "+
+#        "#{local_wayward_ids.collect{|term, count| "#{count} #{term}"}.join("\t")}" 
+        #error check
+        
+        count_subsumed += 1 if subsumed
+        count_ancestral += 1 if ancestral
+        count_wayward += 1 if wayward
+      end
+      progress.finish
+      
+      to_print = [
+      sp.name,
+      count_ancestral,
+      count_wayward,
+      count_subsumed,
+      ]
+      
+      puts to_print.join("\t")
+      $stderr.puts "Found these wayward from #{sp.name}:\n#{wayward_ids.to_a.sort{|a,b| b[1]<=>a[1]}.collect{|a| "wayward\t#{a[1]}\t#{a[0]}"}.join("\n")}\n\n"
+    end
   end
 end

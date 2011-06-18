@@ -56,6 +56,7 @@ class Species < ActiveRecord::Base
     'Theileria lestoquardi',
     'Babesia bigemina',
     'Babesia divergens',
+    'Babesia microti',
     'Babesia gibsoni',
     'Babesia equi',
     'Eimeria ascervulina',
@@ -148,6 +149,9 @@ class Species < ActiveRecord::Base
   
   named_scope :apicomplexan, {
     :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES, UNSEQUENCED_APICOMPLEXANS].flatten.to_sql_in_string}"
+  }
+  named_scope :not_apicomplexan, {
+    :conditions => "species.name not in #{[Species::APICOMPLEXAN_NAMES, UNSEQUENCED_APICOMPLEXANS].flatten.to_sql_in_string}"
   }
   named_scope :sequenced_apicomplexan, {
     :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES].to_sql_in_string}"
