@@ -1183,6 +1183,26 @@ class BScript
     end
   end
   
+  def uniprot_eupathdb_databases
+    [
+    Species::TBRUCEI_NAME,
+    ].each do |species_name|
+      Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'DR   EuPathDB') do |u|
+        code = CodingRegion.fs(u.ac[0], species_name) or raise
+        
+        next if u.dr.nil?
+
+        refseqs = u.dr['EuPathDB'].flatten
+        refseqs = refseqs.collect{|r| r.gsub(/^EupathDB:/,'')}
+        refseqs.each do |r|
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+                                                                                               code.id, r, 'EuPathDB'
+          )
+        end
+      end
+    end
+  end
+  
   def chlamydomonas_link_to_orthomcl_ids
     species_name = Species::CHLAMYDOMONAS_NAME
     Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'GN') do |u|

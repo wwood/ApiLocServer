@@ -301,7 +301,8 @@ class BScript
     elegans_wormbase_identifiers
     uniprot_ensembl_databases
     uniprot_refseq_databases
-    uniprot_gene_names
+    uniprot_gene_names # Probably does nothing, only helped for 30 genes in T. brucei, at least
+     
     chlamydomonas_link_to_orthomcl_ids
     
     Species.new.update_known_four_letters
