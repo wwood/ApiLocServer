@@ -301,6 +301,7 @@ class BScript
     elegans_wormbase_identifiers
     uniprot_ensembl_databases
     uniprot_refseq_databases
+    uniprot_gene_names
     chlamydomonas_link_to_orthomcl_ids
     
     Species.new.update_known_four_letters

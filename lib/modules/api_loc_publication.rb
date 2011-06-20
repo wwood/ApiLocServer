@@ -1160,6 +1160,29 @@ class BScript
     end
   end
   
+  def uniprot_gene_names
+    [
+    Species::TBRUCEI_NAME,
+    ].each do |species_name|
+      Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'GN   ORFNames=') do |u|
+        code = CodingRegion.fs(u.ac[0], species_name) or raise
+        
+        gene_names = []
+        u.gn.each do |gn|
+          gn[:orfs].each do |orf|
+            gene_names.push orf
+          end
+        end
+        
+        gene_names.each do |g|
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+                                                                                               code.id, g, 'UniProtGeneName'
+          )
+        end
+      end
+    end
+  end
+  
   def chlamydomonas_link_to_orthomcl_ids
     species_name = Species::CHLAMYDOMONAS_NAME
     Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'GN') do |u|
