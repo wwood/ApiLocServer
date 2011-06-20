@@ -105,6 +105,8 @@ class Species < ActiveRecord::Base
     NEOSPORA_CANINUM_NAME => 'ncan',
     ARABIDOPSIS_NAME => 'atha',
     HUMAN_NAME => 'hsap',
+    DICTYOSTELIUM_NAME => 'ddis',
+    TBRUCEI_NAME => 'tbru',
   }
   
   ORTHOMCL_CURRENT_LETTERS = ORTHOMCL_FOUR_LETTERS
