@@ -164,12 +164,13 @@ class CodingRegionsController < ApplicationController
     @coding_regions = []
     @coding_regions_not_found = []
     species_name = params[:species]
+    string = params[:ids]
     string.split(/[\s\,]+/).each do |string_id|
       code = nil
       
       # Find the best coding region. Note that only 1 gene is found,
       # even when the gene ID matches 2 genes
-      if species_name == 'whateva'
+      if species_name == 'whateva' or species_name.nil?
         code = CodingRegion.f(string_id)
       else
         code = CodingRegion.fs(string_id, species_name)
