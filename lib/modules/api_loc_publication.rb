@@ -2658,4 +2658,53 @@ class BScript
       $stderr.puts "Found these wayward from #{sp.name}:\n#{wayward_ids.to_a.sort{|a,b| b[1]<=>a[1]}.collect{|a| "wayward\t#{a[1]}\t#{a[0]}"}.join("\n")}\n\n"
     end
   end
+  
+  def most_localisations_by_authorship
+    already_localised = []
+    authors_localisations = {}
+    fails = 0
+    
+    # Get all the publications that have localisations in order
+    Publication.all(:joins => {:expression_contexts => :localisation}).uniq.sort {|p1,p2|
+      if p1.year.nil?
+        -1
+      elsif p2.year.nil?
+        1
+      else
+        p1.year <=> p2.year
+      end
+    }.each do |pub|
+      y = pub.year
+      if y.nil? #ignore publications with improperly parsed years
+        fails += 1
+        next
+      end
+      
+      ids = CodingRegion.all(:select => 'distinct(coding_regions.id)',
+      :joins => {
+      :expression_contexts => [:localisation, :publication]
+      },
+      :conditions => {:publications => {:id => pub.id}}
+      )
+      
+      ids.each do |i|
+        unless already_localised.include?(i)
+          already_localised.push i
+          authors = pub.authors.split('., ')
+          authors.each do |author|
+            last_name = author.split(' ')[0].gsub(/,/,'')
+            authors_localisations[last_name] ||= 0
+            authors_localisations[last_name] += 1
+          end
+        end
+      end
+    end
+    
+    puts ['Last name','Number of New Protein Localisations'].join("\t")
+    authors_localisations.to_a.sort{|a,b| b[1]<=>a[1]}.each do |a,b|
+      puts [a,b].join("\t")
+    end
+    
+    $stderr.puts "Failed to parse #{fails} publications properly"
+  end
 end
