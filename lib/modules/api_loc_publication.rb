@@ -1189,8 +1189,9 @@ class BScript
     ].each do |species_name|
       Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'DR   EuPathDB') do |u|
         code = CodingRegion.fs(u.ac[0], species_name) or raise
-        
-        next if u.dr.nil?
+#        p u.dr
+        next if u.dr.empty?
+	if (u.dr['EuPathDB'].nil?); $stderr.puts "Incorrectly parsed line? #{u.dr.inspect}"; break; end
 
         refseqs = u.dr['EuPathDB'].flatten
         refseqs = refseqs.collect{|r| r.gsub(/^EupathDB:/,'')}

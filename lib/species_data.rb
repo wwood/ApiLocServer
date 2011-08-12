@@ -5,6 +5,7 @@ class SpeciesData
       :source => 'PlasmoDB',
       :fasta_file_species_name => 'Plasmodium_falciparum_3D7',
       :sequencing_centre_abbreviation => 'psu',
+      :behind_usage_policy => true,
     },
     'Plasmodium yoelii' => {
       :directory => 'yoelii',
@@ -35,13 +36,15 @@ class SpeciesData
       :sequencing_centre_abbreviation => 'psu',
       :fasta_file_species_name => 'Plasmodium_chabaudi_chabaudi',
       :proteins_fasta_filename => lambda {|version| "PchabaudiAnnotatedProteins_PlasmoDB-#{version}.fasta"},
-      :source => 'PlasmoDB'
+      :source => 'PlasmoDB',
+      :behind_usage_policy => true,
     },
     'Plasmodium knowlesi' => {
       :name => 'Plasmodium knowlesi',
       :sequencing_centre_abbreviation => 'psu',
       :fasta_file_species_name => 'Plasmodium_knowlesi_strain_H',
-      :source => 'PlasmoDB'
+      :source => 'PlasmoDB',
+      :behind_usage_policy => true,
     },
     'Neospora caninum' => {
       :name => 'Neospora caninum',
@@ -50,7 +53,8 @@ class SpeciesData
       :database_download_folder => 'NeosporaCaninum',
       :proteins_fasta_filename => lambda {|version| "NeosporaCaninumAnnotatedProteins_ToxoDB-#{version}.fasta"},
       :transcripts_fasta_filename => lambda {|version| "NeosporaCaninumAnnotatedTranscripts_ToxoDB-#{version}.fasta"},
-      :source => 'ToxoDB'
+      :source => 'ToxoDB',
+      :behind_usage_policy => true,
     },
     'Toxoplasma gondii' => {
       :name => 'Toxoplasma gondii',
@@ -127,10 +131,10 @@ class SpeciesData
   end
   
   SOURCE_VERSIONS = {
-    'PlasmoDB' => '7.2',
-    'ToxoDB' => '6.4',
-    'CryptoDB' => '4.4',
-    'PiroplasmaDB' => '1.0',
+    'PlasmoDB' => '7.2',#'8.0',#
+    'ToxoDB' => '6.4',#'7.0',#
+    'CryptoDB' => '4.4',#'4.5',#
+    'PiroplasmaDB' => '1.0',#'1.1',#
   }
   DATABASES = SOURCE_VERSIONS.keys
   
@@ -195,9 +199,9 @@ class SpeciesData
   end
   
   def protein_fasta_path
-    local_download_directory + '/' + protein_fasta_filename
+    return File.join(local_download_directory,protein_fasta_filename)
   end
-  
+
   def protein_blast_database_path
     "/blastdb/#{protein_fasta_filename}"
   end
@@ -211,7 +215,7 @@ class SpeciesData
   end
   
   def transcript_fasta_path
-    "#{local_download_directory}/#{transcript_fasta_filename}"
+    File.join(local_download_directory,transcript_fasta_filename)
   end
   
   def transcript_blast_database_path
@@ -236,7 +240,7 @@ class SpeciesData
   end
   
   def gff_path
-    "#{local_download_directory}/#{gff_filename}"
+    File.join(local_download_directory,gff_filename)
   end
   
   def database
@@ -254,15 +258,21 @@ class SpeciesData
   end
   
   def eu_path_db_fasta_download_directory
-    "#{eu_path_db_download_directory}/fasta"
+    path = "#{eu_path_db_download_directory}/fasta"
+    path = "#{path}/data" if @species_data[:behind_usage_policy]
+    path
   end
     
   def eu_path_db_gff_download_directory
-    "#{eu_path_db_download_directory}/gff"
+    path = "#{eu_path_db_download_directory}/gff"
+    path = "#{path}/data" if @species_data[:behind_usage_policy]
+    path
   end
     
   def eu_path_db_txt_download_directory
-    "#{eu_path_db_download_directory}/txt"
+    path = "#{eu_path_db_download_directory}/txt"
+    path = "#{path}/data" if @species_data[:behind_usage_policy]
+    path
   end
   
   # Plasmodium chabaudi => Pchabaudi
