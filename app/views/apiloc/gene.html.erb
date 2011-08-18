@@ -225,6 +225,11 @@ because otherwise unassigned genes have the incorrect name %>
   <li>
     <%= @code.string_id %>&nbsp;<%= link_to 'PlasmoDB gene page', "http://plasmodb.org/gene/#{@code.string_id}" %>
   </li>
+  <% if @code.species.name == Species::PLASMODIUM_BERGHEI_NAME %>
+  <li>
+    Search for <%= @code.string_id %>&nbsp;at the <%= link_to 'Rodent Malaria genetically modified Database', "http://www.pberghei.eu/index.php?cat=geneid&q=#{@code.string_id}&filter=disrupted,mutated,tagged,transgene,other&filter_transg=transgene,promoter,3utr" %>
+  </li>
+  <% end %>
   <% if @code.species.name == Species::FALCIPARUM_NAME %>
   <li>
     Search for <%= @code.string_id %>&nbsp;at the <%= link_to 'Malaria Parasite Metabolic Pathways database', "http://sites.huji.ac.il/htbin/malaria/search.cgi?pfIDText=#{@code.string_id}" %>
