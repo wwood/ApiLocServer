@@ -16,6 +16,7 @@ class Species < ActiveRecord::Base
   TOXOPLASMA_GONDII = 'Toxoplasma gondii'
   TOXOPLASMA_GONDII_NAME = TOXOPLASMA_GONDII
   NEOSPORA_CANINUM_NAME = 'Neospora caninum'
+  EIMERIA_TENELLA_NAME = 'Eimeria tenella'
   ELEGANS_NAME = 'elegans'
   BABESIA_BOVIS_NAME = 'Babesia bovis'
   YEAST_NAME= 'yeast'
@@ -61,7 +62,6 @@ class Species < ActiveRecord::Base
     'Babesia equi',
     'Eimeria ascervulina',
     'Eimeria maxima',
-    'Eimeria tenella',
   ]
   
   has_many :scaffolds, :dependent => :destroy
@@ -127,7 +127,8 @@ class Species < ActiveRecord::Base
   
   TOXODB_SPECIES_NAMES = [
   TOXOPLASMA_GONDII_NAME,
-  NEOSPORA_CANINUM_NAME
+  NEOSPORA_CANINUM_NAME,
+  EIMERIA_TENELLA_NAME,
   ]
   
   CRYPTODB_SPECIES_NAMES = [

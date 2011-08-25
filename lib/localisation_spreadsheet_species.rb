@@ -33,6 +33,8 @@ module LocalisationSpreadsheetSpecies
     upload_babesia_bovis
     $stderr.puts '------ Uploading Neospora caninum------'
     upload_neospora_caninum
+    $stderr.puts '------ Uploading Eimeria tenella------'
+    upload_eimeria_tenella
     $stderr.puts '------ Uploading Cryptosporidium parvum------'
     upload_cryptosporidium_parvum
     $stderr.puts '------ Uploading Theileria annulata------'
@@ -111,6 +113,10 @@ module LocalisationSpreadsheetSpecies
   
   def upload_neospora_caninum(filename="#{ENV['HOME']}/phd/gene lists/Neospora_caninum.csv")
     upload_species(Species.find_by_name(Species::NEOSPORA_CANINUM_NAME), filename)
+  end
+    
+  def upload_eimeria_tenella(filename="#{ENV['HOME']}/phd/gene lists/Eimeria_tenella.csv")
+    upload_species(Species.find_by_name(Species::EIMERIA_TENELLA_NAME), filename)
   end
   
   def upload_cryptosporidium_parvum(filename="#{ENV['HOME']}/phd/gene lists/Cryptosporidium_parvum.csv")
