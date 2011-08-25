@@ -39,6 +39,8 @@ class Species < ActiveRecord::Base
   CASTOR_BEAN_NAME = 'Ricinus communis'
   POMBE_NAME = 'Schizosaccharomyces pombe'
   RAT_NAME = 'Rattus norvegicus'
+  DICTYOSTELIUM_DISCOIDEUM_NAME = 'Dictyostelium discoideum'
+  TRYPANOSOMA_BRUCEI_NAME = 'Trypanosoma brucei'
   
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'
