@@ -867,20 +867,20 @@ class BScript
   end
   
   UNIPROT_SPECIES_ID_NAME_HASH = {
-    9606 => Species::HUMAN_NAME,
-    4932 => Species::YEAST_NAME,
-    312017 => Species::TETRAHYMENA_NAME,
-    7227 => Species::DROSOPHILA_NAME,
-    3702 => Species::ARABIDOPSIS_NAME,
-    6239 => Species::ELEGANS_NAME,
-    10090 => Species::MOUSE_NAME,
-    3055 => Species::CHLAMYDOMONAS_NAME,
-    7955 => Species::DANIO_RERIO_NAME,
-    4530 => Species::RICE_NAME,
-    4896 => Species::POMBE_NAME,
-    10116 => Species::RAT_NAME,
+#    9606 => Species::HUMAN_NAME,
+#    4932 => Species::YEAST_NAME,
+#    312017 => Species::TETRAHYMENA_NAME,
+#    7227 => Species::DROSOPHILA_NAME,
+#    3702 => Species::ARABIDOPSIS_NAME,
+#    6239 => Species::ELEGANS_NAME,
+#    10090 => Species::MOUSE_NAME,
+#    3055 => Species::CHLAMYDOMONAS_NAME,
+#    7955 => Species::DANIO_RERIO_NAME,
+#    4530 => Species::RICE_NAME,
+#    4896 => Species::POMBE_NAME,
+#    10116 => Species::RAT_NAME,
     44689 => Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
-    185431 => Species::TRYPANOSOMA_BRUCEI_NAME,
+#    185431 => Species::TRYPANOSOMA_BRUCEI_NAME,
     
     # species below have no non-IEA gene ontology terms so are a waste of time
     #    4087 => Species::TOBACCO_NAME, 
@@ -1102,6 +1102,43 @@ class BScript
         ides.flatten.each do |ident|
           a = CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
                                                                                                    code.id, ident, 'WormBase'
+          )
+          raise unless a.save!
+        end
+        
+        current_uniprot_string = ''
+      else
+        current_uniprot_string += line
+      end
+    end
+    `rm #{filename}`
+  end
+  
+  def dicystelium_names_to_database
+    species_name = Species::DICTYOSTELIUM_DISCOIDEUM_NAME
+    current_uniprot_string = ''
+    complete_filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
+    
+    # Convert the whole gzip in to a smaller one, so parsing is faster:
+    filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}_reduced"
+    `zcat '#{complete_filename}' |egrep '^(AC|DR   WormBase|//)' >'#{filename}'`
+    
+    progress = ProgressBar.new(species_name, `grep '^//' '#{filename}' |wc -l`.to_i)
+    File.foreach(filename) do |line|
+      if line == "//\n"
+        progress.inc
+        
+        u = Bio::UniProt.new(current_uniprot_string)
+        
+        code = CodingRegion.fs(u.ac[0], species_name)
+        raise unless code
+        
+        # GN   Name=myoJ; Synonyms=myo5B; ORFNames=DDB_G0272112;
+        ides = u.gn['Name']
+        ides ||= []
+        ides.flatten.each do |ident|
+          a = CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+                                                                                                   code.id, ident, 'UniProtName'
           )
           raise unless a.save!
         end

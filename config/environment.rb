@@ -74,7 +74,7 @@ Rails::Initializer.run do |config|
   config.gem 'array_pair'
   config.gem 'goruby', :lib => 'go'
   config.gem 'progressbar'
-  config.gem 'reubypathdb'
+  config.gem 'reubypathdb', :version => '>=0.3.0' #eupathdb_species_data.rb was introduced in 0.3.0
   config.gem 'bio-tm_hmm'
   
   # include a cache sweeper directory that fits into the app/ scheme, as suggested by
