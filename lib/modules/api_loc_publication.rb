@@ -879,8 +879,8 @@ class BScript
 #    4530 => Species::RICE_NAME,
 #    4896 => Species::POMBE_NAME,
 #    10116 => Species::RAT_NAME,
-    44689 => Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
-#    185431 => Species::TRYPANOSOMA_BRUCEI_NAME,
+#    44689 => Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
+    5702 => Species::TRYPANOSOMA_BRUCEI_NAME,
     
     # species below have no non-IEA gene ontology terms so are a waste of time
     #    4087 => Species::TOBACCO_NAME, 
