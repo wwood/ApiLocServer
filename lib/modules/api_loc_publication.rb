@@ -1170,6 +1170,62 @@ class BScript
     $stderr.puts "Added names for #{added_count}, skipped #{skipped_count} and #{skipped_count2}"
   end
   
+  def tbrucei_names_to_database
+    species_name = Species::TRYPANOSOMA_BRUCEI_NAME
+    current_uniprot_string = ''
+    complete_filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"
+    
+    # Convert the whole gzip in to a smaller one, so parsing is faster:
+    filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}_reduced"
+    `zcat '#{complete_filename}' |egrep '^(AC|GN|//)' >'#{filename}'`
+    
+    progress = ProgressBar.new(species_name, `grep '^//' '#{filename}' |wc -l`.to_i)
+    skipped_count = 0
+    skipped_count2 = 0
+    added_count = 0
+    File.foreach(filename) do |line|
+      if line == "//\n"
+        progress.inc
+        
+        u = Bio::UniProt.new(current_uniprot_string)
+        
+        code = CodingRegion.fs(u.ac[0], species_name)
+        raise unless code
+        
+        # GN   Name=myoJ; Synonyms=myo5B; ORFNames=DDB_G0272112;
+        unless u.gn.empty? # for some reason using u.gn when there is nothing there returns an array, not a hash. Annoying.
+          ides = []
+          u.gn.each do |g|
+            #ides.push g[:name] unless g[:name].nil?
+            ides.push g[:orfs] unless g[:orfs].nil?
+          end
+          ides = ides.flatten.no_nils
+          ides ||= []
+          ides.flatten.each do |ident|
+            a = CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+                                                                                                     code.id, ident, 'UniProtName'
+            )
+            raise unless a.save!
+          end
+          
+          if ides.empty?
+            skipped_count2 += 1
+          else
+            added_count += 1
+          end
+        else
+          skipped_count += 1
+        end
+        current_uniprot_string = ''
+      else
+        current_uniprot_string += line
+      end
+    end
+    `rm '#{filename}'`
+    progress.finish
+    $stderr.puts "Added names for #{added_count}, skipped #{skipped_count} and #{skipped_count2}"
+  end
+  
   def uniprot_ensembl_databases
     [
     Species::MOUSE_NAME,
