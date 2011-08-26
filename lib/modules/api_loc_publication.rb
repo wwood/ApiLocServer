@@ -1165,7 +1165,7 @@ class BScript
         current_uniprot_string += line
       end
     end
-    `rm #{filename}`
+    `rm '#{filename}'`
     progress.finish
     $stderr.puts "Added names for #{added_count}, skipped #{skipped_count} and #{skipped_count2}"
   end
