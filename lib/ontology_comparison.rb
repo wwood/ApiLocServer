@@ -39,6 +39,7 @@ class OntologyComparison
   'peroxisome',
   'parasitophorous vacuole',
   'endocytic vesicle',
+  'glycosome',
   ]
   
   attr_accessor :common_ontologies, :disagreeing_ontologies
