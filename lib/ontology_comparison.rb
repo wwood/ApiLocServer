@@ -37,7 +37,8 @@ class OntologyComparison
   'cell wall',
   'lysosome',
   'peroxisome',
-  'parasitophorous vacuole'
+  'parasitophorous vacuole',
+  'endocytic vesicle',
   ]
   
   attr_accessor :common_ontologies, :disagreeing_ontologies
