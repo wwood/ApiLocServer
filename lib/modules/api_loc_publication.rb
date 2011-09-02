@@ -1295,6 +1295,35 @@ class BScript
     end
   end
   
+  # OrthoMCL gene IDs for Drosophila are encoded in the 'DR   EnsemblMetazoa;' lines,
+  # such as 
+  # DR   EnsemblMetazoa; FBtr0075201; FBpp0074964; FBgn0036740.
+  # (and in particular the FBpp ones). Upload these pp ones as synonyms
+  def drosophila_ensembl_metazoa
+    addeds = 0
+    non_addeds = 0
+    terms = 0
+    Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{Species::DROSOPHILA_NAME}.gz", 'DR   EnsemblMetazoa;') do |u|
+      ensembl_metazoas = u.dr['EnsemblMetazoa']
+      if ensembl_metazoas.nil?
+        non_addeds += 1
+      else
+        added = false
+        code = CodingRegion.fs(u.ac[0], Species::DROSOPHILA_NAME) or raise
+        ensembl_metazoas.flatten.select{|s| s.match /^FBpp/}.each do |e|
+          added = true
+          terms+= 1
+          
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+          code.id, e, 'EnsemblMetazoa'
+          )
+        end
+        addeds += 1 if added
+      end
+    end
+    $stderr.puts "Uploaded #{terms} IDs for #{addeds} different genes, missed #{non_addeds}"
+  end
+  
   def uniprot_go_annotation_species_stats
     APILOC_UNIPROT_SPECIES_NAMES.each do |species_name|
       filename = "#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz"

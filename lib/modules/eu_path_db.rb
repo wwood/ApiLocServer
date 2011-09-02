@@ -302,6 +302,9 @@ class BScript
     uniprot_ensembl_databases
     uniprot_refseq_databases
     chlamydomonas_link_to_orthomcl_ids
+    tbrucei_names_to_database
+    dicystelium_names_to_database
+    drosophila_ensembl_metazoa
     
     Species.new.update_known_four_letters
     OrthomclGene.new.link_orthomcl_and_coding_regions(
