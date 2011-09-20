@@ -312,7 +312,7 @@ class BScript
       )
       to_print.push code.agreement_with_top_level_localisation_simple(
                                                                       TopLevelLocalisation.find_by_name('nucleus'),
-                                  :expression_context_evidence => :second_class_citizen_expression_contexts
+                                  :expression_context_evidence_class => :second_class_citizen_expression_contexts
       )
       #      to_print.push nucleus_go_term_list_plasmodbs.include?(code.string_id)
       #      to_print.push code.tmhmm.transmembrane_domains.length
@@ -332,7 +332,7 @@ class BScript
       #      to_print.push code.signalp_however.signal?
       #      to_print.push code.export_pred_however.signal?
       #      to_print.push code.plasmo_a_p.signal?
-      to_print.push hp1_list_plasmodbs.include?(code.string_id)
+      #to_print.push hp1_list_plasmodbs.include?(code.string_id)
       
       
       puts to_print.join("\t")
