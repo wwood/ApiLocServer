@@ -301,7 +301,6 @@ class BScript
     elegans_wormbase_identifiers
     uniprot_ensembl_databases
     uniprot_refseq_databases
-    chlamydomonas_link_to_orthomcl_ids
     tbrucei_names_to_database
     dicystelium_names_to_database
     drosophila_ensembl_metazoa
