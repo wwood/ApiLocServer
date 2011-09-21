@@ -867,26 +867,18 @@ class BScript
   end
   
   UNIPROT_SPECIES_ID_NAME_HASH = {
-#    9606 => Species::HUMAN_NAME,
-#    4932 => Species::YEAST_NAME,
-#    312017 => Species::TETRAHYMENA_NAME,
-#    7227 => Species::DROSOPHILA_NAME,
-#    3702 => Species::ARABIDOPSIS_NAME,
-#    6239 => Species::ELEGANS_NAME,
-#    10090 => Species::MOUSE_NAME,
-#    3055 => Species::CHLAMYDOMONAS_NAME,
-#    7955 => Species::DANIO_RERIO_NAME,
-#    4530 => Species::RICE_NAME,
-#    4896 => Species::POMBE_NAME,
-#    10116 => Species::RAT_NAME,
-#    44689 => Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
+    3702 => Species::ARABIDOPSIS_NAME,
+    9606 => Species::HUMAN_NAME,
+    10090 => Species::MOUSE_NAME,
+    4932 => Species::YEAST_NAME,
+    4896 => Species::POMBE_NAME,
+    10116 => Species::RAT_NAME,
+    7227 => Species::DROSOPHILA_NAME,
+    6239 => Species::ELEGANS_NAME,
+    44689 => Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
+    7955 => Species::DANIO_RERIO_NAME,
+    4530 => Species::RICE_NAME,
     5691 => Species::TRYPANOSOMA_BRUCEI_NAME,
-    
-    # species below have no non-IEA gene ontology terms so are a waste of time
-    #    4087 => Species::TOBACCO_NAME, 
-    #    70448 => Species::PLANKTON_NAME,
-    #    3218 => Species::MOSS_NAME,
-    #    3988 => Species::CASTOR_BEAN_NAME
   }
   APILOC_UNIPROT_SPECIES_NAMES = UNIPROT_SPECIES_ID_NAME_HASH.values
   
