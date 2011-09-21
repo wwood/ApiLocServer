@@ -9,6 +9,10 @@ class CodingRegionGoTerm < ActiveRecord::Base
     ISA
     ISM
     IGC
+    IBA
+    IBD
+    IKR
+    IRD
     RCA
   )
 
