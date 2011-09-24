@@ -282,39 +282,39 @@ class BScript
   end
   
   def upload_apiloc_from_scratch
-#    go_to_database
-#    download_uniprot_data
-#    uniprot_to_database
-#    download_orthomcl
-#    orthomcl_to_database
-#    
-#    # Upload basic gene identifiers
-#    upload_apiloc_gffs
-#    upload_gondii_gene_table_to_database
-#    upload_apiloc_fasta_files
-#    
-#    proteomics_to_database
-#    
-#    yeastgenome_ids_to_database
-#    elegans_wormbase_identifiers
-#    uniprot_ensembl_databases
-#    uniprot_refseq_databases
-#    tbrucei_names_to_database
-#    dicystelium_names_to_database
-#    drosophila_ensembl_metazoa
-#    
-#    Species.new.update_known_four_letters
+    go_to_database
+    download_uniprot_data
+    uniprot_to_database
+    download_orthomcl
+    orthomcl_to_database
+    
+    # Upload basic gene identifiers
+    upload_apiloc_gffs
+    upload_gondii_gene_table_to_database
+    upload_apiloc_fasta_files
+    
+    proteomics_to_database
+    
+    yeastgenome_ids_to_database
+    elegans_wormbase_identifiers
+    uniprot_ensembl_databases
+    uniprot_refseq_databases
+    tbrucei_names_to_database
+    dicystelium_names_to_database
+    drosophila_ensembl_metazoa
+    
+    Species.new.update_known_four_letters
     OrthomclGene.new.link_orthomcl_and_coding_regions(
       'ddis',#"hsap mmus scer drer crei atha dmel cele rnor spom tbru",
       :accept_multiple_coding_regions => true
     )
-#    OrthomclGene.new.link_orthomcl_and_coding_regions(
-#                                                      Species::APICOMPLEXAN_NAMES.collect { |a|
-#      Species.find_by_name(a).orthomcl_three_letter
-#    }, {:verbose => true, :warn => true}
-#    )
-#    
-#    LocalisationSpreadsheet.new.upload
+    OrthomclGene.new.link_orthomcl_and_coding_regions(
+                                                      Species::APICOMPLEXAN_NAMES.collect { |a|
+      Species.find_by_name(a).orthomcl_three_letter
+    }, {:verbose => true, :warn => true}
+    )
+    
+    LocalisationSpreadsheet.new.upload
   end
   
   def upload_apiloc_gffs
