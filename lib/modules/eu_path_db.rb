@@ -304,17 +304,17 @@ class BScript
 #    drosophila_ensembl_metazoa
 #    
 #    Species.new.update_known_four_letters
-#    OrthomclGene.new.link_orthomcl_and_coding_regions(
-#      "hsap mmus scer drer crei atha dmel cele rnor spom tbru",
-#      :accept_multiple_coding_regions => true
-#    )
+    OrthomclGene.new.link_orthomcl_and_coding_regions(
+      'ddis',#"hsap mmus scer drer crei atha dmel cele rnor spom tbru",
+      :accept_multiple_coding_regions => true
+    )
 #    OrthomclGene.new.link_orthomcl_and_coding_regions(
 #                                                      Species::APICOMPLEXAN_NAMES.collect { |a|
 #      Species.find_by_name(a).orthomcl_three_letter
 #    }, {:verbose => true, :warn => true}
 #    )
-    
-    LocalisationSpreadsheet.new.upload
+#    
+#    LocalisationSpreadsheet.new.upload
   end
   
   def upload_apiloc_gffs
