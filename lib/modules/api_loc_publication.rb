@@ -2593,4 +2593,35 @@ class BScript
       puts ["Developmental Stage", umbrella, under].join(sep)
     end
   end
+  
+  def how_many_apicomplexan_genes_have_localised_orthologues
+    $stderr.puts "starting group search"
+    groups = OrthomclGroup.official.all(
+      :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+      :select => 'distinct(orthomcl_groups.id)'
+    )
+    $stderr.puts "finished group search, found #{groups.length} groups"
+    group_ids = groups.collect{|g| g.id}
+    $stderr.puts "finished group id transform"
+    
+    
+    Species.sequenced_apicomplexan.all.each do |sp|
+      num_orthomcl_genes = OrthomclGene.code(sp.orthomcl_three_letter).count(
+      :select => 'distinct(orthomcl_genes.id)'
+      )
+      
+      # go through the groups and work out how many coding regions there are in those groups from this species
+      num_with_a_localised_orthologue = OrthomclGene.code(sp.orthomcl_three_letter).count(
+      :select => 'distinct(orthomcl_genes.id)',
+      :joins => :orthomcl_groups,
+      :conditions => "orthomcl_gene_orthomcl_group_orthomcl_runs.orthomcl_group_id in #{group_ids.to_sql_in_string}"
+      )
+      
+      puts [
+      sp.name,
+      num_orthomcl_genes,
+      num_with_a_localised_orthologue
+      ].join("\t")
+    end
+  end
 end

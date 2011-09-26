@@ -151,6 +151,9 @@ class Species < ActiveRecord::Base
   named_scope :apicomplexan, {
     :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES, UNSEQUENCED_APICOMPLEXANS].flatten.to_sql_in_string}"
   }
+  named_scope :sequenced_apicomplexan, {
+    :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES].to_sql_in_string}"
+  }
   
   PLANTAE_NAME = 'Plantae'
   UNIKONT_NAME = 'Unikont'
