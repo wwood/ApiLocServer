@@ -3,7 +3,7 @@
 
 module DevelopmentalStageConstants
   KNOWN_DEVELOPMENTAL_STAGES = {
-    Species::FALCIPARUM_NAME => [
+    'Plasmodium falciparum' => [
       'intraerythrocytic',
       'early intraerythrocytic',
       'late intraerythrocytic',
@@ -112,7 +112,7 @@ module DevelopmentalStageConstants
       '11-16 days after mosquito infective blood meal',
       '60 hours after sporozoite invasion of hepatocyte',
     ],
-    Species::TOXOPLASMA_GONDII_NAME => [
+    'Toxoplasma gondii' => [
       'sporozoite',
       'sporozoite invasion',
       'sporozoite 2 hours post inoculation',
@@ -194,7 +194,7 @@ module DevelopmentalStageConstants
       'sporulated oocyst',
       'unsporulated oocyst',
     ],
-    Species::BABESIA_BOVIS_NAME => [
+    'Babesia bovis' => [
       'shortly after merozoite invasion',
       'trophozoite',
       'early cell division',
@@ -207,13 +207,13 @@ module DevelopmentalStageConstants
       'sporozoite',
       'intraerythrocytic',
     ],
-    Species::NEOSPORA_CANINUM_NAME => [
+    'Neospora caninum' => [
       'tachyzoite',
       'extracellular tachyzoite',
       'intracellular tachyzoite',
       'bradyzoite',
     ],
-    Species::OTHER_SPECIES => { #for unsequenced species most likely
+    'Other species placeholder' => { #for unsequenced species most likely
       'Plasmodium gallinaceum' => [
         'early ring',
         'trophozoite',
@@ -315,7 +315,7 @@ module DevelopmentalStageConstants
         'oocyst'
       ]
     },
-    Species::CRYPTOSPORIDIUM_PARVUM_NAME => [
+    'Cryptosporidium parvum' => [
       'sporozoite',
       'extracellular sporozoite',
       'unexcysted sporozoite',
@@ -337,16 +337,16 @@ module DevelopmentalStageConstants
       'late macrogamete',
       'trophozoite',
     ],
-    Species::THEILERIA_ANNULATA_NAME => [
+    'Theileria annulata' => [
       'macroschizont',
       'schizont',
       'merogeny',
     ],
-    Species::THEILERIA_PARVA_NAME => [
+    'Theileria parva' => [
       'schizont',
       'merogeny',
     ],
-    Species::PLASMODIUM_BERGHEI_NAME => [
+    'Plasmodium berghei' => [
       'blood stages',
       'early blood stages',
       'late blood stages',
@@ -420,7 +420,7 @@ module DevelopmentalStageConstants
       'cytomere',
       'hepatocyte merozoite',
     ],
-    Species::VIVAX_NAME => [
+    'Plasmodium vivax' => [
       'erythrocytic',
       'ring',
       'trophozoite',
@@ -432,7 +432,7 @@ module DevelopmentalStageConstants
       'zygote',
       'ookinete'
     ],
-    Species::YOELII_NAME => [
+    'Plasmodium yoelii' => [
       'blood stages',
       'ring',
       'trophozoite',
@@ -460,12 +460,12 @@ module DevelopmentalStageConstants
       '40 hours post sporozoite infection',
       '48 hours post sporozoite infection',
     ],
-    Species::KNOWLESI_NAME => [
+    'Plasmodium knowlesi' => [
       'merozoite',
       'blood stages',
       'sporozoite',
     ],
-    Species::CHABAUDI_NAME => [
+    'Plasmodium chabaudi' => [
       'blood stages',
       'intraerythrocytic',
       'maturing parasites',
@@ -474,9 +474,9 @@ module DevelopmentalStageConstants
   }
   
   KNOWN_DEVELOPMENTAL_STAGE_SYNONYMS = {
-    Species::CHABAUDI_NAME => {},
-    Species::KNOWLESI_NAME => {},
-    Species::YOELII_NAME => {
+    'Plasmodium chabaudi' => {},
+    'Plasmodium knowlesi' => {},
+    'Plasmodium yoelii' => {
       'immature schizont' => 'early schizont',
       'mature schizont' => 'late schizont',
       'liver stages' => 'hepatic',
@@ -486,11 +486,11 @@ module DevelopmentalStageConstants
       'salivary gland sporozoites' => 'salivary gland sporozoite',
       'segmented schizont-stage' => 'segmented schizont',
     },
-    Species::VIVAX_NAME => {
+    'Plasmodium vivax' => {
       'rbc stages' => %w(ring trophozoite schizont).push('extracellular merozoite'),
       'all rbc stages' => %w(ring trophozoite schizont).push('extracellular merozoite'),
     },
-    Species::PLASMODIUM_BERGHEI_NAME => {
+    'Plasmodium berghei' => {
       'merozomes' => 'merozome',
       'cytomeres' => 'cytomere',
       'late liver schizont' => 'late hepatic schizont',
@@ -531,16 +531,16 @@ module DevelopmentalStageConstants
       '48 hrs after sporozoite infection' => 'sporozoite 48 days after infection',
       '24 hrs after sporozoite invasion' => 'sporozoite 24 days after infection',
     },
-    Species::THEILERIA_ANNULATA_NAME => {},
-    Species::THEILERIA_PARVA_NAME => {},
-    Species::CRYPTOSPORIDIUM_PARVUM_NAME => {
+    'Theileria annulata' => {},
+    'Theileria parva' => {},
+    'Cryptosporidium parvum' => {
       'free sporozoite' => 'extracellular sporozoite',
       'sporozoite internalization' => 'sporozoite invasion',
       'excysted sporozoite' => 'extracellular sporozoite',
       'excysted sporozoites' => 'extracellular sporozoite',
       'sporozoites' => 'sporozoite',
     },
-    Species::OTHER_SPECIES => {
+    'Other species placeholder' => {
       'Plasmodium gallinaceum' => {
         'troph' => 'trophozoite'
       },
@@ -563,8 +563,8 @@ module DevelopmentalStageConstants
         'after sporozoite invasion' => 'after sporozoite invasion of enteric cells',
       }
     },
-    Species::NEOSPORA_CANINUM_NAME => {},
-    Species::BABESIA_BOVIS_NAME => {
+    'Neospora caninum' => {},
+    'Babesia bovis' => {
       'invading merozoites' => 'merozoite invasion',
       'infected erythrocytes' => 'intraerythrocytic',
       'erythrocyte' => 'intraerythrocytic',
@@ -577,7 +577,7 @@ module DevelopmentalStageConstants
       'ring stage' => 'trophozoite',
       'sequentially dividing forms' => 'intraerythrocytic',
     },
-    Species::TOXOPLASMA_GONDII_NAME => {
+    'Toxoplasma gondii' => {
       'beginning of cell division' => 'early tachyzoite cell division',
       'late stage of cell division' => 'late tachyzoite cell division',
       '16h after tachyzoite infection' => '16 hours after tachyzoite infection',
@@ -618,7 +618,7 @@ module DevelopmentalStageConstants
       'emerging daughter' => 'emerging daughter tachyzoite',
       'before the onset of endodyogeny' => 'non-dividing tachyzoite',
     },
-    Species::FALCIPARUM_NAME => {
+    'Plasmodium falciparum' => {
       'immature oocyst' => 'early oocyst',
       'late troph' => 'late trophozoite',
       'mid schizont' => 'middle schizont',

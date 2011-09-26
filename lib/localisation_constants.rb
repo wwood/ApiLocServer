@@ -3,7 +3,7 @@
 
 module LocalisationConstants
   KNOWN_LOCALISATIONS = {
-    Species::FALCIPARUM_NAME => [
+    'Plasmodium falciparum' => [
       'cell poles', #antierior + posterior
       'posterior',
       'periphery',
@@ -145,7 +145,7 @@ module LocalisationConstants
       'osmiophilic body', #"Pfmdv-1 was also detected in specific secretory vesicles, termed osmiophilic bodies (OB), within gametocytes (Fig. 3 A, B, and D)."
       'non-invasion-related localisation',
     ],
-    Species::TOXOPLASMA_GONDII_NAME => [
+    'Toxoplasma gondii' => [
       'nascent rhoptry',
       'rhoptry',
       'limiting membrane of rhoptry',
@@ -293,7 +293,7 @@ module LocalisationConstants
       'plant-like vacuole',
       'adjacent to the plant-link vacuole'
     ],
-    Species::BABESIA_BOVIS_NAME => [
+    'Babesia bovis' => [
       'apical',
       'released into extracellular mileiu',
       'cytoplasm',
@@ -309,7 +309,7 @@ module LocalisationConstants
       'erythrocyte cytoplasm',
       'cytoplasmic face of host erythrocyte membrane'
     ],
-    Species::NEOSPORA_CANINUM_NAME => [
+    'Neospora caninum' => [
       'apical',
       'microneme',
       'dense granule',
@@ -327,7 +327,7 @@ module LocalisationConstants
       'cyst matrix',
       'moving junction'
     ],
-    Species::OTHER_SPECIES => { #for unsequenced species most likely
+    'Other species placeholder' => { #for unsequenced species most likely
       'Plasmodium gallinaceum' => [
         'microneme',
         'microneme membrane',
@@ -423,7 +423,7 @@ module LocalisationConstants
         'host tissue',
       ]
     },
-    Species::CRYPTOSPORIDIUM_PARVUM_NAME => [
+    'Cryptosporidium parvum' => [
       'surface',
       'cytosol',
       'cytoplasm',
@@ -460,7 +460,7 @@ module LocalisationConstants
       'surrounding',
       'exterior',
     ],
-    Species::THEILERIA_ANNULATA_NAME => [
+    'Theileria annulata'=> [
       'mitochondrion',
       'cytosol',
       'cytoplasm',
@@ -471,12 +471,12 @@ module LocalisationConstants
       'plasma membrane',
       'nucleus'
     ],
-    Species::THEILERIA_PARVA_NAME => [
+    'Theileria parva' => [
       'apical',
       'plasma membrane',
       'nucleus',
     ],
-    Species::PLASMODIUM_BERGHEI_NAME => [
+    'Plasmodium berghei' => [
       'apical',
       'apical most tip',
       'microneme',
@@ -530,7 +530,7 @@ module LocalisationConstants
       'stress granule',
       'cytoplasmic axonemes',
     ],
-    Species::VIVAX_NAME => [
+    'Plasmodium vivax' => [
       'surface',
       'merozoite surface',
       'ookinete surface',
@@ -546,7 +546,7 @@ module LocalisationConstants
       'nucleus',
       'food vacuole',
     ],
-    Species::YOELII_NAME => [
+    'Plasmodium yoelii' => [
       'apical',
       'microneme',
       'rhoptry',
@@ -572,12 +572,12 @@ module LocalisationConstants
       'plasma membrane',
       'nowhere except apicoplast',
     ],
-    Species::KNOWLESI_NAME => [
+    'Plasmodium knowlesi' => [
       'microneme',
       'apical',
       'surface'
     ],
-    Species::CHABAUDI_NAME => [
+    'Plasmodium chabaudi' => [
       'cytoplasm',
       'nucleus',
       'maurer\'s cleft',
@@ -589,7 +589,7 @@ module LocalisationConstants
   }
 
   KNOWN_LOCALISATION_SYNONYMS = {
-    Species::CHABAUDI_NAME => {
+    'Plasmodium chabaudi' => {
       'pv' => 'parasitophorous vacuole',
       'pvm' => 'parasitophorous vacuole membrane',
       'nuclear' => 'nucleus',
@@ -597,8 +597,8 @@ module LocalisationConstants
       'cytoplasmic side of host erythrocyte membrane' =>
         'cytoplasmic side of host cell membrane'
     },
-    Species::KNOWLESI_NAME => {},
-    Species::YOELII_NAME => {
+    'Plasmodium knowlesi' => {},
+    'Plasmodium yoelii' => {
       'membrane of infected erythrocytes' => 'host cell membrane',
       'cytoplasm of erythrocyte' => 'host cell cytoplasm',
       'trophozoite' => 'intracellular',
@@ -613,7 +613,7 @@ module LocalisationConstants
       'plasma membranes' => 'plasma membrane',
       'rhoptries' => 'rhoptry'
     },
-    Species::VIVAX_NAME => {
+    'Plasmodium vivax' => {
       'erythrocyte cytoplasm' => 'host cell cytoplasm',
       'parasite surface' => 'surface',
       'nuclear' => 'nucleus',
@@ -621,7 +621,7 @@ module LocalisationConstants
       'rhoptries' => 'rhoptry',
       'micronemes' => 'microneme',
     },
-    Species::PLASMODIUM_BERGHEI_NAME => {
+    'Plasmodium berghei' => {
       'lysosome' => 'food vacuole',
       'only pvm' => 'only parasitophorous vacuole membrane',
       'internalized' => 'cytoplasm',
@@ -647,16 +647,16 @@ module LocalisationConstants
       'axonemal' => 'cytoplasmic axonemes',
       'cytoplasmic' => 'cytoplasm',
     },
-    Species::THEILERIA_ANNULATA_NAME => {
+    'Theileria annulata' => {
       'mitochondria' => 'mitochondrion',
       'parasite cytoplasm' => 'cytoplasm',
       'parasite plasma membrane' => 'plasma membrane',
       'surface' => 'plasma membrane',
     },
-    Species::THEILERIA_PARVA_NAME => {
+    'Theileria parva' => {
       'surface' => 'plasma membrane',
     },
-    Species::CRYPTOSPORIDIUM_PARVUM_NAME => {
+    'Cryptosporidium parvum' => {
       'relict mitochondrian' => 'mitochondrion',
       'mitochondrion-like structure' => 'mitochondrion',
       'mitochondria' => 'mitochondrion',
@@ -673,7 +673,7 @@ module LocalisationConstants
       'inner surface of the oocyst walls' => 'inner surface of the oocyst wall',
       'outer surface' => 'surface',
     },
-    Species::OTHER_SPECIES => {
+    'Other species placeholder' => {
       'Sarcocystis muris' => {
         'surface' => 'cell surface'
       },
@@ -704,7 +704,7 @@ module LocalisationConstants
         'wall-forming body type ii' => 'wall forming body type ii',
       }
     },
-    Species::NEOSPORA_CANINUM_NAME => {
+    'Neospora caninum' => {
       'cytoplasm mostly near nuclear membrane' => 'area around nucleus',
       'mj' => 'moving junction',
       'surface' => 'cell surface',
@@ -714,7 +714,7 @@ module LocalisationConstants
       'pv lumen' => 'parasitophorous vacuole lumen',
       'apical complex' => 'apical',
     },
-    Species::BABESIA_BOVIS_NAME => {
+    'Babesia bovis' => {
       'cytoplasmic accumulations' => 'cytoplasmic accumulation',
       'spherical body' => 'spherical body organelle',
       'spherical body organelles' => 'spherical body organelle',
@@ -725,7 +725,7 @@ module LocalisationConstants
       'infected rbc' => 'erythrocyte cytoplasm',
       'infected rbc membrane' => 'erythrocyte membrane',
     },
-    Species::TOXOPLASMA_GONDII_NAME => {
+    'Toxoplasma gondii' => {
       'golgi' => 'golgi apparatus',
       'golgi cisternae' => 'golgi apparatus',
       'cytoplasmic structures' => 'cytoplasmic structure',
@@ -823,7 +823,7 @@ module LocalisationConstants
       'tip/conoid' => 'conoid',
       'apical ring' => 'ring structure at apical inner membrane complex',
     },
-    Species::FALCIPARUM_NAME => {
+    'Plasmodium falciparum' => {
       'host cell' => 'erythrocyte',
       'mitochondria' => 'mitochondrion',
       'cis golgi' => 'cis-golgi',
