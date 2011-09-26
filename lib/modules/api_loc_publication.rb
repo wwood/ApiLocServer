@@ -1659,19 +1659,19 @@ class BScript
   
   # Looking through all the genes in the database, cache of the compartments so that things are easier to compare
   def cache_all_compartments
-    # Cache all apicomplexan compartments
-    codes = CodingRegion.apicomplexan.all
-    progress = ProgressBar.new('apicomplexans', codes.length)
-    codes.each do |code|
-      progress.inc
-      comps = code.compartments
-      comps.each do |comp|
-        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
-                                                                                        code.id, comp
-        )
-      end
-    end
-    progress.finish
+#    # Cache all apicomplexan compartments
+#    codes = CodingRegion.apicomplexan.all
+#    progress = ProgressBar.new('apicomplexans', codes.length)
+#    codes.each do |code|
+#      progress.inc
+#      comps = code.compartments
+#      comps.each do |comp|
+#        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+#                                                                                        code.id, comp
+#        )
+#      end
+#    end
+#    progress.finish
     
     # Cache all non-apicomplexan compartments
     codes = CodingRegion.go_cc_usefully_termed.all
