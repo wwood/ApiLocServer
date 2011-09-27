@@ -2641,4 +2641,35 @@ class BScript
       ].join("\t")
     end
   end
+  
+  def conservation_of_localisation_in_apicomplexa
+    # For each OrthoMCL group that contains 2 or more proteins localised,
+    # When there is at least 2 different species involved
+    groups = OrthomclGroup.all(
+    :joins => {:orthomcl_genes => {:coding_regions => :expressed_localisations}}
+    ).uniq
+    groups.each do |g|
+      genes = g.orthomcl_genes.uniq
+      # If there is more than 1 species involved
+      if genes.collect{|g| g.official_split[0]}.uniq.length > 1
+        puts 
+        puts '#####################################'
+        genes.each do |g|
+          codes = g.coding_regions
+          if codes.length != 1
+            $stderr.puts "Too many coding regions for #{g.orthomcl_name}: #{code}"
+            next
+          end
+          code = coding_regions[0]
+          
+          puts [
+            code.species.name,
+            code.annotation.annotation,
+            code.coding_region_compartment_caches.reach.join(', ')
+            code.localisation_english,
+          ].joint("\t")
+        end
+      end
+    end
+  end
 end
