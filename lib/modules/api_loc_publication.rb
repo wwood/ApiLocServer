@@ -1659,19 +1659,19 @@ class BScript
   
   # Looking through all the genes in the database, cache of the compartments so that things are easier to compare
   def cache_all_compartments
-#    # Cache all apicomplexan compartments
-#    codes = CodingRegion.apicomplexan.all
-#    progress = ProgressBar.new('apicomplexans', codes.length)
-#    codes.each do |code|
-#      progress.inc
-#      comps = code.compartments
-#      comps.each do |comp|
-#        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
-#                                                                                        code.id, comp
-#        )
-#      end
-#    end
-#    progress.finish
+    # Cache all apicomplexan compartments
+    codes = CodingRegion.apicomplexan.all
+    progress = ProgressBar.new('apicomplexans', codes.length)
+    codes.each do |code|
+      progress.inc
+      comps = code.compartments
+      comps.each do |comp|
+        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                        code.id, comp
+        )
+      end
+    end
+    progress.finish
     
     # Cache all non-apicomplexan compartments
     codes = CodingRegion.go_cc_usefully_termed.all
@@ -2149,22 +2149,8 @@ class BScript
     pp answer
   end
   
-  # Like falciparum_predicted_by_yeast_mouse, except only consider those groups
-  # where there is a single falciparum and single yeast and single mouse protein
-  # is that most? 
-  def falciparum_predicted_by_yeast_mouse_one_to_one
-    
-  end
-  
   def how_many_genes_are_localised_in_each_species
-    interests = [
-    Species::FALCIPARUM_NAME,
-    Species::TOXOPLASMA_GONDII,
-    Species::MOUSE_NAME,
-    Species::HUMAN_NAME,
-    Species::YEAST_NAME,
-    Species::ARABIDOPSIS_NAME
-    ]
+    interests = Species.all.reach.name.retract
     
     # How many genes?
     interests.each do |interest|
