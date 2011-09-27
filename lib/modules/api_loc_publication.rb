@@ -2614,7 +2614,7 @@ class BScript
     puts '# Genes that have localised ortholgues, if you don\'t consider GO CC IDA terms from all Eukaryotes'
     $stderr.puts "starting group search"
     groups = OrthomclGroup.official.all(
-      :joins => {:orthomcl_genes => {:coding_regions => :expressed_localistions}},
+      :joins => {:orthomcl_genes => {:coding_regions => :expressed_localisations}},
       :select => 'distinct(orthomcl_groups.id)'
     )
     $stderr.puts "finished group search, found #{groups.length} groups"
