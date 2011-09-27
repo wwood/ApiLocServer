@@ -2590,7 +2590,38 @@ class BScript
     group_ids = groups.collect{|g| g.id}
     $stderr.puts "finished group id transform"
     
+    puts '# Genes that have localised ortholgues, if you consider GO CC IDA terms from all Eukaryotes'
+    Species.sequenced_apicomplexan.all.each do |sp|
+      num_orthomcl_genes = OrthomclGene.code(sp.orthomcl_three_letter).count(
+      :select => 'distinct(orthomcl_genes.id)'
+      )
+      
+      # go through the groups and work out how many coding regions there are in those groups from this species
+      num_with_a_localised_orthologue = OrthomclGene.code(sp.orthomcl_three_letter).count(
+      :select => 'distinct(orthomcl_genes.id)',
+      :joins => :orthomcl_groups,
+      :conditions => "orthomcl_gene_orthomcl_group_orthomcl_runs.orthomcl_group_id in #{group_ids.to_sql_in_string}"
+      )
+      
+      puts [
+      sp.name,
+      num_orthomcl_genes,
+      num_with_a_localised_orthologue
+      ].join("\t")
+    end
     
+    puts
+    puts '# Genes that have localised ortholgues, if you don\'t consider GO CC IDA terms from all Eukaryotes'
+    $stderr.puts "starting group search"
+    groups = OrthomclGroup.official.all(
+      :joins => {:orthomcl_genes => {:coding_regions => :expressed_localistions}},
+      :select => 'distinct(orthomcl_groups.id)'
+    )
+    $stderr.puts "finished group search, found #{groups.length} groups"
+    group_ids = groups.collect{|g| g.id}
+    $stderr.puts "finished group id transform"
+    
+    puts '# Genes that have localised ortholgues, if you consider GO CC IDA terms from all Eukaryotes'
     Species.sequenced_apicomplexan.all.each do |sp|
       num_orthomcl_genes = OrthomclGene.code(sp.orthomcl_three_letter).count(
       :select => 'distinct(orthomcl_genes.id)'
