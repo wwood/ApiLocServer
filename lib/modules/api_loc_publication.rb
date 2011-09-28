@@ -2742,34 +2742,49 @@ class BScript
   end
   
   def conservation_of_localisation_in_apicomplexa
+    groups_skipped_because_less_than_2_different_species = 0
+    
     # For each OrthoMCL group that contains 2 or more proteins localised,
     # When there is at least 2 different species involved
     groups = OrthomclGroup.all(
     :joins => {:orthomcl_genes => {:coding_regions => :expressed_localisations}}
     ).uniq
-    groups.each do |g|
-      genes = g.orthomcl_genes.uniq
+    groups.each do |group|
+      $stderr.puts "Inspecting #{group.orthomcl_name}.."
+      genes = group.orthomcl_genes.apicomplexan.all.uniq
       # If there is more than 1 species involved
       if genes.collect{|g| g.official_split[0]}.uniq.length > 1
-        puts 
-        puts '#####################################'
+        outputs = []
         genes.each do |g|
-          codes = g.coding_regions
+          codes = g.coding_regions.all(:joins => :coding_region_compartment_caches)
           if codes.length != 1
-            $stderr.puts "Too many coding regions for #{g.orthomcl_name}: #{code}"
+            $stderr.puts "Skipping coding regions for #{g.orthomcl_name}, since only #{codes.length} genes with loc were linked"
             next
           end
-          code = coding_regions[0]
+          code = codes[0]
           
-          puts [
+          outputs.push [
             code.species.name,
+            code.string_id,
             code.annotation.annotation,
-            code.coding_region_compartment_caches.reach.join(', '),
+            code.coding_region_compartment_caches.reach.compartment.join(', '),
             code.localisation_english,
-          ].join("\t")
+          ]
         end
+      else
+        groups_skipped_because_less_than_2_different_species += 1
+      end
+      
+      if outputs.collect{|o| o[0]}.uniq.length > 1 #if there is >1 species involved
+        puts 
+        puts '#####################################'
+        puts outputs.collect{|d| d.join("\t")}.join("\n")
+      else
+        $stderr.puts "Skipped group #{group.orthomcl_name} because of lack of annotation, only found #{outputs.collect{|d| d.join(",")}.join(" ### ")}"
       end
     end
+    
+    $stderr.puts "Skipped #{groups_skipped_because_less_than_2_different_species} groups due to lack of >1 species having loc information"
   end
   
   # the idea is to find how many genes have annotations that fall into these 2 categories:
