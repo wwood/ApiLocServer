@@ -2849,7 +2849,14 @@ class BScript
       ]
       
       puts to_print.join("\t")
-      $stderr.puts "Found these wayward from #{sp.name}:\n#{wayward_ids.to_a.sort{|a,b| b[1]<=>a[1]}.collect{|a| "wayward\t#{a[1]}\t#{a[0]}"}.join("\n")}\n\n"
+      $stderr.puts "Found these wayward from #{sp.name}:\n"
+      strings = wayward_ids.to_a.sort{|a,b| 
+        b[1]<=>a[1]
+      }.collect{|a| 
+        "wayward\t#{a[1]}\t#{a[0]}"
+      }.join("\n")
+      $stderr.puts strings
+      $stderr.puts
     end
   end
   
