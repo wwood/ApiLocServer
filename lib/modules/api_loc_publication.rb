@@ -2753,8 +2753,8 @@ class BScript
       $stderr.puts "Inspecting #{group.orthomcl_name}.."
       genes = group.orthomcl_genes.apicomplexan.all.uniq
       # If there is more than 1 species involved
+      outputs = []
       if genes.collect{|g| g.official_split[0]}.uniq.length > 1
-        outputs = []
         genes.each do |g|
           codes = g.coding_regions.all(:joins => :coding_region_compartment_caches)
           if codes.length != 1
