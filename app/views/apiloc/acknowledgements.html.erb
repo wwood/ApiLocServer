@@ -7,6 +7,8 @@
   <li><%= link_to 'Stuart A. Ralph', 'http://www.biochemistry.unimelb.edu.au/research/res_ralph.html' %></li>
 </ul>
 <p>Thanks also to <%= link_to 'Boris Striepen', 'http://www.striepen.uga.edu' %> for providing the 'generalised' apicomplexan parasite, <%= link_to 'released', 'http://www.plospathogens.org/article/slideshow.action?uri=info:doi/10.1371/journal.ppat.0030078&imageURI=info:doi/10.1371/journal.ppat.0030078.g001' %> under Creative Commons license.</p>
+<h3>Source Data Download</h3>
+The raw data used to feed into this website is maintained on the <%= link_to 'ApiLoc github repository', 'http://github.com/wwood/ApiLoc' %>, and is likely to be more up to date than what is presented here on the website.
 <h2>Apicomplexan Localisation Resources</h2>
 <ul>
   <li><%= link_to 'PlasmoDB', 'http://plasmodb.org' %>:</li>
@@ -17,14 +19,11 @@
   <%= render :partial => 'general_falciparum_sub_cellular_localisation_links' %>
   <%= render :partial => 'general_sub_cellular_localisation_links' %>
 </ul>
-<h3>Source Code</h3>
-<ul>
-<li><%= link_to 'PlasmoAP', 'http://github.com/wwood/bbbin/blob/master/plasmo_a_p.rb' %>, same algorithm as at PlasmoDB but written independently</li>
-<li><%= link_to 'ExportPred', 'http://bioinf.wehi.edu.au/exportpred/' %>, supplementary website </li>
-</ul>
 <h2>Biology-Related Software</h2>
-Some software was created and built upon in for ApiLoc, available as <%= link_to 'free software', 'http://en.wikipedia.org/wiki/Free_software' %>.
+Some software was created and built upon for ApiLoc, available as <%= link_to 'free software', 'http://en.wikipedia.org/wiki/Free_software' %>.
 <ul>
+  <li><%= link_to 'PlasmoAP', 'http://github.com/wwood/bbbin/blob/master/plasmo_a_p.rb' %>, same algorithm as at PlasmoDB but written independently</li>
+  <li><%= link_to 'ExportPred', 'http://bioinf.wehi.edu.au/exportpred/' %>, supplementary website </li>
   <li><%= link_to 'reach', 'http://github.com/wwood/reach' %> - a <%= link_to 'Ruby', 'http://www.ruby-lang.org' %> library for more easily working with arrays</li>
   <li><%= link_to 'bbbin', 'http://github.com/wwood/bbbin' %> - Ben's Bioinformatics Bin - a collection of working and non-working bioinformatics scripts written in variety of programmaing languages</li>
 </ul>

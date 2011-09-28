@@ -5,7 +5,11 @@
   <h3><%= @publication.title %></h3>
   <p><%= @publication.authors %> (<%= @publication.date %>)</p>
   <p><%= @publication.abstract %></p>
-  <p><%= link_to (@publication.pubmed_id? ? "PubMed: #{@publication.pubmed_id}" : @publication.url), @publication.linkout_url %></p>
+  <% if @publication.pubmed_id? %>
+  <p><%= link_to "PubMed: #{@publication.pubmed_id}", @publication.linkout_url %>, <%= link_to 'full text', @publication.fulltext_url %></p>
+  <% else %>
+  <p><%= link_to @publication.fulltext_url %>
+  <% end %>
 </div>
 
 <div class="category<%= category_counter+=1; category_counter.odd? %>">

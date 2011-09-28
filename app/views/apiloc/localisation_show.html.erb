@@ -15,6 +15,10 @@ Localisation.all(
 <%= negative_localisation_spiel %>
 <% end %>
 
+<% if !@localisations[0].nil? and !@localisations[0].negative? %>
+<p>Some proteins may have been specifically <%= link_to 'not localised here', :action => :localisation, :id => @top_level_localisation.negation.name %> as well.</p>
+<% end %>
+
 <% Species.all.sort.each do |sp|
 codes = CodingRegion.s(sp.name).all(
   :joins => {:expressed_localisations => :apiloc_top_level_localisation},
