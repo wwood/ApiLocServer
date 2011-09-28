@@ -37,7 +37,7 @@ class OntologyComparison
   'cell wall',
   'lysosome',
   'peroxisome',
-  #'parasitophorous vacuole',
+  'symbiont-containing vacuole',#parasitophorous vacuole is a synonym
   'endocytic vesicle',
   'glycosome',
   'flagellum',
