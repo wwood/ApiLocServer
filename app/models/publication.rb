@@ -76,9 +76,14 @@ class Publication < ActiveRecord::Base
   
   # Sorting is used so that the newest publications are first
   # in the apiloc page
-  # have to have to_s otherwise it is possible to try to compare String with Fixnum
   def <=>(another_publication)
-    definition.to_s <=> another_publication.definition.to_s
+    if year.nil?
+      -1
+    elsif another_publication.year.nil?
+      1
+    else
+      year <=> another_publication.year
+    end
   end
   
   # Assuming that the pubmed ID has been recorded, fill in the abstract, title,
