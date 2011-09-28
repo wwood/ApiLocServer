@@ -70,7 +70,7 @@ Rails::Initializer.run do |config|
   config.gem 'rio'
   #config.gem 'narray' # only required as a dependency to romanbsd-gsl, and because the :sources flag doesn't work properly IMO. See https://rails.lighthouseapp.com/projects/8994/tickets/1891-configgem-with-multiple-sources
   #config.gem 'romanbsd-gsl', :lib => 'gsl', :source => 'http://gems.github.com' # the original author doesn't offer a gem - I don't really need the other changes in romanbsd's github
-  config.gem "foreigner", :lib => 'foreigner'
+  #config.gem "foreigner", :lib => 'foreigner'
   config.gem 'array_pair'
   config.gem 'goruby', :lib => 'go'
   config.gem 'progressbar'

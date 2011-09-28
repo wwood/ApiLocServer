@@ -6,6 +6,9 @@
     <th>Annotation</th>
     <th>Localisations</th>
     <th>References</th>
+    <th>Orthologous protein localisations</th>
+	<th>Opinionated localisation(s)</th>
+	<th>Opinionated localisation References</th>
   </tr>
   
   <% @coding_regions.each_with_index do |coding_region, index| %>
@@ -22,6 +25,18 @@
           "#{link_to pub.definition, publication_path(pub)}"
         }.join(', ') %>
       </td>
+	  <td>
+	  	<% orths = coding_region.localised_apicomplexan_orthomcl_orthologues %>
+		<% orths ||= [] %>
+		<% orths.reject!{|a| a == coding_region} %>
+		<% unless orths.nil? %>
+		<%= orths.collect do |code|
+		  "#{link_to code.string_id, :controller => :apiloc, :action => :gene, :id => code.string_id} #{code.localisation_english}"
+		end.join(", ") %>
+		<% end %>
+	  </td>
+	  	<td><%= coding_region.localisation_english(:by_literature => true) %></td>
+	  	<td><%= coding_region.second_class_citizen_expression_contexts.reach.publication.definition.uniq.join(", ") %></td>
     </tr>
   <% end %>
 </table>

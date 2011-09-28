@@ -93,4 +93,16 @@ class SpeciesDataTest < Test::Unit::TestCase
     assert_equal "BbovisT2BoAnnotatedTranscripts_PiroplasmaDB-#{SpeciesData::SOURCE_VERSIONS['PiroplasmaDB']}.fasta",
     spd.transcript_fasta_filename
   end
+  
+  def test_behind_usage_policy
+    spd =  SpeciesData.new('Plasmodium chabaudi')
+    assert_equal "http://plasmodb.org/common/downloads/release-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/Pchabaudi/fasta/data",
+    spd.eu_path_db_fasta_download_directory
+ end
+ 
+ def test_behind_usage_policy
+    spd =  SpeciesData.new('Plasmodium vivax')
+    assert_equal "http://plasmodb.org/common/downloads/release-#{SpeciesData::SOURCE_VERSIONS['PlasmoDB']}/Pvivax/fasta",
+    spd.eu_path_db_fasta_download_directory
+ end
 end

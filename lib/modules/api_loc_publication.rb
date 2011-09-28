@@ -1263,6 +1263,50 @@ class BScript
     end
   end
   
+  def uniprot_gene_names
+    [
+    Species::TBRUCEI_NAME,
+    ].each do |species_name|
+      Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'GN   ORFNames=') do |u|
+        code = CodingRegion.fs(u.ac[0], species_name) or raise
+        
+        gene_names = []
+        u.gn.each do |gn|
+          gn[:orfs].each do |orf|
+            gene_names.push orf
+          end
+        end
+        
+        gene_names.each do |g|
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+                                                                                               code.id, g, 'UniProtGeneName'
+          )
+        end
+      end
+    end
+  end
+  
+  def uniprot_eupathdb_databases
+    [
+    Species::TBRUCEI_NAME,
+    ].each do |species_name|
+      Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'DR   EuPathDB') do |u|
+        code = CodingRegion.fs(u.ac[0], species_name) or raise
+#        p u.dr
+        next if u.dr.empty?
+	if (u.dr['EuPathDB'].nil?); $stderr.puts "Incorrectly parsed line? #{u.dr.inspect}"; break; end
+
+        refseqs = u.dr['EuPathDB'].flatten
+        refseqs = refseqs.collect{|r| r.gsub(/^EupathDB:/,'')}
+        refseqs.each do |r|
+          CodingRegionAlternateStringId.find_or_create_by_coding_region_id_and_name_and_source(
+                                                                                               code.id, r, 'EuPathDB'
+          )
+        end
+      end
+    end
+  end
+  
   def chlamydomonas_link_to_orthomcl_ids
     species_name = Species::CHLAMYDOMONAS_NAME
     Bio::UniProtIterator.foreach("#{DATA_DIR}/UniProt/knowledgebase/#{species_name}.gz", 'GN') do |u|
@@ -1674,15 +1718,19 @@ class BScript
     progress.finish
     
     # Cache all non-apicomplexan compartments
-    codes = CodingRegion.go_cc_usefully_termed.all
+    codes = CodingRegion.go_cc_usefully_termed.all(:select => 'distinct(coding_regions.*)')
     progress = ProgressBar.new('eukaryotes', codes.length)
     codes.each do |code|
+      p code
       progress.inc
       comps = code.compartments
       comps.each do |comp|
-        CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
-                                                                                        code.id, comp
+        p comp
+        g = CodingRegionCompartmentCache.find_or_create_by_coding_region_id_and_compartment(
+                                                                                            code.id, comp
         )
+        g.save!
+        p g
       end
     end   
     progress.finish
@@ -1846,11 +1894,11 @@ class BScript
     # Cache all of the kingdom information as orthomcl_split to kingdom
     orthomcl_abbreviation_to_kingdom = {}
     Species.all(:conditions => 'orthomcl_three_letter is not null').each do |sp|
-      orthomcl_abbreviation_to_kingdom[sp.orthomcl_three_letter] = Species::NAME_TO_KINGDOM[sp.name]
+      orthomcl_abbreviation_to_kingdom[sp.orthomcl_three_letter] = Species::FOUR_WAY_NAME_TO_KINGDOM[sp.name]
     end
     
     
-    # Copy the data out of the database to a csv file. Beware that there is duplicates in this file
+    # Copy the data out of the database to a csv file. There shouldn't be any duplicates
     tempfile = File.open('/tmp/eukaryotic_conservation','w')
     #    Tempfile.open('eukaryotic_conservation') do |tempfile|
     `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
@@ -1883,7 +1931,6 @@ class BScript
       data[group]['orthomcl_locs'][gene].push compartment
       data[group]['orthomcl_locs'][gene].uniq!
     end
-    #    end
     
     # Classify each of the groups into the different categories where possible
     groups_to_counts = {}
@@ -1894,7 +1941,21 @@ class BScript
       groups_to_counts
       )
     end
-    pp groups_to_counts
+
+    groups_to_counts.to_a.sort{|a,b| a[0].length<=>b[0].length}.each do |king_array, agrees|
+      yes = agrees[OntologyComparison::COMPLETE_AGREEMENT]
+      no = agrees[OntologyComparison::DISAGREEMENT]
+      maybe = agrees[OntologyComparison::INCOMPLETE_AGREEMENT]
+      total = (yes+no+maybe).to_f
+      puts [
+      king_array.join(','),
+      yes, no, maybe,
+      agrees[OntologyComparison::UNKNOWN_AGREEMENT],
+      ((yes.to_f/total)*100).round,
+      ((no.to_f/total)*100).round,
+      ((maybe.to_f/total)*100).round,
+      ].join("\t")
+    end
   end
   
   # This is a modularisation of conservation_of_eukaryotic_sub_cellular_localisation,
@@ -1963,6 +2024,36 @@ class BScript
       orthomcl_array3 = a3[1]
       kingdoms = [kingdom1, kingdom2, kingdom3]
       orthomcl_arrays = [orthomcl_array1, orthomcl_array2, orthomcl_array3]
+      
+      # don't include unless there is an orthomcl in each kingdom
+      zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+      if zero_entriers.length > 0
+        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping" if debug
+        next         
+      end
+      
+      locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
+      agreement = OntologyComparison.new.agreement_of_group locs_for_all
+      
+      index = kingdoms.sort
+      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+      groups_to_counts[index] ||= {}
+      groups_to_counts[index][agreement] ||= 0
+      groups_to_counts[index][agreement] += 1
+    end
+    
+    #within 4 kingdoms, do they agree?
+    kingdom_orthomcls.to_a.each_lower_triangular_4d_matrix do |a1, a2, a3, a4|
+      kingdom1 = a1[0]
+      kingdom2 = a2[0]
+      kingdom3 = a3[0]
+      kingdom4 = a4[0]
+      orthomcl_array1 = a1[1]
+      orthomcl_array2 = a2[1]
+      orthomcl_array3 = a3[1]
+      orthomcl_array4 = a4[1]
+      kingdoms = [kingdom1, kingdom2, kingdom3, kingdom4]
+      orthomcl_arrays = [orthomcl_array1, orthomcl_array2, orthomcl_array3, orthomcl_array4]
       
       # don't include unless there is an orthomcl in each kingdom
       zero_entriers = orthomcl_arrays.select{|o| o.length==0}
@@ -2159,7 +2250,11 @@ class BScript
       :select => 'distinct(orthomcl_genes.id)',
       :conditions => {:species => {:name => interest}}
       )
-      puts "Found #{count} genes with localisation from #{interest}"
+      puts [
+      'OrthoMCL genes',
+      interest,
+      count
+      ].join("\t")
     end
     
     # how many orthomcl groups?
@@ -2169,7 +2264,11 @@ class BScript
       :conditions => ['orthomcl_genes.orthomcl_name like ? and species.name = ?', "#{Species::ORTHOMCL_CURRENT_LETTERS[interest]}|%", interest],
       :select => 'distinct(orthomcl_groups.id)'
       )
-      puts "Found #{count} OrthoMCL groups with localisation from #{interest}"
+      puts [
+      'OrthoMCL groups',
+      interest,
+      count
+      ].join("\t")
     end
   end
   
@@ -2609,7 +2708,7 @@ class BScript
       num_with_a_localised_orthologue
       ].join("\t")
     end
-    
+
     puts
     puts '# Genes that have localised ortholgues, if you don\'t consider GO CC IDA terms from all Eukaryotes'
     $stderr.puts "starting group search"
@@ -2665,11 +2764,141 @@ class BScript
           puts [
             code.species.name,
             code.annotation.annotation,
-            code.coding_region_compartment_caches.reach.join(', ')
+            code.coding_region_compartment_caches.reach.join(', '),
             code.localisation_english,
-          ].joint("\t")
+          ].join("\t")
         end
       end
     end
+  end
+  
+  # the idea is to find how many genes have annotations that fall into these 2 categories:
+  # * Fall under the current definition of what is an organelle
+  # * Don't fall under any organelle, and aren't (exclusively) annotated by GO terms that are ancestors of the organelle terms.
+  def how_many_non_organelle_cc_annotations
+    # Create a list of all the GO terms that are included in the various compartments
+    # this is a list of subsumers
+    compartment_go_terms = CodingRegion.new.create_organelle_go_term_mappers
+    
+    # Create a list of ancestors of compartment GO terms.
+    ancestors = OntologyComparison::RECOGNIZED_LOCATIONS.collect {|loc|
+      go_entry = GoTerm.find_by_term(loc)
+      raise Exception, "Unable to find GO term in database: #{loc}" unless go_entry
+      anc = Bio::Go.new.ancestors_cc(go_entry.go_identifier)
+      $stderr.puts "Found #{anc.length} ancestors for #{go_entry.go_identifier} #{go_entry.term}"
+      anc
+    }.flatten.sort.uniq
+    
+    # For each non-apicomplexan species with a orthomcl code
+    Species.not_apicomplexan.all.each do |sp|
+      $stderr.puts sp.name
+      # get all the different GO terms for each of the different genes in the species
+      count_subsumed = 0
+      count_ancestral = 0
+      count_wayward = 0
+      wayward_ids = {}
+      codes = CodingRegion.s(sp.name).all(:joins => [:orthomcl_genes, :go_terms], :include => :go_terms).uniq
+      progress = ProgressBar.new(sp.name,codes.length)
+      codes.each do |code|
+        progress.inc
+        local_wayward_ids = {}
+        subsumed = false
+        ancestral = false
+        wayward = false
+        code.go_terms.each do |g|
+          next unless g.aspect == GoTerm::CELLULAR_COMPONENT
+          anc = false
+          sub = false
+          
+          #ancestral?
+          if ancestors.include?(g.go_identifier)
+            anc = true
+            ancestral = true
+          end
+          #subsumed?
+          compartment_go_terms.each do |subsumer|
+            if subsumer.subsume?(g.go_identifier, false)
+              sub = true
+              subsumed = true
+            end
+          end
+          # else wayward
+          if !anc and !sub
+            local_wayward_ids[g.term] = 0 if local_wayward_ids[g.term].nil?
+            local_wayward_ids[g.term] += 1
+            wayward_ids[g.term] = 0 if wayward_ids[g.term].nil?
+            wayward_ids[g.term] += 1
+            wayward = true
+          end
+        end
+#        $stderr.puts "#{code.string_id}: ancestral: #{ancestral}, subsumed: #{subsumed}, wayward: #{wayward}: "+
+#        "#{local_wayward_ids.collect{|term, count| "#{count} #{term}"}.join("\t")}" 
+        #error check
+        
+        count_subsumed += 1 if subsumed
+        count_ancestral += 1 if ancestral
+        count_wayward += 1 if wayward
+      end
+      progress.finish
+      
+      to_print = [
+      sp.name,
+      count_ancestral,
+      count_wayward,
+      count_subsumed,
+      ]
+      
+      puts to_print.join("\t")
+      $stderr.puts "Found these wayward from #{sp.name}:\n#{wayward_ids.to_a.sort{|a,b| b[1]<=>a[1]}.collect{|a| "wayward\t#{a[1]}\t#{a[0]}"}.join("\n")}\n\n"
+    end
+  end
+  
+  def most_localisations_by_authorship
+    already_localised = []
+    authors_localisations = {}
+    fails = 0
+    
+    # Get all the publications that have localisations in order
+    Publication.all(:joins => {:expression_contexts => :localisation}).uniq.sort {|p1,p2|
+      if p1.year.nil?
+        -1
+      elsif p2.year.nil?
+        1
+      else
+        p1.year <=> p2.year
+      end
+    }.each do |pub|
+      y = pub.year
+      if y.nil? #ignore publications with improperly parsed years
+        fails += 1
+        next
+      end
+      
+      ids = CodingRegion.all(:select => 'distinct(coding_regions.id)',
+      :joins => {
+      :expression_contexts => [:localisation, :publication]
+      },
+      :conditions => {:publications => {:id => pub.id}}
+      )
+      
+      ids.each do |i|
+        unless already_localised.include?(i)
+          already_localised.push i
+          authors = pub.authors.split('., ')
+          authors.each do |author|
+            last_name = author.split(' ')[0].gsub(/,/,'')
+            authors_localisations[last_name] ||= 0
+            authors_localisations[last_name] += 1
+          end
+        end
+      end
+    end
+    
+    puts ['Last name','Number of New Protein Localisations'].join("\t")
+    authors_localisations.to_a.sort{|a,b| b[1]<=>a[1]}.each do |a,b|
+      puts [a,b].join("\t")
+    end
+    
+    $stderr.puts "Failed to parse #{fails} publications properly"
   end
 end

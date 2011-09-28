@@ -38,7 +38,7 @@ class CodingRegion < ActiveRecord::Base
   end
   
   
-  # An organelle is one of cytoplasm, nucleus, mitochondrion, ER, golgi, lysosome, vacuole, 
+  # An organelle is one of cytoplasm, nucleus, mitochondrion, ER, golgi, lysosome, vacuole, etc.
   def gather_organelles_by_go_terms(debug=false)
     mappers = create_organelle_go_term_mappers
     goes = coding_region_go_terms.cc.useful.all.reach.go_term
@@ -99,7 +99,8 @@ class CodingRegion < ActiveRecord::Base
     'apicoplast' => 'plastid',
     'golgi apparatus' => 'Golgi apparatus',
     'food vacuole' => 'lysosome',
-    'parasite plasma membrane' => 'plasma membrane'
+    'parasite plasma membrane' => 'plasma membrane',
+    'parasitophorous vacuole' => 'symbiont-containing vacuole', #this is a synonym, though I'm not totally sure I agree with it.
     }
     
     highs = TopLevelLocalisation.positive.all(

@@ -31,6 +31,9 @@ class GoTerm < ActiveRecord::Base
     record.errors.add attr, 'invalid aspect string' unless ASPECTS.include?(value)
   end
   
+  named_scope :cc, {
+    :conditions => ['go_terms.aspect = ?', CELLULAR_COMPONENT]
+  }
   
   # Find a GO term by searching the go_term, or failing that
   # using the alternate as a proxy and returning the go_term that corresponds

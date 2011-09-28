@@ -17,6 +17,7 @@ class Species < ActiveRecord::Base
   TOXOPLASMA_GONDII_NAME = TOXOPLASMA_GONDII
   NEOSPORA_CANINUM_NAME = 'Neospora caninum'
   ELEGANS_NAME = 'Caenorhabditis elegans'
+  EIMERIA_TENELLA_NAME = 'Eimeria tenella'
   BABESIA_BOVIS_NAME = 'Babesia bovis'
   YEAST_NAME= 'Saccharomyces cerevisiae'
   MOUSE_NAME = 'Mus musculus'
@@ -41,6 +42,8 @@ class Species < ActiveRecord::Base
   RAT_NAME = 'Rattus norvegicus'
   DICTYOSTELIUM_DISCOIDEUM_NAME = 'Dictyostelium discoideum'
   TRYPANOSOMA_BRUCEI_NAME = 'Trypanosoma brucei'
+  DICTYOSTELIUM_NAME = DICTYOSTELIUM_DISCOIDEUM_NAME
+  TBRUCEI_NAME = TRYPANOSOMA_BRUCEI_NAME
   
   # Not ever uploaded as a species, just a useful constant
   OTHER_SPECIES = 'Other species placeholder'
@@ -56,11 +59,11 @@ class Species < ActiveRecord::Base
     'Theileria lestoquardi',
     'Babesia bigemina',
     'Babesia divergens',
+    'Babesia microti',
     'Babesia gibsoni',
     'Babesia equi',
     'Eimeria ascervulina',
     'Eimeria maxima',
-    'Eimeria tenella',
   ]
   
   has_many :scaffolds, :dependent => :destroy
@@ -126,7 +129,8 @@ class Species < ActiveRecord::Base
   
   TOXODB_SPECIES_NAMES = [
   TOXOPLASMA_GONDII_NAME,
-  NEOSPORA_CANINUM_NAME
+  NEOSPORA_CANINUM_NAME,
+  EIMERIA_TENELLA_NAME,
   ]
   
   CRYPTODB_SPECIES_NAMES = [
@@ -151,6 +155,9 @@ class Species < ActiveRecord::Base
   named_scope :apicomplexan, {
     :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES, UNSEQUENCED_APICOMPLEXANS].flatten.to_sql_in_string}"
   }
+  named_scope :not_apicomplexan, {
+    :conditions => "species.name not in #{[Species::APICOMPLEXAN_NAMES, UNSEQUENCED_APICOMPLEXANS].flatten.to_sql_in_string}"
+  }
   named_scope :sequenced_apicomplexan, {
     :conditions => "species.name in #{[Species::APICOMPLEXAN_NAMES].to_sql_in_string}"
   }
@@ -158,6 +165,8 @@ class Species < ActiveRecord::Base
   PLANTAE_NAME = 'Plantae'
   UNIKONT_NAME = 'Unikont'
   APICOMPLEXA_NAME = 'Apicomplexa'
+  METAZOA_NAME = 'Metazoa'
+  FUNGI_NAME = 'Fungi'
   
   # Categorise species of interest into broad taxanomic
   # classes
@@ -171,7 +180,9 @@ class Species < ActiveRecord::Base
     DANIO_RERIO_NAME,
     ELEGANS_NAME,
     YEAST_NAME,
+    POMBE_NAME,
     MOUSE_NAME,
+    RAT_NAME,
     DROSOPHILA_NAME,
     HUMAN_NAME,
     ],
@@ -181,6 +192,35 @@ class Species < ActiveRecord::Base
   THREE_WAY_TAXONOMY_DEFINITIONS.each do |kingdom, names|
     names.each do |species_name|
       NAME_TO_KINGDOM[species_name] = kingdom
+    end
+  end
+  
+  # The same as THREE_WAY_TAXONOMY_DEFINITIONS except separate
+  # Unikont into fungi and metazoa.
+  FOUR_WAY_TAXONOMY_DEFINITIONS = {
+    PLANTAE_NAME => [
+    RICE_NAME,
+    CHLAMYDOMONAS_NAME,
+    ARABIDOPSIS_NAME,
+    ],
+    METAZOA_NAME => [
+    DANIO_RERIO_NAME,
+    ELEGANS_NAME,
+    MOUSE_NAME,
+    RAT_NAME,
+    DROSOPHILA_NAME,
+    HUMAN_NAME,
+    ],
+    FUNGI_NAME => [
+    YEAST_NAME,
+    POMBE_NAME,
+    ],
+    APICOMPLEXA_NAME => APICOMPLEXAN_NAMES 
+  }
+  FOUR_WAY_NAME_TO_KINGDOM = {}
+  FOUR_WAY_TAXONOMY_DEFINITIONS.each do |kingdom, names|
+    names.each do |species_name|
+      FOUR_WAY_NAME_TO_KINGDOM[species_name] = kingdom
     end
   end
   
