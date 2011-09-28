@@ -2756,7 +2756,7 @@ class BScript
       outputs = []
       if genes.collect{|g| g.official_split[0]}.uniq.length > 1
         genes.each do |g|
-          codes = g.coding_regions.all(:joins => :coding_region_compartment_caches)
+          codes = g.coding_regions.all(:joins => :coding_region_compartment_caches).uniq
           if codes.length != 1
             $stderr.puts "Skipping coding regions for #{g.orthomcl_name}, since only #{codes.length} genes with loc were linked"
             next
