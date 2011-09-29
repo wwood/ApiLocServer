@@ -2923,4 +2923,34 @@ class BScript
     
     $stderr.puts "Failed to parse #{fails} publications properly"
   end
+  
+  # upload the IDA annotations from geneontology.org from there
+  def tbrucei_amigo_gene_associations_to_database
+    require 'gene_association'
+    species_id = 5691
+    raise unless UNIPROT_SPECIES_ID_NAME_HASH[Species::TBRUCEI_NAME] == species_id
+    failed_to_find_id_count = 0
+    failed_to_find_go_term_count = 0
+    
+    Bio::GzipAndFilterGeneAssociation.foreach(
+      "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.GeneDB_Tbrucei.gz", #all T. brucei annotations are from GeneDB
+      "\ttaxon:#{species_id}\t"
+    ) do |go|
+      next unless go.evidence_code == 'IDA' #only accept IDA annotations
+      
+      code = CodingRegion.fs(go.primary_id, Species::TBRUCEI_NAME)
+      if code
+        go_term = GoTerm.find_by_go_identifier_or_alternate(go.go_identifier)
+        if go_term
+          
+        else
+          failed_to_find_go_term_count += 1
+        end
+      else
+        failed_to_find_id_count = 0
+      end
+    end
+    $stderr.puts "Failed to upload #{failed_to_find_id_count} annotations since the gene was not found in ApiLoc"
+    $stderr.puts "Failed to upload #{failed_to_find_go_term_count} annotations since the go term was not found in ApiLoc"
+  end
 end
