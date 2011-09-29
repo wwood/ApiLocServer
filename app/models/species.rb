@@ -167,6 +167,8 @@ class Species < ActiveRecord::Base
   APICOMPLEXA_NAME = 'Apicomplexa'
   METAZOA_NAME = 'Metazoa'
   FUNGI_NAME = 'Fungi'
+  AMOEBOZOA_NAME = 'Amoebozoa'
+  EXCAVATA_NAME = 'Excavata'
   
   # Categorise species of interest into broad taxanomic
   # classes
@@ -185,8 +187,9 @@ class Species < ActiveRecord::Base
     RAT_NAME,
     DROSOPHILA_NAME,
     HUMAN_NAME,
+    DICTYOSTELIUM_DISCOIDEUM_NAME,
     ],
-    APICOMPLEXA_NAME => APICOMPLEXAN_NAMES
+    APICOMPLEXA_NAME => APICOMPLEXAN_NAMES,
   }
   NAME_TO_KINGDOM = {}
   THREE_WAY_TAXONOMY_DEFINITIONS.each do |kingdom, names|
@@ -215,7 +218,9 @@ class Species < ActiveRecord::Base
     YEAST_NAME,
     POMBE_NAME,
     ],
-    APICOMPLEXA_NAME => APICOMPLEXAN_NAMES 
+    APICOMPLEXA_NAME => APICOMPLEXAN_NAMES,
+    EXCAVATA_NAME => [TRYPANOSOMA_BRUCEI_NAME],
+    AMOEBOZOA_NAME => [DICTYOSTELIUM_DISCOIDEUM_NAME],
   }
   FOUR_WAY_NAME_TO_KINGDOM = {}
   FOUR_WAY_TAXONOMY_DEFINITIONS.each do |kingdom, names|

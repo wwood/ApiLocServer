@@ -1935,6 +1935,8 @@ class BScript
     # Classify each of the groups into the different categories where possible
     groups_to_counts = {}
     data.each do |group, data2|
+      $stderr.puts
+      $stderr.puts '============================'
       classify_eukaryotic_conservation_of_single_orthomcl_group(
                                                                 data2['kingdom_orthomcls'],
       data2['orthomcl_locs'],
@@ -1946,6 +1948,7 @@ class BScript
       yes = agrees[OntologyComparison::COMPLETE_AGREEMENT]
       no = agrees[OntologyComparison::DISAGREEMENT]
       maybe = agrees[OntologyComparison::INCOMPLETE_AGREEMENT]
+      yes ||= 0; no||= 0; maybe ||= 0;
       total = (yes+no+maybe).to_f
       puts [
       king_array.join(','),
@@ -1961,7 +1964,7 @@ class BScript
   # This is a modularisation of conservation_of_eukaryotic_sub_cellular_localisation,
   # and does the calculations on the already transformed data (kingdom_orthomcls, orthomcl_locs).
   # More details in conservation_of_eukaryotic_sub_cellular_localisation
-  def classify_eukaryotic_conservation_of_single_orthomcl_group(kingdom_orthomcls, orthomcl_locs, groups_to_counts, debug = false)
+  def classify_eukaryotic_conservation_of_single_orthomcl_group(kingdom_orthomcls, orthomcl_locs, groups_to_counts, debug = true)
     $stderr.puts kingdom_orthomcls.inspect if debug
     $stderr.puts orthomcl_locs.inspect if debug
     $stderr.puts "Kingdoms: #{kingdom_orthomcls.to_a.collect{|k| k[0]}.sort.join(', ')}" if debug
@@ -1971,7 +1974,7 @@ class BScript
       # If there is only a single coding region, then don't record
       number_in_kingdom_localised = orthomcls.length
       if number_in_kingdom_localised < 2
-        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdom}, skipping (#{orthomcls.join(', ')})" if debug
+        $stderr.puts "One kingdom: #{kingdom}, skipping (#{orthomcls.join(', ')})" if debug
         next
       end
       
@@ -1983,7 +1986,7 @@ class BScript
       # OK, so now we are on. Let's do this
       agreement = OntologyComparison.new.agreement_of_group(locs)
       index = [kingdom]
-      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}, #{orthomcls.join(' ')}" if debug
+      $stderr.puts "One kingdom: #{index.inspect}, #{agreement}, #{orthomcls.join(' ')}" if debug
       groups_to_counts[index] ||= {}
       groups_to_counts[index][agreement] ||= 0
       groups_to_counts[index][agreement] += 1
@@ -2000,7 +2003,7 @@ class BScript
       # don't include unless there is an orthomcl in each kingdom
       zero_entriers = orthomcl_arrays.select{|o| o.length==0}
       if zero_entriers.length > 0
-        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping"
+        $stderr.puts "Two kingdoms: #{kingdoms.join(' ')}, #{orthomcl_arrays}, skipping"
         next         
       end
       
@@ -2008,7 +2011,7 @@ class BScript
       agreement = OntologyComparison.new.agreement_of_group(locs_for_all)
       
       index = [kingdom1, kingdom2].sort
-      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+      $stderr.puts "Two kingdoms: #{index.inspect}, #{agreement}" if debug
       groups_to_counts[index] ||= {}
       groups_to_counts[index][agreement] ||= 0
       groups_to_counts[index][agreement] += 1
@@ -2028,7 +2031,7 @@ class BScript
       # don't include unless there is an orthomcl in each kingdom
       zero_entriers = orthomcl_arrays.select{|o| o.length==0}
       if zero_entriers.length > 0
-        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping" if debug
+        $stderr.puts "Three kingdoms: #{kingdoms.join(' ')}, skipping" if debug
         next         
       end
       
@@ -2036,7 +2039,7 @@ class BScript
       agreement = OntologyComparison.new.agreement_of_group locs_for_all
       
       index = kingdoms.sort
-      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+      $stderr.puts "Three kingdoms: #{index.inspect}, #{agreement}" if debug
       groups_to_counts[index] ||= {}
       groups_to_counts[index][agreement] ||= 0
       groups_to_counts[index][agreement] += 1
@@ -2058,7 +2061,7 @@ class BScript
       # don't include unless there is an orthomcl in each kingdom
       zero_entriers = orthomcl_arrays.select{|o| o.length==0}
       if zero_entriers.length > 0
-        $stderr.puts "#{ortho_group.orthomcl_name}, #{kingdoms.join(' ')}, skipping" if debug
+        $stderr.puts "Four kingdoms: #{kingdoms.join(' ')}, skipping cos #{zero_entriers} have no entries" if debug
         next         
       end
       
@@ -2066,7 +2069,7 @@ class BScript
       agreement = OntologyComparison.new.agreement_of_group locs_for_all
       
       index = kingdoms.sort
-      $stderr.puts "#{ortho_group.orthomcl_name}, #{index.inspect}, #{agreement}" if debug
+      $stderr.puts "Four kingdoms: #{index.inspect}, #{agreement}" if debug
       groups_to_counts[index] ||= {}
       groups_to_counts[index][agreement] ||= 0
       groups_to_counts[index][agreement] += 1
