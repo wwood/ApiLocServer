@@ -877,7 +877,7 @@ class BScript
     6239 => Species::ELEGANS_NAME,
     44689 => Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
     7955 => Species::DANIO_RERIO_NAME,
-    185431 => Species::TRYPANOSOMA_BRUCEI_NAME,
+    5691 => Species::TRYPANOSOMA_BRUCEI_NAME,
   }
   APILOC_UNIPROT_SPECIES_NAMES = UNIPROT_SPECIES_ID_NAME_HASH.values
   
@@ -2930,8 +2930,6 @@ class BScript
   # upload the IDA annotations from geneontology.org from there
   def tbrucei_amigo_gene_associations_to_database
     require 'gene_association'
-    species_id = 185431
-    raise unless UNIPROT_SPECIES_ID_NAME_HASH[species_id] == Species::TBRUCEI_NAME
     failed_to_find_id_count = 0
     failed_to_find_go_term_count = 0
     ida_annotation_count = 0
@@ -2939,9 +2937,8 @@ class BScript
     
     Bio::GzipAndFilterGeneAssociation.foreach(
       "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.GeneDB_Tbrucei.gz", #all T. brucei annotations are from GeneDB
-      "\tIDA\t" #only accept IDA annotations
+      "\tIDA\t"
     ) do |go|
-      p go
       ida_annotation_count += 1
       puts "Trying GO term #{go.go_identifier} for #{go.primary_id}" 
       

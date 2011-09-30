@@ -303,6 +303,8 @@ class BScript
     dicystelium_names_to_database
     drosophila_ensembl_metazoa
     
+    tbrucei_amigo_gene_associations_to_database
+    
     Species.new.update_known_four_letters
     OrthomclGene.new.link_orthomcl_and_coding_regions(
       APILOC_UNIPROT_SPECIES_NAMES.collect{|a| 
