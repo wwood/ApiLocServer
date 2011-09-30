@@ -31,8 +31,11 @@ module Bio
 
     def create_from_line(gene_association_line)
       splits = gene_association_line.split("\t")
+      
+      # GAF 1.0 e.g.
       # SGD	S000000289	AAC3		GO:0005739	SGD_REF:S000117178|PMID:16823961	IDA		C	Mitochondrial inner membrane ADP/ATP translocator, exchanges cytosolic ADP for mitochondrially synthesized ATP	YBR085W|ANC3	gene	taxon:4932	20061212	SGD
-      raise Exception, "Could not parse gene association line: '#{gene_association_line}' - found #{splits.length} parts" unless splits.length == 15
+      # GAF 2.0 has 17 columns
+      raise Exception, "Could not parse gene association line: '#{gene_association_line}' - found #{splits.length} parts" unless splits.length == 15 || splits.length == 7
 
       entry = GeneOntologyEntry.new
       entry.primary_id = splits[1]
