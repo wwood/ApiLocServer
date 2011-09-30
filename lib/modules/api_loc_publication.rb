@@ -877,7 +877,7 @@ class BScript
     6239 => Species::ELEGANS_NAME,
     44689 => Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
     7955 => Species::DANIO_RERIO_NAME,
-    5691 => Species::TRYPANOSOMA_BRUCEI_NAME,
+    185431 => Species::TRYPANOSOMA_BRUCEI_NAME,
   }
   APILOC_UNIPROT_SPECIES_NAMES = UNIPROT_SPECIES_ID_NAME_HASH.values
   
@@ -2930,22 +2930,31 @@ class BScript
   # upload the IDA annotations from geneontology.org from there
   def tbrucei_amigo_gene_associations_to_database
     require 'gene_association'
-    species_id = 5691
-    raise unless UNIPROT_SPECIES_ID_NAME_HASH[Species::TBRUCEI_NAME] == species_id
+    species_id = 185431
+    raise unless UNIPROT_SPECIES_ID_NAME_HASH[species_id] == Species::TBRUCEI_NAME
     failed_to_find_id_count = 0
     failed_to_find_go_term_count = 0
+    ida_annotation_count = 0
+    upload_annotations = 0
     
     Bio::GzipAndFilterGeneAssociation.foreach(
       "#{DATA_DIR}/GO/cvs/go/gene-associations/gene_association.GeneDB_Tbrucei.gz", #all T. brucei annotations are from GeneDB
-      "\ttaxon:#{species_id}\t"
+      "\tIDA\t" #only accept IDA annotations
     ) do |go|
-      next unless go.evidence_code == 'IDA' #only accept IDA annotations
+      p go
+      ida_annotation_count += 1
+      puts "Trying GO term #{go.go_identifier} for #{go.primary_id}" 
       
       code = CodingRegion.fs(go.primary_id, Species::TBRUCEI_NAME)
       if code
         go_term = GoTerm.find_by_go_identifier_or_alternate(go.go_identifier)
         if go_term
-          
+          puts "Uploading GO term #{go.go_identifier} for #{code.string_id}"
+          a CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id_and_evidence_code(
+            go_term.id, code.id, go.evidence_code
+          )
+          raise unless a
+          upload_annotations += 1
         else
           failed_to_find_go_term_count += 1
         end
@@ -2953,6 +2962,8 @@ class BScript
         failed_to_find_id_count = 0
       end
     end
+    $stderr.puts "Found #{ida_annotation_count} annotations attempted to be uploaded"
+    $stderr.puts "Uploaded #{upload_annotations} annotations"
     $stderr.puts "Failed to upload #{failed_to_find_id_count} annotations since the gene was not found in ApiLoc"
     $stderr.puts "Failed to upload #{failed_to_find_go_term_count} annotations since the go term was not found in ApiLoc"
   end
