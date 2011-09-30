@@ -2947,10 +2947,10 @@ class BScript
         go_term = GoTerm.find_by_go_identifier_or_alternate(go.go_identifier)
         if go_term
           puts "Uploading GO term #{go.go_identifier} for #{code.string_id}"
-          a CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id_and_evidence_code(
+          a = CodingRegionGoTerm.find_or_create_by_go_term_id_and_coding_region_id_and_evidence_code(
             go_term.id, code.id, go.evidence_code
           )
-          raise unless a
+          raise unless a.save!
           upload_annotations += 1
         else
           failed_to_find_go_term_count += 1
