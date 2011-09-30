@@ -2964,4 +2964,109 @@ class BScript
     $stderr.puts "Failed to upload #{failed_to_find_id_count} annotations since the gene was not found in ApiLoc"
     $stderr.puts "Failed to upload #{failed_to_find_go_term_count} annotations since the go term was not found in ApiLoc"
   end
+  
+  # Which organelle has the most conserved localisation?
+  def conservation_of_localisation_stratified_by_organelle_pairings
+    srand 47 #set random number generator to be a deterministic series of random numbers so I don't get differences between runs
+    
+    # Define list of species to pair up
+    specees = [
+      Species::ARABIDOPSIS_NAME,
+      Species::HUMAN_NAME,
+      Species::MOUSE_NAME,
+      Species::YEAST_NAME,
+      Species::POMBE_NAME,
+      Species::RAT_NAME,
+      Species::DROSOPHILA_NAME,
+      Species::ELEGANS_NAME,
+      Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
+      Species::DANIO_RERIO_NAME,
+      Species::TRYPANOSOMA_BRUCEI_NAME,
+      
+      Species::TOXOPLASMA_NAME,
+      Species::FALCIPARUM_NAME,    
+    ]
+    
+    # for each pair
+    specees.pairs.each do |pair|
+      p1 = pair[0]
+      p2 = pair[1]
+      
+      # get all orthomocl groups that have at least one compartmentalised protein in each species
+      # genes = lambda do |s|
+        # OrthomclGene.all(
+        # :select => 'distinct(orthomcl_genes.id)',
+        # :joins => {:coding_regions => [
+          # :coding_region_compartment_caches,
+          # {:gene => {:scaffold => :species}}]
+          # },
+        # :conditions => ['species.name = ?',p1]
+        # ) 
+      # end
+      # gene_ids1 = genes.call(p1)
+      # gene_ids2 = genes.call(p2)
+      
+      # for each group, choose a protein (repeatably) randomly from each species, so we have a pair of genes
+      # not sure how to do this the rails way
+      # Copy the data out of the database to a csv file. There shouldn't be any duplicates
+      tempfile = File.open('/tmp/organelle_conservation','w')
+      `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
+      OrthomclGene.find_by_sql "copy(select distinct(groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, ogenes2.orthomcl_name, caches1.compartment, caches2.compartment) from orthomcl_groups groups,
+
+orthomcl_gene_orthomcl_group_orthomcl_runs ogogor1,
+orthomcl_genes ogenes1,
+orthomcl_gene_coding_regions ogcr1,
+coding_regions codes1,
+coding_region_compartment_caches caches1,
+genes genes1,
+scaffolds scaffolds1,
+species species1,
+
+orthomcl_gene_orthomcl_group_orthomcl_runs ogogor2,
+orthomcl_genes ogenes2,
+orthomcl_gene_coding_regions ogcr2,
+coding_regions codes2,
+coding_region_compartment_caches caches2,
+genes genes2,
+scaffolds scaffolds2,
+species species2
+
+where
+species1.name = '#{p1}' and
+groups.id = ogogor1.orthomcl_group_id and
+ogogor1.orthomcl_gene_id = ogenes1.id and
+ogcr1.orthomcl_gene_id = ogenes1.id and
+ogcr1.coding_region_id = codes1.id and
+caches1.coding_region_id = codes1.id and
+codes1.gene_id = genes1.id and
+genes1.scaffold_id = scaffolds1.id and
+scaffolds1.species_id = species1.id
+
+and
+species2.name = '#{p2}' and
+groups.id = ogogor2.orthomcl_group_id and
+ogogor2.orthomcl_gene_id = ogenes2.id and
+ogcr2.orthomcl_gene_id = ogenes2.id and
+ogcr2.coding_region_id = codes2.id and
+caches2.coding_region_id = codes2.id and
+codes2.gene_id = genes2.id and
+genes2.scaffold_id = scaffolds2.id and
+scaffolds2.species_id = species2.id) to '#{tempfile.path}'"
+tempfile.close
+
+      # Read in the CSV, converting it all to a hash 
+      # of orthomcl_group => Array of arrays of the rest of the recorded info
+      
+      # for each of the orthomcl groups
+      # choose one (repeatably) randomly
+      
+      # work out whether the two genes are conserved in their localisation
+      
+      # debug out genes involved, compartments, group_id, species, 
+      
+      # record conservation, organelles involved, within the species pairing
+    end
+     
+    srand #revert to regular random number generation in case anything else happens after this method
+  end
 end
