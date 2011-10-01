@@ -3065,13 +3065,13 @@ class BScript
         if groups2.include?(group1)
           ogenes1 = OrthomclGene.all(
             :include => [:orthomcl_groups,
-              :coding_regions => :coding_region_compartment_caches],
+              {:coding_regions => :coding_region_compartment_caches}],
             :joins => {:coding_regions => :coding_region_compartment_caches},
             :conditions => ["orthomcl_genes.orthomcl_name like '?' and orthomcl_group_id = ?","#{orth1}%",group.id]
           )
           ogenes2 = OrthomclGene.all(
             :include => [:orthomcl_groups,
-              :coding_regions => :coding_region_compartment_caches],
+              {:coding_regions => :coding_region_compartment_caches}],
             :joins => {:coding_regions => :coding_region_compartment_caches},
             :conditions => ["orthomcl_genes.orthomcl_name like '?' and orthomcl_group_id = ?","#{orth2}%",group.id]
           )
