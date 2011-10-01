@@ -3,6 +3,7 @@ require 'localisation_spreadsheet'
 class Species < ActiveRecord::Base
   FALCIPARUM = 'Plasmodium falciparum'
   FALCIPARUM_NAME = FALCIPARUM
+  PLASMODIUM_FALCIPARUM_NAME = FALCIPARUM
   VIVAX = 'Plasmodium vivax'
   VIVAX_NAME = VIVAX
   BERGHEI_NAME = 'Plasmodium berghei'

@@ -2971,20 +2971,20 @@ class BScript
     
     # Define list of species to pair up
     specees = [
-      Species::ARABIDOPSIS_NAME,
-      Species::HUMAN_NAME,
-      Species::MOUSE_NAME,
-      Species::YEAST_NAME,
-      Species::POMBE_NAME,
-      Species::RAT_NAME,
-      Species::DROSOPHILA_NAME,
-      Species::ELEGANS_NAME,
-      Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
-      Species::DANIO_RERIO_NAME,
-      Species::TRYPANOSOMA_BRUCEI_NAME,
+      # Species::ARABIDOPSIS_NAME,
+      # Species::HUMAN_NAME,
+      # Species::MOUSE_NAME,
+      # Species::YEAST_NAME,
+      # Species::POMBE_NAME,
+      # Species::RAT_NAME,
+      # Species::DROSOPHILA_NAME,
+      # Species::ELEGANS_NAME,
+      # Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
+      # Species::DANIO_RERIO_NAME,
+      # Species::TRYPANOSOMA_BRUCEI_NAME,
       
-      Species::TOXOPLASMA_NAME,
-      Species::FALCIPARUM_NAME,    
+      Species::PLASMODIUM_FALCIPARUM_NAME,
+      Species::TOXOPLASMA_GONDII_NAME,
     ]
     
     # for each pair
@@ -2992,24 +2992,11 @@ class BScript
       p1 = pair[0]
       p2 = pair[1]
       
-      # get all orthomocl groups that have at least one compartmentalised protein in each species
-      # genes = lambda do |s|
-        # OrthomclGene.all(
-        # :select => 'distinct(orthomcl_genes.id)',
-        # :joins => {:coding_regions => [
-          # :coding_region_compartment_caches,
-          # {:gene => {:scaffold => :species}}]
-          # },
-        # :conditions => ['species.name = ?',p1]
-        # ) 
-      # end
-      # gene_ids1 = genes.call(p1)
-      # gene_ids2 = genes.call(p2)
-      
       # for each group, choose a protein (repeatably) randomly from each species, so we have a pair of genes
       # not sure how to do this the rails way
-      # Copy the data out of the database to a csv file. There shouldn't be any duplicates
-      tempfile = File.open('/tmp/organelle_conservation','w')
+      # Copy the data out of the database to a csv file.
+      # tempfile = File.new("#{PHD_DIR}/apiloc/experiments/organelle_conservation/dummy.csv") #debug
+      tempfile = File.open("apiloc_logs/organelle_conservation/#{p1} and #{p2}".gsub(' ','_'),'w')
       `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
       OrthomclGene.find_by_sql "copy(select distinct(groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, ogenes2.orthomcl_name, caches1.compartment, caches2.compartment) from orthomcl_groups groups,
 
@@ -3057,14 +3044,60 @@ tempfile.close
       # Read in the CSV, converting it all to a hash 
       # of orthomcl_group => Array of arrays of the rest of the recorded info
       
+      # group => species => gene => compartments
+      dat = {}
+      FasterCSV.foreach(tempfile.path) do |row|
+        next unless row.length == 7
+        # groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, 
+        # ogenes2.orthomcl_name, caches1.compartment, caches2.compartment
+        group = row[0]
+        code1 = row[1]
+        code2 = row[2]
+        ogene1 = row[3]
+        ogene2 = row[4]
+        cache1 = row[5]
+        cache2 = row[6]
+        
+        dat[group] ||= {}
+        dat[group][p1] ||= {}
+        dat[group][p1][ogene1] ||= []
+        dat[group][p1][ogene1].push cache1
+        
+        dat[group][p2] ||= {}
+        dat[group][p2][ogene2] ||= []
+        dat[group][p2][ogene2].push cache2
+      end
+      
       # for each of the orthomcl groups
-      # choose one (repeatably) randomly
+      tally = {}
+      dat.each do |group, other|
+        raise Exception, "Found unexpected number of species in hash group => #{other.inspect}" unless other.keys.length == 2
+        
+        # choose one gene (repeatably) randomly from each species
+        p_ones = other[p1].to_a
+        p_twos = other[p2].to_a
+        rand1 = p_ones[rand(p_ones.size)]
+        rand2 = p_twos[rand(p_twos.size)]
+        g1 = {rand1[0] => rand1[1]}
+        g2 = {rand2[0] => rand2[1]}
+        locs1 = g1.values.flatten.uniq
+        locs2 = g2.values.flatten.uniq
+                
+        # work out whether the two genes are conserved in their localisation
+        agree = OntologyComparison.new.agreement_of_pair(locs1,locs2) 
       
-      # work out whether the two genes are conserved in their localisation
+        # debug out genes involved, compartments, group_id, species,
+        $stderr.puts "From group #{group}, chose #{g1.inspect} from #{p1} and #{g2.inspect} from #{p2}. Agreement: #{agree}" 
       
-      # debug out genes involved, compartments, group_id, species, 
-      
-      # record conservation, organelles involved, within the species pairing
+        # record conservation, organelles involved, within the species pairing
+        [g1.values, g2.values].flatten.uniq.each do |org|
+          tally[org] ||= {}
+          tally[org][agree] ||= 0
+          tally[org][agree] += 1
+        end
+      end
+      puts "From #{p1} and #{p2},"
+      pp tally
     end
      
     srand #revert to regular random number generation in case anything else happens after this method
