@@ -3048,49 +3048,50 @@ class BScript
       orth1 = Species::ORTHOMCL_FOUR_LETTERS[p1]
       orth2 = Species::ORTHOMCL_FOUR_LETTERS[p2]
       $stderr.puts "Groups of #{orth1}"
-      groups1 = OrhtomclGroup.all(
-        :joins => {:orthomcl_gene => {:coding_regions => :coding_region_compartment_caches}},
-        :conditions => ["orthomcl_genes.orthomcl_name like '?'","#{orth1}%"]
+      groups1 = OrthomclGroup.all(
+        :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+        :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth1}%"]
       )
       $stderr.puts "Groups of #{orth2}"
-      groups2 = OrhtomclGroup.all(
-        :joins => {:orthomcl_gene => {:coding_regions => :coding_region_compartment_caches}},
-        :conditions => ["orthomcl_genes.orthomcl_name like '?'","#{orth2}%"]
+      groups2 = OrthomclGroup.all(
+        :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+        :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth2}%"]
       )
       # convert it all to a big useful hash, partly for historical reasons
       dat = {}
       progress = ProgressBar.new('hashing',groups1.length)
       groups1.each do |group|
         progress.inc
-        if groups2.include?(group1)
+        if groups2.include?(group)
           ogenes1 = OrthomclGene.all(
-            :include => [:orthomcl_groups,
+            :include => 
+              {:coding_regions => :coding_region_compartment_caches},
+            :joins => [:orthomcl_groups,
               {:coding_regions => :coding_region_compartment_caches}],
-            :joins => {:coding_regions => :coding_region_compartment_caches},
-            :conditions => ["orthomcl_genes.orthomcl_name like '?' and orthomcl_group_id = ?","#{orth1}%",group.id]
+            :conditions => ["orthomcl_genes.orthomcl_name like ? and orthomcl_group_id = ?","#{orth1}%",group.id]
           )
           ogenes2 = OrthomclGene.all(
-            :include => [:orthomcl_groups,
+            :include => 
+              {:coding_regions => :coding_region_compartment_caches},
+            :joins => [:orthomcl_groups,
               {:coding_regions => :coding_region_compartment_caches}],
-            :joins => {:coding_regions => :coding_region_compartment_caches},
-            :conditions => ["orthomcl_genes.orthomcl_name like '?' and orthomcl_group_id = ?","#{orth2}%",group.id]
+            :conditions => ["orthomcl_genes.orthomcl_name like ? and orthomcl_group_id = ?","#{orth2}%",group.id]
           )
           ogenes1.each do |ogene1|
             caches = ogene1.coding_regions.all.reach.coding_region_compartment_caches.compartment.retract
             dat[group.orthomcl_name] ||= {}
             dat[group.orthomcl_name][p1] ||= {}
-            dat[group.orthomcl_name][p1][ogene1.orthomcl_name] = caches.uniq
+            dat[group.orthomcl_name][p1][ogene1.orthomcl_name] = caches.flatten.uniq
           end
           ogenes2.each do |ogene2|
             caches = ogene2.coding_regions.all.reach.coding_region_compartment_caches.compartment.retract
             dat[group.orthomcl_name][p2] ||= {}
-            dat[group.orthomcl_name][p2][ogene2.orthomcl_name] = caches.uniq
+            dat[group.orthomcl_name][p2][ogene2.orthomcl_name] = caches.flatten.uniq
           end
-          break
         end
       end
       progress.finish
-      p dat
+      $stderr.puts dat.inspect
 
       # Read in the CSV, converting it all to a hash 
       # of orthomcl_group => Array of arrays of the rest of the recorded info
