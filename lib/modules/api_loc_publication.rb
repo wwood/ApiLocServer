@@ -1440,7 +1440,7 @@ class BScript
       to_print.push organellar_locs.length
       
       # OrthoMCL-related stuffs
-      ogene = code.orthomcl_gene.first # very rarely there are 2 orthomcl genes linked. Ignore this problem.
+      ogene = code.orthomcl_genes.first # very rarely there are 2 orthomcl genes linked. Ignore this problem.
       ogroup = (ogene.nil? ? nil : ogene.official_group)
       if ogroup.nil?
         5.times do
