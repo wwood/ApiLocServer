@@ -2997,79 +2997,130 @@ class BScript
       # not sure how to do this the rails way
       # Copy the data out of the database to a csv file.
       # tempfile = File.new("#{PHD_DIR}/apiloc/experiments/organelle_conservation/dummy.csv") #debug
-      tempfile = File.open("/home/ben/phd/gnr2/apiloc_logs/organelle_conservation/#{p1} and #{p2}.csv".gsub(' ','_'),'w')
-      `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
-      OrthomclGene.find_by_sql "copy(select distinct(groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, ogenes2.orthomcl_name, caches1.compartment, caches2.compartment) from orthomcl_groups groups,
+      # csv_path = "/home/ben/phd/gnr2/apiloc_logs/organelle_conservation/#{p1} and #{p2}.csv".gsub(' ','_')
+      # tempfile = File.open(csv_path)
+      # tempfile = File.open("/home/ben/phd/gnr2/apiloc_logs/organelle_conservation/#{p1} and #{p2}.csv".gsub(' ','_'),'w')
+      # `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
+      # OrthomclGene.find_by_sql "copy(select distinct(groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, ogenes2.orthomcl_name, caches1.compartment, caches2.compartment) from orthomcl_groups groups,
+# 
+# orthomcl_gene_orthomcl_group_orthomcl_runs ogogor1,
+# orthomcl_genes ogenes1,
+# orthomcl_gene_coding_regions ogcr1,
+# coding_regions codes1,
+# coding_region_compartment_caches caches1,
+# genes genes1,
+# scaffolds scaffolds1,
+# species species1,
+# 
+# orthomcl_gene_orthomcl_group_orthomcl_runs ogogor2,
+# orthomcl_genes ogenes2,
+# orthomcl_gene_coding_regions ogcr2,
+# coding_regions codes2,
+# coding_region_compartment_caches caches2,
+# genes genes2,
+# scaffolds scaffolds2,
+# species species2
+# 
+# where
+# species1.name = '#{p1}' and
+# groups.id = ogogor1.orthomcl_group_id and
+# ogogor1.orthomcl_gene_id = ogenes1.id and
+# ogcr1.orthomcl_gene_id = ogenes1.id and
+# ogcr1.coding_region_id = codes1.id and
+# caches1.coding_region_id = codes1.id and
+# codes1.gene_id = genes1.id and
+# genes1.scaffold_id = scaffolds1.id and
+# scaffolds1.species_id = species1.id
+# 
+# and
+# species2.name = '#{p2}' and
+# groups.id = ogogor2.orthomcl_group_id and
+# ogogor2.orthomcl_gene_id = ogenes2.id and
+# ogcr2.orthomcl_gene_id = ogenes2.id and
+# ogcr2.coding_region_id = codes2.id and
+# caches2.coding_region_id = codes2.id and
+# codes2.gene_id = genes2.id and
+# genes2.scaffold_id = scaffolds2.id and
+# scaffolds2.species_id = species2.id) to '#{tempfile.path}'"
+# tempfile.close
 
-orthomcl_gene_orthomcl_group_orthomcl_runs ogogor1,
-orthomcl_genes ogenes1,
-orthomcl_gene_coding_regions ogcr1,
-coding_regions codes1,
-coding_region_compartment_caches caches1,
-genes genes1,
-scaffolds scaffolds1,
-species species1,
-
-orthomcl_gene_orthomcl_group_orthomcl_runs ogogor2,
-orthomcl_genes ogenes2,
-orthomcl_gene_coding_regions ogcr2,
-coding_regions codes2,
-coding_region_compartment_caches caches2,
-genes genes2,
-scaffolds scaffolds2,
-species species2
-
-where
-species1.name = '#{p1}' and
-groups.id = ogogor1.orthomcl_group_id and
-ogogor1.orthomcl_gene_id = ogenes1.id and
-ogcr1.orthomcl_gene_id = ogenes1.id and
-ogcr1.coding_region_id = codes1.id and
-caches1.coding_region_id = codes1.id and
-codes1.gene_id = genes1.id and
-genes1.scaffold_id = scaffolds1.id and
-scaffolds1.species_id = species1.id
-
-and
-species2.name = '#{p2}' and
-groups.id = ogogor2.orthomcl_group_id and
-ogogor2.orthomcl_gene_id = ogenes2.id and
-ogcr2.orthomcl_gene_id = ogenes2.id and
-ogcr2.coding_region_id = codes2.id and
-caches2.coding_region_id = codes2.id and
-codes2.gene_id = genes2.id and
-genes2.scaffold_id = scaffolds2.id and
-scaffolds2.species_id = species2.id) to '#{tempfile.path}'"
-tempfile.close
-
-      next #just create the CSVs at this point
+      # next #just create the CSVs at this point
+      orth1 = Species::ORTHOMCL_FOUR_LETTERS[p1]
+      orth2 = Species::ORTHOMCL_FOUR_LETTERS[p2]
+      $stderr.puts "Groups of #{orth1}"
+      groups1 = OrhtomclGroup.all(
+        :joins => {:orthomcl_gene => {:coding_regions => :coding_region_compartment_caches}},
+        :conditions => ["orthomcl_genes.orthomcl_name like '?'","#{orth1}%"]
+      )
+      $stderr.puts "Groups of #{orth2}"
+      groups2 = OrhtomclGroup.all(
+        :joins => {:orthomcl_gene => {:coding_regions => :coding_region_compartment_caches}},
+        :conditions => ["orthomcl_genes.orthomcl_name like '?'","#{orth2}%"]
+      )
+      # convert it all to a big useful hash, partly for historical reasons
+      dat = {}
+      progress = ProgressBar.new('hashing',groups1.length)
+      groups1.each do |group|
+        progress.inc
+        if groups2.include?(group1)
+          ogenes1 = OrthomclGene.all(
+            :include => [:orthomcl_groups,
+              :coding_regions => :coding_region_compartment_caches],
+            :joins => {:coding_regions => :coding_region_compartment_caches},
+            :conditions => ["orthomcl_genes.orthomcl_name like '?' and orthomcl_group_id = ?","#{orth1}%",group.id]
+          )
+          ogenes2 = OrthomclGene.all(
+            :include => [:orthomcl_groups,
+              :coding_regions => :coding_region_compartment_caches],
+            :joins => {:coding_regions => :coding_region_compartment_caches},
+            :conditions => ["orthomcl_genes.orthomcl_name like '?' and orthomcl_group_id = ?","#{orth2}%",group.id]
+          )
+          ogenes1.each do |ogene1|
+            caches = ogene1.coding_regions.all.reach.coding_region_compartment_caches.compartment.retract
+            dat[group.orthomcl_name] ||= {}
+            dat[group.orthomcl_name][p1] ||= {}
+            dat[group.orthomcl_name][p1][ogene1.orthomcl_name] = caches.uniq
+          end
+          ogenes2.each do |ogene2|
+            caches = ogene2.coding_regions.all.reach.coding_region_compartment_caches.compartment.retract
+            dat[group.orthomcl_name][p2] ||= {}
+            dat[group.orthomcl_name][p2][ogene2.orthomcl_name] = caches.uniq
+          end
+          break
+        end
+      end
+      progress.finish
+      p dat
 
       # Read in the CSV, converting it all to a hash 
       # of orthomcl_group => Array of arrays of the rest of the recorded info
       
       # group => species => gene => compartments
-      dat = {}
-      FasterCSV.foreach(tempfile.path) do |row|
-        next unless row.length == 7
-        # groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, 
-        # ogenes2.orthomcl_name, caches1.compartment, caches2.compartment
-        group = row[0].gsub('(','')
-        code1 = row[1]
-        code2 = row[2]
-        ogene1 = row[3]
-        ogene2 = row[4]
-        cache1 = row[5]
-        cache2 = row[6].gsub(')','')
-        
-        dat[group] ||= {}
-        dat[group][p1] ||= {}
-        dat[group][p1][ogene1] ||= []
-        dat[group][p1][ogene1].push cache1
-        
-        dat[group][p2] ||= {}
-        dat[group][p2][ogene2] ||= []
-        dat[group][p2][ogene2].push cache2
-      end
+      # dat = {}
+      # File.open(csv_path).each_line do |line|
+        # row = line.strip.split(',')
+        # unless row.length == 7
+          # raise Exception, "failed to parse line #{line}"
+        # end
+        # # groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, 
+        # # ogenes2.orthomcl_name, caches1.compartment, caches2.compartment
+        # group = row[0].gsub('(','')
+        # code1 = row[1]
+        # code2 = row[2]
+        # ogene1 = row[3]
+        # ogene2 = row[4]
+        # cache1 = row[5]
+        # cache2 = row[6].gsub(')','')
+#         
+        # dat[group] ||= {}
+        # dat[group][p1] ||= {}
+        # dat[group][p1][ogene1] ||= []
+        # dat[group][p1][ogene1].push cache1
+#         
+        # dat[group][p2] ||= {}
+        # dat[group][p2][ogene2] ||= []
+        # dat[group][p2][ogene2].push cache2
+      # end
       
       # for each of the orthomcl groups
       tally = {}
@@ -3099,8 +3150,22 @@ tempfile.close
           tally[org][agree] += 1
         end
       end
-      puts "From #{p1} and #{p2},"
-      pp tally
+      #puts "From #{p1} and #{p2},"
+      OntologyComparison::RECOGNIZED_LOCATIONS.each do |loc|
+        if tally[loc]
+          puts [
+            p1,p2,loc,
+            tally[loc][OntologyComparison::COMPLETE_AGREEMENT],
+            tally[loc][OntologyComparison::INCOMPLETE_AGREEMENT],
+            tally[loc][OntologyComparison::DISAGREEMENT],
+          ].join("\t")
+        else
+          puts [
+            p1,p2,loc,
+            0,0,0
+          ].join("\t")
+        end
+      end
     end
      
     srand #revert to regular random number generation in case anything else happens after this method
