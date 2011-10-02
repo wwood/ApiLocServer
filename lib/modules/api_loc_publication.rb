@@ -2132,12 +2132,20 @@ class BScript
   # that I care about
   def exhaustive_localisation_conservation_between_pairs_of_species
     [
-    Species::YEAST_NAME,
-    Species::MOUSE_NAME,
-    Species::HUMAN_NAME,
-    Species::ARABIDOPSIS_NAME,
-    Species::FALCIPARUM_NAME,
-    Species::TOXOPLASMA_GONDII_NAME,
+      Species::ARABIDOPSIS_NAME,
+      Species::HUMAN_NAME,
+      Species::MOUSE_NAME,
+      Species::YEAST_NAME,
+      Species::POMBE_NAME,
+      Species::RAT_NAME,
+      Species::DROSOPHILA_NAME,
+      Species::ELEGANS_NAME,
+      Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
+      Species::DANIO_RERIO_NAME,
+      Species::TRYPANOSOMA_BRUCEI_NAME,
+      
+      Species::PLASMODIUM_FALCIPARUM_NAME,
+      Species::TOXOPLASMA_GONDII_NAME,
     ].each_lower_triangular_matrix do |s1, s2|
       puts '=============================================================='
       localisation_conservation_between_pairs_of_species(s1, s2)
