@@ -1,70 +1,4 @@
 ActionController::Routing::Routes.draw do |map|
-  map.connect 'publications/fulltext/:pmid', :controller => 'publications', :action => 'fulltext'
-  map.resources :publications, {:fulltext => :put}
-
-  map.resources :expression_contexts
-
-  map.resources :microarrays
-
-  map.resources :signal_ps
-
-  map.resources :signal_ps
-
-  map.resources :annotations
-
-  map.resources :orthomcl_genes
-
-  map.resources :orthomcl_groups
-
-  map.resources :probe_map_entries
-
-  map.resources :probe_maps
-
-  map.resources :coding_region_localisations
-
-  map.resources :localisations
-
-  map.resources :coding_region_alternate_string_ids
-
-  map.resources :cluster_entries
-
-  map.resources :clusters
-
-  map.resources :clustersets
-
-  map.resources :species
-
-  map.resources :go_map_entries
-
-  map.resources :go_maps
-
-  map.resources :go_list_entries
-
-  map.resources :go_lists
-
-  map.resources :scaffolds
-
-  map.resources :plasmodb_gene_lists
-
-  map.resources :cds
-
-  map.resources :go_alternates
-
-  map.resources :generic_go_maps
-
-  map.resources :go_terms
-
-  map.connect 'coding_regions/export/:strings', :controller => 'coding_regions', :action => 'export'
-  map.connect 'coding_regions/export', :controller => 'coding_regions', :action => 'export'
-  map.connect 'coding_regions/show', :controller => 'coding_regions', :action => 'show'
-  map.resources :coding_regions, :member =>  {:annotate => :put, :comment => :get}
-
-  map.resources :genes
-
-  map.resources :taxons
-
-  map.resources :taxon_names
-
   # genes can, frustratingly, have dots in their IDs, which conflicts somewhat
   # if I wanted to download the information in XML, for instance.
   # Also routes with :species in them should be about ones without, because
@@ -82,9 +16,6 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'apiloc/proteome/:id.:id2', :controller => 'apiloc', :action => 'proteome'
   map.connect 'proteome/:id', :controller => 'apiloc', :action => 'proteome'
   map.connect 'proteome/:id.:id2', :controller => 'apiloc', :action => 'proteome'
-
-  map.connect 'expression_contexts/show', :controller => 'expression_contexts', :action => 'show'
-  map.resources :expression_contexts
     
   # Negative localisations have the special path
   map.negative_species 'apiloc/species/negative/:id', :controller => 'apiloc', :action => 'species', :negative => true
@@ -120,6 +51,8 @@ ActionController::Routing::Routes.draw do |map|
   # See how all your routes lay out with "rake routes"
 
   # Install the default routes as the lowest priority.
-  map.connect ':controller/:action/:id', :controller => 'coding_regions', :action => 'index'
-  map.connect ':controller/:action/:id.:format'
+  # No default routes - only accept apiloc routes for the apiloc server
+  map.connect 'apiloc/:action/:id', :controller => 'apiloc'
+  map.connect 'apiloc/:action/:id.:format', :controller => 'apiloc'
+  map.connect '', :controller => 'apiloc', :action => :index
 end

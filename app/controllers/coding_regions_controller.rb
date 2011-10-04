@@ -199,9 +199,5 @@ class CodingRegionsController < ApplicationController
         @coding_regions_not_found.push string_id
       end
     end
-    
-    if !@coding_regions_not_found.empty?
-      flash[:error] = "Could not find coding regions: #{@coding_regions_not_found.join(', ')}"
-    end
   end
 end

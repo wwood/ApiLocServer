@@ -13,11 +13,10 @@ table.sortable thead {
 <div class=error>
 I was unable to find genes with these identifiers:
 <table class='sortable'>
-	<% @coding_regions_not_found.each do |s| %><td><%= s %></td>
+	<% @coding_regions_not_found.each do |s| %><td><%= s %><% end %></td>
 </table>
 </div>
 <% end %>
-	
 
 <table class='sortable'>
   <tr>
@@ -28,13 +27,14 @@ I was unable to find genes with these identifiers:
     <th>Annotation</th>
     <th>Localisations</th>
     <th>References</th>
+	<th>Orthologous protein localisations</th>
   </tr>
   
   <% @coding_regions.each_with_index do |coding_region, index| %>
     <tr>
       <td><%= index+1 %></td>
 	  <td><%= coding_region.species.name %></td>
-      <td><%= link_to coding_region.string_id, :action => :show, :id => coding_region %></td>
+      <td><%= link_to coding_region.string_id, :action => :gene, :id => coding_region %></td>
       <td><%= coding_region.alternate_names.join(', ') %></td>
       <td><%= coding_region.annotation.nil? ? 'no annotation' : coding_region.annotation.annotation %></td>
       <td>
@@ -45,6 +45,16 @@ I was unable to find genes with these identifiers:
           "#{link_to pub.definition, :action => :publication, :id => pub.id}"
         }.join(', ') %>
       </td>
+	  <td>
+	  	<% orths = coding_region.localised_apicomplexan_orthomcl_orthologues %>
+		<% orths ||= [] %>
+		<% orths.reject!{|a| a == coding_region} %>
+		<% unless orths.nil? %>
+		<%= orths.collect do |code|
+		  "#{link_to code.string_id, :controller => :apiloc, :action => :gene, :id => code.string_id} #{code.localisation_english}"
+		end.join(", ") %>
+		<% end %>
+	  </td>
     </tr>
   <% end %>
 </table>

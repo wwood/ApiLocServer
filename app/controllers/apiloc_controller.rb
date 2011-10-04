@@ -239,4 +239,19 @@ class ApilocController < ApplicationController
       @coding_regions_by_species[species_name].push code unless @coding_regions_by_species[species_name].include?(code)
     end
   end
+  
+  def annotate
+    string = params[:ids]
+    
+    @coding_regions = []
+    @coding_regions_not_found = []
+    string.split(/[\s\,]+/).each do |string_id|
+      code = CodingRegion.f(string_id)
+      if code
+        @coding_regions.push code
+      else
+        @coding_regions_not_found.push string_id
+      end
+    end
+  end
 end

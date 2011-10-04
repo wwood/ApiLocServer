@@ -1,3 +1,14 @@
+
+<% unless @coding_regions_not_found.empty? %>
+<div class=error>
+I was unable to find genes with these identifiers:
+<table>
+  <% @coding_regions_not_found.each do |s| %><td><%= s %></td>
+</table>
+</div>
+<% end %>
+
+
 <table>
   <tr>
     <th>Number</th>
