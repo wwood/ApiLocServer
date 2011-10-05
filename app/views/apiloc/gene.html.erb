@@ -80,7 +80,7 @@ because otherwise unassigned genes have the incorrect name %>
   <h4>OrthoMCL</h4>
   <% if @code.species.orthomcl_three_letter.nil? %>
   This species does not currently exist in the OrthoMCL database.<% else %>
-  <% ogenes = @code.calculate_official_orthomcl_genes
+  <% ogenes = @code.orthomcl_genes.all
   if ogenes.length == 0 %>
   No entry found in OrthoMCL.<% elsif ogenes.length == 1 and ogenes[0].orthomcl_groups.length == 1
   ogene = ogenes[0]
