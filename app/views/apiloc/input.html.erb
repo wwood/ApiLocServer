@@ -1,0 +1,11 @@
+<h1>Gene Annotator</h1>
+
+<% if flash[:error] %><div class="error"><%= flash[:notice] %></div><% end %>
+  
+<h3>Annotate Multiple Genes</h3>
+<p>Input multiple PlasmoDB Identifiers separated by commas, or newlines.</p>
+<% form_tag 'annotate'  do -%>
+  <%= text_area_tag "ids", nil, :size => '40x10' %><br />
+<%= submit_tag 'Annotate' %>
+  <% end -%>
+
