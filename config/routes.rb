@@ -14,9 +14,6 @@ ActionController::Routing::Routes.draw do |map|
 
   map.connect 'apiloc/proteome/:id', :controller => 'apiloc', :action => 'proteome'
   map.connect 'apiloc/proteome/:id.:id2', :controller => 'apiloc', :action => 'proteome'
-  map.connect 'apiloc/proteome/:id.:id2.:id3', :controller => 'apiloc', :action => 'proteome'
-  map.connect 'apiloc/proteome/:id.:id2.:id3.:id4', :controller => 'apiloc', :action => 'proteome'
-  map.connect 'apiloc/proteome/:id.:id2.:id3.:id4.:id5', :controller => 'apiloc', :action => 'proteome'
   map.connect 'proteome/:id', :controller => 'apiloc', :action => 'proteome'
   map.connect 'proteome/:id.:id2', :controller => 'apiloc', :action => 'proteome'
     

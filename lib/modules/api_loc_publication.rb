@@ -2978,17 +2978,19 @@ class BScript
     srand 47 #set random number generator to be a deterministic series of random numbers so I don't get differences between runs
     
     # Define list of species to pair up
+    # The order is important in that similar species should group together. 
+    # This makes downstream visualisation easier.
     specees = [
       Species::ARABIDOPSIS_NAME,
       Species::HUMAN_NAME,
       Species::MOUSE_NAME,
-      Species::YEAST_NAME,
-      Species::POMBE_NAME,
       Species::RAT_NAME,
+      Species::DANIO_RERIO_NAME,
       Species::DROSOPHILA_NAME,
       Species::ELEGANS_NAME,
+      Species::YEAST_NAME,
+      Species::POMBE_NAME,
       Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
-      Species::DANIO_RERIO_NAME,
       Species::TRYPANOSOMA_BRUCEI_NAME,
       
       Species::PLASMODIUM_FALCIPARUM_NAME,
@@ -3157,6 +3159,10 @@ class BScript
           tally[org] ||= {}
           tally[org][agree] ||= 0
           tally[org][agree] += 1
+          #tally the total for each species as well
+          tally['total']  ||= {}
+          tally['total'][agree] ||= 0
+          tally['total'][agree] += 1
         end
       end
       #puts "From #{p1} and #{p2},"

@@ -202,9 +202,6 @@ class ApilocController < ApplicationController
   def proteome
     name = params[:id]
     name += ".#{params[:id2]}" unless params[:id2].nil?
-    name += ".#{params[:id3]}" unless params[:id3].nil?
-    name += ".#{params[:id4]}" unless params[:id4].nil?
-    name += ".#{params[:id5]}" unless params[:id5].nil?
     $stderr.puts "`#{name}'"
     name = CGI.unescape name
     if name.nil?
