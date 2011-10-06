@@ -3002,57 +3002,6 @@ class BScript
       p1 = pair[0]
       p2 = pair[1]
       $stderr.puts "SQLing #{p1} versus #{p2}.."
-      
-      # for each group, choose a protein (repeatably) randomly from each species, so we have a pair of genes
-      # not sure how to do this the rails way
-      # Copy the data out of the database to a csv file.
-      # tempfile = File.new("#{PHD_DIR}/apiloc/experiments/organelle_conservation/dummy.csv") #debug
-      # csv_path = "/home/ben/phd/gnr2/apiloc_logs/organelle_conservation/#{p1} and #{p2}.csv".gsub(' ','_')
-      # tempfile = File.open(csv_path)
-      # tempfile = File.open("/home/ben/phd/gnr2/apiloc_logs/organelle_conservation/#{p1} and #{p2}.csv".gsub(' ','_'),'w')
-      # `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
-      # OrthomclGene.find_by_sql "copy(select distinct(groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, ogenes2.orthomcl_name, caches1.compartment, caches2.compartment) from orthomcl_groups groups,
-# 
-# orthomcl_gene_orthomcl_group_orthomcl_runs ogogor1,
-# orthomcl_genes ogenes1,
-# orthomcl_gene_coding_regions ogcr1,
-# coding_regions codes1,
-# coding_region_compartment_caches caches1,
-# genes genes1,
-# scaffolds scaffolds1,
-# species species1,
-# 
-# orthomcl_gene_orthomcl_group_orthomcl_runs ogogor2,
-# orthomcl_genes ogenes2,
-# orthomcl_gene_coding_regions ogcr2,
-# coding_regions codes2,
-# coding_region_compartment_caches caches2,
-# genes genes2,
-# scaffolds scaffolds2,
-# species species2
-# 
-# where
-# species1.name = '#{p1}' and
-# groups.id = ogogor1.orthomcl_group_id and
-# ogogor1.orthomcl_gene_id = ogenes1.id and
-# ogcr1.orthomcl_gene_id = ogenes1.id and
-# ogcr1.coding_region_id = codes1.id and
-# caches1.coding_region_id = codes1.id and
-# codes1.gene_id = genes1.id and
-# genes1.scaffold_id = scaffolds1.id and
-# scaffolds1.species_id = species1.id
-# 
-# and
-# species2.name = '#{p2}' and
-# groups.id = ogogor2.orthomcl_group_id and
-# ogogor2.orthomcl_gene_id = ogenes2.id and
-# ogcr2.orthomcl_gene_id = ogenes2.id and
-# ogcr2.coding_region_id = codes2.id and
-# caches2.coding_region_id = codes2.id and
-# codes2.gene_id = genes2.id and
-# genes2.scaffold_id = scaffolds2.id and
-# scaffolds2.species_id = species2.id) to '#{tempfile.path}'"
-# tempfile.close
 
       # next #just create the CSVs at this point
       orth1 = Species::ORTHOMCL_FOUR_LETTERS[p1]
@@ -3067,6 +3016,7 @@ class BScript
         :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
         :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth2}%"]
       )
+
       # convert it all to a big useful hash, partly for historical reasons
       dat = {}
       progress = ProgressBar.new('hashing',groups1.length)
@@ -3102,36 +3052,6 @@ class BScript
       end
       progress.finish
       $stderr.puts dat.inspect
-
-      # Read in the CSV, converting it all to a hash 
-      # of orthomcl_group => Array of arrays of the rest of the recorded info
-      
-      # group => species => gene => compartments
-      # dat = {}
-      # File.open(csv_path).each_line do |line|
-        # row = line.strip.split(',')
-        # unless row.length == 7
-          # raise Exception, "failed to parse line #{line}"
-        # end
-        # # groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, 
-        # # ogenes2.orthomcl_name, caches1.compartment, caches2.compartment
-        # group = row[0].gsub('(','')
-        # code1 = row[1]
-        # code2 = row[2]
-        # ogene1 = row[3]
-        # ogene2 = row[4]
-        # cache1 = row[5]
-        # cache2 = row[6].gsub(')','')
-#         
-        # dat[group] ||= {}
-        # dat[group][p1] ||= {}
-        # dat[group][p1][ogene1] ||= []
-        # dat[group][p1][ogene1].push cache1
-#         
-        # dat[group][p2] ||= {}
-        # dat[group][p2][ogene2] ||= []
-        # dat[group][p2][ogene2].push cache2
-      # end
       
       # for each of the orthomcl groups
       tally = {}
@@ -3159,14 +3079,14 @@ class BScript
           tally[org] ||= {}
           tally[org][agree] ||= 0
           tally[org][agree] += 1
-          #tally the total for each species as well
-          tally['total']  ||= {}
-          tally['total'][agree] ||= 0
-          tally['total'][agree] += 1
         end
+        #tally the total for each species as well
+        tally['total']  ||= {}
+        tally['total'][agree] ||= 0
+        tally['total'][agree] += 1
       end
       #puts "From #{p1} and #{p2},"
-      OntologyComparison::RECOGNIZED_LOCATIONS.each do |loc|
+      OntologyComparison::RECOGNIZED_LOCATIONS.push('total').each do |loc|
         if tally[loc]
           puts [
             p1,p2,loc,
