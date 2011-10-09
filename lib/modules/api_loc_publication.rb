@@ -3086,7 +3086,8 @@ class BScript
         tally['total'][agree] += 1
       end
       #puts "From #{p1} and #{p2},"
-      OntologyComparison::RECOGNIZED_LOCATIONS.push('total').each do |loc|
+      locations = OntologyComparison::RECOGNIZED_LOCATIONS.push('total')
+      locations.each do |loc|
         if tally[loc]
           puts [
             p1,p2,loc,
