@@ -2522,31 +2522,10 @@ class BScript
     end
   end
   
-  # Generate the data for 
-  def publication_per_year_graphing
-    years = {}
-    fails = 0
-    Publication.all(:joins => {:expression_contexts => :localisation}).uniq.each do |p|
-      y = p.year
-      if y.nil?
-        fails += 1
-        $stderr.puts "Failed: #{p.inspect}"
-      else
-        years[y] ||= 0
-        years[y] += 1
-      end
-    end
-    
-    puts ['Year','Number of Publications'].join("\t")
-    years.sort.each do |a,b|
-      puts [a,b].join("\t")
-    end
-    $stderr.puts "Failed to year-ify #{fails} publications."
-  end
-  
-  def localisation_per_year_graphing
+  def localisation_and_publications_per_year_graphing
     already_localised = []
-    years = {}
+    year_publications = {}
+    year_localisations = {}
     fails = 0
     
     # Get all the publications that have localisations in order
@@ -2572,18 +2551,31 @@ class BScript
       :conditions => {:publications => {:id => pub.id}}
       )
       
+      found_novel = false
       ids.each do |i|
         unless already_localised.include?(i)
+          found_novel = true
           already_localised.push i
-          years[y] ||= 0
-          years[y] += 1
+          year_localisations[y] ||= 0
+          year_localisations[y] += 1
         end
+      end
+      
+      # Add a localisation if there has been a novel one found
+      if found_novel
+        year_publications[y] ||= 0
+        year_publications[y] += 1
       end
     end
     
-    puts ['Year','Number of New Protein Localisations'].join("\t")
-    years.sort.each do |a,b|
-      puts [a,b].join("\t")
+    puts ['year','localisations','publications'].join("\t")
+    keys = [year_localisations.keys, year_publications.keys].flatten.uniq.sort
+    keys.each do |year|
+      puts [
+      year,
+      year_localisations[year],
+      year_publications[year],
+      ].join("\t")
     end
     
     $stderr.puts "Failed to year-ify #{fails} publications."
