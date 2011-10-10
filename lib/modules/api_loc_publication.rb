@@ -2974,7 +2974,7 @@ class BScript
   end
   
   # Which organelle has the most conserved localisation?
-  def conservation_of_localisation_stratified_by_organelle_pairings
+  def conservation_of_localisation_stratified_by_organelle_pairings(options={})
     srand 47 #set random number generator to be a deterministic series of random numbers so I don't get differences between runs
     
     # Define list of species to pair up
@@ -3069,7 +3069,7 @@ class BScript
         locs2 = g2.values.flatten.uniq
                 
         # work out whether the two genes are conserved in their localisation
-        agree = OntologyComparison.new.agreement_of_pair(locs1,locs2) 
+        agree = OntologyComparison.new.agreement_of_pair(locs1,locs2,options)
       
         # debug out genes involved, compartments, group_id, species,
         $stderr.puts "From group #{group}, chose #{g1.inspect} from #{p1} and #{g2.inspect} from #{p2}. Agreement: #{agree}" 
@@ -3086,7 +3086,7 @@ class BScript
         tally['total'][agree] += 1
       end
       #puts "From #{p1} and #{p2},"
-      locations = OntologyComparison::RECOGNIZED_LOCATIONS.push('total')
+      locations = [OntologyComparison::RECOGNIZED_LOCATIONS,'total'].flatten.uniq
       locations.each do |loc|
         if tally[loc]
           puts [

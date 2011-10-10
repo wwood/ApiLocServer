@@ -62,4 +62,10 @@ class OntologyComparisonTest < Test::Unit::TestCase
     assert_equal OntologyComparison::DISAGREEMENT, OntologyComparison.new.agreement_of_group([%w(1),%w(2),%w()])
     assert_equal OntologyComparison::DISAGREEMENT, OntologyComparison.new.agreement_of_group([%w(),%w(2),%w(1)])
   end
+  
+  def test_nucleus_cyto_modification_option
+    assert_equal OntologyComparison::COMPLETE_AGREEMENT, OntologyComparison.new.agreement_of_pair(%w(nucleus cytosol),%w(nucleus))
+    assert_equal OntologyComparison::INCOMPLETE_AGREEMENT, OntologyComparison.new.agreement_of_pair(%w(nucleus cytosol),%w(nucleus), :apply_nucleus_cytoplasm_modification => false)
+    assert_equal OntologyComparison::INCOMPLETE_AGREEMENT, OntologyComparison.new.agreement_of_pair(%w(nucleus cytosol),%w(cytosol)) #not really relevant, but just for peace of mind
+  end
 end
