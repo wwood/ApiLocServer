@@ -2522,31 +2522,14 @@ class BScript
     end
   end
   
-  # Generate the data for 
-  def publication_per_year_graphing
-    years = {}
-    fails = 0
-    Publication.all(:joins => {:expression_contexts => :localisation}).uniq.each do |p|
-      y = p.year
-      if y.nil?
-        fails += 1
-        $stderr.puts "Failed: #{p.inspect}"
-      else
-        years[y] ||= 0
-        years[y] += 1
-      end
-    end
-    
-    puts ['Year','Number of Publications'].join("\t")
-    years.sort.each do |a,b|
-      puts [a,b].join("\t")
-    end
-    $stderr.puts "Failed to year-ify #{fails} publications."
-  end
-  
-  def localisation_per_year_graphing
+  def localisation_and_publications_per_year_graphing
     already_localised = []
-    years = {}
+    
+    year_publications = {}
+    year_localisations = {}
+    year_falciparum_localisations = {}
+    year_toxo_localisations = {}
+    
     fails = 0
     
     # Get all the publications that have localisations in order
@@ -2565,25 +2548,50 @@ class BScript
         next
       end
       
-      ids = CodingRegion.all(:select => 'coding_regions.id',
+      ids = CodingRegion.all(
       :joins => {
       :expression_contexts => [:localisation, :publication]
       },
       :conditions => {:publications => {:id => pub.id}}
       )
       
+      found_novel = false
       ids.each do |i|
         unless already_localised.include?(i)
+          found_novel = true
           already_localised.push i
-          years[y] ||= 0
-          years[y] += 1
+          year_localisations[y] ||= 0
+          year_localisations[y] += 1
+          # counting falciparum proteins specifically
+          $stderr.puts "inspecting #{i.inspect}"
+          if i.species.name == Species::FALCIPARUM_NAME
+            year_falciparum_localisations[y] ||= 0
+            year_falciparum_localisations[y] += 1
+          end
+          if i.species.name == Species::TOXOPLASMA_GONDII_NAME
+            year_toxo_localisations[y] ||= 0
+            year_toxo_localisations[y] += 1
+          end
         end
+      end
+      
+      # Add a localisation if there has been a novel one found
+      if found_novel
+        year_publications[y] ||= 0
+        year_publications[y] += 1
       end
     end
     
-    puts ['Year','Number of New Protein Localisations'].join("\t")
-    years.sort.each do |a,b|
-      puts [a,b].join("\t")
+    puts ['year','localisations','publications','falciparum_locs','toxo_locs'].join("\t")
+    keys = [year_localisations.keys, year_publications.keys].flatten.uniq.sort
+    keys.each do |year|
+      puts [
+      year,
+      year_localisations[year],
+      year_publications[year],
+      year_falciparum_localisations[year],
+      year_toxo_localisations[year],
+      ].join("\t")
     end
     
     $stderr.puts "Failed to year-ify #{fails} publications."
@@ -2974,21 +2982,23 @@ class BScript
   end
   
   # Which organelle has the most conserved localisation?
-  def conservation_of_localisation_stratified_by_organelle_pairings
+  def conservation_of_localisation_stratified_by_organelle_pairings(options={})
     srand 47 #set random number generator to be a deterministic series of random numbers so I don't get differences between runs
     
     # Define list of species to pair up
+    # The order is important in that similar species should group together. 
+    # This makes downstream visualisation easier.
     specees = [
       Species::ARABIDOPSIS_NAME,
       Species::HUMAN_NAME,
       Species::MOUSE_NAME,
-      Species::YEAST_NAME,
-      Species::POMBE_NAME,
       Species::RAT_NAME,
+      Species::DANIO_RERIO_NAME,
       Species::DROSOPHILA_NAME,
       Species::ELEGANS_NAME,
+      Species::YEAST_NAME,
+      Species::POMBE_NAME,
       Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
-      Species::DANIO_RERIO_NAME,
       Species::TRYPANOSOMA_BRUCEI_NAME,
       
       Species::PLASMODIUM_FALCIPARUM_NAME,
@@ -3000,57 +3010,6 @@ class BScript
       p1 = pair[0]
       p2 = pair[1]
       $stderr.puts "SQLing #{p1} versus #{p2}.."
-      
-      # for each group, choose a protein (repeatably) randomly from each species, so we have a pair of genes
-      # not sure how to do this the rails way
-      # Copy the data out of the database to a csv file.
-      # tempfile = File.new("#{PHD_DIR}/apiloc/experiments/organelle_conservation/dummy.csv") #debug
-      # csv_path = "/home/ben/phd/gnr2/apiloc_logs/organelle_conservation/#{p1} and #{p2}.csv".gsub(' ','_')
-      # tempfile = File.open(csv_path)
-      # tempfile = File.open("/home/ben/phd/gnr2/apiloc_logs/organelle_conservation/#{p1} and #{p2}.csv".gsub(' ','_'),'w')
-      # `chmod go+w #{tempfile.path}` #so postgres can write to this file as well
-      # OrthomclGene.find_by_sql "copy(select distinct(groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, ogenes2.orthomcl_name, caches1.compartment, caches2.compartment) from orthomcl_groups groups,
-# 
-# orthomcl_gene_orthomcl_group_orthomcl_runs ogogor1,
-# orthomcl_genes ogenes1,
-# orthomcl_gene_coding_regions ogcr1,
-# coding_regions codes1,
-# coding_region_compartment_caches caches1,
-# genes genes1,
-# scaffolds scaffolds1,
-# species species1,
-# 
-# orthomcl_gene_orthomcl_group_orthomcl_runs ogogor2,
-# orthomcl_genes ogenes2,
-# orthomcl_gene_coding_regions ogcr2,
-# coding_regions codes2,
-# coding_region_compartment_caches caches2,
-# genes genes2,
-# scaffolds scaffolds2,
-# species species2
-# 
-# where
-# species1.name = '#{p1}' and
-# groups.id = ogogor1.orthomcl_group_id and
-# ogogor1.orthomcl_gene_id = ogenes1.id and
-# ogcr1.orthomcl_gene_id = ogenes1.id and
-# ogcr1.coding_region_id = codes1.id and
-# caches1.coding_region_id = codes1.id and
-# codes1.gene_id = genes1.id and
-# genes1.scaffold_id = scaffolds1.id and
-# scaffolds1.species_id = species1.id
-# 
-# and
-# species2.name = '#{p2}' and
-# groups.id = ogogor2.orthomcl_group_id and
-# ogogor2.orthomcl_gene_id = ogenes2.id and
-# ogcr2.orthomcl_gene_id = ogenes2.id and
-# ogcr2.coding_region_id = codes2.id and
-# caches2.coding_region_id = codes2.id and
-# codes2.gene_id = genes2.id and
-# genes2.scaffold_id = scaffolds2.id and
-# scaffolds2.species_id = species2.id) to '#{tempfile.path}'"
-# tempfile.close
 
       # next #just create the CSVs at this point
       orth1 = Species::ORTHOMCL_FOUR_LETTERS[p1]
@@ -3065,6 +3024,7 @@ class BScript
         :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
         :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth2}%"]
       )
+
       # convert it all to a big useful hash, partly for historical reasons
       dat = {}
       progress = ProgressBar.new('hashing',groups1.length)
@@ -3100,36 +3060,6 @@ class BScript
       end
       progress.finish
       $stderr.puts dat.inspect
-
-      # Read in the CSV, converting it all to a hash 
-      # of orthomcl_group => Array of arrays of the rest of the recorded info
-      
-      # group => species => gene => compartments
-      # dat = {}
-      # File.open(csv_path).each_line do |line|
-        # row = line.strip.split(',')
-        # unless row.length == 7
-          # raise Exception, "failed to parse line #{line}"
-        # end
-        # # groups.orthomcl_name,codes1.string_id,codes2.string_id, ogenes1.orthomcl_name, 
-        # # ogenes2.orthomcl_name, caches1.compartment, caches2.compartment
-        # group = row[0].gsub('(','')
-        # code1 = row[1]
-        # code2 = row[2]
-        # ogene1 = row[3]
-        # ogene2 = row[4]
-        # cache1 = row[5]
-        # cache2 = row[6].gsub(')','')
-#         
-        # dat[group] ||= {}
-        # dat[group][p1] ||= {}
-        # dat[group][p1][ogene1] ||= []
-        # dat[group][p1][ogene1].push cache1
-#         
-        # dat[group][p2] ||= {}
-        # dat[group][p2][ogene2] ||= []
-        # dat[group][p2][ogene2].push cache2
-      # end
       
       # for each of the orthomcl groups
       tally = {}
@@ -3147,7 +3077,7 @@ class BScript
         locs2 = g2.values.flatten.uniq
                 
         # work out whether the two genes are conserved in their localisation
-        agree = OntologyComparison.new.agreement_of_pair(locs1,locs2) 
+        agree = OntologyComparison.new.agreement_of_pair(locs1,locs2,options)
       
         # debug out genes involved, compartments, group_id, species,
         $stderr.puts "From group #{group}, chose #{g1.inspect} from #{p1} and #{g2.inspect} from #{p2}. Agreement: #{agree}" 
@@ -3158,9 +3088,14 @@ class BScript
           tally[org][agree] ||= 0
           tally[org][agree] += 1
         end
+        #tally the total for each species as well
+        tally['total']  ||= {}
+        tally['total'][agree] ||= 0
+        tally['total'][agree] += 1
       end
       #puts "From #{p1} and #{p2},"
-      OntologyComparison::RECOGNIZED_LOCATIONS.each do |loc|
+      locations = [OntologyComparison::RECOGNIZED_LOCATIONS,'total'].flatten.uniq
+      locations.each do |loc|
         if tally[loc]
           puts [
             p1,p2,loc,

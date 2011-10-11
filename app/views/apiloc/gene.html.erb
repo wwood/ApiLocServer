@@ -21,54 +21,61 @@ because otherwise unassigned genes have the incorrect name %>
 <div class="categorybig">
   <h2>Who localised this protein by microscopy?</h2>
   <% if @code.expression_contexts.empty? %>
-  No localisations are recorded in ApiLoc.
+  No manually curated localisations are recorded in ApiLoc, sorry.
 </div>
 <% else %>
-<!-- for each publication associated with this coding region --><% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b <=> a}.each do |publication| %>
+<!-- for each publication associated with this coding region -->
+<% @code.expression_contexts.reach.publication.uniq.sort{|a,b| b <=> a}.each do |publication| %>
 <div class="category<%= @category_counter ||= 0; @category_counter+=1; @category_counter.odd? %>">
+  <p>
   <% if publication.authors %>
-  <%= publication.authors %>&nbsp(<%= publication.date %>, <%= publication.journal %>) <%= publication.title %> <%= link_to 'other genes localised in this publication', :action => :publication, :id => publication.definition %>,
+  <%= publication.authors %><br /><i><%= publication.title %></i>&nbsp(<%= publication.date %>, <%= publication.journal %>)
   <% else %>
-  <%= link_to publication.linkout_url, publication.linkout_url %>
+  &nbsp&nbsp&nbsp<%= link_to publication.linkout_url, publication.linkout_url %>
   <% end %>
-  <% if publication.pubmed_id? %><%= link_to 'PubMed', publication.linkout_url%>, <% end %> 
+  <% if publication.pubmed_id? %><%= link_to 'PubMed', publication.linkout_url%> / <% end %>
   <%= link_to 'full text', publication.fulltext_url %>
-  <br/>
+  <br />&nbsp&nbsp&nbsp<%= link_to 'more detail about this publication', :action => :publication, :id => publication.definition %>
+  </p>
   <% @relevant_expression_contexts = ExpressionContext.find_all_by_publication_id_and_coding_region_id(publication.id, @code.id).uniq %>
-  <% @relevant_expression_contexts.reject!{|e|e.localisation_id.nil? and e.developmental_stage_id.nil?} #this is needed otherwise ExpressionContextGroup#english fails %>
+  <% @relevant_expression_contexts.reject!{|e|e.localisation_id.nil? and e.developmental_stage_id.nil?} %>
   <b><%= ExpressionContextGroup.new(@relevant_expression_contexts).english %></b>
   <!-- for each annotation of this gene in the publication (there may be multiple) --><% @relevant_expression_contexts.reach.localisation_annotation.uniq.each do |a| %>
   <ul>
     <li>
-      <b>Quote inferring localisation: </b>"<%= a.quote %>"
+      "<i><%= a.quote %></i>"
     </li>
     <li>
-      <b>Microscopy type:</b>
-      <%= a.microscopy_type %>
+      Microscopy type: <%= a.microscopy_type %>
     </li>
     <li>
-      <b>Microscopy method:</b>
-      <%= a.microscopy_method %>
+      Microscopy method: <%= a.microscopy_method %>
     </li>
     <li>
-      <b>Strain:</b>
-      <%= a.strain %>
+      Strain: <%= a.strain %>
     </li>
     <li>
-      <b>Gene model mapping comments:</b>
-      <%= mapping_comments(a) %>
+      Gene model mapping comments: <%= mapping_comments(a) %>
     </li>
     <li>
-      <b>Localisation record:</b>
-      <%= a.localisation %>
+      Localisation record: <%= a.localisation %>
     </li>
     <% a.comments.each do |c| %>
     <li>
-      <b>Comment:</b>
-      <%= c.comment %>
+      Comment: <%= c.comment %>
     </li>
     <% end %>
+	<li>Other genes localised in this publication: <% @other_proteins_localised = publication.expression_contexts.reach.coding_region.reject{|c| c==@code}.uniq %>
+  <% if @other_proteins_localised.empty? %>
+  -
+  <% else %>
+  <%= @other_proteins_localised.collect{|c| 
+annot = c.annotation.nil? ? c.string_id : c.annotation.annotation;
+link_to annot, :action => :gene, :species => c.species.name, :id => c.string_id}.join(', ') %>
+  <% end %>
+    </li>
   </ul>
+
   <% end %>
 </div>
 <% end %>
