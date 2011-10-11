@@ -2524,8 +2524,12 @@ class BScript
   
   def localisation_and_publications_per_year_graphing
     already_localised = []
+    
     year_publications = {}
     year_localisations = {}
+    year_falciparum_localisations = {}
+    year_toxo_localisations = {}
+    
     fails = 0
     
     # Get all the publications that have localisations in order
@@ -2544,7 +2548,7 @@ class BScript
         next
       end
       
-      ids = CodingRegion.all(:select => 'coding_regions.id',
+      ids = CodingRegion.all(
       :joins => {
       :expression_contexts => [:localisation, :publication]
       },
@@ -2558,6 +2562,16 @@ class BScript
           already_localised.push i
           year_localisations[y] ||= 0
           year_localisations[y] += 1
+          # counting falciparum proteins specifically
+          $stderr.puts "inspecting #{i.inspect}"
+          if i.species.name == Species::FALCIPARUM_NAME
+            year_falciparum_localisations[y] ||= 0
+            year_falciparum_localisations[y] += 1
+          end
+          if i.species.name == Species::TOXOPLASMA_GONDII_NAME
+            year_toxo_localisations[y] ||= 0
+            year_toxo_localisations[y] += 1
+          end
         end
       end
       
@@ -2568,13 +2582,15 @@ class BScript
       end
     end
     
-    puts ['year','localisations','publications'].join("\t")
+    puts ['year','localisations','publications','falciparum_locs','toxo_locs'].join("\t")
     keys = [year_localisations.keys, year_publications.keys].flatten.uniq.sort
     keys.each do |year|
       puts [
       year,
       year_localisations[year],
       year_publications[year],
+      year_falciparum_localisations[year],
+      year_toxo_localisations[year],
       ].join("\t")
     end
     
