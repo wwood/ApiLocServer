@@ -56,25 +56,8 @@ class BScript
   end
   
   def species_localisation_breakdown
-    #    names = Localisation.all(:joins => :apiloc_top_level_localisation).reach.name.uniq.push(nil)
-    #    print "species\t"
-    #    puts names.join("\t")
-    top_names = [
-      'apical',
-      'inner membrane complex',
-      'merozoite surface',
-      'parasite plasma membrane',
-      'parasitophorous vacuole',
-      'exported',
-      'cytoplasm',
-      'food vacuole',
-      'mitochondrion',
-      'apicoplast',
-      'golgi',
-      'endoplasmic reticulum',
-      'other',
-      'nucleus'
-    ]
+    require 'localisation_umbrella_mappings'
+    top_names = ApiLocUmbrellaLocalisationMappings::APILOC_UMBRELLA_LOCALISATION_MAPPINGS.keys
     
     interests = [
       'Plasmodium falciparum',
