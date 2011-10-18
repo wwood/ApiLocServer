@@ -280,7 +280,7 @@ class BScript
   # a default is used.
   def apiloc_fasta(io = $stdout)
     CodingRegion.all(
-      :joins => :expression_contexts
+      :joins => :expressed_localisations
     ).uniq.each do |code|
       if code.amino_acid_sequence and code.amino_acid_sequence.sequence.length > 0
         io.print ">"
@@ -860,7 +860,6 @@ class BScript
     6239 => Species::ELEGANS_NAME,
     44689 => Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
     7955 => Species::DANIO_RERIO_NAME,
-    5691 => Species::TRYPANOSOMA_BRUCEI_NAME,
   }
   APILOC_UNIPROT_SPECIES_NAMES = UNIPROT_SPECIES_ID_NAME_HASH.values
   
@@ -1920,7 +1919,7 @@ class BScript
     data.each do |group, data2|
       $stderr.puts
       $stderr.puts '============================'
-      classify_eukaryotic_conservation_of_single_orthomcl_group(
+      classify_eukaryotic_conservation_of_single_orthomcl_group_random_two(
                                                                 data2['kingdom_orthomcls'],
       data2['orthomcl_locs'],
       groups_to_counts
@@ -1987,7 +1986,7 @@ class BScript
       zero_entriers = orthomcl_arrays.select{|o| o.length==0}
       if zero_entriers.length > 0
         $stderr.puts "Two kingdoms: #{kingdoms.join(' ')}, #{orthomcl_arrays}, skipping"
-        next         
+        next
       end
       
       locs_for_all = orthomcl_arrays.flatten.collect {|orthomcl| orthomcl_locs[orthomcl]}
@@ -2058,6 +2057,75 @@ class BScript
       groups_to_counts[index][agreement] += 1
     end
   end
+  
+  # Like classify_eukaryotic_conservation_of_single_orthomcl_group,
+  # but only do either 1 or two lineages at a time, and always take 2 randomly chosen
+  # genes to compare, rather than comparing the whole group.
+  # This should make things more comparable between single lineages
+  # and 2 lineages because the same number of genes are
+  # being considered.
+  def classify_eukaryotic_conservation_of_single_orthomcl_group_random_two(kingdom_orthomcls, orthomcl_locs, groups_to_counts, debug = true)
+    $stderr.puts kingdom_orthomcls.inspect if debug
+    $stderr.puts orthomcl_locs.inspect if debug
+    $stderr.puts "Kingdoms: #{kingdom_orthomcls.to_a.collect{|k| k[0]}.sort.join(', ')}" if debug
+    
+    # within the one kingdom, do they agree?
+    kingdom_orthomcls.each do |kingdom, orthomcls|
+      # If there is only a single coding region, then don't record
+      number_in_kingdom_localised = orthomcls.length
+      if number_in_kingdom_localised < 2
+        $stderr.puts "One kingdom: #{kingdom}, skipping (#{orthomcls.join(', ')})" if debug
+        next
+      end
+      
+      # Choose 2 different genes at random
+      shuffled = orthomcls.shuffle
+      rand1 = shuffled[0]
+      rand2 = shuffled[1]
+      
+      # convert orthomcl genes to localisation arrays
+      locs1 = orthomcl_locs[rand1]
+      locs2 = orthomcl_locs[rand2]
+      
+      # OK, so now we are on. Let's do this
+      agreement = OntologyComparison.new.agreement_of_pair(locs1,locs2)
+      index = [kingdom]
+      $stderr.puts "One kingdom: #{index.inspect}, #{agreement}, #{orthomcls.join(' ')}" if debug
+      groups_to_counts[index] ||= {}
+      groups_to_counts[index][agreement] ||= 0
+      groups_to_counts[index][agreement] += 1
+    end
+    
+    # within two kingdoms, do they agree?
+    kingdom_orthomcls.to_a.each_lower_triangular_matrix do |array1, array2|
+      kingdom1 = array1[0]
+      kingdom2 = array2[0]
+      orthomcl_array1 = array1[1]
+      orthomcl_array2 = array2[1]
+      orthomcl_arrays = [orthomcl_array1, orthomcl_array2]
+      
+      # don't include unless there is an orthomcl in each kingdom
+      zero_entriers = orthomcl_arrays.select{|o| o.length==0}
+      if zero_entriers.length > 0
+        $stderr.puts "Two kingdoms: #{kingdoms.join(' ')}, #{orthomcl_arrays}, skipping"
+        next
+      end
+      
+      # Choose one gene randomly from each of the two kingdoms
+      random_ogene_1 = orthomcl_array1[rand(orthomcl_array1.size)]
+      random_ogene_2 = orthomcl_array2[rand(orthomcl_array2.size)]
+      locs1 = orthomcl_locs[random_ogene_1]
+      locs2 = orthomcl_locs[random_ogene_2]
+
+      agreement = OntologyComparison.new.agreement_of_pair(locs1, locs2)
+      
+      index = [kingdom1, kingdom2].sort
+      $stderr.puts "Two kingdoms: #{index.inspect}, #{agreement}" if debug
+      groups_to_counts[index] ||= {}
+      groups_to_counts[index][agreement] ||= 0
+      groups_to_counts[index][agreement] += 1
+    end
+  end  
   
   # Using the assumption that the yeast-mouse, yeast-human and falciparum-toxo divergences are approximately 
   # equivalent, whatever that means, work out the conservation of localisation between each of those groups.
