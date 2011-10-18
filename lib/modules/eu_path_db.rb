@@ -299,11 +299,8 @@ class BScript
     elegans_wormbase_identifiers
     uniprot_ensembl_databases
     uniprot_refseq_databases
-    tbrucei_names_to_database
     dicystelium_names_to_database
     drosophila_ensembl_metazoa
-    
-    tbrucei_amigo_gene_associations_to_database
     
     Species.new.update_known_four_letters
     OrthomclGene.new.link_orthomcl_and_coding_regions(
