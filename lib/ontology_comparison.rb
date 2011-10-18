@@ -44,7 +44,6 @@ class OntologyComparison
   'cytoskeleton',
   'extracellular region part',
   'centrosome',
-  'endocytic vesicle',
   ]
   
   attr_accessor :common_ontologies, :disagreeing_ontologies
@@ -85,8 +84,13 @@ class OntologyComparison
     end
   end
   
-  # 
-  def agreement_of_pair(localisations_of_each_protein1, localisations_of_protein2)
+  # Assess agreement between two lists of localisations.
+  #
+  # if options[:apply_nucleus_cytoplasm_modification] is set to false, nucleus 
+  # localisations are treated as any other localisation. By default, [nucleus,cytosol]
+  # is in total agreement with [nucleus], where it would be complex if
+  # options[:apply_nucleus_cytoplasm_modification] is set to false.
+  def agreement_of_pair(localisations_of_each_protein1, localisations_of_protein2, options = {})
     # First get the unknowns out of the way
     if localisations_of_each_protein1.nil? or localisations_of_protein2.nil? or
       localisations_of_each_protein1.empty? or localisations_of_protein2.empty?
@@ -111,7 +115,7 @@ class OntologyComparison
       
       # Apply domain-specific information here
       # 1. If nucleus is common, and only 1 has cytoplasm, then that is complete agreement
-      apply_nucleus_cytoplasm_modification
+      apply_nucleus_cytoplasm_modification unless options[:apply_nucleus_cytoplasm_modification] == false
     end
     
     return agreement #agreement is calculated on the fly
