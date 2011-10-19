@@ -1928,13 +1928,15 @@ class BScript
 
     pp groups_to_counts
 
-    groups_to_counts.to_a.sort{|a,b| a[0].length<=>b[0].length}.each do |king_array, agrees|
+    groups_to_counts.each do |analysis, results|
+    results.to_a.sort{|a,b| a[0].length<=>b[0].length}.each do |king_array, agrees|
       yes = agrees[OntologyComparison::COMPLETE_AGREEMENT]
       no = agrees[OntologyComparison::DISAGREEMENT]
       maybe = agrees[OntologyComparison::INCOMPLETE_AGREEMENT]
       yes ||= 0; no||= 0; maybe ||= 0;
       total = (yes+no+maybe).to_f
       puts [
+      analysis,
       king_array.join(','),
       yes, no, maybe,
       agrees[OntologyComparison::UNKNOWN_AGREEMENT],
@@ -1942,6 +1944,7 @@ class BScript
       ((no.to_f/total)*100).round,
       ((maybe.to_f/total)*100).round,
       ].join("\t")
+    end
     end
   end
   
@@ -2120,9 +2123,9 @@ class BScript
       # Record the agreement
       $stderr.puts "One species: #{species}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
       groups_to_counts['one_species_paralogues'] ||= {}
-      groups_to_counts['one_species_paralogues'][species] ||= {}
-      groups_to_counts['one_species_paralogues'][species][agreement] ||= 0
-      groups_to_counts['one_species_paralogues'][species][agreement] += 1
+      groups_to_counts['one_species_paralogues'][[species]] ||= {}
+      groups_to_counts['one_species_paralogues'][[species]][agreement] ||= 0
+      groups_to_counts['one_species_paralogues'][[species]][agreement] += 1
     end
 
     # compare probable orthologues from 2 similar species
@@ -2153,9 +2156,9 @@ class BScript
       # Record the agreement
       $stderr.puts "One species: #{species}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
       groups_to_counts['one_kingdom_two_species'] ||= {}
-      groups_to_counts['one_kingdom_two_species'][kingdom] ||= {}
-      groups_to_counts['one_kingdom_two_species'][kingdom][agreement] ||= 0
-      groups_to_counts['one_kingdom_two_species'][kingdom][agreement] += 1
+      groups_to_counts['one_kingdom_two_species'][[kingdom]] ||= {}
+      groups_to_counts['one_kingdom_two_species'][[kingdom]][agreement] ||= 0
+      groups_to_counts['one_kingdom_two_species'][[kingdom]][agreement] += 1
     end
     
     # within the one kingdom, do they agree?
@@ -2180,9 +2183,10 @@ class BScript
       agreement = OntologyComparison.new.agreement_of_pair(locs1,locs2)
       index = [kingdom]
       $stderr.puts "One kingdom: #{index.inspect}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
-      groups_to_counts[index] ||= {}
-      groups_to_counts[index][agreement] ||= 0
-      groups_to_counts[index][agreement] += 1
+      groups_to_counts['one_kingdom_all_species'] ||= {}
+      groups_to_counts['one_kingdom_all_species'][index] ||= {}
+      groups_to_counts['one_kingdom_all_species'][index][agreement] ||= 0
+      groups_to_counts['one_kingdom_all_species'][index][agreement] += 1
     end
     
     # within two kingdoms, do they agree?
@@ -2210,11 +2214,12 @@ class BScript
       
       index = [kingdom1, kingdom2].sort
       $stderr.puts "Two kingdoms: #{index.inspect}, #{agreement}, #{random_ogene_1}(#{locs1.join(',')}) vs. #{random_ogene_2}(#{locs2.join(',')})" if debug
-      groups_to_counts[index] ||= {}
-      groups_to_counts[index][agreement] ||= 0
-      groups_to_counts[index][agreement] += 1
+      groups_to_counts['two_kingdom_two_species'] ||= {}
+      groups_to_counts['two_kingdom_two_species'][index] ||= {}
+      groups_to_counts['two_kingdom_two_species'][index][agreement] ||= 0
+      groups_to_counts['two_kingdom_two_species'][index][agreement] += 1
     end
-  end  
+  end
   
   # Using the assumption that the yeast-mouse, yeast-human and falciparum-toxo divergences are approximately 
   # equivalent, whatever that means, work out the conservation of localisation between each of those groups.
