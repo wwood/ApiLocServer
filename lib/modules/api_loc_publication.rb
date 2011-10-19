@@ -1926,6 +1926,8 @@ class BScript
       )
     end
 
+    pp groups_to_counts
+
     groups_to_counts.to_a.sort{|a,b| a[0].length<=>b[0].length}.each do |king_array, agrees|
       yes = agrees[OntologyComparison::COMPLETE_AGREEMENT]
       no = agrees[OntologyComparison::DISAGREEMENT]
@@ -2065,9 +2067,96 @@ class BScript
   # and 2 lineages because the same number of genes are
   # being considered.
   def classify_eukaryotic_conservation_of_single_orthomcl_group_random_two(kingdom_orthomcls, orthomcl_locs, groups_to_counts, debug = true)
+    $stderr.print 'kingdom_orthomcls: ' if debug
     $stderr.puts kingdom_orthomcls.inspect if debug
+    $stderr.print 'orthomcl_locs: ' if debug
     $stderr.puts orthomcl_locs.inspect if debug
     $stderr.puts "Kingdoms: #{kingdom_orthomcls.to_a.collect{|k| k[0]}.sort.join(', ')}" if debug
+    
+    # Partition out each kingdom into different species, so that we can distinguish
+    # paralogues and orthologues within the same lineage.
+    kingdom_species = {} # hash of kingdoms to orthomcl 4 letters
+    species_orthomcls = {} # hash of orthomcl 4 letters to orthomcl gene ids 
+    kingdom_orthomcls.each do |kingdom, orthomcls|
+      orthomcls.each do |og|
+        if matches = og.match(/^(....)\|.*/)
+          four_letters = matches[1]
+          kingdom_species[kingdom] ||= []
+          kingdom_species[kingdom].push four_letters unless kingdom_species[kingdom].include?(four_letters)
+          species_orthomcls[four_letters] ||= []
+          species_orthomcls[four_letters].push og
+        else
+          raise Exception, "Unexpected orthomcl gene name form: #{og}"
+        end
+      end
+    end
+    $stderr.print 'kingdom_species: ' if debug
+    $stderr.puts kingdom_species.inspect if debug
+    $stderr.print 'species_orthomcls: ' if debug
+    $stderr.puts species_orthomcls.inspect if debug
+    
+    # compare paralogues (genes from a single species)
+    kingdom_species.values.flatten.each do |species|
+      # Are there two or more annotated genes in this species in this group? Skip if not
+      genes = species_orthomcls[species]
+      number_localised = genes.length
+      if number_localised < 2
+        $stderr.puts "One species: #{species}, skipping (#{genes.join(', ')})" if debug
+        next
+      end
+      
+      # Choose two genes at random from the set
+      shuffled = genes.shuffle
+      rand1 = shuffled[0]
+      rand2 = shuffled[1]
+      
+      # convert orthomcl genes to localisation arrays
+      locs1 = orthomcl_locs[rand1]
+      locs2 = orthomcl_locs[rand2]
+      
+      # Compare agreement of the two randomly chosen genes
+      agreement = OntologyComparison.new.agreement_of_pair(locs1,locs2)
+
+      # Record the agreement
+      $stderr.puts "One species: #{species}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
+      groups_to_counts['one_species_paralogues'] ||= {}
+      groups_to_counts['one_species_paralogues'][species] ||= {}
+      groups_to_counts['one_species_paralogues'][species][agreement] ||= 0
+      groups_to_counts['one_species_paralogues'][species][agreement] += 1
+    end
+
+    # compare probable orthologues from 2 similar species
+    # compare paralogues (genes from a single species)
+    kingdom_species.each do |kingdom, species|
+      # Are there more than one species in this kingdom? Fail if not.
+      if species.length < 2
+        $stderr.puts "One kingdom, two species: #{species}, skipping (#{species.join(', ')})" if debug
+        next
+      end
+      
+      # Choose 2 species at random
+      rand_species = species.shuffle
+      species1 = rand_species[0]
+      species2 = rand_species[1]      
+      
+      # Choose two genes at random from the set
+      rand1 = species_orthomcls[species1].shuffle[0]
+      rand2 = species_orthomcls[species2].shuffle[0]
+      
+      # convert orthomcl genes to localisation arrays
+      locs1 = orthomcl_locs[rand1]
+      locs2 = orthomcl_locs[rand2]
+      
+      # Compare agreement of the two randomly chosen genes
+      agreement = OntologyComparison.new.agreement_of_pair(locs1,locs2)
+
+      # Record the agreement
+      $stderr.puts "One species: #{species}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
+      groups_to_counts['one_kingdom_two_species'] ||= {}
+      groups_to_counts['one_kingdom_two_species'][kingdom] ||= {}
+      groups_to_counts['one_kingdom_two_species'][kingdom][agreement] ||= 0
+      groups_to_counts['one_kingdom_two_species'][kingdom][agreement] += 1
+    end
     
     # within the one kingdom, do they agree?
     kingdom_orthomcls.each do |kingdom, orthomcls|
@@ -2090,7 +2179,7 @@ class BScript
       # OK, so now we are on. Let's do this
       agreement = OntologyComparison.new.agreement_of_pair(locs1,locs2)
       index = [kingdom]
-      $stderr.puts "One kingdom: #{index.inspect}, #{agreement}, #{orthomcls.join(' ')}" if debug
+      $stderr.puts "One kingdom: #{index.inspect}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
       groups_to_counts[index] ||= {}
       groups_to_counts[index][agreement] ||= 0
       groups_to_counts[index][agreement] += 1
@@ -2120,7 +2209,7 @@ class BScript
       agreement = OntologyComparison.new.agreement_of_pair(locs1, locs2)
       
       index = [kingdom1, kingdom2].sort
-      $stderr.puts "Two kingdoms: #{index.inspect}, #{agreement}" if debug
+      $stderr.puts "Two kingdoms: #{index.inspect}, #{agreement}, #{random_ogene_1}(#{locs1.join(',')}) vs. #{random_ogene_2}(#{locs2.join(',')})" if debug
       groups_to_counts[index] ||= {}
       groups_to_counts[index][agreement] ||= 0
       groups_to_counts[index][agreement] += 1
