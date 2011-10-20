@@ -1893,6 +1893,13 @@ class BScript
     kingdom_orthomcls = {} #array of kingdoms to orthomcl genes
     orthomcl_locs = {} #array of orthomcl_genes to localisations, cached for convenience and speed
     
+    # I'm only interested in certain species
+    allowable_species_codes = [
+      APILOC_UNIPROT_SPECIES_NAMES.collect{|s| Species::ORTHOMCL_FOUR_LETTERS[s]},
+      %w(tgon pfal)
+    ].flatten
+    $stderr.puts "Only allowing species codes #{allowable_species_codes.join(',')} into this analysis"
+      
     FasterCSV.foreach(tempfile.path, :col_sep => "\t") do |row|
       # name columns
       raise unless row.length == 3
@@ -1900,9 +1907,12 @@ class BScript
       gene = row[1]
       compartment = row[2]
       
+      species_code = OrthomclGene.new.official_split(gene)[0]
+      next unless allowable_species_codes.include?(species_code)
+      
       data[group] ||= {}
       
-      kingdom = orthomcl_abbreviation_to_kingdom[OrthomclGene.new.official_split(gene)[0]]
+      kingdom = orthomcl_abbreviation_to_kingdom[species_code]
       data[group]['kingdom_orthomcls'] ||= {}
       data[group]['kingdom_orthomcls'][kingdom] ||= []
       data[group]['kingdom_orthomcls'][kingdom].push gene
