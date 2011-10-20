@@ -2154,7 +2154,7 @@ class BScript
       agreement = OntologyComparison.new.agreement_of_pair(locs1,locs2)
 
       # Record the agreement
-      $stderr.puts "One species: #{species}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
+      $stderr.puts "one_kingdom_two_species: #{species}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
       groups_to_counts['one_kingdom_two_species'] ||= {}
       groups_to_counts['one_kingdom_two_species'][[kingdom]] ||= {}
       groups_to_counts['one_kingdom_two_species'][[kingdom]][agreement] ||= 0
