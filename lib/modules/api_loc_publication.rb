@@ -1925,18 +1925,23 @@ class BScript
     end
     
     # Classify each of the groups into the different categories where possible
-    groups_to_counts = {}
+    groups_to_counts = {} # store the analyses for each data point
+    background_data = {} # store the data each time so that after it is done we have a list of genes and localisations that were used in each case 
     data.each do |group, data2|
       $stderr.puts
       $stderr.puts '============================'
       classify_eukaryotic_conservation_of_single_orthomcl_group_random_two(
                                                                 data2['kingdom_orthomcls'],
       data2['orthomcl_locs'],
-      groups_to_counts
+      groups_to_counts,
+      background_data
       )
     end
-
+    
+    backgrounds = eukaryote_localisation_backgrounds(background_data)
+    
     pp groups_to_counts
+    pp backgrounds
 
     groups_to_counts.each do |analysis, results|
     results.to_a.sort{|a,b| a[0].length<=>b[0].length}.each do |king_array, agrees|
@@ -2079,7 +2084,7 @@ class BScript
   # This should make things more comparable between single lineages
   # and 2 lineages because the same number of genes are
   # being considered.
-  def classify_eukaryotic_conservation_of_single_orthomcl_group_random_two(kingdom_orthomcls, orthomcl_locs, groups_to_counts, debug = true)
+  def classify_eukaryotic_conservation_of_single_orthomcl_group_random_two(kingdom_orthomcls, orthomcl_locs, groups_to_counts, background_data, debug = true)
     $stderr.print 'kingdom_orthomcls: ' if debug
     $stderr.puts kingdom_orthomcls.inspect if debug
     $stderr.print 'orthomcl_locs: ' if debug
@@ -2132,10 +2137,19 @@ class BScript
 
       # Record the agreement
       $stderr.puts "One species: #{species}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
-      groups_to_counts['one_species_paralogues'] ||= {}
-      groups_to_counts['one_species_paralogues'][[species]] ||= {}
-      groups_to_counts['one_species_paralogues'][[species]][agreement] ||= 0
-      groups_to_counts['one_species_paralogues'][[species]][agreement] += 1
+      analysis = 'one_species_paralogues'
+      groups_to_counts[analysis] ||= {}
+      groups_to_counts[analysis][[species]] ||= {}
+      groups_to_counts[analysis][[species]][agreement] ||= 0
+      groups_to_counts[analysis][[species]][agreement] += 1
+      
+      # Record the background
+      # hash of analysis => species => genes => localisations
+      # hash of analysis => species => array of [gene, localisations]
+      background_data[analysis] ||= {}
+      background_data[analysis][species] ||= []
+      background_data[analysis][species].push [rand1,locs1]
+      background_data[analysis][species].push [rand2,locs2]
     end
 
     # compare probable orthologues from 2 similar species
@@ -2165,10 +2179,18 @@ class BScript
 
       # Record the agreement
       $stderr.puts "one_kingdom_two_species: #{species}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
-      groups_to_counts['one_kingdom_two_species'] ||= {}
-      groups_to_counts['one_kingdom_two_species'][[kingdom]] ||= {}
-      groups_to_counts['one_kingdom_two_species'][[kingdom]][agreement] ||= 0
-      groups_to_counts['one_kingdom_two_species'][[kingdom]][agreement] += 1
+      analysis = 'one_kingdom_two_species'
+      groups_to_counts[analysis] ||= {}
+      groups_to_counts[analysis][[kingdom]] ||= {}
+      groups_to_counts[analysis][[kingdom]][agreement] ||= 0
+      groups_to_counts[analysis][[kingdom]][agreement] += 1
+      
+      # Record the background
+      # hash of analysis => kingdom => array of [species, gene, localisation]
+      background_data[analysis] ||= {}
+      background_data[analysis][kingdom] ||= []
+      background_data[analysis][kingdom].push [species1,rand1,locs1]
+      background_data[analysis][kingdom].push [species2,rand2,locs2]
     end
     
     # within the one kingdom, do they agree?
@@ -2193,10 +2215,18 @@ class BScript
       agreement = OntologyComparison.new.agreement_of_pair(locs1,locs2)
       index = [kingdom]
       $stderr.puts "One kingdom: #{index.inspect}, #{agreement}, #{rand1}(#{locs1.join(',')}) vs. #{rand2}(#{locs2.join(',')})" if debug
-      groups_to_counts['one_kingdom_all_species'] ||= {}
-      groups_to_counts['one_kingdom_all_species'][index] ||= {}
-      groups_to_counts['one_kingdom_all_species'][index][agreement] ||= 0
-      groups_to_counts['one_kingdom_all_species'][index][agreement] += 1
+      analysis = 'one_kingdom_all_species'
+      groups_to_counts[analysis] ||= {}
+      groups_to_counts[analysis][index] ||= {}
+      groups_to_counts[analysis][index][agreement] ||= 0
+      groups_to_counts[analysis][index][agreement] += 1
+      
+      # Record the background
+      # hash of analysis => kingdom => array of [gene, localisation]
+      background_data[analysis] ||= {}
+      background_data[analysis][kingdom] ||= []
+      background_data[analysis][kingdom].push [rand1,locs1]
+      background_data[analysis][kingdom].push [rand2,locs2]
     end
     
     # within two kingdoms, do they agree?
@@ -2224,11 +2254,170 @@ class BScript
       
       index = [kingdom1, kingdom2].sort
       $stderr.puts "Two kingdoms: #{index.inspect}, #{agreement}, #{random_ogene_1}(#{locs1.join(',')}) vs. #{random_ogene_2}(#{locs2.join(',')})" if debug
-      groups_to_counts['two_kingdom_two_species'] ||= {}
-      groups_to_counts['two_kingdom_two_species'][index] ||= {}
-      groups_to_counts['two_kingdom_two_species'][index][agreement] ||= 0
-      groups_to_counts['two_kingdom_two_species'][index][agreement] += 1
+      analysis = 'two_kingdom_two_species'
+      groups_to_counts[analysis] ||= {}
+      groups_to_counts[analysis][index] ||= {}
+      groups_to_counts[analysis][index][agreement] ||= 0
+      groups_to_counts[analysis][index][agreement] += 1
+      
+      # Record the background
+      # hash of analysis => [kingdom1,kingdom2] (sorted) => array of [kingdom,gene,localisations] 
+      background_data[analysis] ||= {}
+      background_data[analysis][index] ||= []
+      background_data[analysis][index].push [kingdom1,random_ogene_1,locs1]
+      background_data[analysis][index].push [kingdom2,random_ogene_2,locs2]
     end
+  end
+  
+  def eukaryote_localisation_backgrounds(background_genes, permutations = 10)
+    returned_backgrounds = {}
+    
+    analysis = 'one_species_paralogues'
+    # hash of analysis => species => array of [gene, localisations]
+    $stderr.puts
+    $stderr.puts
+    $stderr.print '============================================= '
+    $stderr.puts analysis
+    $stderr.puts '============================================= '
+    # For each species, randomly choose 2 genes with replacement, and work out the number
+    # that are agreeing, disagreeing, etc.
+    background_genes[analysis].each do |species, gene_loc_hash|
+      count = 0
+      $stderr.puts '----------------------------------------------------------'
+      $stderr.puts [analysis, species].join("\t")
+      while count < permutations
+        # choose 2 random genes
+        rand1 = gene_loc_hash[rand(gene_loc_hash.size)]
+        rand2 = gene_loc_hash[rand(gene_loc_hash.size)]
+        
+        # try again if the same gene gets chosen
+        if rand1==rand2
+          $stderr.puts "background: #{analysis}: Skipping #{rand1.flatten.join(',')} and #{rand1.flatten.join(',')} becasue they are the same"
+          next
+        end
+        
+        # computer whether they agree
+        agreement = OntologyComparison.new.agreement_of_pair(rand1[2],rand2[2])
+        $stderr.puts "background: #{analysis}: Got #{agreement} Comparing #{rand1.inspect} and #{rand2.inspect}"
+        
+        # add it to the tally, increment the tally
+        returned_backgrounds[analysis] ||= {}
+        returned_backgrounds[analysis][species] ||= {}
+        returned_backgrounds[analysis][species][agreement] ||= 0
+        returned_backgrounds[analysis][species][agreement] += 1
+        count += 1
+      end
+    end
+    
+    analysis = 'one_kingdom_two_species'
+    # hash of analysis => kingdom => array of [species, gene, localisation]
+    $stderr.puts
+    $stderr.puts
+    $stderr.print '============================================= '
+    $stderr.puts analysis
+    $stderr.puts '============================================= '
+    background_genes[analysis].each do |kingdom, species_gene_localisation|
+      $stderr.puts '----------------------------------------------------------'
+      $stderr.puts [analysis, kingdom].join("\t")
+      
+      count = 0
+      while count < permutations     
+        # Choose 2 arrays at random
+        rand1 = species_gene_localisation[rand(species_gene_localisation.size)]
+        rand2 = species_gene_localisation[rand(species_gene_localisation.size)]
+        
+        # skip if the 2 genes are from the same species
+        if rand1[0] == rand2[0]
+          $stderr.puts "background: #{analysis}: Skipping #{rand1.flatten.join(',')} and #{rand1.flatten.join(',')} becasue they are the same"
+          next
+        end
+        
+        # computer whether they agree
+        agreement = OntologyComparison.new.agreement_of_pair(rand1[1],rand2[1])
+        $stderr.puts "background: #{analysis}: Got #{agreement} Comparing #{rand1.inspect} and #{rand2.inspect}"
+        
+        # add it to the tally, increment the tally 
+        returned_backgrounds[analysis] ||= {}
+        returned_backgrounds[analysis][kingdom] ||= {}
+        returned_backgrounds[analysis][kingdom][agreement] ||= 0
+        returned_backgrounds[analysis][kingdom][agreement] += 1
+        count += 1
+      end
+    end
+    
+    
+    analysis = 'one_kingdom_all_species'
+    # hash of analysis => kingdom => array of [gene, localisation]
+    $stderr.puts
+    $stderr.puts
+    $stderr.print '============================================= '
+    $stderr.puts analysis
+    $stderr.puts '============================================= '
+    background_genes[analysis].each do |kingdom, species_gene_localisation|
+      $stderr.puts '----------------------------------------------------------'
+      $stderr.puts [analysis, kingdom].join("\t")
+      
+      count = 0
+      while count < permutations
+        # Choose 2 arrays at random
+        rand1 = species_gene_localisation[rand(species_gene_localisation.size)]
+        rand2 = species_gene_localisation[rand(species_gene_localisation.size)]
+        
+        # compute whether they agree
+        agreement = OntologyComparison.new.agreement_of_pair(rand1[1],rand2[1])
+        $stderr.puts "background: #{analysis}: Got #{agreement} Comparing #{rand1.inspect} and #{rand2.inspect}"
+        
+        # add it to the tally, increment the tally 
+        returned_backgrounds[analysis] ||= {}
+        returned_backgrounds[analysis][kingdom] ||= {}
+        returned_backgrounds[analysis][kingdom][agreement] ||= 0
+        returned_backgrounds[analysis][kingdom][agreement] += 1
+        count += 1
+      end
+    end
+    
+    
+    
+    analysis = 'two_kingdom_two_species'
+    # hash of analysis => [kingdom1,kingdom2] (sorted) => array of [kingdom,gene,localisations] 
+    $stderr.puts
+    $stderr.puts
+    $stderr.print '============================================= '
+    $stderr.puts analysis
+    $stderr.puts '============================================= '
+    background_genes[analysis].each do |kingdoms, kingdom_gene_localisation|
+      $stderr.puts '----------------------------------------------------------'
+      $stderr.puts [analysis, kingdoms.join(', ')].join("\t")
+      
+      count = 0
+      while count < permutations
+        # choose 2 entries at random
+        rand1 = kingdom_gene_localisation[rand(kingdom_gene_localisation.size)]
+        rand2 = kingdom_gene_localisation[rand(kingdom_gene_localisation.size)]
+        
+        # skip if the two genes are from the same kingdom (this is a bit inefficient - I expect it to find the same kingdom 50% of the time)
+        if rand1[0]==rand2[0]
+          $stderr.puts "background: #{analysis}: Skipping #{rand1.flatten.join(',')} and #{rand1.flatten.join(',')} becasue they are the same"
+          next
+        end
+
+        # compute whether they agree
+        agreement = OntologyComparison.new.agreement_of_pair(rand1[2],rand2[2])
+        $stderr.puts "background: #{analysis}: Got #{agreement} Comparing #{rand1.inspect} and #{rand2.inspect}"
+        
+        # add it to the tally
+        returned_backgrounds[analysis] ||= {}
+        returned_backgrounds[analysis][kingdoms] ||= {}
+        returned_backgrounds[analysis][kingdoms][agreement] ||= 0
+        returned_backgrounds[analysis][kingdoms][agreement] += 1
+        
+        count += 1
+      end
+    end
+    
+    
+    
+    return returned_backgrounds
   end
   
   # Using the assumption that the yeast-mouse, yeast-human and falciparum-toxo divergences are approximately 
@@ -3101,6 +3290,7 @@ class BScript
   # upload the IDA annotations from geneontology.org from there
   def tbrucei_amigo_gene_associations_to_database
     require 'gene_association'
+    raise Exception, "Software bug: doesn't account for negative terms (if there even is any?). Anyway, fix it."
     failed_to_find_id_count = 0
     failed_to_find_go_term_count = 0
     ida_annotation_count = 0
