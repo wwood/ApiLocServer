@@ -1941,26 +1941,36 @@ class BScript
     backgrounds = eukaryote_localisation_backgrounds(background_data)
     
     pp groups_to_counts
+    puts "BACKGROUNDS=================="
     pp backgrounds
 
-    groups_to_counts.each do |analysis, results|
-    results.to_a.sort{|a,b| a[0].length<=>b[0].length}.each do |king_array, agrees|
-      yes = agrees[OntologyComparison::COMPLETE_AGREEMENT]
-      no = agrees[OntologyComparison::DISAGREEMENT]
-      maybe = agrees[OntologyComparison::INCOMPLETE_AGREEMENT]
-      yes ||= 0; no||= 0; maybe ||= 0;
-      total = (yes+no+maybe).to_f
-      puts [
-      analysis,
-      king_array.join(','),
-      yes, no, maybe,
-      agrees[OntologyComparison::UNKNOWN_AGREEMENT],
-      ((yes.to_f/total)*100).round,
-      ((no.to_f/total)*100).round,
-      ((maybe.to_f/total)*100).round,
-      ].join("\t")
+    # A generalised printing outputs structure
+    printer = lambda do |structure|
+      structure.each do |analysis, results|
+        results.to_a.sort{|a,b| a[0].length<=>b[0].length}.each do |king_array, agrees|
+          yes = agrees[OntologyComparison::COMPLETE_AGREEMENT]
+          no = agrees[OntologyComparison::DISAGREEMENT]
+          maybe = agrees[OntologyComparison::INCOMPLETE_AGREEMENT]
+          yes ||= 0; no||= 0; maybe ||= 0;
+          total = (yes+no+maybe).to_f
+          
+          puts [
+            analysis,
+            king_array.kind_of?(String) ? king_array : king_array.join(','),
+            yes, no, maybe,
+            agrees[OntologyComparison::UNKNOWN_AGREEMENT],
+            ((yes.to_f/total)*100).round,
+            ((no.to_f/total)*100).round,
+            ((maybe.to_f/total)*100).round,
+          ].join("\t")
+        end
+      end
     end
-    end
+    
+    puts "RESULTS =================="
+    printer.call groups_to_counts
+    puts "BACKGROUNDS=================="
+    printer.call backgrounds
   end
   
   # This is a modularisation of conservation_of_eukaryotic_sub_cellular_localisation,
@@ -2269,7 +2279,7 @@ class BScript
     end
   end
   
-  def eukaryote_localisation_backgrounds(background_genes, permutations = 10)
+  def eukaryote_localisation_backgrounds(background_genes, permutations = 10000)
     returned_backgrounds = {}
     
     analysis = 'one_species_paralogues'
@@ -2292,12 +2302,12 @@ class BScript
         
         # try again if the same gene gets chosen
         if rand1==rand2
-          $stderr.puts "background: #{analysis}: Skipping #{rand1.flatten.join(',')} and #{rand1.flatten.join(',')} becasue they are the same"
+          $stderr.puts "background: #{analysis}: Skipping #{rand1.inspect} and #{rand2.inspect} because they are the same"
           next
         end
         
         # computer whether they agree
-        agreement = OntologyComparison.new.agreement_of_pair(rand1[2],rand2[2])
+        agreement = OntologyComparison.new.agreement_of_pair(rand1[1],rand2[1])
         $stderr.puts "background: #{analysis}: Got #{agreement} Comparing #{rand1.inspect} and #{rand2.inspect}"
         
         # add it to the tally, increment the tally
@@ -2328,12 +2338,12 @@ class BScript
         
         # skip if the 2 genes are from the same species
         if rand1[0] == rand2[0]
-          $stderr.puts "background: #{analysis}: Skipping #{rand1.flatten.join(',')} and #{rand1.flatten.join(',')} becasue they are the same"
+          $stderr.puts "background: #{analysis}: Skipping #{rand1.inspect} and #{rand2.inspect} because they are the same"
           next
         end
         
         # computer whether they agree
-        agreement = OntologyComparison.new.agreement_of_pair(rand1[1],rand2[1])
+        agreement = OntologyComparison.new.agreement_of_pair(rand1[2],rand2[2])
         $stderr.puts "background: #{analysis}: Got #{agreement} Comparing #{rand1.inspect} and #{rand2.inspect}"
         
         # add it to the tally, increment the tally 
@@ -2397,7 +2407,7 @@ class BScript
         
         # skip if the two genes are from the same kingdom (this is a bit inefficient - I expect it to find the same kingdom 50% of the time)
         if rand1[0]==rand2[0]
-          $stderr.puts "background: #{analysis}: Skipping #{rand1.flatten.join(',')} and #{rand1.flatten.join(',')} becasue they are the same"
+          $stderr.puts "background: #{analysis}: Skipping #{rand1.inspect} and #{rand2.inspect} because they are the same"
           next
         end
 
