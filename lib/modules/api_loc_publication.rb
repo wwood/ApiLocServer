@@ -3344,21 +3344,43 @@ class BScript
     # The order is important in that similar species should group together. 
     # This makes downstream visualisation easier.
     specees = [
-      Species::ARABIDOPSIS_NAME,
-      Species::HUMAN_NAME,
-      Species::MOUSE_NAME,
-      Species::RAT_NAME,
-      Species::DANIO_RERIO_NAME,
-      Species::DROSOPHILA_NAME,
-      Species::ELEGANS_NAME,
-      Species::YEAST_NAME,
-      Species::POMBE_NAME,
-      Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
-      Species::TRYPANOSOMA_BRUCEI_NAME,
+      # Species::ARABIDOPSIS_NAME,
+      # Species::HUMAN_NAME,
+      # Species::MOUSE_NAME,
+      # Species::RAT_NAME,
+      # Species::DANIO_RERIO_NAME,
+      # Species::DROSOPHILA_NAME,
+      # Species::ELEGANS_NAME,
+      # Species::YEAST_NAME,
+      # Species::POMBE_NAME,
+      # Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
       
       Species::PLASMODIUM_FALCIPARUM_NAME,
       Species::TOXOPLASMA_GONDII_NAME,
     ]
+    
+    # Print headings
+    background_agreement = "background #{OntologyComparison::COMPLETE_AGREEMENT}"
+    background_disagreement = "background #{OntologyComparison::DISAGREEMENT}"
+    background_incomplete_agreement = "background #{OntologyComparison::INCOMPLETE_AGREEMENT}"
+    agree_to_background = {
+      OntologyComparison::COMPLETE_AGREEMENT => background_agreement,
+      OntologyComparison::DISAGREEMENT => background_disagreement,
+      OntologyComparison::INCOMPLETE_AGREEMENT => background_incomplete_agreement,
+    }
+    agreements = [
+      OntologyComparison::COMPLETE_AGREEMENT,
+      OntologyComparison::INCOMPLETE_AGREEMENT,
+      OntologyComparison::DISAGREEMENT,
+      background_agreement,
+      background_disagreement,
+      background_incomplete_agreement,
+    ]
+    headings = ['Species1','Species2', 'location']
+    agreements.each do |a|
+      headings.push a
+    end
+    puts headings.join("\t")
     
     # for each pair
     specees.pairs.each do |pair|
@@ -3370,15 +3392,17 @@ class BScript
       orth1 = Species::ORTHOMCL_FOUR_LETTERS[p1]
       orth2 = Species::ORTHOMCL_FOUR_LETTERS[p2]
       $stderr.puts "Groups of #{orth1}"
-      groups1 = OrthomclGroup.all(
-        :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
-        :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth1}%"]
-      )
-      $stderr.puts "Groups of #{orth2}"
-      groups2 = OrthomclGroup.all(
-        :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
-        :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth2}%"]
-      )
+      groups1 = [OrthomclGroup.find_by_orthomcl_name('OG4_25260'),OrthomclGroup.find_by_orthomcl_name('OG4_13747')]
+      groups2 = groups1
+      # groups1 = OrthomclGroup.all(
+        # :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+        # :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth1}%"]
+      # )
+      # $stderr.puts "Groups of #{orth2}"
+      # groups2 = OrthomclGroup.all(
+        # :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+        # :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth2}%"]
+      # )
 
       # convert it all to a big useful hash, partly for historical reasons
       dat = {}
@@ -3418,6 +3442,8 @@ class BScript
       
       # for each of the orthomcl groups
       tally = {}
+      chosen_ones_species1 = [] # hash of genes to localisations used for estimating the background of each of these localisations
+      chosen_ones_species2 = [] # hash of genes to localisations used for estimating the background of each of these localisations
       dat.each do |group, other|
         raise Exception, "Found unexpected number of species in hash group => #{other.inspect}" unless other.keys.length == 2
         
@@ -3430,6 +3456,10 @@ class BScript
         g2 = {rand2[0] => rand2[1]}
         locs1 = g1.values.flatten.uniq
         locs2 = g2.values.flatten.uniq
+        
+        # Add the 2 chosen genes to the list of the chosen genes
+        chosen_ones_species1.push g1
+        chosen_ones_species2.push g2
                 
         # work out whether the two genes are conserved in their localisation
         agree = OntologyComparison.new.agreement_of_pair(locs1,locs2,options)
@@ -3448,22 +3478,49 @@ class BScript
         tally['total'][agree] ||= 0
         tally['total'][agree] += 1
       end
-      #puts "From #{p1} and #{p2},"
+      
+      # Compute the background agree/disagree/complex for each of the localisations
+      count = 0
+      while count < 10000
+        # Pick 2 genes at random
+        g1 = chosen_ones_species1[rand(chosen_ones_species1.size)]
+        g2 = chosen_ones_species2[rand(chosen_ones_species2.size)]
+        
+        # No reason to skip any of them, because they will always be from different species
+        
+        # compare localisations
+        agreement = OntologyComparison.new.agreement_of_pair(g1.values[0],g2.values[0],options)
+        agree = agree_to_background[agreement]
+        
+        # add to the tally.
+        $stderr.puts "background: chose #{g1.inspect} from #{p1} and #{g2.inspect} from #{p2}. Agreement: #{agree}" 
+        [g1.values, g2.values].flatten.uniq.each do |org|
+          tally[org] ||= {}
+          tally[org][agree] ||= 0
+          tally[org][agree] += 1
+        end
+        #tally the total over all the species. This likely doesn't make much conceptual sense.
+        tally['total']  ||= {}
+        tally['total'][agree] ||= 0
+        tally['total'][agree] += 1
+        
+        count += 1 #another one bites the dust
+      end 
+      
+      # Output the result
       locations = [OntologyComparison::RECOGNIZED_LOCATIONS,'total'].flatten.uniq
       locations.each do |loc|
+        array = [p1,p2,loc]
         if tally[loc]
-          puts [
-            p1,p2,loc,
-            tally[loc][OntologyComparison::COMPLETE_AGREEMENT],
-            tally[loc][OntologyComparison::INCOMPLETE_AGREEMENT],
-            tally[loc][OntologyComparison::DISAGREEMENT],
-          ].join("\t")
+          agreements.each do |agro|
+            array.push tally[loc][agro]
+          end
         else
-          puts [
-            p1,p2,loc,
-            0,0,0
-          ].join("\t")
+          agreements.each do
+            array.push 0
+          end
         end
+        puts array.join("\t")
       end
     end
      
