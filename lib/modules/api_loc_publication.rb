@@ -3392,17 +3392,19 @@ class BScript
       orth1 = Species::ORTHOMCL_FOUR_LETTERS[p1]
       orth2 = Species::ORTHOMCL_FOUR_LETTERS[p2]
       $stderr.puts "Groups of #{orth1}"
-      groups1 = [OrthomclGroup.find_by_orthomcl_name('OG4_25260'),OrthomclGroup.find_by_orthomcl_name('OG4_13747')]
-      groups2 = groups1
-      # groups1 = OrthomclGroup.all(
-        # :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
-        # :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth1}%"]
-      # )
-      # $stderr.puts "Groups of #{orth2}"
-      # groups2 = OrthomclGroup.all(
-        # :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
-        # :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth2}%"]
-      # )
+      # DEBUG:
+      # groups1 = [OrthomclGroup.find_by_orthomcl_name('OG4_25260'),OrthomclGroup.find_by_orthomcl_name('OG4_13747')]
+      # groups2 = groups1
+      # REAL THING:
+      groups1 = OrthomclGroup.all(
+        :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+        :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth1}%"]
+      )
+      $stderr.puts "Groups of #{orth2}"
+      groups2 = OrthomclGroup.all(
+        :joins => {:orthomcl_genes => {:coding_regions => :coding_region_compartment_caches}},
+        :conditions => ["orthomcl_genes.orthomcl_name like ?","#{orth2}%"]
+      )
 
       # convert it all to a big useful hash, partly for historical reasons
       dat = {}
