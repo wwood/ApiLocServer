@@ -3344,16 +3344,16 @@ class BScript
     # The order is important in that similar species should group together. 
     # This makes downstream visualisation easier.
     specees = [
-      # Species::ARABIDOPSIS_NAME,
-      # Species::HUMAN_NAME,
-      # Species::MOUSE_NAME,
-      # Species::RAT_NAME,
-      # Species::DANIO_RERIO_NAME,
-      # Species::DROSOPHILA_NAME,
-      # Species::ELEGANS_NAME,
-      # Species::YEAST_NAME,
-      # Species::POMBE_NAME,
-      # Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
+      Species::ARABIDOPSIS_NAME,
+      Species::HUMAN_NAME,
+      Species::MOUSE_NAME,
+      Species::RAT_NAME,
+      Species::DANIO_RERIO_NAME,
+      Species::DROSOPHILA_NAME,
+      Species::ELEGANS_NAME,
+      Species::YEAST_NAME,
+      Species::POMBE_NAME,
+      Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
       
       Species::PLASMODIUM_FALCIPARUM_NAME,
       Species::TOXOPLASMA_GONDII_NAME,
