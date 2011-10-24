@@ -60,22 +60,9 @@ Rails::Initializer.run do |config|
   # config.active_record.default_timezone = :utc
   
   # Gem dependencies
-  config.gem "wwood-reach", :lib => 'reach'
-  # Commented out so I can it on reefedge
-  #config.gem "wwood-rsruby", :source => "http://gems.github.com", :lib => 'rsruby' 
-  config.gem "fastercsv"
-  config.gem 'wwood-rarff', :lib => 'rarff'
-#  config.gem 'wwood-bioruby', :source => "http://gems.github.com", :lib => 'bio'
-  config.gem 'peach'
-  config.gem 'rio'
-  #config.gem 'narray' # only required as a dependency to romanbsd-gsl, and because the :sources flag doesn't work properly IMO. See https://rails.lighthouseapp.com/projects/8994/tickets/1891-configgem-with-multiple-sources
-  #config.gem 'romanbsd-gsl', :lib => 'gsl', :source => 'http://gems.github.com' # the original author doesn't offer a gem - I don't really need the other changes in romanbsd's github
-  #config.gem "foreigner", :lib => 'foreigner'
-  config.gem 'array_pair'
-  config.gem 'goruby', :lib => 'go'
-  config.gem 'progressbar'
-  config.gem 'reubypathdb', :version => '>=0.3.0' #eupathdb_species_data.rb was introduced in 0.3.0
-  config.gem 'bio-tm_hmm'
+  %w(reach rarff go fastercsv peach rio array_pair progressbar reubypathdb bio-tm_hmm).each do |i|
+    require i
+  end
   
   # include a cache sweeper directory that fits into the app/ scheme, as suggested by
   # http://railsenvy.com/2007/2/28/rails-caching-tutorial#sweepers
