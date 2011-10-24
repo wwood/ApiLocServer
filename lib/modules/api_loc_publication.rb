@@ -57,45 +57,39 @@ class BScript
   
   def species_localisation_breakdown
     require 'localisation_umbrella_mappings'
-    top_names = ApiLocUmbrellaLocalisationMappings::APILOC_UMBRELLA_LOCALISATION_MAPPINGS.keys
+    top_names = ApiLocUmbrellaLocalisationMappings::APILOC_UMBRELLA_LOCALISATION_MAPPINGS.keys.reject{|a| a=='other'}
     
     interests = [
       'Plasmodium falciparum',
       'Toxoplasma gondii',
       'Plasmodium berghei',
-      'Cryptosporidium parvum'
+      'Cryptosporidium parvum',
+      Species::DICTYOSTELIUM_DISCOIDEUM_NAME,
     ]
     puts [nil].push(interests).flatten.join("\t")
     
+    updates = {
+      'exported' => 'host cell',
+      'apical' => 'apical complex',
+      'cytoplasm' => 'cytosol',
+      'apicoplast' => 'plastid',
+      'golgi apparatus' => 'Golgi apparatus',
+      'food vacuole' => 'lysosome',
+      'parasite plasma membrane' => 'plasma membrane',
+      'parasitophorous vacuole' => 'symbiont-containing vacuole', #this is a synonym, though I'm not totally sure I agree with it.
+    }
+    
     top_names.each do |top_name|
-      top = TopLevelLocalisation.find_by_name(top_name)
       print top_name
+      top_name = updates[top_name] unless updates[top_name].nil? 
       
-      interests.each do |name|
-        s = Species.find_by_name(name)
-        
-        if top.name == 'other'
-          count = 0
-          CodingRegion.all(
-            :select => 'distinct(coding_regions.id)',
-            :joins => {:expression_contexts => {:localisation => :apiloc_top_level_localisation}},
-            :conditions => ['top_level_localisation_id = ? and species_id = ?', top.id, s.id]
-          ).each do |code|
-            tops = code.expressed_localisations.reach.apiloc_top_level_localisation.flatten
-            if tops.length == 1
-              raise unless tops[0].name == 'other'
-              count += 1
-            end
-          end
-          print "\t#{count}"
-        else
-          count = CodingRegion.count(
-            :select => 'distinct(coding_regions.id)',
-            :joins => {:expression_contexts => {:localisation => :apiloc_top_level_localisation}},
-            :conditions => ['top_level_localisation_id = ? and species_id = ?', top.id, s.id]
-          )
-          print "\t#{count}"
-        end
+      interests.each do |species_name|
+        count = CodingRegion.s(species_name).count(
+          :select => 'distinct(coding_regions.id)',
+          :joins => :coding_region_compartment_caches,
+          :conditions => ['coding_region_compartment_caches.compartment = ?', top_name]
+        )
+        print "\t#{count}"
       end
       
       puts
