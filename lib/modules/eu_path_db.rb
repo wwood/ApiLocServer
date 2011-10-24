@@ -316,6 +316,8 @@ class BScript
     )
     
     LocalisationSpreadsheet.new.upload
+    ApilocLocalisationTopLevelLocalisation.new.check_for_unclassified
+    DevelopmentalStageTopLevelDevelopmentalStage.new.check_for_unclassified
   end
   
   def upload_apiloc_gffs
