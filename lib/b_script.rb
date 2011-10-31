@@ -41,6 +41,7 @@ require 'modules/hydrophobic_mysteries'
 require 'modules/microarray'
 require 'modules/malaria_parasite_metabolic_pathways.rb'
 require 'modules/nucleolus'
+require 'modules/plasmarithm'
 require 'b_script2'
 
 
