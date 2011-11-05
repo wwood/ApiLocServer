@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 
-require 'transmembrane'
-include Transmembrane
+require 'rubygems'
+require 'bio-tm_hmm'
+include Bio::Transmembrane
 require 'tempfile'
 require 'rubygems'
-gem 'rio'
 require 'rio'
 
 class PhobiusWrapper
