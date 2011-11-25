@@ -1,0 +1,15 @@
+# ApiLocServer
+
+Hi there. This is the code behind the [ApiLoc web interface](http://apiloc.biochem.unimelb.edu.au). However, it also contains a lot of code that is either dead or unrelated as it was also used extensively during my (Ben's) PhD studies, so it is quite a beast and therefore probably of almost negative usefulness to anyone else. Still, I thought I should release it, at least with a big warning such as this.
+
+Currently, the code is based on Ruby on Rails version 2 (i.e. an out of date but still supported version), and has only been used with Ruby 1.8.7 (also out of date but still suppported).
+
+## Setting up the server
+This probably won't work for anyone except myself (at least) because of the hard-coded paths to particular data files. In particular, it assumes the directory $HOME/phd/data is filled in the correct manner. To upload everything into the database from scratch, this is the basic idea, after all the dependencies are installed.
+
+    ApiLocServer$ bundle install
+    ApiLocServer$ rake db:setup
+    ApiLocServer$ script/runner BScript.new.upload_apiloc_from_scratch
+
+That last command will generate quite a lot of output if it works, so I'd recommend piping both the STDERR and STDOUT to a file.
+
