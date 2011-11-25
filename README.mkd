@@ -13,3 +13,6 @@ This probably won't work for anyone except myself (at least) because of the hard
 
 That last command will generate quite a lot of output if it works, so I'd recommend piping both the STDERR and STDOUT to a file.
 
+## The data
+
+The data behind ApiLoc is stored separately at http://github.com/wwood/ApiLoc for bleeding edge, or can be downloaded from the [ApiLoc website](http://apiloc.biochem.unimelb.edu.au) itself.
