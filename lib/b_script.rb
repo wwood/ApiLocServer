@@ -42,6 +42,7 @@ require 'modules/microarray'
 require 'modules/malaria_parasite_metabolic_pathways.rb'
 require 'modules/nucleolus'
 require 'modules/plasmarithm'
+require 'modules/localisation_review'
 require 'b_script2'
 
 
