@@ -100,6 +100,6 @@ class CodingRegion < ActiveRecord::Base
   end
   
   def apiloc_url
-    "http://apiloc.bio21.unimelb.edu.au/apiloc/apiloc/gene/#{species.name}/#{string_id}"
+    "http://apiloc.biochem.unimelb.edu.au/apiloc/apiloc/gene/#{species.name}/#{string_id}"
   end
 end
