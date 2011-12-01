@@ -545,7 +545,7 @@ class BScript
   
   def eupathdb_links
     puts ["Species", "ID","URL"].join("\t")
-    CodingRegion.all(:joins => :expression_contexts, :select => 'distinct(coding_regions.*)').each do |code|
+    CodingRegion.all(:joins => :expressed_localisations, :select => 'distinct(coding_regions.*)').each do |code|
       puts [code.species.name, code.string_id, code.apiloc_url].join("\t")
     end
   end
